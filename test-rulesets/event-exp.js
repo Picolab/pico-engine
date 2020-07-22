@@ -251,13 +251,13 @@ module.exports = {
       };
     })), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "count_max" });
-      var m2 = $state.setting["m"];
+      var m3 = $state.setting["m"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "count_max",
-          { "m": m2 }
+          { "m": m3 }
         ]);
       }
       if ($fired)
@@ -288,13 +288,13 @@ module.exports = {
       };
     })), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "repeat_min" });
-      var m2 = $state.setting["m"];
+      var m3 = $state.setting["m"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_min",
-          { "m": m2 }
+          { "m": m3 }
         ]);
       }
       if ($fired)
@@ -325,13 +325,13 @@ module.exports = {
       };
     })), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "repeat_sum" });
-      var m2 = $state.setting["m"];
+      var m3 = $state.setting["m"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_sum",
-          { "m": m2 }
+          { "m": m3 }
         ]);
       }
       if ($fired)
@@ -362,13 +362,13 @@ module.exports = {
       };
     })), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "repeat_avg" });
-      var m2 = $state.setting["m"];
+      var m3 = $state.setting["m"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_avg",
-          { "m": m2 }
+          { "m": m3 }
         ]);
       }
       if ($fired)
@@ -399,13 +399,13 @@ module.exports = {
       };
     })), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "repeat_push" });
-      var m2 = $state.setting["m"];
+      var m3 = $state.setting["m"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_push",
-          { "m": m2 }
+          { "m": m3 }
         ]);
       }
       if ($fired)
@@ -458,20 +458,20 @@ module.exports = {
       };
     })), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "repeat_push_multi" });
-      var a2 = $state.setting["a"];
-      var b2 = $state.setting["b"];
-      var c2 = $state.setting["c"];
-      var d2 = $state.setting["d"];
+      var a3 = $state.setting["a"];
+      var b3 = $state.setting["b"];
+      var c3 = $state.setting["c"];
+      var d3 = $state.setting["d"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_push_multi",
           {
-            "a": a2,
-            "b": b2,
-            "c": c2,
-            "d": d2
+            "a": a3,
+            "b": b3,
+            "c": c3,
+            "d": d3
           }
         ]);
       }
@@ -517,16 +517,16 @@ module.exports = {
       };
     })), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "repeat_sum_multi" });
-      var a2 = $state.setting["a"];
-      var b2 = $state.setting["b"];
+      var a3 = $state.setting["a"];
+      var b3 = $state.setting["b"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_sum_multi",
           {
-            "a": a2,
-            "b": b2
+            "a": a3,
+            "b": b3
           }
         ]);
       }

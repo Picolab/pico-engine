@@ -28,13 +28,13 @@ module.exports = {
     const send_directive1 = $stdlib["send_directive"];
     await $ctx.useModule("io.picolabs.module-defined", "my_module_dflt");
     await $ctx.useModule("io.picolabs.module-defined", "my_module_conf", { "configured_name": "Jim" });
-    const now1 = $ctx.krl.Function([], async function () {
+    const now2 = $ctx.krl.Function([], async function () {
       return await $ctx.krl.assertFunction($ctx.module("time")["now"])($ctx, []);
     });
-    const getEntVal1 = $ctx.krl.Function([], async function () {
+    const getEntVal2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("val");
     });
-    const dfltName1 = await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []);
+    const dfltName2 = await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []);
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("module_used:dflt_name"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "dflt_name" });
@@ -96,25 +96,25 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "dflt_getInfoAction" });
       var $fired = true;
       if ($fired) {
-        var info2 = await $ctx.krl.assertAction($ctx.module("my_module_dflt")["getInfoAction"])($ctx, []);
+        var info3 = await $ctx.krl.assertAction($ctx.module("my_module_dflt")["getInfoAction"])($ctx, []);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("val", info2);
+      await $ctx.rsCtx.putEnt("val", info3);
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:conf_getInfoAction"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "conf_getInfoAction" });
       var $fired = true;
       if ($fired) {
-        var info2 = await $ctx.krl.assertAction($ctx.module("my_module_conf")["getInfoAction"])($ctx, []);
+        var info3 = await $ctx.krl.assertAction($ctx.module("my_module_conf")["getInfoAction"])($ctx, []);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("val", info2);
+      await $ctx.rsCtx.putEnt("val", info3);
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:sayHelloWithOperator"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "sayHelloWithOperator" });
@@ -152,7 +152,7 @@ module.exports = {
         "now": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return now1($ctx, query.args);
+            return now2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -160,7 +160,7 @@ module.exports = {
         "getEntVal": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getEntVal1($ctx, query.args);
+            return getEntVal2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -168,7 +168,7 @@ module.exports = {
         "dfltName": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return dfltName1;
+            return dfltName2;
           } finally {
             $ctx.setQuery(null);
           }

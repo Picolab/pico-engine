@@ -29,9 +29,9 @@ module.exports = {
     const substr1 = $stdlib["substr"];
     const uc1 = $stdlib["uc"];
     const klog1 = $stdlib["klog"];
-    const nothing1 = void 0;
-    const some_string1 = "foo";
-    const results1 = {
+    const nothing2 = void 0;
+    const some_string2 = "foo";
+    const results2 = {
       "str_as_num": await $ctx.krl.assertFunction(as1)($ctx, [
         "100.25",
         "Number"
@@ -46,12 +46,12 @@ module.exports = {
       ]),
       "isnull": [
         await $ctx.krl.assertFunction(isnull1)($ctx, [1]),
-        await $ctx.krl.assertFunction(isnull1)($ctx, [some_string1]),
-        await $ctx.krl.assertFunction(isnull1)($ctx, [nothing1])
+        await $ctx.krl.assertFunction(isnull1)($ctx, [some_string2]),
+        await $ctx.krl.assertFunction(isnull1)($ctx, [nothing2])
       ],
       "typeof": [
         await $ctx.krl.assertFunction($typeof$1)($ctx, [1]),
-        await $ctx.krl.assertFunction($typeof$1)($ctx, [some_string1]),
+        await $ctx.krl.assertFunction($typeof$1)($ctx, [some_string2]),
         await $ctx.krl.assertFunction($typeof$1)($ctx, ["hi"]),
         await $ctx.krl.assertFunction($typeof$1)($ctx, [[
             1,
@@ -59,7 +59,7 @@ module.exports = {
           ]]),
         await $ctx.krl.assertFunction($typeof$1)($ctx, [{ "a": 1 }]),
         await $ctx.krl.assertFunction($typeof$1)($ctx, [new RegExp("foo", "")]),
-        await $ctx.krl.assertFunction($typeof$1)($ctx, [nothing1]),
+        await $ctx.krl.assertFunction($typeof$1)($ctx, [nothing2]),
         await $ctx.krl.assertFunction($typeof$1)($ctx, [void 0])
       ],
       "75.chr()": await $ctx.krl.assertFunction(chr1)($ctx, [75]),
@@ -120,13 +120,13 @@ module.exports = {
       ]),
       ".uc()": await $ctx.krl.assertFunction(uc1)($ctx, ["Hello World"])
     };
-    const returnMapAfterKlog1 = $ctx.krl.Function([], async function () {
+    const returnMapAfterKlog2 = $ctx.krl.Function([], async function () {
       return await $ctx.krl.assertFunction(klog1)($ctx, [
         { "a": 1 },
         "hi:"
       ]);
     });
-    const returnArrayAfterKlog1 = $ctx.krl.Function([], async function () {
+    const returnArrayAfterKlog2 = $ctx.krl.Function([], async function () {
       return await $ctx.krl.assertFunction(klog1)($ctx, [
         [
           1,
@@ -150,7 +150,7 @@ module.exports = {
         "results": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return results1;
+            return results2;
           } finally {
             $ctx.setQuery(null);
           }
@@ -158,7 +158,7 @@ module.exports = {
         "returnMapAfterKlog": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return returnMapAfterKlog1($ctx, query.args);
+            return returnMapAfterKlog2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -166,7 +166,7 @@ module.exports = {
         "returnArrayAfterKlog": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return returnArrayAfterKlog1($ctx, query.args);
+            return returnArrayAfterKlog2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

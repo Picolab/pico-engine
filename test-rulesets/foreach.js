@@ -9,10 +9,10 @@ module.exports = {
     const send_directive1 = $stdlib["send_directive"];
     const range1 = $stdlib["range"];
     const split1 = $stdlib["split"];
-    const doubleThis1 = $ctx.krl.Function(["arr"], async function (arr2) {
+    const doubleThis2 = $ctx.krl.Function(["arr"], async function (arr3) {
       return [
-        arr2,
-        arr2
+        arr3,
+        arr3
       ];
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
@@ -26,13 +26,13 @@ module.exports = {
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
-        let x2 = $foreach0_pairs[$foreach0_i][1];
+        let x3 = $foreach0_pairs[$foreach0_i][1];
         $ctx.log.debug("rule selected", { "rule_name": "basic" });
         var $fired = true;
         if ($fired) {
           await $ctx.krl.assertAction(send_directive1)($ctx, [
             "basic",
-            { "x": x2 }
+            { "x": x3 }
           ]);
         }
         if ($fired)
@@ -51,16 +51,16 @@ module.exports = {
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
-        let v2 = $foreach0_pairs[$foreach0_i][1];
-        let k2 = $foreach0_pairs[$foreach0_i][0];
+        let v3 = $foreach0_pairs[$foreach0_i][1];
+        let k3 = $foreach0_pairs[$foreach0_i][0];
         $ctx.log.debug("rule selected", { "rule_name": "map" });
         var $fired = true;
         if ($fired) {
           await $ctx.krl.assertAction(send_directive1)($ctx, [
             "map",
             {
-              "k": k2,
-              "v": v2
+              "k": k3,
+              "v": v3
             }
           ]);
         }
@@ -79,7 +79,7 @@ module.exports = {
       let $foreach0_len = $foreach0_pairs.length;
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
-        let x2 = $foreach0_pairs[$foreach0_i][1];
+        let x3 = $foreach0_pairs[$foreach0_i][1];
         let $foreach1_pairs = $ctx.krl.toPairs([
           "a",
           "b",
@@ -89,15 +89,15 @@ module.exports = {
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
-          let y2 = $foreach1_pairs[$foreach1_i][1];
+          let y3 = $foreach1_pairs[$foreach1_i][1];
           $ctx.log.debug("rule selected", { "rule_name": "nested" });
           var $fired = true;
           if ($fired) {
             await $ctx.krl.assertAction(send_directive1)($ctx, [
               "nested",
               {
-                "x": x2,
-                "y": y2
+                "x": x3,
+                "y": y3
               }
             ]);
           }
@@ -109,7 +109,7 @@ module.exports = {
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("foreach:scope"), async function ($event, $state, $last) {
-      let $foreach0_pairs = $ctx.krl.toPairs(await $ctx.krl.assertFunction(doubleThis1)($ctx, [[
+      let $foreach0_pairs = $ctx.krl.toPairs(await $ctx.krl.assertFunction(doubleThis2)($ctx, [[
           1,
           2,
           3
@@ -117,34 +117,34 @@ module.exports = {
       let $foreach0_len = $foreach0_pairs.length;
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
-        let arr2 = $foreach0_pairs[$foreach0_i][1];
-        let $foreach1_pairs = $ctx.krl.toPairs(arr2);
+        let arr3 = $foreach0_pairs[$foreach0_i][1];
+        let $foreach1_pairs = $ctx.krl.toPairs(arr3);
         let $foreach1_len = $foreach1_pairs.length;
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
-          let foo2 = $foreach1_pairs[$foreach1_i][1];
+          let foo3 = $foreach1_pairs[$foreach1_i][1];
           let $foreach2_pairs = $ctx.krl.toPairs(await $ctx.krl.assertFunction(range1)($ctx, [
             0,
-            foo2
+            foo3
           ]));
           let $foreach2_len = $foreach2_pairs.length;
           let $foreach2_i;
           for ($foreach2_i = 0; $foreach2_i < $foreach2_len; $foreach2_i++) {
             let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1 && $foreach2_i === $foreach2_len - 1;
-            let bar2 = $foreach2_pairs[$foreach2_i][1];
+            let bar3 = $foreach2_pairs[$foreach2_i][1];
             $ctx.log.debug("rule selected", { "rule_name": "scope" });
-            const baz2 = await $stdlib["*"]($ctx, [
-              foo2,
-              bar2
+            const baz3 = await $stdlib["*"]($ctx, [
+              foo3,
+              bar3
             ]);
             var $fired = true;
             if ($fired) {
               await $ctx.krl.assertAction(send_directive1)($ctx, [
                 "scope",
                 {
-                  "foo": foo2,
-                  "bar": bar2,
-                  "baz": baz2
+                  "foo": foo3,
+                  "bar": bar3,
+                  "baz": baz3
                 }
               ]);
             }
@@ -167,7 +167,7 @@ module.exports = {
       let $foreach0_len = $foreach0_pairs.length;
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
-        let x2 = $foreach0_pairs[$foreach0_i][1];
+        let x3 = $foreach0_pairs[$foreach0_i][1];
         let $foreach1_pairs = $ctx.krl.toPairs(await $ctx.krl.assertFunction(split1)($ctx, [
           await $stdlib["get"]($ctx, [
             $event.data.attrs,
@@ -179,15 +179,15 @@ module.exports = {
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
-          let y2 = $foreach1_pairs[$foreach1_i][1];
+          let y3 = $foreach1_pairs[$foreach1_i][1];
           $ctx.log.debug("rule selected", { "rule_name": "final" });
           var $fired = true;
           if ($fired) {
             await $ctx.krl.assertAction(send_directive1)($ctx, [
               "final",
               {
-                "x": x2,
-                "y": y2
+                "x": x3,
+                "y": y3
               }
             ]);
           }
@@ -197,8 +197,8 @@ module.exports = {
             $ctx.log.debug("not fired");
           if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
             await $ctx.rsCtx.raiseEvent("foreach", "final_raised", {
-              "x": x2,
-              "y": y2
+              "x": x3,
+              "y": y3
             });
         }
       }
@@ -234,8 +234,8 @@ module.exports = {
       let $foreach0_len = $foreach0_pairs.length;
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
-        let a2 = $foreach0_pairs[$foreach0_i][1];
-        let k2 = $foreach0_pairs[$foreach0_i][0];
+        let a3 = $foreach0_pairs[$foreach0_i][1];
+        let k3 = $foreach0_pairs[$foreach0_i][0];
         let $foreach1_pairs = $ctx.krl.toPairs([
           "one",
           "two",
@@ -245,18 +245,18 @@ module.exports = {
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
-          let b2 = $foreach1_pairs[$foreach1_i][1];
-          let i2 = $foreach1_pairs[$foreach1_i][0];
+          let b3 = $foreach1_pairs[$foreach1_i][1];
+          let i3 = $foreach1_pairs[$foreach1_i][0];
           $ctx.log.debug("rule selected", { "rule_name": "key_vs_index" });
           var $fired = true;
           if ($fired) {
             await $ctx.krl.assertAction(send_directive1)($ctx, [
               "key_vs_index",
               {
-                "a": a2,
-                "k": k2,
-                "b": b2,
-                "i": i2
+                "a": a3,
+                "k": k3,
+                "b": b3,
+                "i": i3
               }
             ]);
           }

@@ -120,11 +120,17 @@ test('compiler errors', function (t) {
     'Error: Cannot have a non-default parameter after a defaulted one'
   )
   tstFail(
-    'add(b = 1, 2)',
+    `ruleset a{global{
+      add = function(a,b){a+b}
+      foo = add(b = 1, 2)
+    }}`,
     'Error: Once you used a named arg, all following must be named.'
   )
   tstWarn(
-    'add.foo',
+    `ruleset a{global{
+      add = {"foo": 1}
+      bar = add.foo
+    }}`,
     'DEPRECATED use `{}` or `[]` instead of `.`'
   )
   tstFail(
@@ -138,7 +144,10 @@ test('compiler errors', function (t) {
   )
 
   tstWarn(
-    'ruleset a{rule a{select when a a bb re#.# where a > 0 setting(bb)}}',
+    `ruleset a{
+      global {a=1}
+      rule a{select when a a bb re#.# where a > 0 setting(bb)}}
+    `,
     'DEPRECATED SYNTAX - Move the `where` clause to be after the `setting`'
   )
   tstWarn(
@@ -163,13 +172,18 @@ test('compiler errors', function (t) {
 
 test('special cases', function (t) {
   // args shouldn't be dependent on each other and cause strange duplication
-  var js = compiler('foo(1).bar(baz(2))').code
-  var expected = ''
-  expected += '(await $ctx.krl.assertFunction(bar1)($ctx, [\n'
-  expected += '  await $ctx.krl.assertFunction(foo1)($ctx, [1]),\n'
-  expected += '  await $ctx.krl.assertFunction(baz1)($ctx, [2])\n'
-  expected += ']))'
-  t.is(js, expected)
+  var js = compiler('function(foo,bar,baz){foo(1).bar(baz(2))}').code
+
+  t.is(js, `($ctx.krl.Function([
+  "foo",
+  "bar",
+  "baz"
+], async function (foo3, bar3, baz3) {
+  return await $ctx.krl.assertFunction(bar3)($ctx, [
+    await $ctx.krl.assertFunction(foo3)($ctx, [1]),
+    await $ctx.krl.assertFunction(baz3)($ctx, [2])
+  ]);
+}))`)
 })
 
 test('rid+version output', function (t) {
@@ -177,4 +191,21 @@ test('rid+version output', function (t) {
 
   t.is(out.rid, 'some.rid')
   t.is(out.version, 'some-version')
+})
+
+test('stdlib and missing variables', function (t) {
+  t.notThrows(() => compiler(`
+  ruleset rs {
+    global {
+      foo = head
+    }
+  }
+  `))
+  t.throws(() => compiler(`
+  ruleset rs {
+    global {
+      foo = bar
+    }
+  }
+  `), { message: 'Undefined id: bar' })
 })

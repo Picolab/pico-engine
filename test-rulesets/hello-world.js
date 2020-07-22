@@ -14,14 +14,14 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const hello1 = $ctx.krl.Function(["name"], async function ($name$2 = "default") {
-      const msg2 = await $stdlib["+"]($ctx, [
+    const hello2 = $ctx.krl.Function(["name"], async function ($name$3 = "default") {
+      const msg3 = await $stdlib["+"]($ctx, [
         "Hello ",
-        $name$2
+        $name$3
       ]);
-      return msg2;
+      return msg3;
     });
-    const said1 = $ctx.krl.Function([], async function () {
+    const said2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("said");
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
@@ -51,7 +51,7 @@ module.exports = {
         "hello": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return hello1($ctx, query.args);
+            return hello2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -59,7 +59,7 @@ module.exports = {
         "said": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return said1($ctx, query.args);
+            return said2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

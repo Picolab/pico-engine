@@ -13,10 +13,10 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const append1 = $stdlib["append"];
-    const getLog1 = $ctx.krl.Function([], async function () {
+    const getLog2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("log");
     });
-    const listScheduled1 = $ctx.krl.Function([], async function () {
+    const listScheduled2 = $ctx.krl.Function([], async function () {
       return await $ctx.krl.assertFunction($ctx.module("schedule")["list"])($ctx, []);
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
@@ -62,7 +62,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        var foo2 = await $ctx.module("schedule")["at"]($ctx, {
+        var foo3 = await $ctx.module("schedule")["at"]($ctx, {
           "eci": $event.eci,
           "attrs": {
             "from": "in_5min",
@@ -80,7 +80,7 @@ module.exports = {
         });
         await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
-          { "scheduled in_5min": foo2 }
+          { "scheduled in_5min": foo3 }
         ]));
       }
     });
@@ -95,7 +95,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        var foo2 = await $ctx.module("schedule")["repeat"]($ctx, {
+        var foo3 = await $ctx.module("schedule")["repeat"]($ctx, {
           "eci": $event.eci,
           "attrs": {
             "from": "every_1min",
@@ -110,7 +110,7 @@ module.exports = {
         });
         await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
-          { "scheduled every_1min": foo2 }
+          { "scheduled every_1min": foo3 }
         ]));
       }
     });
@@ -136,7 +136,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        var foo2 = await $ctx.module("schedule")["at"]($ctx, {
+        var foo3 = await $ctx.module("schedule")["at"]($ctx, {
           "eci": $event.eci,
           "attrs": {
             "from": "dynamic_at",
@@ -156,7 +156,7 @@ module.exports = {
         });
         await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
-          { "scheduled dynamic_at": foo2 }
+          { "scheduled dynamic_at": foo3 }
         ]));
       }
     });
@@ -168,7 +168,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        var foo2 = await $ctx.module("schedule")["repeat"]($ctx, {
+        var foo3 = await $ctx.module("schedule")["repeat"]($ctx, {
           "eci": $event.eci,
           "attrs": {
             "from": "dynamic_repeat",
@@ -188,7 +188,7 @@ module.exports = {
         });
         await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
-          { "scheduled dynamic_repeat": foo2 }
+          { "scheduled dynamic_repeat": foo3 }
         ]));
       }
     });
@@ -206,7 +206,7 @@ module.exports = {
         "getLog": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getLog1($ctx, query.args);
+            return getLog2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -214,7 +214,7 @@ module.exports = {
         "listScheduled": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return listScheduled1($ctx, query.args);
+            return listScheduled2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

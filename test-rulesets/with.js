@@ -12,26 +12,26 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const add1 = $ctx.krl.Function([
+    const add2 = $ctx.krl.Function([
       "a",
       "b"
-    ], async function (a2, b2) {
+    ], async function (a3, b3) {
       return await $stdlib["+"]($ctx, [
-        a2,
-        b2
+        a3,
+        b3
       ]);
     });
-    const inc1 = $ctx.krl.Function(["n"], async function (n2) {
-      return await $ctx.krl.assertFunction(add1)($ctx, {
+    const inc2 = $ctx.krl.Function(["n"], async function (n3) {
+      return await $ctx.krl.assertFunction(add2)($ctx, {
         "0": 1,
-        "b": n2
+        "b": n3
       });
     });
-    const foo1 = $ctx.krl.Function(["a"], async function (a2) {
-      return await $ctx.krl.assertFunction(add1)($ctx, {
-        "b": a2,
+    const foo2 = $ctx.krl.Function(["a"], async function (a3) {
+      return await $ctx.krl.assertFunction(add2)($ctx, {
+        "b": a3,
         "a": await $stdlib["*"]($ctx, [
-          a2,
+          a3,
           2
         ])
       });
@@ -51,7 +51,7 @@ module.exports = {
         "add": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return add1($ctx, query.args);
+            return add2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -59,7 +59,7 @@ module.exports = {
         "inc": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return inc1($ctx, query.args);
+            return inc2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -67,7 +67,7 @@ module.exports = {
         "foo": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return foo1($ctx, query.args);
+            return foo2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

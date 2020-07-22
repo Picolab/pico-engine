@@ -18,7 +18,7 @@ ruleset io.picolabs.http {
         }
         doPost = defaction(base_url, to, msg){
 
-            http:post(url + "/msg.json", from = {
+            http:post(base_url + "/msg.json", from = {
                 "To": to,
                 "Msg": msg
             });

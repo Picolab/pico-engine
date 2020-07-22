@@ -15,9 +15,9 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const cond_exp_11 = true ? 1 : 2;
-    const cond_exp_21 = false ? 1 : 2;
-    const obj1 = {
+    const cond_exp_12 = true ? 1 : 2;
+    const cond_exp_22 = false ? 1 : 2;
+    const obj2 = {
       "a": 1,
       "b": {
         "c": [
@@ -30,8 +30,8 @@ module.exports = {
         ]
       }
     };
-    const path11 = await $stdlib["get"]($ctx, [
-      obj1,
+    const path12 = await $stdlib["get"]($ctx, [
+      obj2,
       [
         "b",
         "c",
@@ -39,78 +39,78 @@ module.exports = {
         "d"
       ]
     ]);
-    const path21 = await $stdlib["get"]($ctx, [
-      obj1,
+    const path22 = await $stdlib["get"]($ctx, [
+      obj2,
       [
         "b",
         "c",
         5
       ]
     ]);
-    const index11 = await $stdlib["get"]($ctx, [
-      obj1,
+    const index12 = await $stdlib["get"]($ctx, [
+      obj2,
       ["a"]
     ]);
-    const index21 = await $stdlib["get"]($ctx, [
+    const index22 = await $stdlib["get"]($ctx, [
       await $stdlib["get"]($ctx, [
         await $stdlib["get"]($ctx, [
-          obj1,
+          obj2,
           ["b"]
         ]),
         ["c"]
       ]),
       [1]
     ]);
-    const not_true1 = !true;
-    const not_null1 = !void 0;
-    const true_or_false1 = true || false;
-    const true_and_false1 = true && false;
-    const incByN1 = $ctx.krl.Function(["n"], async function (n2) {
-      return $ctx.krl.Function(["a"], async function (a3) {
+    const not_true2 = !true;
+    const not_null2 = !void 0;
+    const true_or_false2 = true || false;
+    const true_and_false2 = true && false;
+    const incByN2 = $ctx.krl.Function(["n"], async function (n3) {
+      return $ctx.krl.Function(["a"], async function (a4) {
         return await $stdlib["+"]($ctx, [
-          a3,
-          n2
+          a4,
+          n3
         ]);
       });
     });
-    const paramFn1 = $ctx.krl.Function([
+    const paramFn2 = $ctx.krl.Function([
       "foo",
       "bar",
       "baz",
       "qux"
-    ], async function (foo2 = $default, bar2 = $default, baz2 = $default, qux2 = $default) {
-      if (foo2 == $default) {
-        foo2 = await $ctx.krl.assertFunction(incByN1)($ctx, [3]);
+    ], async function (foo3 = $default, bar3 = $default, baz3 = $default, qux3 = $default) {
+      if (foo3 == $default) {
+        foo3 = await $ctx.krl.assertFunction(incByN2)($ctx, [3]);
       }
-      if (bar2 == $default) {
-        bar2 = await $ctx.krl.assertFunction(foo2)($ctx, [1]);
+      if (bar3 == $default) {
+        bar3 = await $ctx.krl.assertFunction(foo3)($ctx, [1]);
       }
-      if (baz2 == $default) {
-        baz2 = await $stdlib["+"]($ctx, [
-          bar2,
+      if (baz3 == $default) {
+        baz3 = await $stdlib["+"]($ctx, [
+          bar3,
           2
         ]);
       }
-      if (qux2 == $default) {
-        qux2 = await $stdlib["+"]($ctx, [
-          baz2,
+      if (qux3 == $default) {
+        qux3 = await $stdlib["+"]($ctx, [
+          baz3,
           "?"
         ]);
       }
       return [
-        bar2,
-        baz2,
-        qux2
+        bar3,
+        baz3,
+        qux3
       ];
     });
-    const paramFnTest1 = $ctx.krl.Function([], async function () {
+    const paramFnTest2 = $ctx.krl.Function([], async function () {
       return [
-        await $ctx.krl.assertFunction(paramFn1)($ctx, []),
-        await $ctx.krl.assertFunction(paramFn1)($ctx, [
-          await $ctx.krl.assertFunction(incByN1)($ctx, [100]),
+        await $ctx.krl.assertFunction(paramFn2)($ctx, []),
+        await $ctx.krl.assertFunction(paramFn2)($ctx, [
+          await $ctx.krl.assertFunction(incByN2)($ctx, [100]),
           "one"
         ]),
-        await $ctx.krl.assertFunction(paramFn1)($ctx, [
+        await $ctx.krl.assertFunction(paramFn2)($ctx, [
           void 0,
           3,
           4,
@@ -133,7 +133,7 @@ module.exports = {
         "obj": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return obj1;
+            return obj2;
           } finally {
             $ctx.setQuery(null);
           }
@@ -141,7 +141,7 @@ module.exports = {
         "path1": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return path11;
+            return path12;
           } finally {
             $ctx.setQuery(null);
           }
@@ -149,7 +149,7 @@ module.exports = {
         "path2": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return path21;
+            return path22;
           } finally {
             $ctx.setQuery(null);
           }
@@ -157,7 +157,7 @@ module.exports = {
         "index1": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return index11;
+            return index12;
           } finally {
             $ctx.setQuery(null);
           }
@@ -165,7 +165,7 @@ module.exports = {
         "index2": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return index21;
+            return index22;
           } finally {
             $ctx.setQuery(null);
           }
@@ -173,7 +173,7 @@ module.exports = {
         "paramFnTest": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return paramFnTest1($ctx, query.args);
+            return paramFnTest2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

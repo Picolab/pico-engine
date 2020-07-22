@@ -15,47 +15,47 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
-    const configured_name1 = $ctx.configure("configured_name", "Bob");
-    const privateFn1 = $ctx.krl.Function([], async function () {
+    const configured_name2 = $ctx.configure("configured_name", "Bob");
+    const privateFn2 = $ctx.krl.Function([], async function () {
       return await $stdlib["+"]($ctx, [
         await $stdlib["+"]($ctx, [
           await $stdlib["+"]($ctx, [
             "privateFn = name: ",
-            configured_name1
+            configured_name2
           ]),
           " memo: "
         ]),
         await $ctx.rsCtx.getEnt("memo")
       ]);
     });
-    const getName1 = $ctx.krl.Function([], async function () {
-      return configured_name1;
+    const getName2 = $ctx.krl.Function([], async function () {
+      return configured_name2;
     });
-    const getInfo1 = $ctx.krl.Function([], async function () {
+    const getInfo2 = $ctx.krl.Function([], async function () {
       return {
-        "name": await $ctx.krl.assertFunction(getName1)($ctx, []),
+        "name": await $ctx.krl.assertFunction(getName2)($ctx, []),
         "memo": await $ctx.rsCtx.getEnt("memo"),
-        "privateFn": await $ctx.krl.assertFunction(privateFn1)($ctx, [])
+        "privateFn": await $ctx.krl.assertFunction(privateFn2)($ctx, [])
       };
     });
-    const getInfoAction1 = $ctx.krl.Action([], async function () {
+    const getInfoAction2 = $ctx.krl.Action([], async function () {
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)(this, [
           "getInfoAction",
-          await $ctx.krl.assertFunction(getInfo1)($ctx, [])
+          await $ctx.krl.assertFunction(getInfo2)($ctx, [])
         ]);
       }
       return {
         "name": await $stdlib["get"]($ctx, [
-          await $ctx.krl.assertFunction(getInfo1)($ctx, []),
+          await $ctx.krl.assertFunction(getInfo2)($ctx, []),
           ["name"]
         ])
       };
     });
-    const sayHello1 = $ctx.krl.Function(["name"], async function ($name$2) {
+    const sayHello2 = $ctx.krl.Function(["name"], async function ($name$3) {
       return "hello " + await $stdlib["as"]($ctx, [
-        $name$2,
+        $name$3,
         "String"
       ]) + ".";
     });
@@ -73,22 +73,22 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var text2 = setting["text"] = matches[0];
+      var text3 = setting["text"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "store_memo" });
-      var text2 = $state.setting["text"];
+      var text3 = $state.setting["text"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "store_memo",
           {
-            "name": configured_name1,
-            "memo_to_store": text2
+            "name": configured_name2,
+            "memo_to_store": text3
           }
         ]);
       }
@@ -101,11 +101,11 @@ module.exports = {
           await $stdlib["+"]($ctx, [
             await $stdlib["+"]($ctx, [
               "[\"",
-              text2
+              text3
             ]),
             "\" by "
           ]),
-          configured_name1
+          configured_name2
         ]),
         "]"
       ]));
@@ -124,7 +124,7 @@ module.exports = {
         "getInfo": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getInfo1($ctx, query.args);
+            return getInfo2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -144,9 +144,9 @@ module.exports = {
         }
       },
       "provides": {
-        "getInfo": getInfo1,
-        "getName": getName1,
-        "getInfoAction": getInfoAction1
+        "getInfo": getInfo2,
+        "getName": getName2,
+        "getInfoAction": getInfoAction2
       }
     };
   }

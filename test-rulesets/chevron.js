@@ -9,14 +9,14 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const a1 = 1;
-    const b1 = 2;
-    const c1 = "<h1>some<b>html</b></h1>";
-    const d1 = "\n            hi " + await $stdlib["as"]($ctx, [
-      a1,
+    const a2 = 1;
+    const b2 = 2;
+    const c2 = "<h1>some<b>html</b></h1>";
+    const d2 = "\n            hi " + await $stdlib["as"]($ctx, [
+      a2,
       "String"
     ]) + " + " + await $stdlib["as"]($ctx, [
-      b1,
+      b2,
       "String"
     ]) + " = " + await $stdlib["as"]($ctx, [
       await $stdlib["+"]($ctx, [
@@ -25,11 +25,11 @@ module.exports = {
       ]),
       "String"
     ]) + "\n            " + await $stdlib["as"]($ctx, [
-      c1,
+      c2,
       "String"
     ]) + "\n        ";
-    const e1 = "static";
-    const f1 = "";
+    const e2 = "static";
+    const f2 = "";
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     return {
       "event": async function (event, eid) {
@@ -45,7 +45,7 @@ module.exports = {
         "d": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return d1;
+            return d2;
           } finally {
             $ctx.setQuery(null);
           }

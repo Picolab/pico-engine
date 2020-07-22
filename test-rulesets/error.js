@@ -8,7 +8,7 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const append1 = $stdlib["append"];
     const send_directive1 = $stdlib["send_directive"];
-    const getErrors1 = $ctx.krl.Function([], async function () {
+    const getErrors2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("error_log");
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
@@ -162,7 +162,7 @@ module.exports = {
         "getErrors": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getErrors1($ctx, query.args);
+            return getErrors2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

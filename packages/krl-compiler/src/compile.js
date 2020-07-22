@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var mkTree = require('estree-builder')
+var krlStdlib = require('krl-stdlib')
 var toJsIdentifier = require('to-js-identifier')
 var SymbolTableStack = require('symbol-table/stack')
 
@@ -107,7 +108,13 @@ module.exports = function (ast, options) {
   }
 
   var scope = SymbolTableStack()
-  var idsOutOfScope = {}
+  // inject stdlib into the root scope
+  Object.keys(krlStdlib.stdlib).forEach(id => {
+    scope.set(id, { type: krlStdlib.krl.typeOf(krlStdlib.stdlib[id]) })
+  })
+  scope.push()// new scope for user's KRL code
+
+  var stdlibToInject = {}
   var eventScope = (function () {
     const map = {}
     return {
@@ -162,7 +169,7 @@ module.exports = function (ast, options) {
     comp.warn = warn
     comp.scope = scope
     comp.eventScope = eventScope
-    comp.idsOutOfScope = idsOutOfScope
+    comp.stdlibToInject = stdlibToInject
     comp.jsId = function (krlId) {
       if (!scope.has(krlId)) {
         return toJsIdentifier(krlId) + 1

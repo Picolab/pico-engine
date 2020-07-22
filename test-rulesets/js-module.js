@@ -7,9 +7,9 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
-    const qFn1 = $ctx.krl.Function(["a"], async function (a2) {
+    const qFn2 = $ctx.krl.Function(["a"], async function (a3) {
       return await $ctx.krl.assertFunction($ctx.module("myJsModule")["fun0"])($ctx, {
-        "0": a2,
+        "0": a3,
         "b": 2
       });
     });
@@ -18,13 +18,13 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "action" });
       var $fired = true;
       if ($fired) {
-        var val2 = await $ctx.krl.assertAction($ctx.module("myJsModule")["act"])($ctx, {
+        var val3 = await $ctx.krl.assertAction($ctx.module("myJsModule")["act"])($ctx, {
           "0": 100,
           "b": 30
         });
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "resp",
-          { "val": val2 }
+          { "val": val3 }
         ]);
       }
       if ($fired)
@@ -46,7 +46,7 @@ module.exports = {
         "qFn": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return qFn1($ctx, query.args);
+            return qFn2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

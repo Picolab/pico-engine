@@ -13,45 +13,45 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const noop1 = $stdlib["noop"];
-    const add1 = $ctx.krl.Function([
+    const add2 = $ctx.krl.Function([
       "a",
       "b"
-    ], async function (a2, b2) {
+    ], async function (a3, b3) {
       return {
         "type": "directive",
         "name": "add",
         "options": {
           "resp": await $stdlib["+"]($ctx, [
-            a2,
-            b2
+            a3,
+            b3
           ])
         }
       };
     });
-    const foo1 = $ctx.krl.Action(["a"], async function (a2) {
-      const b2 = 2;
+    const foo2 = $ctx.krl.Action(["a"], async function (a3) {
+      const b3 = 2;
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)(this, [
           "foo",
           {
-            "a": a2,
+            "a": a3,
             "b": await $stdlib["+"]($ctx, [
-              b2,
+              b3,
               3
             ])
           }
         ]);
       }
     });
-    const bar1 = $ctx.krl.Action([
+    const bar2 = $ctx.krl.Action([
       "one",
       "two",
       "three"
-    ], async function (one2, two2 = $default, three2 = "3 by default") {
-      if (two2 == $default) {
-        two2 = await $stdlib["get"]($ctx, [
-          await $ctx.krl.assertFunction(add1)($ctx, [
+    ], async function (one3, two3 = $default, three3 = "3 by default") {
+      if (two3 == $default) {
+        two3 = await $stdlib["get"]($ctx, [
+          await $ctx.krl.assertFunction(add2)($ctx, [
             1,
             1
           ]),
@@ -63,30 +63,30 @@ module.exports = {
       }
       var $fired = true;
       if ($fired) {
-        var dir2 = await $ctx.krl.assertAction(send_directive1)(this, [
+        var dir3 = await $ctx.krl.assertAction(send_directive1)(this, [
           "bar",
           {
-            "a": one2,
-            "b": two2,
-            "c": three2
+            "a": one3,
+            "b": two3,
+            "c": three3
           }
         ]);
       }
-      return dir2;
+      return dir3;
     });
-    const getSettingVal1 = $ctx.krl.Function([], async function () {
+    const getSettingVal2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("setting_val");
     });
-    const chooser1 = $ctx.krl.Action(["val"], async function (val2) {
+    const chooser2 = $ctx.krl.Action(["val"], async function (val3) {
       var $fired = true;
       if ($fired) {
-        switch (val2) {
+        switch (val3) {
         case "asdf":
-          await $ctx.krl.assertAction(foo1)(this, [val2]);
+          await $ctx.krl.assertAction(foo2)(this, [val3]);
           break;
         case "fdsa":
-          await $ctx.krl.assertAction(bar1)(this, [
-            val2,
+          await $ctx.krl.assertAction(bar2)(this, [
+            val3,
             "ok",
             "done"
           ]);
@@ -94,62 +94,62 @@ module.exports = {
         }
       }
     });
-    const ifAnotB1 = $ctx.krl.Action([
+    const ifAnotB2 = $ctx.krl.Action([
       "a",
       "b"
-    ], async function (a2, b2) {
-      var $fired = a2 && !b2;
+    ], async function (a3, b3) {
+      var $fired = a3 && !b3;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)(this, ["yes a"]);
         await $ctx.krl.assertAction(send_directive1)(this, ["not b"]);
       }
     });
-    const echoAction1 = $ctx.krl.Action([
+    const echoAction2 = $ctx.krl.Action([
       "a",
       "b",
       "c"
-    ], async function (a2, b2, c2) {
+    ], async function (a3, b3, c3) {
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(noop1)(this, []);
       }
       return [
-        a2,
-        b2,
-        c2
+        a3,
+        b3,
+        c3
       ];
     });
-    const complexAction1 = $ctx.krl.Action([
+    const complexAction2 = $ctx.krl.Action([
       "a",
       "b"
-    ], async function (a2, b2) {
-      const c2 = 100;
-      const d2 = await $stdlib["+"]($ctx, [
-        c2,
-        b2
+    ], async function (a3, b3) {
+      const c3 = 100;
+      const d3 = await $stdlib["+"]($ctx, [
+        c3,
+        b3
       ]);
       var $fired = await $stdlib[">"]($ctx, [
-        c2,
+        c3,
         0
       ]);
       if ($fired) {
-        var dir2 = await $ctx.krl.assertAction(send_directive1)(this, [
+        var dir3 = await $ctx.krl.assertAction(send_directive1)(this, [
           await $stdlib["+"]($ctx, [
             "wat:",
-            a2
+            a3
           ]),
-          { "b": b2 }
+          { "b": b3 }
         ]);
       }
       return await $stdlib["+"]($ctx, [
         await $stdlib["+"]($ctx, [
           await $stdlib["get"]($ctx, [
-            dir2,
+            dir3,
             ["name"]
           ]),
           " "
         ]),
-        d2
+        d3
       ]);
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
@@ -157,7 +157,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(foo1)($ctx, ["bar"]);
+        await $ctx.krl.assertAction(foo2)($ctx, ["bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -168,7 +168,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "bar" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(bar1)($ctx, {
+        await $ctx.krl.assertAction(bar2)($ctx, {
           "0": "baz",
           "two": "qux",
           "three": "quux"
@@ -183,7 +183,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "bar_setting" });
       var $fired = true;
       if ($fired) {
-        var val2 = await $ctx.krl.assertAction(bar1)($ctx, {
+        var val3 = await $ctx.krl.assertAction(bar2)($ctx, {
           "0": "baz",
           "two": "qux",
           "three": "quux"
@@ -194,14 +194,14 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("setting_val", val2);
+        await $ctx.rsCtx.putEnt("setting_val", val3);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:chooser"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "chooser" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(chooser1)($ctx, [await $stdlib["get"]($ctx, [
+        await $ctx.krl.assertAction(chooser2)($ctx, [await $stdlib["get"]($ctx, [
             $event.data.attrs,
             "val"
           ])]);
@@ -215,7 +215,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "ifAnotB" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(ifAnotB1)($ctx, [
+        await $ctx.krl.assertAction(ifAnotB2)($ctx, [
           await $stdlib["=="]($ctx, [
             await $stdlib["get"]($ctx, [
               $event.data.attrs,
@@ -241,7 +241,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "add" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(add1)($ctx, [
+        await $ctx.krl.assertAction(add2)($ctx, [
           1,
           2
         ]);
@@ -255,25 +255,25 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "returns" });
       var $fired = true;
       if ($fired) {
-        var abc2 = await $ctx.krl.assertAction(echoAction1)($ctx, [
+        var abc3 = await $ctx.krl.assertAction(echoAction2)($ctx, [
           "where",
           "in",
           "the"
         ]);
-        var d2 = await $ctx.krl.assertAction(complexAction1)($ctx, [
+        var d3 = await $ctx.krl.assertAction(complexAction2)($ctx, [
           await $stdlib["+"]($ctx, [
             await $stdlib["+"]($ctx, [
               await $stdlib["get"]($ctx, [
-                abc2,
+                abc3,
                 [0]
               ]),
               await $stdlib["get"]($ctx, [
-                abc2,
+                abc3,
                 [1]
               ])
             ]),
             await $stdlib["get"]($ctx, [
-              abc2,
+              abc3,
               [2]
             ])
           ]),
@@ -287,41 +287,41 @@ module.exports = {
       if ($fired) {
         await $ctx.rsCtx.putEnt("setting_val", [
           await $stdlib["get"]($ctx, [
-            abc2,
+            abc3,
             [0]
           ]),
           await $stdlib["get"]($ctx, [
-            abc2,
+            abc3,
             [1]
           ]),
           await $stdlib["get"]($ctx, [
-            abc2,
+            abc3,
             [2]
           ]),
-          d2
+          d3
         ]);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:scope"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "scope" });
-      const something2 = $ctx.krl.Action([], async function () {
+      const something3 = $ctx.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
           await $ctx.krl.assertAction(noop1)(this, []);
         }
         return "did something!";
       });
-      const send_directive2 = $ctx.krl.Action([], async function () {
+      const send_directive3 = $ctx.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
-          var foo3 = await $ctx.krl.assertAction(noop1)(this, []);
+          var foo4 = await $ctx.krl.assertAction(noop1)(this, []);
         }
         return await $stdlib["+"]($ctx, [
           "send wat? noop returned: ",
-          foo3
+          foo4
         ]);
       });
-      const echoAction2 = $ctx.krl.Action([], async function () {
+      const echoAction3 = $ctx.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
           await $ctx.krl.assertAction(noop1)(this, []);
@@ -334,13 +334,13 @@ module.exports = {
       });
       var $fired = true;
       if ($fired) {
-        var abc2 = await $ctx.krl.assertAction(echoAction2)($ctx, [
+        var abc3 = await $ctx.krl.assertAction(echoAction3)($ctx, [
           "where",
           "in",
           "the"
         ]);
-        var d2 = await $ctx.krl.assertAction(something2)($ctx, []);
-        var e2 = await $ctx.krl.assertAction(send_directive2)($ctx, []);
+        var d3 = await $ctx.krl.assertAction(something3)($ctx, []);
+        var e3 = await $ctx.krl.assertAction(send_directive3)($ctx, []);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -349,30 +349,30 @@ module.exports = {
       if ($fired) {
         await $ctx.rsCtx.putEnt("setting_val", [
           await $stdlib["get"]($ctx, [
-            abc2,
+            abc3,
             [0]
           ]),
           await $stdlib["get"]($ctx, [
-            abc2,
+            abc3,
             [1]
           ]),
           await $stdlib["get"]($ctx, [
-            abc2,
+            abc3,
             [2]
           ]),
-          d2,
-          e2
+          d3,
+          e3
         ]);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:trying_to_use_action_as_fn"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "trying_to_use_action_as_fn" });
-      const val2 = await $ctx.krl.assertFunction(foo1)($ctx, [100]);
+      const val3 = await $ctx.krl.assertFunction(foo2)($ctx, [100]);
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "trying_to_use_action_as_fn",
-          { "val": val2 }
+          { "val": val3 }
         ]);
       }
       if ($fired)
@@ -394,7 +394,7 @@ module.exports = {
         "getSettingVal": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getSettingVal1($ctx, query.args);
+            return getSettingVal2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -402,7 +402,7 @@ module.exports = {
         "add": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return add1($ctx, query.args);
+            return add2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

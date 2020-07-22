@@ -14,15 +14,15 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const hello1 = $ctx.krl.Function(["obj"], async function (obj2) {
+    const hello2 = $ctx.krl.Function(["obj"], async function (obj3) {
       return await $stdlib["+"]($ctx, [
         "Hello ",
-        obj2
+        obj3
       ]);
     });
-    const null_val1 = void 0;
-    const infiniteRecursion1 = $ctx.krl.Function([], async function () {
-      return await $ctx.krl.assertFunction(infiniteRecursion1)($ctx, []);
+    const null_val2 = void 0;
+    const infiniteRecursion2 = $ctx.krl.Function([], async function () {
+      return await $ctx.krl.assertFunction(infiniteRecursion2)($ctx, []);
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     return {
@@ -39,7 +39,7 @@ module.exports = {
         "hello": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return hello1($ctx, query.args);
+            return hello2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -47,7 +47,7 @@ module.exports = {
         "null_val": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return null_val1;
+            return null_val2;
           } finally {
             $ctx.setQuery(null);
           }
@@ -63,7 +63,7 @@ module.exports = {
         "infiniteRecursion": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return infiniteRecursion1($ctx, query.args);
+            return infiniteRecursion2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

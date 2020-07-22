@@ -8,7 +8,7 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const match1 = $stdlib["match"];
-    const getB1 = $ctx.krl.Function([], async function () {
+    const getB2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("b");
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
@@ -25,20 +25,20 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var b2 = setting["b"] = matches[0];
+      var b3 = setting["b"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "foo" });
-      var b2 = $state.setting["b"];
+      var b3 = $state.setting["b"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "foo",
-          { "b": b2 }
+          { "b": b3 }
         ]);
       }
       if ($fired)
@@ -46,10 +46,10 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if (await $ctx.krl.assertFunction(match1)($ctx, [
-          b2,
+          b3,
           new RegExp("foo", "")
         ]))
-        await $ctx.rsCtx.putEnt("b", b2);
+        await $ctx.rsCtx.putEnt("b", b3);
     });
     $rs.when($ctx.krl.SelectWhen.e("bar:a"), async function ($event, $state, $last) {
       let $foreach0_pairs = $ctx.krl.toPairs([
@@ -61,14 +61,14 @@ module.exports = {
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
-        let x2 = $foreach0_pairs[$foreach0_i][1];
+        let x3 = $foreach0_pairs[$foreach0_i][1];
         $ctx.log.debug("rule selected", { "rule_name": "bar" });
         var $fired = true;
         if ($fired) {
           await $ctx.krl.assertAction(send_directive1)($ctx, [
             "bar",
             {
-              "x": x2,
+              "x": x3,
               "b": await $ctx.rsCtx.getEnt("b")
             }
           ]);
@@ -78,12 +78,12 @@ module.exports = {
         else
           $ctx.log.debug("not fired");
         if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
-          await $ctx.rsCtx.putEnt("b", x2);
+          await $ctx.rsCtx.putEnt("b", x3);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("on_final_no_foreach:a"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "on_final_no_foreach" });
-      const x2 = await $stdlib["get"]($ctx, [
+      const x3 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "x"
       ]);
@@ -91,7 +91,7 @@ module.exports = {
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "on_final_no_foreach",
-          { "x": x2 }
+          { "x": x3 }
         ]);
       }
       if ($fired)
@@ -99,7 +99,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
-        await $ctx.rsCtx.putEnt("b", x2);
+        await $ctx.rsCtx.putEnt("b", x3);
     });
     return {
       "event": async function (event, eid) {
@@ -115,7 +115,7 @@ module.exports = {
         "getB": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getB1($ctx, query.args);
+            return getB2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

@@ -13,13 +13,13 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
-    const getName1 = $ctx.krl.Function([], async function () {
+    const getName2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("name");
     });
-    const getUser1 = $ctx.krl.Function([], async function () {
+    const getUser2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("user");
     });
-    const getUserFirstname1 = $ctx.krl.Function([], async function () {
+    const getUserFirstname2 = $ctx.krl.Function([], async function () {
       return await $stdlib.get($ctx, [
         await $ctx.rsCtx.getEnt("user"),
         ["firstname"]
@@ -39,27 +39,27 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var my_name2 = setting["my_name"] = matches[0];
+      var my_name3 = setting["my_name"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "store_my_name" });
-      var my_name2 = $state.setting["my_name"];
+      var my_name3 = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "store_name",
-          { "name": my_name2 }
+          { "name": my_name3 }
         ]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("name", my_name2);
+      await $ctx.rsCtx.putEnt("name", my_name3);
     });
     $rs.when($ctx.krl.SelectWhen.e("store:user_firstname", async function ($event, $state) {
       var matches = [];
@@ -74,20 +74,20 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var firstname2 = setting["firstname"] = matches[0];
+      var firstname3 = setting["firstname"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "store_user_firstname" });
-      var firstname2 = $state.setting["firstname"];
+      var firstname3 = $state.setting["firstname"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $ctx.krl.assertAction(send_directive1)($ctx, [
           "store_user_firstname",
-          { "name": firstname2 }
+          { "name": firstname3 }
         ]);
       }
       if ($fired)
@@ -98,7 +98,7 @@ module.exports = {
       await $ctx.rsCtx.putEnt("user", await $stdlib.set($ctx, [
         await $ctx.rsCtx.getEnt("user"),
         ["firstname"],
-        firstname2
+        firstname3
       ]));
     });
     $rs.when($ctx.krl.SelectWhen.e("store:clear_user"), async function ($event, $state, $last) {
@@ -127,7 +127,7 @@ module.exports = {
         "getName": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getName1($ctx, query.args);
+            return getName2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -135,7 +135,7 @@ module.exports = {
         "getUser": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getUser1($ctx, query.args);
+            return getUser2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -143,7 +143,7 @@ module.exports = {
         "getUserFirstname": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getUserFirstname1($ctx, query.args);
+            return getUserFirstname2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
