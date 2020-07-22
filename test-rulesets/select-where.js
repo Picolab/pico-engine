@@ -6,6 +6,10 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [],
+      "events": []
+    };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("*", async function ($event, $state) {
       return {
@@ -84,10 +88,7 @@ module.exports = {
       },
       "query": {
         "__testing": function () {
-          return {
-            "queries": [],
-            "events": []
-          };
+          return __testing1;
         }
       }
     };

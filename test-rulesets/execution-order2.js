@@ -8,6 +8,39 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const append1 = $stdlib["append"];
+    const __testing1 = {
+      "queries": [{
+          "name": "getOrder",
+          "args": []
+        }],
+      "events": [
+        {
+          "domain": "execution_order",
+          "name": "reset_order",
+          "attrs": []
+        },
+        {
+          "domain": "execution_order",
+          "name": "foo",
+          "attrs": []
+        },
+        {
+          "domain": "execution_order",
+          "name": "bar",
+          "attrs": []
+        },
+        {
+          "domain": "execution_order",
+          "name": "foo",
+          "attrs": []
+        },
+        {
+          "domain": "execution_order",
+          "name": "bar",
+          "attrs": []
+        }
+      ]
+    };
     const getOrder2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("order");
     });
@@ -89,39 +122,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [{
-                "name": "getOrder",
-                "args": []
-              }],
-            "events": [
-              {
-                "domain": "execution_order",
-                "name": "reset_order",
-                "attrs": []
-              },
-              {
-                "domain": "execution_order",
-                "name": "foo",
-                "attrs": []
-              },
-              {
-                "domain": "execution_order",
-                "name": "bar",
-                "attrs": []
-              },
-              {
-                "domain": "execution_order",
-                "name": "foo",
-                "attrs": []
-              },
-              {
-                "domain": "execution_order",
-                "name": "bar",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

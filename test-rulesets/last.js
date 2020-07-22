@@ -7,6 +7,31 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [],
+      "events": [
+        {
+          "domain": "last",
+          "name": "all",
+          "attrs": ["stop"]
+        },
+        {
+          "domain": "last",
+          "name": "all",
+          "attrs": ["stop"]
+        },
+        {
+          "domain": "last",
+          "name": "all",
+          "attrs": []
+        },
+        {
+          "domain": "last",
+          "name": "all",
+          "attrs": []
+        }
+      ]
+    };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "foo" });
@@ -87,31 +112,7 @@ module.exports = {
       },
       "query": {
         "__testing": function () {
-          return {
-            "queries": [],
-            "events": [
-              {
-                "domain": "last",
-                "name": "all",
-                "attrs": ["stop"]
-              },
-              {
-                "domain": "last",
-                "name": "all",
-                "attrs": ["stop"]
-              },
-              {
-                "domain": "last",
-                "name": "all",
-                "attrs": []
-              },
-              {
-                "domain": "last",
-                "name": "all",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

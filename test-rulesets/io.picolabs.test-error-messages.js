@@ -13,6 +13,23 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "hello",
+          "args": ["obj"]
+        },
+        {
+          "name": "null_val",
+          "args": []
+        },
+        {
+          "name": "infiniteRecursion",
+          "args": []
+        }
+      ],
+      "events": []
+    };
     const hello2 = $ctx.krl.Function(["obj"], async function (obj3) {
       return await $stdlib["+"]($ctx, [
         "Hello ",
@@ -60,23 +77,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "hello",
-                "args": ["obj"]
-              },
-              {
-                "name": "null_val",
-                "args": []
-              },
-              {
-                "name": "infiniteRecursion",
-                "args": []
-              }
-            ],
-            "events": []
-          };
+          return __testing1;
         }
       }
     };

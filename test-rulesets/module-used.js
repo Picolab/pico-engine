@@ -26,6 +26,64 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "now",
+          "args": []
+        },
+        {
+          "name": "getEntVal",
+          "args": []
+        },
+        {
+          "name": "dfltName",
+          "args": []
+        }
+      ],
+      "events": [
+        {
+          "domain": "module_used",
+          "name": "dflt_name",
+          "attrs": []
+        },
+        {
+          "domain": "module_used",
+          "name": "conf_name",
+          "attrs": []
+        },
+        {
+          "domain": "module_used",
+          "name": "dflt_info",
+          "attrs": []
+        },
+        {
+          "domain": "module_used",
+          "name": "conf_info",
+          "attrs": []
+        },
+        {
+          "domain": "module_used",
+          "name": "dflt_getInfoAction",
+          "attrs": []
+        },
+        {
+          "domain": "module_used",
+          "name": "conf_getInfoAction",
+          "attrs": []
+        },
+        {
+          "domain": "module_used",
+          "name": "sayHelloWithOperator",
+          "attrs": []
+        },
+        {
+          "domain": "module_used",
+          "name": "uninstall",
+          "attrs": []
+        }
+      ]
+    };
     await $ctx.useModule("io.picolabs.module-defined", "my_module_dflt");
     await $ctx.useModule("io.picolabs.module-defined", "my_module_conf", { "configured_name": "Jim" });
     const now2 = $ctx.krl.Function([], async function () {
@@ -174,64 +232,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "now",
-                "args": []
-              },
-              {
-                "name": "getEntVal",
-                "args": []
-              },
-              {
-                "name": "dfltName",
-                "args": []
-              }
-            ],
-            "events": [
-              {
-                "domain": "module_used",
-                "name": "dflt_name",
-                "attrs": []
-              },
-              {
-                "domain": "module_used",
-                "name": "conf_name",
-                "attrs": []
-              },
-              {
-                "domain": "module_used",
-                "name": "dflt_info",
-                "attrs": []
-              },
-              {
-                "domain": "module_used",
-                "name": "conf_info",
-                "attrs": []
-              },
-              {
-                "domain": "module_used",
-                "name": "dflt_getInfoAction",
-                "attrs": []
-              },
-              {
-                "domain": "module_used",
-                "name": "conf_getInfoAction",
-                "attrs": []
-              },
-              {
-                "domain": "module_used",
-                "name": "sayHelloWithOperator",
-                "attrs": []
-              },
-              {
-                "domain": "module_used",
-                "name": "uninstall",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

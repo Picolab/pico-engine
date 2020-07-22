@@ -9,6 +9,13 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const __testing1 = {
+      "queries": [{
+          "name": "d",
+          "args": []
+        }],
+      "events": []
+    };
     const a2 = 1;
     const b2 = 2;
     const c2 = "<h1>some<b>html</b></h1>";
@@ -51,13 +58,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [{
-                "name": "d",
-                "args": []
-              }],
-            "events": []
-          };
+          return __testing1;
         }
       }
     };

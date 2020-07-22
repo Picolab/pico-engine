@@ -6,6 +6,306 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [],
+      "events": [
+        {
+          "domain": "ee_before",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_before",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_after",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_after",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_then",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_then",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_and",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_and",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_or",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_or",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_between",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_between",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_between",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_not_between",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_not_between",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_not_between",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_andor",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_andor",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_andor",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_orand",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_orand",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_orand",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_before_n",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_before_n",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_before_n",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_after_n",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_after_n",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_after_n",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_then_n",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_then_n",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_then_n",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_and_n",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_and_n",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_and_n",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_or_n",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_or_n",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_or_n",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_or_n",
+          "name": "d",
+          "attrs": []
+        },
+        {
+          "domain": "ee_any",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_any",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_any",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "ee_any",
+          "name": "d",
+          "attrs": []
+        },
+        {
+          "domain": "ee_count",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_repeat",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_count_max",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_repeat_min",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_repeat_sum",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_repeat_avg",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_repeat_push",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_repeat_push_multi",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_repeat_sum_multi",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_or_duppath",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_notbet_duppath",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_notbet_duppath",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_ab_or_b",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_ab_or_b",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_ab_or_ca",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "ee_ab_or_ca",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "ee_ab_or_ca",
+          "name": "c",
+          "attrs": []
+        }
+      ]
+    };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.before($ctx.krl.SelectWhen.e("ee_before:a"), $ctx.krl.SelectWhen.e("ee_before:b")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "before" });
@@ -591,306 +891,7 @@ module.exports = {
       },
       "query": {
         "__testing": function () {
-          return {
-            "queries": [],
-            "events": [
-              {
-                "domain": "ee_before",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_before",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_after",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_after",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_then",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_then",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_and",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_and",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_or",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_or",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_between",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_between",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_between",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_not_between",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_not_between",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_not_between",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_andor",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_andor",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_andor",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_orand",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_orand",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_orand",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_before_n",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_before_n",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_before_n",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_after_n",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_after_n",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_after_n",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_then_n",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_then_n",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_then_n",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_and_n",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_and_n",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_and_n",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_or_n",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_or_n",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_or_n",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_or_n",
-                "name": "d",
-                "attrs": []
-              },
-              {
-                "domain": "ee_any",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_any",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_any",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "ee_any",
-                "name": "d",
-                "attrs": []
-              },
-              {
-                "domain": "ee_count",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_repeat",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_count_max",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_repeat_min",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_repeat_sum",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_repeat_avg",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_repeat_push",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_repeat_push_multi",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_repeat_sum_multi",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_or_duppath",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_notbet_duppath",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_notbet_duppath",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_ab_or_b",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_ab_or_b",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_ab_or_ca",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "ee_ab_or_ca",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "ee_ab_or_ca",
-                "name": "c",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

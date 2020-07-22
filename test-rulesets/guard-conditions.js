@@ -8,6 +8,29 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const match1 = $stdlib["match"];
+    const __testing1 = {
+      "queries": [{
+          "name": "getB",
+          "args": []
+        }],
+      "events": [
+        {
+          "domain": "foo",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "bar",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "on_final_no_foreach",
+          "name": "a",
+          "attrs": ["x"]
+        }
+      ]
+    };
     const getB2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("b");
     });
@@ -121,29 +144,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [{
-                "name": "getB",
-                "args": []
-              }],
-            "events": [
-              {
-                "domain": "foo",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "bar",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "on_final_no_foreach",
-                "name": "a",
-                "attrs": ["x"]
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

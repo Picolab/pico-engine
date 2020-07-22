@@ -1,31 +1,37 @@
 module.exports = {
-  "rid": "io.picolabs.last2",
+  "rid": "io.picolabs.testing",
   "version": "draft",
-  "meta": { "name": "This second ruleset tests that `last` only stops the current ruleset" },
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive1 = $stdlib["send_directive"];
     const __testing1 = {
       "queries": [],
       "events": [{
-          "domain": "last",
-          "name": "all",
-          "attrs": []
+          "domain": "say",
+          "name": "hello",
+          "attrs": ["name"]
         }]
     };
+    const __testing2 = {
+      "queries": [{ "name": "joke" }],
+      "event": await $stdlib["get"]($ctx, [
+        __testing1,
+        ["events"]
+      ])
+    };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
-    $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "foo" });
+    $rs.when($ctx.krl.SelectWhen.e("say:hello"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "say_hello" });
       var $fired = true;
-      if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["last2 foo"]);
-      }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("said", await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "name"
+      ]));
     });
     return {
       "event": async function (event, eid) {
@@ -39,7 +45,7 @@ module.exports = {
       },
       "query": {
         "__testing": function () {
-          return __testing1;
+          return __testing2;
         }
       }
     };

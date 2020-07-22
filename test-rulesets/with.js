@@ -12,6 +12,26 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "add",
+          "args": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "name": "inc",
+          "args": ["n"]
+        },
+        {
+          "name": "foo",
+          "args": ["a"]
+        }
+      ],
+      "events": []
+    };
     const add2 = $ctx.krl.Function([
       "a",
       "b"
@@ -73,26 +93,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "add",
-                "args": [
-                  "a",
-                  "b"
-                ]
-              },
-              {
-                "name": "inc",
-                "args": ["n"]
-              },
-              {
-                "name": "foo",
-                "args": ["a"]
-              }
-            ],
-            "events": []
-          };
+          return __testing1;
         }
       }
     };

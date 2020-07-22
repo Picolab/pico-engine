@@ -5,6 +5,14 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const __testing1 = {
+      "queries": [],
+      "events": [{
+          "domain": "log",
+          "name": "levels",
+          "attrs": []
+        }]
+    };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("log:levels"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "levels" });
@@ -33,14 +41,7 @@ module.exports = {
       },
       "query": {
         "__testing": function () {
-          return {
-            "queries": [],
-            "events": [{
-                "domain": "log",
-                "name": "levels",
-                "attrs": []
-              }]
-          };
+          return __testing1;
         }
       }
     };

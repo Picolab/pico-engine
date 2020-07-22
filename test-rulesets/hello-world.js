@@ -14,6 +14,23 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "hello",
+          "args": ["name"]
+        },
+        {
+          "name": "said",
+          "args": []
+        }
+      ],
+      "events": [{
+          "domain": "say",
+          "name": "hello",
+          "attrs": ["name"]
+        }]
+    };
     const hello2 = $ctx.krl.Function(["name"], async function ($name$3 = "default") {
       const msg3 = await $stdlib["+"]($ctx, [
         "Hello ",
@@ -65,23 +82,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "hello",
-                "args": ["name"]
-              },
-              {
-                "name": "said",
-                "args": []
-              }
-            ],
-            "events": [{
-                "domain": "say",
-                "name": "hello",
-                "attrs": ["name"]
-              }]
-          };
+          return __testing1;
         }
       }
     };

@@ -112,6 +112,7 @@ module.exports = function (ast, options) {
   Object.keys(krlStdlib.stdlib).forEach(id => {
     scope.set(id, { type: krlStdlib.krl.typeOf(krlStdlib.stdlib[id]) })
   })
+  scope.set('__testing', { type: 'Map' })// defined in root scope so it can be shadowed in global
   scope.push()// new scope for user's KRL code
 
   var stdlibToInject = {}
@@ -170,11 +171,11 @@ module.exports = function (ast, options) {
     comp.scope = scope
     comp.eventScope = eventScope
     comp.stdlibToInject = stdlibToInject
-    comp.jsId = function (krlId) {
-      if (!scope.has(krlId)) {
-        return toJsIdentifier(krlId) + 1
+    comp.jsId = function (id) {
+      if (!comp.scope.has(id)) {
+        throw comp.error(ast.loc, 'Undefined id: ' + id)
       }
-      return toJsIdentifier(krlId) + scope.getItsHeight(krlId)
+      return toJsIdentifier(id) + scope.getItsHeight(id)
     }
 
     var estree

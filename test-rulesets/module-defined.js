@@ -15,6 +15,17 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [{
+          "name": "getInfo",
+          "args": []
+        }],
+      "events": [{
+          "domain": "module_defined",
+          "name": "store_memo",
+          "attrs": []
+        }]
+    };
     const configured_name2 = $ctx.configure("configured_name", "Bob");
     const privateFn2 = $ctx.krl.Function([], async function () {
       return await $stdlib["+"]($ctx, [
@@ -130,17 +141,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [{
-                "name": "getInfo",
-                "args": []
-              }],
-            "events": [{
-                "domain": "module_defined",
-                "name": "store_memo",
-                "attrs": []
-              }]
-          };
+          return __testing1;
         }
       },
       "provides": {

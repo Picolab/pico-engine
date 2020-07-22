@@ -13,6 +13,63 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const append1 = $stdlib["append"];
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "getLog",
+          "args": []
+        },
+        {
+          "name": "listScheduled",
+          "args": []
+        }
+      ],
+      "events": [
+        {
+          "domain": "schedule",
+          "name": "clear_log",
+          "attrs": []
+        },
+        {
+          "domain": "schedule",
+          "name": "push_log",
+          "attrs": []
+        },
+        {
+          "domain": "schedule",
+          "name": "in_5min",
+          "attrs": ["name"]
+        },
+        {
+          "domain": "schedule",
+          "name": "every_1min",
+          "attrs": ["name"]
+        },
+        {
+          "domain": "schedule",
+          "name": "rm_from_schedule",
+          "attrs": ["id"]
+        },
+        {
+          "domain": "schedule",
+          "name": "dynamic_at",
+          "attrs": [
+            "name",
+            "dn",
+            "at"
+          ]
+        },
+        {
+          "domain": "schedule",
+          "name": "dynamic_repeat",
+          "attrs": [
+            "name",
+            "dn",
+            "timespec"
+          ]
+        }
+      ]
+    };
     const getLog2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("log");
     });
@@ -220,63 +277,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "getLog",
-                "args": []
-              },
-              {
-                "name": "listScheduled",
-                "args": []
-              }
-            ],
-            "events": [
-              {
-                "domain": "schedule",
-                "name": "clear_log",
-                "attrs": []
-              },
-              {
-                "domain": "schedule",
-                "name": "push_log",
-                "attrs": []
-              },
-              {
-                "domain": "schedule",
-                "name": "in_5min",
-                "attrs": ["name"]
-              },
-              {
-                "domain": "schedule",
-                "name": "every_1min",
-                "attrs": ["name"]
-              },
-              {
-                "domain": "schedule",
-                "name": "rm_from_schedule",
-                "attrs": ["id"]
-              },
-              {
-                "domain": "schedule",
-                "name": "dynamic_at",
-                "attrs": [
-                  "name",
-                  "dn",
-                  "at"
-                ]
-              },
-              {
-                "domain": "schedule",
-                "name": "dynamic_repeat",
-                "attrs": [
-                  "name",
-                  "dn",
-                  "timespec"
-                ]
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

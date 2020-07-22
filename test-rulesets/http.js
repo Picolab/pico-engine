@@ -17,6 +17,64 @@ module.exports = {
     const set1 = $stdlib["set"];
     const decode1 = $stdlib["decode"];
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "getResp",
+          "args": []
+        },
+        {
+          "name": "getLastPostEvent",
+          "args": []
+        },
+        {
+          "name": "fnGet",
+          "args": [
+            "url",
+            "qs"
+          ]
+        },
+        {
+          "name": "fnPost",
+          "args": [
+            "url",
+            "json"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "domain": "http_test",
+          "name": "get",
+          "attrs": ["url"]
+        },
+        {
+          "domain": "http_test",
+          "name": "post",
+          "attrs": ["url"]
+        },
+        {
+          "domain": "http_test",
+          "name": "post_action",
+          "attrs": ["url"]
+        },
+        {
+          "domain": "http_test",
+          "name": "post_setting",
+          "attrs": ["url"]
+        },
+        {
+          "domain": "http_test",
+          "name": "autoraise",
+          "attrs": ["url"]
+        },
+        {
+          "domain": "http",
+          "name": "post",
+          "attrs": []
+        }
+      ]
+    };
     const getResp2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("resp");
     });
@@ -269,64 +327,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "getResp",
-                "args": []
-              },
-              {
-                "name": "getLastPostEvent",
-                "args": []
-              },
-              {
-                "name": "fnGet",
-                "args": [
-                  "url",
-                  "qs"
-                ]
-              },
-              {
-                "name": "fnPost",
-                "args": [
-                  "url",
-                  "json"
-                ]
-              }
-            ],
-            "events": [
-              {
-                "domain": "http_test",
-                "name": "get",
-                "attrs": ["url"]
-              },
-              {
-                "domain": "http_test",
-                "name": "post",
-                "attrs": ["url"]
-              },
-              {
-                "domain": "http_test",
-                "name": "post_action",
-                "attrs": ["url"]
-              },
-              {
-                "domain": "http_test",
-                "name": "post_setting",
-                "attrs": ["url"]
-              },
-              {
-                "domain": "http_test",
-                "name": "autoraise",
-                "attrs": ["url"]
-              },
-              {
-                "domain": "http",
-                "name": "post",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

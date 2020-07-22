@@ -106,7 +106,7 @@ module.exports = function (ast, comp, e) {
       })
     }
   }
-  queries['__testing'] = e('fn', [], [e('return', e('json', testingJSON))])
+  queries['__testing'] = e('fn', [], [e('return', e('id', comp.jsId('__testing')))])
 
   let esBody = []
   esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
@@ -115,6 +115,10 @@ module.exports = function (ast, comp, e) {
   _.each(comp.stdlibToInject, function (ast, id) {
     esBody.push(e('const', comp.jsId(id), e('get', e('id', '$stdlib', ast.loc), e('str', id, ast.loc), ast.loc), ast.loc))
   })
+  esBody.push(e('const'
+    , '__testing1' // NOTE not using comp.jsId b/c we want this var to be the root scope so it can be shadowed
+    , e('json', testingJSON)
+  ))
 
   esBody = esBody.concat(esBodyModules)
   esBody = esBody.concat(esBodyGlobal)

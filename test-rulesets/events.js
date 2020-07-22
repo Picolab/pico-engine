@@ -16,6 +16,193 @@ module.exports = {
     const send_directive1 = $stdlib["send_directive"];
     const noop1 = $stdlib["noop"];
     const match1 = $stdlib["match"];
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "getOnChooseFired",
+          "args": []
+        },
+        {
+          "name": "getNoActionFired",
+          "args": []
+        },
+        {
+          "name": "getSentAttrs",
+          "args": []
+        },
+        {
+          "name": "getSentName",
+          "args": []
+        }
+      ],
+      "events": [
+        {
+          "domain": "events",
+          "name": "bind",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "set_attr2",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "get",
+          "attrs": ["thing"]
+        },
+        {
+          "domain": "events",
+          "name": "noop",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "noop2",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "ifthen",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "on_fired",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "on_choose",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "on_choose_if",
+          "attrs": ["fire"]
+        },
+        {
+          "domain": "events",
+          "name": "on_every",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "on_sample",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "on_sample_if",
+          "attrs": ["fire"]
+        },
+        {
+          "domain": "events",
+          "name": "select_where",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "where_match_0",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "where_match_null",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "where_match_false",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "where_match_empty_str",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "where_after_setting",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "where_using_global",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "implicit_match_0",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "implicit_match_null",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "implicit_match_false",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "implicit_match_empty_str",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "no_action",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "action_send",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "store_sent_name",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "raise_basic",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "raise_set_name",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "raise_set_name_attr",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "raise_set_name_rid",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "raise_dynamic",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "event_eid",
+          "attrs": []
+        },
+        {
+          "domain": "events",
+          "name": "event_attrs",
+          "attrs": []
+        }
+      ]
+    };
     const getOnChooseFired2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("on_choose_fired");
     });
@@ -987,193 +1174,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "getOnChooseFired",
-                "args": []
-              },
-              {
-                "name": "getNoActionFired",
-                "args": []
-              },
-              {
-                "name": "getSentAttrs",
-                "args": []
-              },
-              {
-                "name": "getSentName",
-                "args": []
-              }
-            ],
-            "events": [
-              {
-                "domain": "events",
-                "name": "bind",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "set_attr2",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "get",
-                "attrs": ["thing"]
-              },
-              {
-                "domain": "events",
-                "name": "noop",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "noop2",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "ifthen",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "on_fired",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "on_choose",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "on_choose_if",
-                "attrs": ["fire"]
-              },
-              {
-                "domain": "events",
-                "name": "on_every",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "on_sample",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "on_sample_if",
-                "attrs": ["fire"]
-              },
-              {
-                "domain": "events",
-                "name": "select_where",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "where_match_0",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "where_match_null",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "where_match_false",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "where_match_empty_str",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "where_after_setting",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "where_using_global",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "implicit_match_0",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "implicit_match_null",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "implicit_match_false",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "implicit_match_empty_str",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "no_action",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "action_send",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "store_sent_name",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "raise_basic",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "raise_set_name",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "raise_set_name_attr",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "raise_set_name_rid",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "raise_dynamic",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "event_eid",
-                "attrs": []
-              },
-              {
-                "domain": "events",
-                "name": "event_attrs",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

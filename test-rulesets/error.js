@@ -8,6 +8,39 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const append1 = $stdlib["append"];
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [{
+          "name": "getErrors",
+          "args": []
+        }],
+      "events": [
+        {
+          "domain": "system",
+          "name": "error",
+          "attrs": []
+        },
+        {
+          "domain": "error",
+          "name": "continue_on_error",
+          "attrs": []
+        },
+        {
+          "domain": "error",
+          "name": "continue_on_error",
+          "attrs": []
+        },
+        {
+          "domain": "error",
+          "name": "stop_on_error",
+          "attrs": []
+        },
+        {
+          "domain": "error",
+          "name": "stop_on_error",
+          "attrs": []
+        }
+      ]
+    };
     const getErrors2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("error_log");
     });
@@ -168,39 +201,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [{
-                "name": "getErrors",
-                "args": []
-              }],
-            "events": [
-              {
-                "domain": "system",
-                "name": "error",
-                "attrs": []
-              },
-              {
-                "domain": "error",
-                "name": "continue_on_error",
-                "attrs": []
-              },
-              {
-                "domain": "error",
-                "name": "continue_on_error",
-                "attrs": []
-              },
-              {
-                "domain": "error",
-                "name": "stop_on_error",
-                "attrs": []
-              },
-              {
-                "domain": "error",
-                "name": "stop_on_error",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

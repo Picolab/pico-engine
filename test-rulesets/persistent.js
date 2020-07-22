@@ -13,6 +13,39 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "getName",
+          "args": []
+        },
+        {
+          "name": "getUser",
+          "args": []
+        },
+        {
+          "name": "getUserFirstname",
+          "args": []
+        }
+      ],
+      "events": [
+        {
+          "domain": "store",
+          "name": "name",
+          "attrs": []
+        },
+        {
+          "domain": "store",
+          "name": "user_firstname",
+          "attrs": []
+        },
+        {
+          "domain": "store",
+          "name": "clear_user",
+          "attrs": []
+        }
+      ]
+    };
     const getName2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("name");
     });
@@ -149,39 +182,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "getName",
-                "args": []
-              },
-              {
-                "name": "getUser",
-                "args": []
-              },
-              {
-                "name": "getUserFirstname",
-                "args": []
-              }
-            ],
-            "events": [
-              {
-                "domain": "store",
-                "name": "name",
-                "attrs": []
-              },
-              {
-                "domain": "store",
-                "name": "user_firstname",
-                "attrs": []
-              },
-              {
-                "domain": "store",
-                "name": "clear_user",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

@@ -19,6 +19,99 @@ module.exports = {
     const reduce1 = $stdlib["reduce"];
     const map1 = $stdlib["map"];
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "g0",
+          "args": []
+        },
+        {
+          "name": "g1",
+          "args": []
+        },
+        {
+          "name": "getVals",
+          "args": []
+        },
+        {
+          "name": "add",
+          "args": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "name": "sum",
+          "args": ["arr"]
+        },
+        {
+          "name": "mapped",
+          "args": []
+        }
+      ],
+      "events": [
+        {
+          "domain": "scope",
+          "name": "eventOr0",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "eventOr1",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "eventAnd0",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "eventAnd1",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "eventWithin0",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "eventWithin1",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "eventWithin2",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "eventWithin3",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "prelude",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "functions",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "shadow",
+          "attrs": []
+        },
+        {
+          "domain": "scope",
+          "name": "recur",
+          "attrs": []
+        }
+      ]
+    };
     const g02 = "global 0";
     const g12 = 1;
     const getVals2 = $ctx.krl.Function([], async function () {
@@ -407,99 +500,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "g0",
-                "args": []
-              },
-              {
-                "name": "g1",
-                "args": []
-              },
-              {
-                "name": "getVals",
-                "args": []
-              },
-              {
-                "name": "add",
-                "args": [
-                  "a",
-                  "b"
-                ]
-              },
-              {
-                "name": "sum",
-                "args": ["arr"]
-              },
-              {
-                "name": "mapped",
-                "args": []
-              }
-            ],
-            "events": [
-              {
-                "domain": "scope",
-                "name": "eventOr0",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "eventOr1",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "eventAnd0",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "eventAnd1",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "eventWithin0",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "eventWithin1",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "eventWithin2",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "eventWithin3",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "prelude",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "functions",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "shadow",
-                "attrs": []
-              },
-              {
-                "domain": "scope",
-                "name": "recur",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

@@ -6,6 +6,51 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [],
+      "events": [
+        {
+          "domain": "foo",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "foo",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "bar",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "bar",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "baz",
+          "name": "a",
+          "attrs": []
+        },
+        {
+          "domain": "baz",
+          "name": "b",
+          "attrs": []
+        },
+        {
+          "domain": "baz",
+          "name": "c",
+          "attrs": []
+        },
+        {
+          "domain": "qux",
+          "name": "a",
+          "attrs": []
+        }
+      ]
+    };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.within(5 * 60000, $ctx.krl.SelectWhen.before($ctx.krl.SelectWhen.e("foo:a"), $ctx.krl.SelectWhen.e("foo:b")), function ($event, $state) {
       return Object.assign({}, $state, { "setting": {} });
@@ -91,51 +136,7 @@ module.exports = {
       },
       "query": {
         "__testing": function () {
-          return {
-            "queries": [],
-            "events": [
-              {
-                "domain": "foo",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "foo",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "bar",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "bar",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "baz",
-                "name": "a",
-                "attrs": []
-              },
-              {
-                "domain": "baz",
-                "name": "b",
-                "attrs": []
-              },
-              {
-                "domain": "baz",
-                "name": "c",
-                "attrs": []
-              },
-              {
-                "domain": "qux",
-                "name": "a",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

@@ -29,6 +29,23 @@ module.exports = {
     const substr1 = $stdlib["substr"];
     const uc1 = $stdlib["uc"];
     const klog1 = $stdlib["klog"];
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "results",
+          "args": []
+        },
+        {
+          "name": "returnMapAfterKlog",
+          "args": []
+        },
+        {
+          "name": "returnArrayAfterKlog",
+          "args": []
+        }
+      ],
+      "events": []
+    };
     const nothing2 = void 0;
     const some_string2 = "foo";
     const results2 = {
@@ -172,23 +189,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "results",
-                "args": []
-              },
-              {
-                "name": "returnMapAfterKlog",
-                "args": []
-              },
-              {
-                "name": "returnArrayAfterKlog",
-                "args": []
-              }
-            ],
-            "events": []
-          };
+          return __testing1;
         }
       }
     };

@@ -15,6 +15,35 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "obj",
+          "args": []
+        },
+        {
+          "name": "path1",
+          "args": []
+        },
+        {
+          "name": "path2",
+          "args": []
+        },
+        {
+          "name": "index1",
+          "args": []
+        },
+        {
+          "name": "index2",
+          "args": []
+        },
+        {
+          "name": "paramFnTest",
+          "args": []
+        }
+      ],
+      "events": []
+    };
     const cond_exp_12 = true ? 1 : 2;
     const cond_exp_22 = false ? 1 : 2;
     const obj2 = {
@@ -179,35 +208,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "obj",
-                "args": []
-              },
-              {
-                "name": "path1",
-                "args": []
-              },
-              {
-                "name": "path2",
-                "args": []
-              },
-              {
-                "name": "index1",
-                "args": []
-              },
-              {
-                "name": "index2",
-                "args": []
-              },
-              {
-                "name": "paramFnTest",
-                "args": []
-              }
-            ],
-            "events": []
-          };
+          return __testing1;
         }
       }
     };

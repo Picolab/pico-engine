@@ -13,6 +13,71 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const noop1 = $stdlib["noop"];
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "getSettingVal",
+          "args": []
+        },
+        {
+          "name": "add",
+          "args": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "domain": "defa",
+          "name": "foo",
+          "attrs": []
+        },
+        {
+          "domain": "defa",
+          "name": "bar",
+          "attrs": []
+        },
+        {
+          "domain": "defa",
+          "name": "bar_setting",
+          "attrs": []
+        },
+        {
+          "domain": "defa",
+          "name": "chooser",
+          "attrs": ["val"]
+        },
+        {
+          "domain": "defa",
+          "name": "ifAnotB",
+          "attrs": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "domain": "defa",
+          "name": "add",
+          "attrs": []
+        },
+        {
+          "domain": "defa",
+          "name": "returns",
+          "attrs": []
+        },
+        {
+          "domain": "defa",
+          "name": "scope",
+          "attrs": []
+        },
+        {
+          "domain": "defa",
+          "name": "trying_to_use_action_as_fn",
+          "attrs": []
+        }
+      ]
+    };
     const add2 = $ctx.krl.Function([
       "a",
       "b"
@@ -408,71 +473,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "getSettingVal",
-                "args": []
-              },
-              {
-                "name": "add",
-                "args": [
-                  "a",
-                  "b"
-                ]
-              }
-            ],
-            "events": [
-              {
-                "domain": "defa",
-                "name": "foo",
-                "attrs": []
-              },
-              {
-                "domain": "defa",
-                "name": "bar",
-                "attrs": []
-              },
-              {
-                "domain": "defa",
-                "name": "bar_setting",
-                "attrs": []
-              },
-              {
-                "domain": "defa",
-                "name": "chooser",
-                "attrs": ["val"]
-              },
-              {
-                "domain": "defa",
-                "name": "ifAnotB",
-                "attrs": [
-                  "a",
-                  "b"
-                ]
-              },
-              {
-                "domain": "defa",
-                "name": "add",
-                "attrs": []
-              },
-              {
-                "domain": "defa",
-                "name": "returns",
-                "attrs": []
-              },
-              {
-                "domain": "defa",
-                "name": "scope",
-                "attrs": []
-              },
-              {
-                "domain": "defa",
-                "name": "trying_to_use_action_as_fn",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

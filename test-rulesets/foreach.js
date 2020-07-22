@@ -9,6 +9,52 @@ module.exports = {
     const send_directive1 = $stdlib["send_directive"];
     const range1 = $stdlib["range"];
     const split1 = $stdlib["split"];
+    const __testing1 = {
+      "queries": [],
+      "events": [
+        {
+          "domain": "foreach",
+          "name": "basic",
+          "attrs": []
+        },
+        {
+          "domain": "foreach",
+          "name": "map",
+          "attrs": []
+        },
+        {
+          "domain": "foreach",
+          "name": "nested",
+          "attrs": []
+        },
+        {
+          "domain": "foreach",
+          "name": "scope",
+          "attrs": []
+        },
+        {
+          "domain": "foreach",
+          "name": "final",
+          "attrs": [
+            "y",
+            "x"
+          ]
+        },
+        {
+          "domain": "foreach",
+          "name": "final_raised",
+          "attrs": [
+            "x",
+            "y"
+          ]
+        },
+        {
+          "domain": "foreach",
+          "name": "key_vs_index",
+          "attrs": []
+        }
+      ]
+    };
     const doubleThis2 = $ctx.krl.Function(["arr"], async function (arr3) {
       return [
         arr3,
@@ -279,52 +325,7 @@ module.exports = {
       },
       "query": {
         "__testing": function () {
-          return {
-            "queries": [],
-            "events": [
-              {
-                "domain": "foreach",
-                "name": "basic",
-                "attrs": []
-              },
-              {
-                "domain": "foreach",
-                "name": "map",
-                "attrs": []
-              },
-              {
-                "domain": "foreach",
-                "name": "nested",
-                "attrs": []
-              },
-              {
-                "domain": "foreach",
-                "name": "scope",
-                "attrs": []
-              },
-              {
-                "domain": "foreach",
-                "name": "final",
-                "attrs": [
-                  "y",
-                  "x"
-                ]
-              },
-              {
-                "domain": "foreach",
-                "name": "final_raised",
-                "attrs": [
-                  "x",
-                  "y"
-                ]
-              },
-              {
-                "domain": "foreach",
-                "name": "key_vs_index",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

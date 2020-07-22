@@ -13,6 +13,66 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const __testing1 = {
+      "queries": [
+        {
+          "name": "getFoo",
+          "args": []
+        },
+        {
+          "name": "getFooKey",
+          "args": ["key"]
+        },
+        {
+          "name": "getBaz",
+          "args": []
+        },
+        {
+          "name": "getMaplist",
+          "args": []
+        }
+      ],
+      "events": [
+        {
+          "domain": "pindex",
+          "name": "setfoo",
+          "attrs": []
+        },
+        {
+          "domain": "pindex",
+          "name": "putfoo",
+          "attrs": [
+            "key",
+            "value"
+          ]
+        },
+        {
+          "domain": "pindex",
+          "name": "delfoo",
+          "attrs": ["key"]
+        },
+        {
+          "domain": "pindex",
+          "name": "nukefoo",
+          "attrs": []
+        },
+        {
+          "domain": "pindex",
+          "name": "putbaz",
+          "attrs": []
+        },
+        {
+          "domain": "pindex",
+          "name": "setmaplist",
+          "attrs": []
+        },
+        {
+          "domain": "pindex",
+          "name": "putmaplist",
+          "attrs": []
+        }
+      ]
+    };
     const getFoo2 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("foo");
     });
@@ -173,66 +233,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [
-              {
-                "name": "getFoo",
-                "args": []
-              },
-              {
-                "name": "getFooKey",
-                "args": ["key"]
-              },
-              {
-                "name": "getBaz",
-                "args": []
-              },
-              {
-                "name": "getMaplist",
-                "args": []
-              }
-            ],
-            "events": [
-              {
-                "domain": "pindex",
-                "name": "setfoo",
-                "attrs": []
-              },
-              {
-                "domain": "pindex",
-                "name": "putfoo",
-                "attrs": [
-                  "key",
-                  "value"
-                ]
-              },
-              {
-                "domain": "pindex",
-                "name": "delfoo",
-                "attrs": ["key"]
-              },
-              {
-                "domain": "pindex",
-                "name": "nukefoo",
-                "attrs": []
-              },
-              {
-                "domain": "pindex",
-                "name": "putbaz",
-                "attrs": []
-              },
-              {
-                "domain": "pindex",
-                "name": "setmaplist",
-                "attrs": []
-              },
-              {
-                "domain": "pindex",
-                "name": "putmaplist",
-                "attrs": []
-              }
-            ]
-          };
+          return __testing1;
         }
       }
     };

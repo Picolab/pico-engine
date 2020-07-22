@@ -7,6 +7,17 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const __testing1 = {
+      "queries": [{
+          "name": "qFn",
+          "args": ["a"]
+        }],
+      "events": [{
+          "domain": "js_module",
+          "name": "action",
+          "attrs": []
+        }]
+    };
     const qFn2 = $ctx.krl.Function(["a"], async function (a3) {
       return await $ctx.krl.assertFunction($ctx.module("myJsModule")["fun0"])($ctx, {
         "0": a3,
@@ -52,17 +63,7 @@ module.exports = {
           }
         },
         "__testing": function () {
-          return {
-            "queries": [{
-                "name": "qFn",
-                "args": ["a"]
-              }],
-            "events": [{
-                "domain": "js_module",
-                "name": "action",
-                "attrs": []
-              }]
-          };
+          return __testing1;
         }
       }
     };
