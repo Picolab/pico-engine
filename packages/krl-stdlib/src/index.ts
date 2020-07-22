@@ -6,8 +6,6 @@ import {
   Directive,
   KrlCtx,
   PicoLogEntry,
-  RulesetCtxInfo,
-  RulesetCtxInfoMeta,
 } from "./KrlCtx";
 import { KrlLogger, krlLogLevelCodeToHuman, makeKrlLogger } from "./KrlLogger";
 import stdlib from "./stdlib";
@@ -20,8 +18,6 @@ export {
   Directive,
   KrlCtx,
   PicoLogEntry,
-  RulesetCtxInfo,
-  RulesetCtxInfoMeta,
   KrlLogger,
   krlLogLevelCodeToHuman,
   makeKrlLogger,

@@ -7,15 +7,35 @@ import {
   KrlCtx,
   KrlLogger,
   PicoLogEntry,
-  RulesetCtxInfo,
 } from "krl-stdlib";
 import * as _ from "lodash";
-import * as normalizeUrl from "normalize-url";
 import { PicoFramework, RulesetContext } from "pico-framework";
-import { NewPicoRuleset, Pico } from "pico-framework/dist/src/Pico";
+import { Pico } from "pico-framework/dist/src/Pico";
 import { createRulesetContext } from "pico-framework/dist/src/RulesetContext";
 import * as SelectWhen from "select-when";
 import { RulesetRegistry } from "./RulesetRegistry";
+
+export class PicoRidDependencies {
+  private picoRidUses: {
+    [picoId: string]: { [rid: string]: { [usesRid: string]: true } };
+  } = {};
+  private picoRidUsedBy: {
+    [picoId: string]: { [rid: string]: { [usedByRid: string]: true } };
+  } = {};
+
+  use(picoId: string, myRid: string, theirRid: string) {
+    _.set(this.picoRidUses, [picoId, myRid, theirRid], true);
+    _.set(this.picoRidUsedBy, [picoId, theirRid, myRid], true);
+  }
+
+  whoUses(picoId: string, rid: string): string[] {
+    return Object.keys(_.get(this.picoRidUsedBy, [picoId, rid], {}));
+  }
+
+  unUse(picoId: string, rid: string) {
+    _.unset(this.picoRidUses, [picoId, rid]);
+  }
+}
 
 export class RulesetEnvironment {
   krl = krl;
@@ -24,14 +44,9 @@ export class RulesetEnvironment {
 
   modules: { [domain: string]: krl.Module } = {};
 
-  picoRidUses: {
-    [picoId: string]: { [rid: string]: { [usesRid: string]: true } };
-  } = {};
-  picoRidUsedBy: {
-    [picoId: string]: { [rid: string]: { [usedByRid: string]: true } };
-  } = {};
-
   public picoFramework?: PicoFramework;
+
+  public picoRidDependencies = new PicoRidDependencies();
 
   constructor(
     public log: KrlLogger,
@@ -139,106 +154,7 @@ export class RulesetEnvironment {
           alias = rid;
         }
         myModules[alias] = module;
-        _.set(environment.picoRidUses, [pico.id, rsCtx.ruleset.rid, rid], true);
-        _.set(
-          environment.picoRidUsedBy,
-          [pico.id, rid, rsCtx.ruleset.rid],
-          true
-        );
-      },
-
-      async newPico(rulesets) {
-        if (!Array.isArray(rulesets)) {
-          throw new TypeError("ctx:newPico expects an array of {url, config}");
-        }
-        const toInstall: NewPicoRuleset[] = [];
-        for (const rs of rulesets) {
-          const result = await rsRegistry.load(rs.url);
-          toInstall.push({
-            rs: result.ruleset,
-            config: {
-              url: rs.url,
-              config: rs.config || {},
-            },
-          });
-        }
-        const newEci = await rsCtx.newPico({
-          rulesets: toInstall,
-        });
-        return newEci;
-      },
-
-      rulesets() {
-        const pico = rsCtx.pico();
-
-        const results: RulesetCtxInfo[] = [];
-
-        for (const rs of pico.rulesets) {
-          const cached = rsRegistry.getCached(rs.config.url);
-          results.push({
-            rid: rs.rid,
-            version: rs.version,
-            url: rs.config.url,
-            config: rs.config.config,
-            meta: cached
-              ? {
-                  krl: cached.krl,
-                  hash: cached.hash,
-                  flushed: cached.flushed,
-                  compiler: cached.compiler,
-                }
-              : null,
-          });
-        }
-
-        return results;
-      },
-
-      async install(url, config) {
-        if (typeof url !== "string") {
-          throw new TypeError(
-            "Expected string for url but got " + krl.typeOf(url)
-          );
-        }
-        url = normalizeUrl(url);
-        const rs = await rsRegistry.load(url);
-        await rsCtx.install(rs.ruleset, {
-          url: url,
-          config: config || {},
-        });
-      },
-
-      uninstall(rid: string) {
-        if (typeof rid !== "string") {
-          throw new TypeError(
-            "Expected string for rid but got " + krl.typeOf(rid)
-          );
-        }
-        const usedBy = Object.keys(
-          _.get(environment.picoRidUsedBy, [pico.id, rid], {})
-        );
-        if (usedBy.length > 0) {
-          throw new Error(
-            `Cannot uninstall ${rid} because ${usedBy.join(
-              " and "
-            )} depends on it`
-          );
-        }
-        _.unset(environment.picoRidUses, [pico.id, rid]);
-        return rsCtx.uninstall(rid);
-      },
-
-      async flush(url: string) {
-        if (typeof url !== "string") {
-          throw new TypeError(
-            "Expected string for url but got " + krl.typeOf(url)
-          );
-        }
-        url = normalizeUrl(url);
-        const rs = await rsRegistry.flush(url);
-        if (environment.picoFramework) {
-          environment.picoFramework.reInitRuleset(rs.ruleset);
-        }
+        environment.picoRidDependencies.use(pico.id, rsCtx.ruleset.rid, rid);
       },
     };
     return krlCtx;

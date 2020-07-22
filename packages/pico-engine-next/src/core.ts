@@ -2,7 +2,7 @@ import { AbstractLevelDOWN } from "abstract-leveldown";
 import { krl, KrlLogger, PicoLogEntry } from "krl-stdlib";
 import * as _ from "lodash";
 import { PicoFramework } from "pico-framework";
-import module_ctx from "./modules/ctx";
+import initCtxModule from "./modules/ctx";
 import module_event from "./modules/event";
 import { initScheduleModule } from "./modules/schedule";
 import module_stdlib from "./modules/stdlib";
@@ -113,7 +113,11 @@ export async function startPicoEngineCore(
 
   rsEnvironment.picoFramework = pf;
 
-  rsEnvironment.modules["ctx"] = module_ctx;
+  rsEnvironment.modules["ctx"] = initCtxModule(
+    rsRegistry,
+    pf,
+    rsEnvironment.picoRidDependencies
+  );
   rsEnvironment.modules["event"] = module_event;
   rsEnvironment.modules["stdlib"] = module_stdlib;
   rsEnvironment.modules["time"] = module_time;

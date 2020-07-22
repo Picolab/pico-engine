@@ -1,9 +1,4 @@
-import {
-  PicoEvent,
-  PicoQuery,
-  RulesetConfig,
-  RulesetContext,
-} from "pico-framework";
+import { PicoEvent, PicoQuery, RulesetContext } from "pico-framework";
 import * as krl from "./krl";
 import { KrlLogger } from "./KrlLogger";
 
@@ -24,24 +19,6 @@ export interface PicoLogEntry {
   level: string;
   time: Date;
   txnId?: string;
-}
-
-export interface RulesetCtxInfo {
-  rid: string;
-  version: string;
-  config: RulesetConfig | null;
-  url: string;
-  meta: RulesetCtxInfoMeta | null;
-}
-
-export interface RulesetCtxInfoMeta {
-  krl: string;
-  hash: string;
-  flushed: Date;
-  compiler: {
-    version: string;
-    warnings: any[];
-  };
 }
 
 export interface KrlCtx {
@@ -69,13 +46,6 @@ export interface KrlCtx {
   // directives
   addDirective(name: string, options: { [name: string]: any }): Directive;
   drainDirectives(): Directive[];
-
-  // rsCtx extensions
-  newPico(rulesets: { url: string; config: any }[]): Promise<string>;
-  rulesets(): RulesetCtxInfo[];
-  install(url: string, config: RulesetConfig): Promise<void>;
-  uninstall(rid: string): Promise<void>;
-  flush(url: string): Promise<void>;
 
   // compiler lib
   aggregateEvent(state: any, op: string, pairs: [string, string][]): any;
