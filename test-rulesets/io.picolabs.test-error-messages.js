@@ -6,7 +6,6 @@ module.exports = {
     "shares": [
       "hello",
       "null_val",
-      "somethingNotDefined",
       "infiniteRecursion"
     ]
   },
@@ -52,14 +51,6 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "somethingNotDefined": function (query, qid) {
-          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
-          try {
-            return somethingNotDefined1;
-          } finally {
-            $ctx.setQuery(null);
-          }
-        },
         "infiniteRecursion": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
@@ -77,10 +68,6 @@ module.exports = {
               },
               {
                 "name": "null_val",
-                "args": []
-              },
-              {
-                "name": "somethingNotDefined",
                 "args": []
               },
               {

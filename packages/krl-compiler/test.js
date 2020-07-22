@@ -209,3 +209,16 @@ test('stdlib and missing variables', function (t) {
   }
   `), { message: 'Undefined id: bar' })
 })
+
+test('share somethingNotDefined', function (t) {
+  t.throws(() => compiler(`
+  ruleset rs {
+    meta {
+        shares something, somethingNotDefined
+    }
+    global {
+      something = 1
+    }
+  }
+  `), { message: 'Trying to share: somethingNotDefined but it\'s not defined in global' })
+})

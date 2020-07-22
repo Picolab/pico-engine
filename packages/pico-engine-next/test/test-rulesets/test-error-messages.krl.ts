@@ -1,9 +1,9 @@
 import test from "ava";
 import { startTestEngine } from "../helpers/startTestEngine";
 
-test("io.picolabs.test-error-messages.krl", async t => {
+test("io.picolabs.test-error-messages.krl", async (t) => {
   const { pe, eci } = await startTestEngine([
-    "io.picolabs.test-error-messages.krl"
+    "io.picolabs.test-error-messages.krl",
   ]);
 
   let err = await t.throwsAsync(pe.pf.query(void 0 as any));
@@ -17,7 +17,7 @@ test("io.picolabs.test-error-messages.krl", async t => {
       eci: "foo",
       rid: "not-an-rid",
       name: "hello",
-      args: {}
+      args: {},
     } as any)
   );
   t.is(err + "", "Error: ECI not found foo");
@@ -27,7 +27,7 @@ test("io.picolabs.test-error-messages.krl", async t => {
       eci: eci,
       rid: "not-an-rid",
       name: "hello",
-      args: {}
+      args: {},
     } as any)
   );
   t.is(err + "", "Error: Pico doesn't have not-an-rid installed.");
@@ -37,7 +37,7 @@ test("io.picolabs.test-error-messages.krl", async t => {
       eci,
       rid: "io.picolabs.test-error-messages",
       name: "zzz",
-      args: { obj: "Bob" }
+      args: { obj: "Bob" },
     })
   );
   t.is(
@@ -49,18 +49,8 @@ test("io.picolabs.test-error-messages.krl", async t => {
     pe.pf.query({
       eci,
       rid: "io.picolabs.test-error-messages",
-      name: "somethingNotDefined",
-      args: { obj: "Bob" }
-    })
-  );
-  t.is(err + "", "ReferenceError: somethingNotDefined1 is not defined");
-
-  err = await t.throwsAsync(
-    pe.pf.query({
-      eci,
-      rid: "io.picolabs.test-error-messages",
       name: "infiniteRecursion",
-      args: {}
+      args: {},
     })
   );
   t.is(err + "", "RangeError: Maximum call stack size exceeded");

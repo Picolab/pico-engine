@@ -15,7 +15,7 @@ module.exports = function (ast, comp, e) {
     _.each(ast.meta.properties, function (prop) {
       if (prop.key.value === 'shares') {
         _.each(prop.value.ids, function (id) {
-          shares.push(id.value)
+          shares.push(id)
         })
       } else if (prop.key.value === 'provides') {
         _.each(prop.value.ids, function (id) {
@@ -73,11 +73,14 @@ module.exports = function (ast, comp, e) {
 
   const queries = {}
   for (const share of shares) {
-    const annotation = comp.scope.get(share)
+    const annotation = comp.scope.get(share.value)
+    if (!annotation) {
+      throw comp.error(share.loc, 'Trying to share: ' + share.value + ' but it\'s not defined in global')
+    }
     if (annotation && annotation.type === 'Action') {
-      throw comp.error(annotation.loc, 'Actions cannot be used queries: ' + share)
+      throw comp.error(annotation.loc, 'Actions cannot be used queries: ' + share.value)
     } else {
-      queries[share] = e('fn', ['query', 'qid'], [
+      queries[share.value] = e('fn', ['query', 'qid'], [
         e(';', e('call', e('id', '$ctx.setQuery'), [e('call', e('id', 'Object.assign'), [
           e('obj', {}),
           e('id', 'query'),
@@ -87,8 +90,8 @@ module.exports = function (ast, comp, e) {
           type: 'TryStatement',
           block: e('block', [
             annotation && annotation.type === 'Function'
-              ? e('return', e('call', e('id', comp.jsId(share)), [e('id', '$ctx'), e('id', 'query.args')]))
-              : e('return', e('id', comp.jsId(share)))
+              ? e('return', e('call', e('id', comp.jsId(share.value)), [e('id', '$ctx'), e('id', 'query.args')]))
+              : e('return', e('id', comp.jsId(share.value)))
           ]),
           finalizer: e('block', [
             e(';', e('call', e('id', '$ctx.setQuery'), [e('null')]))
@@ -96,7 +99,7 @@ module.exports = function (ast, comp, e) {
         }
       ])
       testingJSON.queries.push({
-        name: share,
+        name: share.value,
         args: annotation && annotation.type === 'Function'
           ? annotation.params
           : []
