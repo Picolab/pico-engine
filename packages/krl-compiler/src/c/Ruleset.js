@@ -107,7 +107,7 @@ module.exports = function (ast, comp, e) {
 
   let esBody = []
   esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
-  esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
+  esBody.push(e('const', '$ctx', e('call', e('id', '$mkCtx'), [e('id', '$rsCtx')])))
   esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
   _.each(comp.idsOutOfScope, function (ast, id) {
     esBody.push(e('const', comp.jsId(id), e('get', e('id', '$stdlib', ast.loc), e('str', id, ast.loc), ast.loc), ast.loc))
@@ -152,7 +152,7 @@ module.exports = function (ast, comp, e) {
 
   esBody.push(e('return', e('obj', returnObj)))
 
-  rs.init = e('asyncfn', ['$rsCtx', '$env'], esBody)
+  rs.init = e('asyncfn', ['$rsCtx', '$mkCtx'], esBody)
 
   return [
     e(';', e('=', e('id', 'module.exports'),

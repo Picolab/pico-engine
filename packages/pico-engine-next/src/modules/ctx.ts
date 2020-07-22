@@ -8,7 +8,7 @@ import {
 } from "pico-framework";
 import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
 import * as request from "request";
-import { PicoRidDependencies } from "../RulesetEnvironment";
+import { PicoRidDependencies } from "../PicoRidDependencies";
 import { RulesetRegistry } from "../RulesetRegistry";
 
 export interface RulesetCtxInfo {

@@ -1,13 +1,14 @@
 import { AbstractLevelDOWN } from "abstract-leveldown";
 import { krl, KrlLogger, PicoLogEntry } from "krl-stdlib";
 import * as _ from "lodash";
-import { PicoFramework } from "pico-framework";
+import { PicoFramework, RulesetContext } from "pico-framework";
+import { KrlCtxMakerConfig, makeKrlCtx } from "./makeKrlCtx";
 import initCtxModule from "./modules/ctx";
 import module_event from "./modules/event";
 import { initScheduleModule } from "./modules/schedule";
 import module_stdlib from "./modules/stdlib";
 import module_time from "./modules/time";
-import { RulesetEnvironment } from "./RulesetEnvironment";
+import { PicoRidDependencies } from "./PicoRidDependencies";
 import { RulesetRegistry, RulesetRegistryLoader } from "./RulesetRegistry";
 
 const version = require("../package.json").version;
@@ -47,17 +48,20 @@ export async function startPicoEngineCore(
 ): Promise<PicoEngineCore> {
   const log = configuration.log;
   const rsRegistry = new RulesetRegistry(configuration.rsRegLoader);
-  const rsEnvironment = new RulesetEnvironment(
+
+  const environment: KrlCtxMakerConfig = {
     log,
     rsRegistry,
-    configuration.getPicoLogs
-  );
+    getPicoLogs: configuration.getPicoLogs,
+    modules: {},
+    picoRidDependencies: new PicoRidDependencies(),
+  };
 
   const pf = new PicoFramework({
     leveldown: configuration.leveldown,
     genID: configuration.genID,
 
-    environment: rsEnvironment,
+    environment: (rsCtx: RulesetContext) => makeKrlCtx(environment, rsCtx),
 
     rulesetLoader: rsRegistry.loader,
 
@@ -111,23 +115,23 @@ export async function startPicoEngineCore(
     useEventInputTime: configuration.useEventInputTime,
   });
 
-  rsEnvironment.picoFramework = pf;
+  environment.picoFramework = pf;
 
-  rsEnvironment.modules["ctx"] = initCtxModule(
+  environment.modules["ctx"] = initCtxModule(
     rsRegistry,
     pf,
-    rsEnvironment.picoRidDependencies
+    environment.picoRidDependencies
   );
-  rsEnvironment.modules["event"] = module_event;
-  rsEnvironment.modules["stdlib"] = module_stdlib;
-  rsEnvironment.modules["time"] = module_time;
+  environment.modules["event"] = module_event;
+  environment.modules["stdlib"] = module_stdlib;
+  environment.modules["time"] = module_time;
 
   const scheduler = initScheduleModule(pf);
-  rsEnvironment.modules["schedule"] = scheduler.module;
+  environment.modules["schedule"] = scheduler.module;
 
   if (configuration.modules) {
     _.each(configuration.modules, function (mod, domain) {
-      rsEnvironment.modules[domain] = mod;
+      environment.modules[domain] = mod;
     });
   }
 

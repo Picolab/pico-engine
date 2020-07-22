@@ -9,9 +9,9 @@ module.exports = {
       "fnPost"
     ]
   },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const $delete$1 = $stdlib["delete"];
     const set1 = $stdlib["set"];

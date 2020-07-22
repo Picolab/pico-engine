@@ -8,9 +8,9 @@ module.exports = {
       "foo"
     ]
   },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const add1 = $ctx.krl.Function([
       "a",

@@ -2,9 +2,9 @@ module.exports = {
   "rid": "io.picolabs.guard-conditions",
   "version": "draft",
   "meta": { "shares": ["getB"] },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const match1 = $stdlib["match"];

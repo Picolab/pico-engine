@@ -2,9 +2,9 @@ module.exports = {
   "rid": "io.picolabs.js-module",
   "version": "draft",
   "meta": { "shares": ["qFn"] },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const qFn1 = $ctx.krl.Function(["a"], async function (a2) {

@@ -2,9 +2,9 @@ module.exports = {
   "rid": "io.picolabs.last2",
   "version": "draft",
   "meta": { "name": "This second ruleset tests that `last` only stops the current ruleset" },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();

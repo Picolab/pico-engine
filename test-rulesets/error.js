@@ -2,9 +2,9 @@ module.exports = {
   "rid": "io.picolabs.error",
   "version": "draft",
   "meta": { "shares": ["getErrors"] },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const append1 = $stdlib["append"];
     const send_directive1 = $stdlib["send_directive"];

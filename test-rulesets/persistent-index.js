@@ -9,9 +9,9 @@ module.exports = {
       "getMaplist"
     ]
   },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const getFoo1 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("foo");

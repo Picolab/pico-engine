@@ -10,9 +10,9 @@ module.exports = {
     "shares": ["getInfo"],
     "configure": ["configured_name"]
   },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const configured_name1 = $ctx.configure("configured_name", "Bob");

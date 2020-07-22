@@ -1,9 +1,9 @@
 module.exports = {
   "rid": "io.picolabs.log",
   "version": "draft",
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("log:levels"), async function ($event, $state, $last) {

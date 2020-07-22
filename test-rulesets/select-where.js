@@ -1,9 +1,9 @@
 module.exports = {
   "rid": "io.picolabs.select_where",
   "version": "draft",
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();

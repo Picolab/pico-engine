@@ -10,9 +10,9 @@ module.exports = {
       "said"
     ]
   },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const hello1 = $ctx.krl.Function(["name"], async function ($name$2 = "default") {
       const msg2 = await $stdlib["+"]($ctx, [

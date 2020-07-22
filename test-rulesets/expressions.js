@@ -11,9 +11,9 @@ module.exports = {
       "paramFnTest"
     ]
   },
-  "init": async function ($rsCtx, $env) {
+  "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
-    const $ctx = $env.mkCtx($rsCtx);
+    const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const cond_exp_11 = true ? 1 : 2;
     const cond_exp_21 = false ? 1 : 2;
