@@ -1,34 +1,23 @@
+import {
+  aggregateEvent,
+  CurrentPicoEvent,
+  CurrentPicoQuery,
+  Directive,
+  krl,
+  KrlCtx,
+  KrlLogger,
+  PicoLogEntry,
+  RulesetCtxInfo,
+} from "krl-stdlib";
 import * as _ from "lodash";
 import * as normalizeUrl from "normalize-url";
-import {
-  PicoEvent,
-  PicoFramework,
-  PicoQuery,
-  RulesetConfig,
-  RulesetContext,
-} from "pico-framework";
+import { PicoFramework, RulesetContext } from "pico-framework";
 import { NewPicoRuleset, Pico } from "pico-framework/dist/src/Pico";
 import { createRulesetContext } from "pico-framework/dist/src/RulesetContext";
 import * as SelectWhen from "select-when";
-import { PicoLogEntry } from "./getPicoLogs";
-import * as krl from "./krl";
-import { KrlLogger } from "./KrlLogger";
 import * as modules from "./modules";
 import { ScheduledEvent } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
-
-export interface CurrentPicoEvent extends PicoEvent {
-  eid: string;
-}
-
-export interface CurrentPicoQuery extends PicoQuery {
-  qid: string;
-}
-
-export interface Directive {
-  name: string;
-  options: { [name: string]: any };
-}
 
 export function cleanDirectives(responses: any[]): Directive[] {
   return _.compact(_.flattenDeep(responses));
@@ -52,7 +41,11 @@ export class RulesetEnvironment {
   public removeScheduledEvent?: (id: string) => void;
   public picoFramework?: PicoFramework;
 
-  constructor(public log: KrlLogger, public rsRegistry: RulesetRegistry) {}
+  constructor(
+    public log: KrlLogger,
+    public rsRegistry: RulesetRegistry,
+    public getPicoLogs: (picoId: string) => Promise<PicoLogEntry[]>
+  ) {}
 
   mkCtx(rsCtx: RulesetContext): KrlCtx {
     const pico = rsCtx.pico();
@@ -107,38 +100,7 @@ export class RulesetEnvironment {
         directives = [];
         return tmp;
       },
-      aggregateEvent(state, op, pairs) {
-        state = state || {};
-        const stateStates = Array.isArray(state.states) ? state.states : [];
-        const isStart = stateStates.indexOf("start") >= 0;
-        const isEnd = stateStates.indexOf("end") >= 0;
-        let newAggregates: { [name: string]: any[] } = {};
-        let newSetting: { [name: string]: any } = {};
-        for (const [name, value] of pairs) {
-          let vals: any[] =
-            state.aggregates && Array.isArray(state.aggregates[name])
-              ? state.aggregates[name]
-              : [];
-          if (isStart) {
-            // reset the aggregated values every time the state machine resets
-            vals = [value];
-          } else if (isEnd) {
-            // keep a sliding window every time the state machine hits end again i.e. select when repeat ..
-            vals = _.tail(vals.concat([value]));
-          } else {
-            vals = vals.concat([value]);
-          }
-          newAggregates[name] = vals;
-          if (aggregators[op]) {
-            newSetting[name] = aggregators[op](vals);
-          }
-        }
-
-        return Object.assign({}, state, {
-          aggregates: newAggregates,
-          setting: Object.assign({}, state.setting, newSetting),
-        });
-      },
+      aggregateEvent,
 
       scheduleEvent(sEvent) {
         if (environment.addScheduledEvent) {
@@ -153,7 +115,7 @@ export class RulesetEnvironment {
       },
 
       getPicoLogs() {
-        return log.getPicoLogs(picoId);
+        return environment.getPicoLogs(picoId);
       },
 
       configure(name, dflt) {
@@ -301,86 +263,4 @@ export class RulesetEnvironment {
     };
     return krlCtx;
   }
-}
-
-export interface KrlCtx {
-  log: KrlLogger;
-  rsCtx: RulesetContext;
-  module(domain: string): krl.Module | null;
-  getEvent(): CurrentPicoEvent | null;
-  setEvent(event: CurrentPicoEvent | null): void;
-  getQuery(): CurrentPicoQuery | null;
-  setQuery(query: CurrentPicoQuery | null): void;
-  addDirective(name: string, options: { [name: string]: any }): Directive;
-  drainDirectives(): Directive[];
-  aggregateEvent(state: any, op: string, pairs: [string, string][]): any;
-  scheduleEvent(sEvent: ScheduledEvent): void;
-  removeScheduledEvent(id: string): void;
-  getPicoLogs(): Promise<PicoLogEntry[]>;
-  configure(name: string, dflt: any): any;
-  useModule(
-    rid: string,
-    alias?: string | null,
-    configure?: { [name: string]: any }
-  ): Promise<void>;
-
-  newPico(rulesets: { url: string; config: any }[]): Promise<string>;
-
-  rulesets(): RulesetCtxInfo[];
-  install(url: string, config: RulesetConfig): Promise<void>;
-  uninstall(rid: string): Promise<void>;
-  flush(url: string): Promise<void>;
-}
-
-function toFloat(v: any) {
-  return krl.toNumberOrNull(v) || 0;
-}
-
-const aggregators: { [op: string]: (vals: any[]) => any } = {
-  max(values) {
-    return _.max(_.map(values, toFloat));
-  },
-  min(values) {
-    return _.min(_.map(values, toFloat));
-  },
-  sum(values) {
-    return _.reduce(
-      _.map(values, toFloat),
-      function (sum, n) {
-        return sum + n;
-      },
-      0
-    );
-  },
-  avg(values) {
-    var sum = _.reduce(
-      _.map(values, toFloat),
-      function (sum, n) {
-        return sum + n;
-      },
-      0
-    );
-    return sum / _.size(values);
-  },
-  push(values) {
-    return values;
-  },
-};
-
-interface RulesetCtxInfo {
-  rid: string;
-  version: string;
-  config: RulesetConfig | null;
-  url: string;
-  meta: RulesetCtxInfoMeta | null;
-}
-
-interface RulesetCtxInfoMeta {
-  krl: string;
-  hash: string;
-  flushed: Date;
-  compiler: {
-    version: string;
-    warnings: any[];
-  };
 }

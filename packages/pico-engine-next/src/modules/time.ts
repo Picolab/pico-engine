@@ -1,4 +1,4 @@
-import * as krl from "../krl";
+import { krl } from "krl-stdlib";
 
 const time: krl.Module = {
   now: krl.Function([], () => Date.now()),
@@ -7,7 +7,7 @@ const time: krl.Module = {
       time += spec.minutes * 60 * 1000;
     }
     return time;
-  })
+  }),
 };
 
 export default time;

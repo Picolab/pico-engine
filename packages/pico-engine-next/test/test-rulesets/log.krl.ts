@@ -1,22 +1,18 @@
 import test from "ava";
-import { PassThrough } from "stream";
-import { KrlLogger } from "../../src/KrlLogger";
+import { makeKrlLogger } from "krl-stdlib";
 import { startTestEngine } from "../helpers/startTestEngine";
 
-test("log.krl", async t => {
-  const logStream = new PassThrough();
-  const log = new KrlLogger(logStream, "");
-
+test("log.krl", async (t) => {
   const lines: any[] = [];
-  logStream.on("data", data => {
-    const json = JSON.parse(data.toString().trim());
+  const log = makeKrlLogger((line) => {
+    const json = JSON.parse(line.trim());
     if (json.rid === "io.picolabs.log") {
       lines.push({ level: json.level, msg: json.msg });
     }
   });
 
   const { pe, eci } = await startTestEngine(["log.krl"], {
-    log
+    log,
   });
 
   await pe.pf.eventWait({
@@ -24,7 +20,7 @@ test("log.krl", async t => {
     domain: "log",
     name: "levels",
     data: { attrs: {} },
-    time: 0
+    time: 0,
   });
 
   t.deepEqual(lines, [
@@ -35,6 +31,6 @@ test("log.krl", async t => {
     { level: 10, msg: "hello error" },
     { level: 20, msg: "hello warn" },
     { level: 30, msg: "hello info" },
-    { level: 50, msg: "hello debug" }
+    { level: 50, msg: "hello debug" },
   ]);
 });

@@ -1,17 +1,8 @@
 import test from "ava";
-import * as cuid from "cuid";
-import * as path from "path";
-import * as tempDir from "temp-dir";
-import { PicoEngineConfiguration } from "../src";
-import {
-  startTestEngine,
-  allowAllChannelConf,
-  mkSignalBase,
-} from "./helpers/startTestEngine";
-import { startPicoEngineCore, PicoEngineCoreConfiguration } from "../src/core";
-import { PassThrough } from "stream";
-import { KrlLogger } from "../src/KrlLogger";
+import { makeKrlLogger } from "krl-stdlib";
+import { PicoEngineCoreConfiguration, startPicoEngineCore } from "../src/core";
 import { RulesetRegistryLoaderMem } from "../src/RulesetRegistryLoaderMem";
+import { allowAllChannelConf, mkSignalBase } from "./helpers/startTestEngine";
 const memdown = require("memdown");
 
 test("use-module install order", async (t) => {
@@ -32,7 +23,10 @@ test("use-module install order", async (t) => {
   const conf: PicoEngineCoreConfiguration = {
     leveldown: memdown(),
     rsRegLoader: RulesetRegistryLoaderMem(async (url) => krlUrls[url]),
-    log: new KrlLogger(new PassThrough(), ""),
+    log: makeKrlLogger((line: string) => null),
+    async getPicoLogs(picoId) {
+      return [];
+    },
   };
 
   let pe = await startPicoEngineCore(conf);

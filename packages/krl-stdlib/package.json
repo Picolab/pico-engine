@@ -2,10 +2,16 @@
   "name": "krl-stdlib",
   "version": "0.52.0",
   "description": "Standard library for KRL",
-  "main": "src/index.js",
+  "main": "dist/index.js",
+  "files": [
+    "src",
+    "dist"
+  ],
   "scripts": {
-    "start": "npm test -- -w",
-    "test": "ava"
+    "prepublish": "npm run build",
+    "start": "ava -w",
+    "test": "ava",
+    "build": "rm -rf dist && tsc"
   },
   "repository": {
     "type": "git",
@@ -23,6 +29,9 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
+    "@types/abstract-leveldown": "^5.0.1",
+    "@types/leveldown": "^4.0.0",
+    "@types/levelup": "^3.1.0",
     "@types/lodash": "^4.14.123",
     "@types/node": "^14.0.24",
     "ava": "^1.4.1",

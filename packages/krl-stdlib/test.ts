@@ -20,15 +20,11 @@ async function mkCallLib(onLogLine?: (str: string) => void) {
       return null;
     },
     setQuery(query) {},
-    module(domain: string) {
+    module(domain) {
       return null;
     },
-    configure(name: string, dflt: any) {},
-    useModule(
-      rid: string,
-      alias?: string | null,
-      configure?: { [name: string]: any }
-    ) {},
+    configure(name, dflt) {},
+    useModule(rid, alias, configure) {},
     addDirective(name, options) {
       return { name, options: options || {} };
     },
@@ -36,6 +32,20 @@ async function mkCallLib(onLogLine?: (str: string) => void) {
       return [];
     },
     aggregateEvent(state, op, pairs) {},
+    async newPico(rulesets) {
+      return "";
+    },
+    rulesets() {
+      return [];
+    },
+    async install(url, config) {},
+    async uninstall(rid) {},
+    async flush(url) {},
+    scheduleEvent(sEvent) {},
+    removeScheduledEvent(id) {},
+    async getPicoLogs() {
+      return [];
+    },
   };
   return function callLib(op: string, ...args: any[]) {
     return stdlib[op](krlCtx, args);

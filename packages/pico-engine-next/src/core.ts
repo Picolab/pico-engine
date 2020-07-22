@@ -1,9 +1,8 @@
 import { AbstractLevelDOWN } from "abstract-leveldown";
+import { krl, KrlLogger, PicoLogEntry } from "krl-stdlib";
 import * as _ from "lodash";
 import { PicoFramework } from "pico-framework";
-import * as krl from "./krl";
 import { RulesetEnvironment } from "./KrlCtx";
-import { KrlLogger } from "./KrlLogger";
 import { schedulerStartup } from "./modules/schedule";
 import { RulesetRegistry, RulesetRegistryLoader } from "./RulesetRegistry";
 
@@ -19,6 +18,8 @@ export interface PicoEngineCoreConfiguration {
   rsRegLoader: RulesetRegistryLoader;
 
   log: KrlLogger;
+
+  getPicoLogs(picoId: string): Promise<PicoLogEntry[]>;
 
   /**
    * Provide any custom krl modules
@@ -42,7 +43,11 @@ export async function startPicoEngineCore(
 ): Promise<PicoEngineCore> {
   const log = configuration.log;
   const rsRegistry = new RulesetRegistry(configuration.rsRegLoader);
-  const rsEnvironment = new RulesetEnvironment(log, rsRegistry);
+  const rsEnvironment = new RulesetEnvironment(
+    log,
+    rsRegistry,
+    configuration.getPicoLogs
+  );
 
   if (configuration.modules) {
     _.each(configuration.modules, function (mod, domain) {

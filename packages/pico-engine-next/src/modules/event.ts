@@ -1,10 +1,9 @@
-import * as krl from "../krl";
-import { CurrentPicoEvent, KrlCtx } from "../KrlCtx";
+import { CurrentPicoEvent, krl, KrlCtx } from "krl-stdlib";
 
 function eventProperty<T = any>(
   fn: (event: CurrentPicoEvent) => T
 ): (ctx: KrlCtx) => T | null {
-  return krl.Property(function() {
+  return krl.Property(function () {
     let event = this.getEvent();
     if (event) {
       return fn(event);
@@ -14,12 +13,12 @@ function eventProperty<T = any>(
 }
 
 const event: krl.Module = {
-  eci: eventProperty(event => event.eci),
-  domain: eventProperty(event => event.domain),
-  name: eventProperty(event => event.name),
-  attrs: eventProperty(event => event.data.attrs),
+  eci: eventProperty((event) => event.eci),
+  domain: eventProperty((event) => event.domain),
+  name: eventProperty((event) => event.name),
+  attrs: eventProperty((event) => event.data.attrs),
 
-  attr: krl.Function(["name"], function(name) {
+  attr: krl.Function(["name"], function (name) {
     let event = this.getEvent();
     if (event) {
       return event.data.attrs[name];
@@ -27,8 +26,8 @@ const event: krl.Module = {
     return null;
   }),
 
-  eid: eventProperty(event => event.eid),
-  time: eventProperty(event => event.time)
+  eid: eventProperty((event) => event.eid),
+  time: eventProperty((event) => event.time),
 };
 
 export default event;

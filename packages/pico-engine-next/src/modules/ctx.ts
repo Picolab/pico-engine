@@ -1,6 +1,6 @@
+import { krl } from "krl-stdlib";
 import { ChannelConfig, cleanChannelTags } from "pico-framework";
 import * as request from "request";
-import * as krl from "../krl";
 
 const ctx: krl.Module = {
   rid: krl.Property(function rid() {

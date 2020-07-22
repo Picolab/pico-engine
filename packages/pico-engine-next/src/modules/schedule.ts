@@ -1,8 +1,8 @@
 import * as cuid from "cuid";
+import { krl, KrlCtx } from "krl-stdlib";
 import * as _ from "lodash";
 import { PicoEvent, PicoFramework } from "pico-framework";
-import * as krl from "../krl";
-import { KrlCtx } from "../KrlCtx";
+
 const longTimeout = require("long-timeout"); // makes it possible to have a timeout longer than 24.8 days (2^31-1 milliseconds)
 const nodeSchedule = require("node-schedule");
 
@@ -35,7 +35,7 @@ async function addToSchedule(
 }
 
 const schedule: krl.Module = {
-  at: krl.Postlude(["time", "eci", "domain", "name", "attrs"], function(
+  at: krl.Postlude(["time", "eci", "domain", "name", "attrs"], function (
     time,
     eci,
     domain,
@@ -51,43 +51,40 @@ const schedule: krl.Module = {
         domain,
         name,
         data: { attrs },
-        time: 0
-      }
+        time: 0,
+      },
     });
   }),
 
-  repeat: krl.Postlude(["timespec", "eci", "domain", "name", "attrs"], function(
-    timespec,
-    eci,
-    domain,
-    name,
-    attrs
-  ) {
-    return addToSchedule(this, {
-      id: cuid(),
-      type: "repeat",
-      timespec,
-      event: {
-        eci,
-        domain,
-        name,
-        data: { attrs },
-        time: 0
-      }
-    });
-  }),
+  repeat: krl.Postlude(
+    ["timespec", "eci", "domain", "name", "attrs"],
+    function (timespec, eci, domain, name, attrs) {
+      return addToSchedule(this, {
+        id: cuid(),
+        type: "repeat",
+        timespec,
+        event: {
+          eci,
+          domain,
+          name,
+          data: { attrs },
+          time: 0,
+        },
+      });
+    }
+  ),
 
-  list: krl.Function([], async function() {
+  list: krl.Function([], async function () {
     const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
     return Object.values(schedule);
   }),
 
-  get: krl.Function(["id"], async function(id) {
+  get: krl.Function(["id"], async function (id) {
     const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
     return schedule[id] || null;
   }),
 
-  remove: krl.Action(["id"], async function(id) {
+  remove: krl.Action(["id"], async function (id) {
     await this.rsCtx.putEnt(
       "_schedule",
       _.omit(this.rsCtx.getEnt("_schedule") || {}, id)
@@ -95,14 +92,14 @@ const schedule: krl.Module = {
     this.removeScheduledEvent(id);
   }),
 
-  clear: krl.Action([], async function() {
+  clear: krl.Action([], async function () {
     const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
     const ids = Object.keys(schedule);
     await this.rsCtx.delEnt("_schedule");
     for (const id of ids) {
       this.removeScheduledEvent(id);
     }
-  })
+  }),
 };
 
 export default schedule;
@@ -164,7 +161,7 @@ export class Scheduler {
       delete this.crons[id];
     } else {
       let found = false;
-      this.futures = this.futures.filter(future => {
+      this.futures = this.futures.filter((future) => {
         if (future.id === id) {
           found = true;
           return false;
@@ -195,7 +192,7 @@ export class Scheduler {
 
   private onTime() {
     const now = this.now();
-    this.futures = this.futures.filter(future => {
+    this.futures = this.futures.filter((future) => {
       if (future.time <= now) {
         future.handler();
         return false; // remove it now that it's done
@@ -249,11 +246,11 @@ export function schedulerStartup(pf: PicoFramework) {
       return new Promise((resolve, reject) => {
         const s = pf.db.createReadStream({
           gte: ["entvar"],
-          lte: ["entvar", undefined] // charwise sorts with null at the bottom and undefined at the top
+          lte: ["entvar", undefined], // charwise sorts with null at the bottom and undefined at the top
         });
         s.on("error", reject);
         s.on("end", () => resolve());
-        s.on("data", data => {
+        s.on("data", (data) => {
           if (data.key[3] === "_schedule") {
             const rid = data.key[2];
             const value: { [id: string]: ScheduledEvent } = data.value;
@@ -263,6 +260,6 @@ export function schedulerStartup(pf: PicoFramework) {
           }
         });
       });
-    }
+    },
   };
 }

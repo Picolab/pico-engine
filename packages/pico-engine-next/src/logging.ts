@@ -1,12 +1,46 @@
 import * as fs from "fs";
-import { krlLogLevelCodeToHuman } from "./KrlLogger";
-var split = require("split");
-var through2 = require("through2");
+import { krlLogLevelCodeToHuman, PicoLogEntry } from "krl-stdlib";
+import * as path from "path";
+const split = require("split");
+const through2 = require("through2");
 
-export interface PicoLogEntry {
-  level: string;
-  time: Date;
-  txnId?: string;
+const rfs = require("rotating-file-stream");
+
+const logStreams: { [filePath: string]: NodeJS.WritableStream } = {};
+function getRotatingFileStream(filePath: string): NodeJS.WritableStream {
+  if (!logStreams[filePath]) {
+    const filename = path.basename(filePath);
+    logStreams[filePath] = rfs(
+      (time: Date, index: number) => {
+        if (!time) return filename;
+
+        return filename + "." + index;
+      },
+      {
+        path: path.dirname(filePath),
+
+        size: "100M", // rotate every 10 MegaBytes written
+        maxFiles: 12,
+      }
+    ) as NodeJS.WritableStream;
+  }
+  return logStreams[filePath];
+}
+
+export function makeRotatingFileLogWriter(
+  filePath: string
+): (line: string) => void {
+  const fileStream = getRotatingFileStream(filePath);
+  const isTest = process.env.NODE_ENV === "test";
+
+  function write(line: string) {
+    if (!isTest) {
+      process.stdout.write(line);
+    }
+    fileStream.write(line);
+  }
+
+  return write;
 }
 
 export async function getPicoLogs(
@@ -42,7 +76,7 @@ export async function getPicoLogs(
             ...entry,
             level: krlLogLevelCodeToHuman[entry.level] || `${entry.level}`,
             time: time,
-            txnId: entry.txnId
+            txnId: entry.txnId,
           };
           delete (out as any).picoId;
           output.push(out);

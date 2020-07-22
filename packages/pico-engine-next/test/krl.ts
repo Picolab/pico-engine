@@ -1,11 +1,11 @@
 import test from "ava";
+import { krl } from "krl-stdlib";
 import * as _ from "lodash";
-import * as krl from "../src/krl";
 
-test("KRL function args", async t => {
+test("KRL function args", async (t) => {
   let lastArgs: any;
 
-  const fn = krl.Function(["a", "b", "c"], function() {
+  const fn = krl.Function(["a", "b", "c"], function () {
     lastArgs = _.toArray(arguments);
   });
 
@@ -22,7 +22,7 @@ test("KRL function args", async t => {
   t.deepEqual(lastArgs, ["A1", void 0, 3]);
 });
 
-test("isMap", async t => {
+test("isMap", async (t) => {
   t.false(krl.isMap(null));
   t.false(krl.isMap(void 0));
   t.false(krl.isMap(NaN));
