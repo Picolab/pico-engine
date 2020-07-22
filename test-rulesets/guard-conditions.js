@@ -59,7 +59,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "foo",
           { "b": b3 }
         ]);
@@ -68,7 +68,7 @@ module.exports = {
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      if (await $ctx.krl.assertFunction(match1)($ctx, [
+      if (await match1($ctx, [
           b3,
           new RegExp("foo", "")
         ]))
@@ -88,7 +88,7 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "bar" });
         var $fired = true;
         if ($fired) {
-          await $ctx.krl.assertAction(send_directive1)($ctx, [
+          await send_directive1($ctx, [
             "bar",
             {
               "x": x3,
@@ -112,7 +112,7 @@ module.exports = {
       ]);
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "on_final_no_foreach",
           { "x": x3 }
         ]);

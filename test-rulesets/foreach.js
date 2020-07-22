@@ -76,7 +76,7 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "basic" });
         var $fired = true;
         if ($fired) {
-          await $ctx.krl.assertAction(send_directive1)($ctx, [
+          await send_directive1($ctx, [
             "basic",
             { "x": x3 }
           ]);
@@ -102,7 +102,7 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "map" });
         var $fired = true;
         if ($fired) {
-          await $ctx.krl.assertAction(send_directive1)($ctx, [
+          await send_directive1($ctx, [
             "map",
             {
               "k": k3,
@@ -139,7 +139,7 @@ module.exports = {
           $ctx.log.debug("rule selected", { "rule_name": "nested" });
           var $fired = true;
           if ($fired) {
-            await $ctx.krl.assertAction(send_directive1)($ctx, [
+            await send_directive1($ctx, [
               "nested",
               {
                 "x": x3,
@@ -155,7 +155,7 @@ module.exports = {
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("foreach:scope"), async function ($event, $state, $last) {
-      let $foreach0_pairs = $ctx.krl.toPairs(await $ctx.krl.assertFunction(doubleThis2)($ctx, [[
+      let $foreach0_pairs = $ctx.krl.toPairs(await doubleThis2($ctx, [[
           1,
           2,
           3
@@ -169,7 +169,7 @@ module.exports = {
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let foo3 = $foreach1_pairs[$foreach1_i][1];
-          let $foreach2_pairs = $ctx.krl.toPairs(await $ctx.krl.assertFunction(range1)($ctx, [
+          let $foreach2_pairs = $ctx.krl.toPairs(await range1($ctx, [
             0,
             foo3
           ]));
@@ -185,7 +185,7 @@ module.exports = {
             ]);
             var $fired = true;
             if ($fired) {
-              await $ctx.krl.assertAction(send_directive1)($ctx, [
+              await send_directive1($ctx, [
                 "scope",
                 {
                   "foo": foo3,
@@ -203,7 +203,7 @@ module.exports = {
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("foreach:final"), async function ($event, $state, $last) {
-      let $foreach0_pairs = $ctx.krl.toPairs(await $ctx.krl.assertFunction(split1)($ctx, [
+      let $foreach0_pairs = $ctx.krl.toPairs(await split1($ctx, [
         await $stdlib["get"]($ctx, [
           $event.data.attrs,
           "x"
@@ -214,7 +214,7 @@ module.exports = {
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let x3 = $foreach0_pairs[$foreach0_i][1];
-        let $foreach1_pairs = $ctx.krl.toPairs(await $ctx.krl.assertFunction(split1)($ctx, [
+        let $foreach1_pairs = $ctx.krl.toPairs(await split1($ctx, [
           await $stdlib["get"]($ctx, [
             $event.data.attrs,
             "y"
@@ -229,7 +229,7 @@ module.exports = {
           $ctx.log.debug("rule selected", { "rule_name": "final" });
           var $fired = true;
           if ($fired) {
-            await $ctx.krl.assertAction(send_directive1)($ctx, [
+            await send_directive1($ctx, [
               "final",
               {
                 "x": x3,
@@ -253,7 +253,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "final_raised" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "final_raised",
           {
             "x": await $stdlib["get"]($ctx, [
@@ -296,7 +296,7 @@ module.exports = {
           $ctx.log.debug("rule selected", { "rule_name": "key_vs_index" });
           var $fired = true;
           if ($fired) {
-            await $ctx.krl.assertAction(send_directive1)($ctx, [
+            await send_directive1($ctx, [
               "key_vs_index",
               {
                 "a": a3,

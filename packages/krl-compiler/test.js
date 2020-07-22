@@ -253,3 +253,26 @@ test('allow function body to use a variable declared later', function (t) {
   }
   `), { message: 'Undefined id: bar' })
 })
+
+test('type inference action vs function', function (t) {
+  t.throws(() => compiler(`
+  ruleset rs {
+    global {
+      fun = function(){ 1 }
+    }
+    rule a {
+      select when a a
+      fun()
+    }
+  }
+  `), { message: 'Not an action: Function' })
+
+  t.throws(() => compiler(`
+  ruleset rs {
+    global {
+      act = defaction(){ noop() }
+      bar = act()
+    }
+  }
+  `), { message: 'Not a function: Action' })
+})

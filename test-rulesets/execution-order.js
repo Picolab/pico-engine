@@ -59,19 +59,19 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "first" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["first"]);
+        await send_directive1($ctx, ["first"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
           "first-fired"
         ]));
       }
-      await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "first-finally"
       ]));
@@ -80,19 +80,19 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "second" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["second"]);
+        await send_directive1($ctx, ["second"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
           "second-fired"
         ]));
       }
-      await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "second-finally"
       ]));
@@ -101,7 +101,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "reset_order" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["reset_order"]);
+        await send_directive1($ctx, ["reset_order"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -113,13 +113,13 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "foo_or_bar" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["foo_or_bar"]);
+        await send_directive1($ctx, ["foo_or_bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "foo_or_bar"
       ]));
@@ -128,13 +128,13 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["foo"]);
+        await send_directive1($ctx, ["foo"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "foo"
       ]));
@@ -143,13 +143,13 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "bar" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["bar"]);
+        await send_directive1($ctx, ["bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "bar"
       ]));

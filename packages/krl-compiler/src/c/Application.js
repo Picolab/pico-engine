@@ -50,7 +50,7 @@ module.exports = function (ast, comp, e) {
       callee = e('call', e('id', '$ctx.krl.assertFunction'), [callee])
       break// ok
     default:
-      throw comp.error(ast.action.loc, 'Not a function')
+      throw comp.error(ast.callee.loc, 'Not a function: ' + calleeType)
   }
 
   return e('acall', callee, [

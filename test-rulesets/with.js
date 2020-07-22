@@ -42,13 +42,13 @@ module.exports = {
       ]);
     });
     const inc2 = $ctx.krl.Function(["n"], async function (n3) {
-      return await $ctx.krl.assertFunction(add2)($ctx, {
+      return await add2($ctx, {
         "0": 1,
         "b": n3
       });
     });
     const foo2 = $ctx.krl.Function(["a"], async function (a3) {
-      return await $ctx.krl.assertFunction(add2)($ctx, {
+      return await add2($ctx, {
         "b": a3,
         "a": await $stdlib["*"]($ctx, [
           a3,

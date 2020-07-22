@@ -77,7 +77,7 @@ module.exports = function (ast, comp, e) {
             e('id', '$state', ast.aggregator.loc),
             e('string', ast.aggregator.op, ast.aggregator.loc),
             e('array', _.map(ast.aggregator.args, function (a, i) {
-              comp.scope.set(a.value, { type: 'Unkown' })
+              comp.scope.set(a.value, { type: 'Unknown' })
               comp.scope.get('$selectVars').push(a.value)
               return e('array', [
                 e('string', a.value, a.loc),

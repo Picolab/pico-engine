@@ -83,7 +83,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "store_name",
           { "name": my_name3 }
         ]);
@@ -118,7 +118,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "store_user_firstname",
           { "name": firstname3 }
         ]);
@@ -138,7 +138,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "clear_user" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["clear_user"]);
+        await send_directive1($ctx, ["clear_user"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

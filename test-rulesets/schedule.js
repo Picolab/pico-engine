@@ -81,7 +81,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "clear_log" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["clear_log"]);
+        await send_directive1($ctx, ["clear_log"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -95,14 +95,14 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "push_log" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["push_log"]);
+        await send_directive1($ctx, ["push_log"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await append1($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           $event.data.attrs
         ]));
@@ -112,7 +112,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "in_5min" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["in_5min"]);
+        await send_directive1($ctx, ["in_5min"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -135,7 +135,7 @@ module.exports = {
             { "minutes": 5 }
           ])
         });
-        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await append1($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           { "scheduled in_5min": foo3 }
         ]));
@@ -145,7 +145,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "every_1min" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["every_1min"]);
+        await send_directive1($ctx, ["every_1min"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -165,7 +165,7 @@ module.exports = {
           "name": "push_log",
           "timespec": "* */1 * * * *"
         });
-        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await append1($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           { "scheduled every_1min": foo3 }
         ]));
@@ -211,7 +211,7 @@ module.exports = {
             "at"
           ])
         });
-        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await append1($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           { "scheduled dynamic_at": foo3 }
         ]));
@@ -243,7 +243,7 @@ module.exports = {
             "timespec"
           ])
         });
-        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await append1($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           { "scheduled dynamic_repeat": foo3 }
         ]));

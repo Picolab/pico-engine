@@ -131,7 +131,7 @@ module.exports = {
       ]);
     });
     const sum2 = $ctx.krl.Function(["arr"], async function (arr3) {
-      return await $ctx.krl.assertFunction(reduce1)($ctx, [
+      return await reduce1($ctx, [
         arr3,
         add2,
         0
@@ -145,7 +145,7 @@ module.exports = {
         ]);
       });
     });
-    const mapped2 = await $ctx.krl.assertFunction(map1)($ctx, [
+    const mapped2 = await map1($ctx, [
       [
         1,
         2,
@@ -202,7 +202,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "eventOr",
           {
             "name0": name03,
@@ -258,7 +258,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "eventAnd",
           {
             "name0": name03,
@@ -316,7 +316,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "eventWithin",
           {
             "name1": name13,
@@ -355,7 +355,7 @@ module.exports = {
       const p13 = "prelude 1";
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "say",
           {
             "name": $name$3,
@@ -376,13 +376,13 @@ module.exports = {
     $rs.when($ctx.krl.SelectWhen.e("scope:functions"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "functions" });
       const g03 = "overrided g0!";
-      const inc53 = await $ctx.krl.assertFunction(incByN2)($ctx, [5]);
+      const inc53 = await incByN2($ctx, [5]);
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "say",
           {
-            "add_one_two": await $ctx.krl.assertFunction(add2)($ctx, [
+            "add_one_two": await add2($ctx, [
               1,
               2
             ]),
@@ -398,13 +398,13 @@ module.exports = {
     });
     $rs.when($ctx.krl.SelectWhen.e("scope:shadow"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "shadow" });
-      const add3 = await $ctx.krl.assertFunction(add2)($ctx, [
+      const add3 = await add2($ctx, [
         1,
         2
       ]);
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "say",
           { "add": add3 }
         ]);
@@ -430,9 +430,9 @@ module.exports = {
       });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "say",
-          { "fact5": await $ctx.krl.assertFunction(fact3)($ctx, [5]) }
+          { "fact5": await fact3($ctx, [5]) }
         ]);
       }
       if ($fired)

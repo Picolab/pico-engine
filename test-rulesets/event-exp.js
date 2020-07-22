@@ -311,7 +311,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "before" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["before"]);
+        await send_directive1($ctx, ["before"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -322,7 +322,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "after" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["after"]);
+        await send_directive1($ctx, ["after"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -350,7 +350,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "then" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["then"]);
+        await send_directive1($ctx, ["then"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -361,7 +361,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "and" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["and"]);
+        await send_directive1($ctx, ["and"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -372,7 +372,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "or" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["or"]);
+        await send_directive1($ctx, ["or"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -383,7 +383,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "between" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["between"]);
+        await send_directive1($ctx, ["between"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -394,7 +394,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "not_between" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["not between"]);
+        await send_directive1($ctx, ["not between"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -405,7 +405,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "and_or" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["(a and b) or c"]);
+        await send_directive1($ctx, ["(a and b) or c"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -416,7 +416,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "or_and" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["a and (b or c)"]);
+        await send_directive1($ctx, ["a and (b or c)"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -427,7 +427,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "before_n" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["before_n"]);
+        await send_directive1($ctx, ["before_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -438,7 +438,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "after_n" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["after_n"]);
+        await send_directive1($ctx, ["after_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -449,7 +449,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "then_n" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["then_n"]);
+        await send_directive1($ctx, ["then_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -460,7 +460,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "and_n" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["and_n"]);
+        await send_directive1($ctx, ["and_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -471,7 +471,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "or_n" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["or_n"]);
+        await send_directive1($ctx, ["or_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -482,7 +482,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "any" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["any"]);
+        await send_directive1($ctx, ["any"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -493,7 +493,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "count" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["count"]);
+        await send_directive1($ctx, ["count"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -521,7 +521,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "repeat" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["repeat"]);
+        await send_directive1($ctx, ["repeat"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -555,7 +555,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "count_max",
           { "m": m3 }
         ]);
@@ -592,7 +592,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "repeat_min",
           { "m": m3 }
         ]);
@@ -629,7 +629,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "repeat_sum",
           { "m": m3 }
         ]);
@@ -666,7 +666,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "repeat_avg",
           { "m": m3 }
         ]);
@@ -703,7 +703,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "repeat_push",
           { "m": m3 }
         ]);
@@ -765,7 +765,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "repeat_push_multi",
           {
             "a": a3,
@@ -822,7 +822,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "repeat_sum_multi",
           {
             "a": a3,
@@ -839,7 +839,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "or_duppath" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["(a before a) or a"]);
+        await send_directive1($ctx, ["(a before a) or a"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -850,7 +850,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "notbet_duppath" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["a not between (b, a)"]);
+        await send_directive1($ctx, ["a not between (b, a)"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -861,7 +861,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "ab_or_b" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["(a and b) or b"]);
+        await send_directive1($ctx, ["(a and b) or b"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -872,7 +872,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "ab_or_ca" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["(a and b) or (c and a)"]);
+        await send_directive1($ctx, ["(a and b) or (c and a)"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

@@ -20,7 +20,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "all" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "all",
           {
             "domain": $ctx.module("event")["domain"]($ctx),
@@ -69,7 +69,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "watcher" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["watcher matched!"]);
+        await send_directive1($ctx, ["watcher matched!"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

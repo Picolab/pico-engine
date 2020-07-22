@@ -67,6 +67,10 @@ process.stdin.on("end", function(){
             process.exit(1);
             return;
         }
+        const loc = err && err.krl_compiler && err.krl_compiler.loc
+        if(loc){
+            console.error(err + ` ${loc.start.line}:${loc.start.column}`)
+        }
         throw err;
     }
     out.warnings.forEach(function(w){

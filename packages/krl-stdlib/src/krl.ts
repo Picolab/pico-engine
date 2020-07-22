@@ -178,6 +178,8 @@ export function typeOf(val: any): string {
     return "RegExp";
   } else if (isArray(val)) {
     return "Array";
+  } else if (isAction(val) && isFunction(val)) {
+    return "ActionFunction";
   } else if (isFunction(val)) {
     return "Function";
   } else if (isAction(val)) {

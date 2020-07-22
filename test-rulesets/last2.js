@@ -20,7 +20,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["last2 foo"]);
+        await send_directive1($ctx, ["last2 foo"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

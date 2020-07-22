@@ -109,7 +109,7 @@ module.exports = {
       "qux"
     ], async function (foo3 = $default, bar3 = $default, baz3 = $default, qux3 = $default) {
       if (foo3 == $default) {
-        foo3 = await $ctx.krl.assertFunction(incByN2)($ctx, [3]);
+        foo3 = await incByN2($ctx, [3]);
       }
       if (bar3 == $default) {
         bar3 = await $ctx.krl.assertFunction(foo3)($ctx, [1]);
@@ -134,12 +134,12 @@ module.exports = {
     });
     const paramFnTest2 = $ctx.krl.Function([], async function () {
       return [
-        await $ctx.krl.assertFunction(paramFn2)($ctx, []),
-        await $ctx.krl.assertFunction(paramFn2)($ctx, [
-          await $ctx.krl.assertFunction(incByN2)($ctx, [100]),
+        await paramFn2($ctx, []),
+        await paramFn2($ctx, [
+          await incByN2($ctx, [100]),
           "one"
         ]),
-        await $ctx.krl.assertFunction(paramFn2)($ctx, [
+        await paramFn2($ctx, [
           void 0,
           3,
           4,

@@ -107,11 +107,6 @@ ruleset io.picolabs.defaction {
 
         ifAnotB(event:attrs{"a"} == "true", event:attrs{"b"} == "true");
     }
-    rule add {
-        select when defa add
-
-        add(1, 2);
-    }
     rule returns {
         select when defa returns
 
@@ -160,14 +155,5 @@ ruleset io.picolabs.defaction {
         fired {
             ent:setting_val := [abc[0], abc[1], abc[2], d, e]
         }
-    }
-    rule trying_to_use_action_as_fn {
-        select when defa trying_to_use_action_as_fn
-
-        pre {
-            val = foo(100)
-        }
-
-        send_directive("trying_to_use_action_as_fn", {"val": val});
     }
 }

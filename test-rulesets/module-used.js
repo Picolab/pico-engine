@@ -98,7 +98,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "dflt_name" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "dflt_name",
           { "name": await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []) }
         ]);
@@ -112,7 +112,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "conf_name" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "conf_name",
           { "name": await $ctx.krl.assertFunction($ctx.module("my_module_conf")["getName"])($ctx, []) }
         ]);
@@ -126,7 +126,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "dflt_info" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "dflt_info",
           { "info": await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getInfo"])($ctx, []) }
         ]);
@@ -140,7 +140,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "conf_info" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "conf_info",
           { "info": await $ctx.krl.assertFunction($ctx.module("my_module_conf")["getInfo"])($ctx, []) }
         ]);
@@ -178,7 +178,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "sayHelloWithOperator" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"]($ctx))($ctx, ["bob"])]);
+        await send_directive1($ctx, [await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"]($ctx))($ctx, ["bob"])]);
       }
       if ($fired)
         $ctx.log.debug("fired");

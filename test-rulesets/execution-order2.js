@@ -49,7 +49,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "reset_order" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["2 - reset_order"]);
+        await send_directive1($ctx, ["2 - reset_order"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -61,13 +61,13 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "foo_or_bar" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["2 - foo_or_bar"]);
+        await send_directive1($ctx, ["2 - foo_or_bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "2 - foo_or_bar"
       ]));
@@ -76,13 +76,13 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["2 - foo"]);
+        await send_directive1($ctx, ["2 - foo"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "2 - foo"
       ]));
@@ -91,13 +91,13 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "bar" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["2 - bar"]);
+        await send_directive1($ctx, ["2 - bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $ctx.krl.assertFunction(append1)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "2 - bar"
       ]));

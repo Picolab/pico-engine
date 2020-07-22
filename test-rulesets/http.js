@@ -82,14 +82,14 @@ module.exports = {
       return await $ctx.rsCtx.getEnt("last_post_event");
     });
     const fmtResp2 = $ctx.krl.Function(["r"], async function (r3) {
-      return await $ctx.krl.assertFunction($delete$1)($ctx, [
-        await $ctx.krl.assertFunction($delete$1)($ctx, [
-          await $ctx.krl.assertFunction($delete$1)($ctx, [
-            await $ctx.krl.assertFunction($delete$1)($ctx, [
-              await $ctx.krl.assertFunction(set1)($ctx, [
+      return await $delete$1($ctx, [
+        await $delete$1($ctx, [
+          await $delete$1($ctx, [
+            await $delete$1($ctx, [
+              await set1($ctx, [
                 r3,
                 "content",
-                await $ctx.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
+                await decode1($ctx, [await $stdlib["get"]($ctx, [
                     r3,
                     ["content"]
                   ])])
@@ -170,7 +170,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("resp", await $ctx.krl.assertFunction(fmtResp2)($ctx, [resp3]));
+        await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("http_test:post"), async function ($event, $state, $last) {
@@ -188,10 +188,10 @@ module.exports = {
             "baz": doPost2
           }
         });
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "resp.content.body",
-          await $ctx.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
-              await $ctx.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
+          await decode1($ctx, [await $stdlib["get"]($ctx, [
+              await decode1($ctx, [await $stdlib["get"]($ctx, [
                   resp3,
                   ["content"]
                 ])]),
@@ -212,7 +212,7 @@ module.exports = {
       ]);
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(doPost2)($ctx, [
+        await doPost2($ctx, [
           url3,
           "bob",
           "foobar"
@@ -242,7 +242,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("resp", await $ctx.krl.assertFunction(fmtResp2)($ctx, [resp3]));
+        await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("http_test:autoraise"), async function ($event, $state, $last) {
@@ -267,10 +267,10 @@ module.exports = {
     });
     $rs.when($ctx.krl.SelectWhen.e("http:post"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "http_post_event_handler" });
-      const resp3 = await $ctx.krl.assertFunction(fmtResp2)($ctx, [$event.data.attrs]);
+      const resp3 = await fmtResp2($ctx, [$event.data.attrs]);
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "http_post_event_handler",
           { "attrs": resp3 }
         ]);

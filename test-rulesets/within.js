@@ -58,7 +58,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["foo"]);
+        await send_directive1($ctx, ["foo"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -74,7 +74,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "bar" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["bar"]);
+        await send_directive1($ctx, ["bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -87,7 +87,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "baz" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["baz"]);
+        await send_directive1($ctx, ["baz"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -117,7 +117,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "qux" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["qux"]);
+        await send_directive1($ctx, ["qux"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

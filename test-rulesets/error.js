@@ -53,7 +53,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("error_log", await $ctx.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("error_log", await append1($ctx, [
           await $ctx.rsCtx.getEnt("error_log"),
           $event.data.attrs
         ]));
@@ -63,7 +63,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "continue_on_errorA" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["continue_on_errorA"]);
+        await send_directive1($ctx, ["continue_on_errorA"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -95,7 +95,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "continue_on_errorB" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["continue_on_errorB"]);
+        await send_directive1($ctx, ["continue_on_errorB"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -127,7 +127,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "stop_on_errorA" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["stop_on_errorA"]);
+        await send_directive1($ctx, ["stop_on_errorA"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -162,7 +162,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "stop_on_errorB" });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, ["stop_on_errorB"]);
+        await send_directive1($ctx, ["stop_on_errorB"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

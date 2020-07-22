@@ -44,15 +44,15 @@ module.exports = {
     });
     const getInfo2 = $ctx.krl.Function([], async function () {
       return {
-        "name": await $ctx.krl.assertFunction(getName2)($ctx, []),
+        "name": await getName2($ctx, []),
         "memo": await $ctx.rsCtx.getEnt("memo"),
-        "privateFn": await $ctx.krl.assertFunction(privateFn2)($ctx, [])
+        "privateFn": await privateFn2($ctx, [])
       };
     });
     const getInfoAction2 = $ctx.krl.Action([], async function () {
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)(this, [
+        await send_directive1(this, [
           "getInfoAction",
           await $ctx.krl.assertFunction(getInfo2)($ctx, [])
         ]);
@@ -95,7 +95,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "store_memo",
           {
             "name": configured_name2,

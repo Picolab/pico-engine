@@ -33,7 +33,7 @@ module.exports = {
           "0": 100,
           "b": 30
         });
-        await $ctx.krl.assertAction(send_directive1)($ctx, [
+        await send_directive1($ctx, [
           "resp",
           { "val": val3 }
         ]);

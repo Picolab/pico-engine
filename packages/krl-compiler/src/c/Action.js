@@ -16,13 +16,14 @@ module.exports = function (ast, comp, e) {
 
   switch (actionType) {
     case 'Action':
+    case 'ActionFunction':
       break// great!
     case 'Unknown':
       // runtime check the type
       actionFn = e('call', e('id', '$ctx.krl.assertAction'), [actionFn])
       break// ok
     default:
-      throw comp.error(ast.action.loc, 'Not an action')
+      throw comp.error(ast.action.loc, 'Not an action: ' + actionType)
   }
 
   let estree = e('acall', actionFn, [
