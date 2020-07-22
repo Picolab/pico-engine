@@ -19,10 +19,6 @@ import * as modules from "./modules";
 import { ScheduledEvent } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
 
-export function cleanDirectives(responses: any[]): Directive[] {
-  return _.compact(_.flattenDeep(responses));
-}
-
 export class RulesetEnvironment {
   krl = krl;
 

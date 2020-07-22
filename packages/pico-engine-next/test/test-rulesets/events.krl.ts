@@ -1,18 +1,18 @@
 import test from "ava";
-import { cleanDirectives } from "../../src/KrlCtx";
+import { cleanDirectives } from "../helpers/cleanDirectives";
 import { startTestEngine } from "../helpers/startTestEngine";
 
-test("events.krl", async t => {
+test("events.krl", async (t) => {
   const { pe, eci, signal, mkQuery } = await startTestEngine(["events.krl"]);
 
   const query = mkQuery("io.picolabs.events");
 
   t.deepEqual(await signal("events", "bind", { name: "blah?!" }), [
-    { name: "bound", options: { name: "blah?!" } }
+    { name: "bound", options: { name: "blah?!" } },
   ]);
 
   t.deepEqual(await signal("events", "get", { thing: "asdf" }), [
-    { name: "get", options: { thing: "asdf" } }
+    { name: "get", options: { thing: "asdf" } },
   ]);
 
   t.deepEqual(await signal("events", "noop", {}), []);
@@ -21,27 +21,27 @@ test("events.krl", async t => {
   t.deepEqual(await signal("events", "ignored", {}), []); // is inactive
 
   t.deepEqual(await signal("events", "ifthen", { name: "something" }), [
-    { name: "ifthen", options: {} }
+    { name: "ifthen", options: {} },
   ]);
 
   t.deepEqual(await signal("events", "ifthen", {}), []);
 
   t.deepEqual(await signal("events", "on_fired", { name: "blah" }), [
-    { name: "on_fired", options: { previous_name: null } }
+    { name: "on_fired", options: { previous_name: null } },
   ]);
 
   t.deepEqual(await signal("events", "on_fired", {}), [
-    { name: "on_fired", options: { previous_name: "blah" } }
+    { name: "on_fired", options: { previous_name: "blah" } },
   ]);
 
   t.deepEqual(await signal("events", "on_choose", { thing: "one" }), [
-    { name: "on_choose - one", options: {} }
+    { name: "on_choose - one", options: {} },
   ]);
 
   t.deepEqual(await query("getOnChooseFired"), true);
 
   t.deepEqual(await signal("events", "on_choose", { thing: "two" }), [
-    { name: "on_choose - two", options: {} }
+    { name: "on_choose - two", options: {} },
   ]);
 
   t.deepEqual(await signal("events", "on_choose", { thing: "wat?" }), []);
@@ -81,7 +81,7 @@ test("events.krl", async t => {
   t.truthy(/^on_sample - (one|two|three)$/.test(resp[0].name));
 
   t.deepEqual(await signal("events", "select_where", { something: "wat?" }), [
-    { name: "select_where", options: {} }
+    { name: "select_where", options: {} },
   ]);
 
   t.deepEqual(
@@ -90,11 +90,11 @@ test("events.krl", async t => {
   );
 
   t.deepEqual(await signal("events", "where_match_0", { something: 0 }), [
-    { name: "where_match_0", options: {} }
+    { name: "where_match_0", options: {} },
   ]);
 
   t.deepEqual(await signal("events", "where_match_null", { something: null }), [
-    { name: "where_match_null", options: {} }
+    { name: "where_match_null", options: {} },
   ]);
 
   t.deepEqual(
@@ -106,20 +106,20 @@ test("events.krl", async t => {
     [{ name: "where_match_empty_str", options: {} }]
   );
   t.deepEqual(await signal("events", "where_after_setting", { a: "one" }), [
-    { name: "where_after_setting", options: {} }
+    { name: "where_after_setting", options: {} },
   ]);
   t.deepEqual(await signal("events", "where_after_setting", { a: "two" }), []);
 
   // test that select() scope overrides the global scope
   t.deepEqual(await signal("events", "where_using_global", { a: "g one" }), [
-    { name: "where_using_global", options: {} }
+    { name: "where_using_global", options: {} },
   ]);
 
   // test that event:attr scope doesn't stomp over global
   t.deepEqual(
     await signal("events", "where_using_global", {
       a: "g one",
-      global1: "haha! if this works the rule will not select"
+      global1: "haha! if this works the rule will not select",
     }),
     [{ name: "where_using_global", options: {} }]
   );
@@ -128,13 +128,13 @@ test("events.krl", async t => {
   t.deepEqual(
     await signal("events", "where_using_global", {
       a: "g one",
-      global0: "haha! if this works the rule will not select"
+      global0: "haha! if this works the rule will not select",
     }),
     [{ name: "where_using_global", options: {} }]
   );
 
   t.deepEqual(await signal("events", "implicit_match_0", { something: 0 }), [
-    { name: "implicit_match_0", options: {} }
+    { name: "implicit_match_0", options: {} },
   ]);
 
   t.deepEqual(
@@ -169,14 +169,14 @@ test("events.krl", async t => {
   t.deepEqual(await query("getSentAttrs"), {
     name: "Jim",
     empty: [],
-    r: {}
+    r: {},
   });
   t.deepEqual(await query("getSentName"), "Jim");
 
   /////////////////////////////////////////////////////////////////////////////
   // Testing raise <domain> event
   t.deepEqual(await signal("events", "raise_basic"), [
-    { name: "event_attrs", options: { attrs: {} } }
+    { name: "event_attrs", options: { attrs: {} } },
   ]);
 
   t.deepEqual(await signal("events", "raise_set_name", { name: "Raised" }), []);
@@ -203,7 +203,7 @@ test("events.krl", async t => {
   t.deepEqual(
     await signal("events", "raise_dynamic", {
       domainType: "events:store_sent_name",
-      name: "Mr. Dynamic"
+      name: "Mr. Dynamic",
     }),
     []
   );
@@ -212,7 +212,7 @@ test("events.krl", async t => {
   t.deepEqual(
     await signal("events", "raise_dynamic", {
       domainType: "events:get",
-      thing: "something?"
+      thing: "something?",
     }),
     [{ name: "get", options: { thing: "something?" } }]
   );
@@ -223,9 +223,9 @@ test("events.krl", async t => {
     domain: "events",
     name: "event_eid",
     data: { attrs: {} },
-    time: 0
+    time: 0,
   });
   t.deepEqual(cleanDirectives(resp2.responses), [
-    { name: "event_eid", options: { eid: resp2.eid } }
+    { name: "event_eid", options: { eid: resp2.eid } },
   ]);
 });

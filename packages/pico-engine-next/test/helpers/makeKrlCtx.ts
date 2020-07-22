@@ -1,6 +1,6 @@
 import { KrlCtx, makeKrlLogger } from "krl-stdlib";
 import { PicoFramework, Ruleset } from "pico-framework";
-import { RulesetEnvironment } from "../../src/KrlCtx";
+import { RulesetEnvironment } from "../../src/RulesetEnvironment";
 import { RulesetRegistry } from "../../src/RulesetRegistry";
 import { RulesetRegistryLoaderMem } from "../../src/RulesetRegistryLoaderMem";
 

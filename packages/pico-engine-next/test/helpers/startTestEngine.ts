@@ -4,7 +4,7 @@ import { ChannelConfig, PicoFramework } from "pico-framework";
 import { Pico } from "pico-framework/dist/src/Pico";
 import * as tempDir from "temp-dir";
 import { PicoEngineConfiguration, startEngine } from "../../src/index";
-import { cleanDirectives } from "../../src/KrlCtx";
+import { cleanDirectives } from "./cleanDirectives";
 import { toTestKrlURL } from "./toTestKrlURL";
 
 export const allowAllChannelConf: ChannelConfig = {

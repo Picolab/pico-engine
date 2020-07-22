@@ -2,8 +2,8 @@ import { AbstractLevelDOWN } from "abstract-leveldown";
 import { krl, KrlLogger, PicoLogEntry } from "krl-stdlib";
 import * as _ from "lodash";
 import { PicoFramework } from "pico-framework";
-import { RulesetEnvironment } from "./KrlCtx";
 import { schedulerStartup } from "./modules/schedule";
+import { RulesetEnvironment } from "./RulesetEnvironment";
 import { RulesetRegistry, RulesetRegistryLoader } from "./RulesetRegistry";
 
 const version = require("../package.json").version;
