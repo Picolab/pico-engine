@@ -14,17 +14,17 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const hello1 = $env.krl.Function(["obj"], async function (obj2) {
+    const hello1 = $ctx.krl.Function(["obj"], async function (obj2) {
       return await $stdlib["+"]($ctx, [
         "Hello ",
         obj2
       ]);
     });
     const null_val1 = void 0;
-    const infiniteRecursion1 = $env.krl.Function([], async function () {
-      return await $env.krl.assertFunction(infiniteRecursion1)($ctx, []);
+    const infiniteRecursion1 = $ctx.krl.Function([], async function () {
+      return await $ctx.krl.assertFunction(infiniteRecursion1)($ctx, []);
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));

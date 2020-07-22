@@ -56,7 +56,7 @@ module.exports = function (ast, comp, e) {
   const esBodyGlobal = declarationBlock(ast.global, comp)
 
   const esBodyRules = []
-  esBodyRules.push(e('const', '$rs', e('new', e('id', '$env.SelectWhen.SelectWhen'), [])))
+  esBodyRules.push(e('const', '$rs', e('new', e('id', '$ctx.krl.SelectWhen.SelectWhen'), [])))
   const rulesObj = {}
   _.each(ast.rules, function (rule) {
     if (rulesObj[rule.name.value]) {

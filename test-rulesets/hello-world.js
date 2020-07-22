@@ -14,18 +14,18 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const hello1 = $env.krl.Function(["name"], async function ($name$2 = "default") {
+    const hello1 = $ctx.krl.Function(["name"], async function ($name$2 = "default") {
       const msg2 = await $stdlib["+"]($ctx, [
         "Hello ",
         $name$2
       ]);
       return msg2;
     });
-    const said1 = $env.krl.Function([], async function () {
+    const said1 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("said");
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("say:hello"), async function ($event, $state, $last) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.e("say:hello"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "say_hello" });
       var $fired = true;
       if ($fired)

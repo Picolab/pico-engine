@@ -6,50 +6,50 @@ module.exports = {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.within(5 * 60000, $env.SelectWhen.before($env.SelectWhen.e("foo:a"), $env.SelectWhen.e("foo:b")), function ($event, $state) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.within(5 * 60000, $ctx.krl.SelectWhen.before($ctx.krl.SelectWhen.e("foo:a"), $ctx.krl.SelectWhen.e("foo:b")), function ($event, $state) {
       return Object.assign({}, $state, { "setting": {} });
     }), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["foo"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["foo"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.within(await $stdlib["+"]($ctx, [
+    $rs.when($ctx.krl.SelectWhen.within(await $stdlib["+"]($ctx, [
       1,
       3
-    ]) * 1000, $env.SelectWhen.before($env.SelectWhen.e("bar:a"), $env.SelectWhen.e("bar:b")), function ($event, $state) {
+    ]) * 1000, $ctx.krl.SelectWhen.before($ctx.krl.SelectWhen.e("bar:a"), $ctx.krl.SelectWhen.e("bar:b")), function ($event, $state) {
       return Object.assign({}, $state, { "setting": {} });
     }), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "bar" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["bar"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.within(1 * 31536000000, $env.SelectWhen.or($env.SelectWhen.e("baz:a"), $env.SelectWhen.and($env.SelectWhen.e("baz:b"), $env.SelectWhen.e("baz:c"))), function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.within(1 * 31536000000, $ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.e("baz:a"), $ctx.krl.SelectWhen.and($ctx.krl.SelectWhen.e("baz:b"), $ctx.krl.SelectWhen.e("baz:c"))), function ($event, $state) {
       return Object.assign({}, $state, { "setting": {} });
     }), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "baz" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["baz"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["baz"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.within(2 * 1000, $env.SelectWhen.repeat(3, $env.SelectWhen.e("qux:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.within(2 * 1000, $ctx.krl.SelectWhen.repeat(3, $ctx.krl.SelectWhen.e("qux:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -72,7 +72,7 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "qux" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["qux"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["qux"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

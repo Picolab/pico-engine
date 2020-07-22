@@ -48,5 +48,5 @@ export interface KrlCtx {
   drainDirectives(): Directive[];
 
   // compiler lib
-  aggregateEvent(state: any, op: string, pairs: [string, string][]): any;
+  krl: typeof krl;
 }

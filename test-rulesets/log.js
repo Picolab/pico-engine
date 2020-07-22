@@ -5,8 +5,8 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("log:levels"), async function ($event, $state, $last) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.e("log:levels"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "levels" });
       var $fired = true;
       if ($fired)

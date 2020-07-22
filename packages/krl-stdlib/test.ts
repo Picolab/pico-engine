@@ -12,6 +12,9 @@ async function mkCallLib(onLogLine?: (str: string) => void) {
       picoId: "fakeid",
       rid: "rs.to.get.ctx",
     }),
+    async getPicoLogs() {
+      return [];
+    },
     getEvent() {
       return null;
     },
@@ -31,19 +34,7 @@ async function mkCallLib(onLogLine?: (str: string) => void) {
     drainDirectives() {
       return [];
     },
-    aggregateEvent(state, op, pairs) {},
-    async newPico(rulesets) {
-      return "";
-    },
-    rulesets() {
-      return [];
-    },
-    async install(url, config) {},
-    async uninstall(rid) {},
-    async flush(url) {},
-    async getPicoLogs() {
-      return [];
-    },
+    krl,
   };
   return function callLib(op: string, ...args: any[]) {
     return stdlib[op](krlCtx, args);

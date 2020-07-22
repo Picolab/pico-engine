@@ -30,7 +30,7 @@ module.exports = {
     ]) + "\n        ";
     const e1 = "static";
     const f1 = "";
-    const $rs = new $env.SelectWhen.SelectWhen();
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));

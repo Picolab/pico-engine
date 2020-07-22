@@ -72,7 +72,7 @@ module.exports = function (ast, comp, e) {
       e('=',
         e('id', '$state', ast.aggregator.loc),
         e('acall',
-          e('id', '$ctx.aggregateEvent', ast.aggregator.loc),
+          e('id', '$ctx.krl.aggregateEvent', ast.aggregator.loc),
           [
             e('id', '$state', ast.aggregator.loc),
             e('string', ast.aggregator.op, ast.aggregator.loc),
@@ -116,5 +116,5 @@ module.exports = function (ast, comp, e) {
     ee.push(e('asyncfn', ['$event', '$state'], fnBody))
   }
 
-  return e('call', e('id', '$env.SelectWhen.e'), ee)
+  return e('call', e('id', '$ctx.krl.SelectWhen.e'), ee)
 }

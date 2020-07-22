@@ -19,7 +19,7 @@ module.exports = function (ast, comp, e) {
       break// great!
     case 'Unknown':
       // runtime check the type
-      actionFn = e('call', e('id', '$env.krl.assertAction'), [actionFn])
+      actionFn = e('call', e('id', '$ctx.krl.assertAction'), [actionFn])
       break// ok
     default:
       throw comp.error(ast.action.loc, 'Not an action')

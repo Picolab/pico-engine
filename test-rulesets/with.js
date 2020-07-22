@@ -12,7 +12,7 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const add1 = $env.krl.Function([
+    const add1 = $ctx.krl.Function([
       "a",
       "b"
     ], async function (a2, b2) {
@@ -21,14 +21,14 @@ module.exports = {
         b2
       ]);
     });
-    const inc1 = $env.krl.Function(["n"], async function (n2) {
-      return await $env.krl.assertFunction(add1)($ctx, {
+    const inc1 = $ctx.krl.Function(["n"], async function (n2) {
+      return await $ctx.krl.assertFunction(add1)($ctx, {
         "0": 1,
         "b": n2
       });
     });
-    const foo1 = $env.krl.Function(["a"], async function (a2) {
-      return await $env.krl.assertFunction(add1)($ctx, {
+    const foo1 = $ctx.krl.Function(["a"], async function (a2) {
+      return await $ctx.krl.assertFunction(add1)($ctx, {
         "b": a2,
         "a": await $stdlib["*"]($ctx, [
           a2,
@@ -36,7 +36,7 @@ module.exports = {
         ])
       });
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));

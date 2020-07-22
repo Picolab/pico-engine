@@ -65,25 +65,25 @@ module.exports = {
     const not_null1 = !void 0;
     const true_or_false1 = true || false;
     const true_and_false1 = true && false;
-    const incByN1 = $env.krl.Function(["n"], async function (n2) {
-      return $env.krl.Function(["a"], async function (a3) {
+    const incByN1 = $ctx.krl.Function(["n"], async function (n2) {
+      return $ctx.krl.Function(["a"], async function (a3) {
         return await $stdlib["+"]($ctx, [
           a3,
           n2
         ]);
       });
     });
-    const paramFn1 = $env.krl.Function([
+    const paramFn1 = $ctx.krl.Function([
       "foo",
       "bar",
       "baz",
       "qux"
     ], async function (foo2 = $default, bar2 = $default, baz2 = $default, qux2 = $default) {
       if (foo2 == $default) {
-        foo2 = await $env.krl.assertFunction(incByN1)($ctx, [3]);
+        foo2 = await $ctx.krl.assertFunction(incByN1)($ctx, [3]);
       }
       if (bar2 == $default) {
-        bar2 = await $env.krl.assertFunction(foo2)($ctx, [1]);
+        bar2 = await $ctx.krl.assertFunction(foo2)($ctx, [1]);
       }
       if (baz2 == $default) {
         baz2 = await $stdlib["+"]($ctx, [
@@ -103,14 +103,14 @@ module.exports = {
         qux2
       ];
     });
-    const paramFnTest1 = $env.krl.Function([], async function () {
+    const paramFnTest1 = $ctx.krl.Function([], async function () {
       return [
-        await $env.krl.assertFunction(paramFn1)($ctx, []),
-        await $env.krl.assertFunction(paramFn1)($ctx, [
-          await $env.krl.assertFunction(incByN1)($ctx, [100]),
+        await $ctx.krl.assertFunction(paramFn1)($ctx, []),
+        await $ctx.krl.assertFunction(paramFn1)($ctx, [
+          await $ctx.krl.assertFunction(incByN1)($ctx, [100]),
           "one"
         ]),
-        await $env.krl.assertFunction(paramFn1)($ctx, [
+        await $ctx.krl.assertFunction(paramFn1)($ctx, [
           void 0,
           3,
           4,
@@ -118,7 +118,7 @@ module.exports = {
         ])
       ];
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));

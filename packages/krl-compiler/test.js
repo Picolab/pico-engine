@@ -165,9 +165,9 @@ test('special cases', function (t) {
   // args shouldn't be dependent on each other and cause strange duplication
   var js = compiler('foo(1).bar(baz(2))').code
   var expected = ''
-  expected += '(await $env.krl.assertFunction(bar1)($ctx, [\n'
-  expected += '  await $env.krl.assertFunction(foo1)($ctx, [1]),\n'
-  expected += '  await $env.krl.assertFunction(baz1)($ctx, [2])\n'
+  expected += '(await $ctx.krl.assertFunction(bar1)($ctx, [\n'
+  expected += '  await $ctx.krl.assertFunction(foo1)($ctx, [1]),\n'
+  expected += '  await $ctx.krl.assertFunction(baz1)($ctx, [2])\n'
   expected += ']))'
   t.is(js, expected)
 })

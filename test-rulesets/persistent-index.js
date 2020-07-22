@@ -13,23 +13,23 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const getFoo1 = $env.krl.Function([], async function () {
+    const getFoo1 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("foo");
     });
-    const getFooKey1 = $env.krl.Function(["key"], async function (key2) {
+    const getFooKey1 = $ctx.krl.Function(["key"], async function (key2) {
       return await $stdlib.get($ctx, [
         await $ctx.rsCtx.getEnt("foo"),
         key2
       ]);
     });
-    const getBaz1 = $env.krl.Function([], async function () {
+    const getBaz1 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("baz");
     });
-    const getMaplist1 = $env.krl.Function([], async function () {
+    const getMaplist1 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("maplist");
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("pindex:setfoo"), async function ($event, $state, $last) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.e("pindex:setfoo"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "setfoo" });
       var $fired = true;
       if ($fired)
@@ -38,7 +38,7 @@ module.exports = {
         $ctx.log.debug("not fired");
       await $ctx.rsCtx.putEnt("foo", $event.data.attrs);
     });
-    $rs.when($env.SelectWhen.e("pindex:putfoo"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("pindex:putfoo"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "putfoo" });
       const key2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
@@ -59,7 +59,7 @@ module.exports = {
         value2
       ]));
     });
-    $rs.when($env.SelectWhen.e("pindex:delfoo"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("pindex:delfoo"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "delfoo" });
       const key2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
@@ -75,7 +75,7 @@ module.exports = {
         key2
       ]));
     });
-    $rs.when($env.SelectWhen.e("pindex:nukefoo"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("pindex:nukefoo"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "nukefoo" });
       var $fired = true;
       if ($fired)
@@ -84,7 +84,7 @@ module.exports = {
         $ctx.log.debug("not fired");
       await $ctx.rsCtx.delEnt("foo");
     });
-    $rs.when($env.SelectWhen.e("pindex:putbaz"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("pindex:putbaz"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "putbaz" });
       var $fired = true;
       if ($fired)
@@ -100,7 +100,7 @@ module.exports = {
         "three"
       ]));
     });
-    $rs.when($env.SelectWhen.e("pindex:setmaplist"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("pindex:setmaplist"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "setmaplist" });
       var $fired = true;
       if ($fired)
@@ -113,7 +113,7 @@ module.exports = {
         { "id": "three" }
       ]);
     });
-    $rs.when($env.SelectWhen.e("pindex:putmaplist"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("pindex:putmaplist"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "putmaplist" });
       var $fired = true;
       if ($fired)

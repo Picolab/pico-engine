@@ -7,22 +7,22 @@ module.exports = {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
-    const qFn1 = $env.krl.Function(["a"], async function (a2) {
-      return await $env.krl.assertFunction($ctx.module("myJsModule")["fun0"])($ctx, {
+    const qFn1 = $ctx.krl.Function(["a"], async function (a2) {
+      return await $ctx.krl.assertFunction($ctx.module("myJsModule")["fun0"])($ctx, {
         "0": a2,
         "b": 2
       });
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("js_module:action"), async function ($event, $state, $last) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.e("js_module:action"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "action" });
       var $fired = true;
       if ($fired) {
-        var val2 = await $env.krl.assertAction($ctx.module("myJsModule")["act"])($ctx, {
+        var val2 = await $ctx.krl.assertAction($ctx.module("myJsModule")["act"])($ctx, {
           "0": 100,
           "b": 30
         });
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "resp",
           { "val": val2 }
         ]);

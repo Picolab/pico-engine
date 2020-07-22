@@ -1,5 +1,15 @@
+/**
+ * This krl module is all the core utilities for working with the KRL language at runtime
+ */
+
 import * as _ from "lodash";
+import * as SelectWhenModule from "select-when";
+import { aggregateEvent as aggregateEventFn } from "./aggregateEvent";
 import { KrlCtx } from "./KrlCtx";
+
+export const SelectWhen = SelectWhenModule; // exposed for the krl-compiler
+
+export const aggregateEvent = aggregateEventFn; // exposed for the krl-compiler
 
 export interface Module {
   [name: string]: (ctx: KrlCtx, args?: any) => any;

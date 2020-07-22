@@ -62,7 +62,6 @@
     "pico-framework": "^0.4.2",
     "request": "^2.88.0",
     "rotating-file-stream": "^1.4.1",
-    "select-when": "^0.1.7",
     "split": "^1.0.1",
     "through2": "^3.0.1"
   },

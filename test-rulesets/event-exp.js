@@ -6,30 +6,30 @@ module.exports = {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.before($env.SelectWhen.e("ee_before:a"), $env.SelectWhen.e("ee_before:b")), async function ($event, $state, $last) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.before($ctx.krl.SelectWhen.e("ee_before:a"), $ctx.krl.SelectWhen.e("ee_before:b")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "before" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["before"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["before"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.after($env.SelectWhen.e("ee_after:a"), $env.SelectWhen.e("ee_after:b")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.after($ctx.krl.SelectWhen.e("ee_after:a"), $ctx.krl.SelectWhen.e("ee_after:b")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "after" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["after"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["after"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.then($env.SelectWhen.e("ee_then:a"), $env.SelectWhen.e("ee_then:b", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.then($ctx.krl.SelectWhen.e("ee_then:a"), $ctx.krl.SelectWhen.e("ee_then:b", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -50,157 +50,157 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "then" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["then"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["then"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.and($env.SelectWhen.e("ee_and:a"), $env.SelectWhen.e("ee_and:b")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.and($ctx.krl.SelectWhen.e("ee_and:a"), $ctx.krl.SelectWhen.e("ee_and:b")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "and" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["and"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["and"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.or($env.SelectWhen.e("ee_or:a"), $env.SelectWhen.e("ee_or:b")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.e("ee_or:a"), $ctx.krl.SelectWhen.e("ee_or:b")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "or" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["or"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["or"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.between($env.SelectWhen.e("ee_between:a"), $env.SelectWhen.e("ee_between:b"), $env.SelectWhen.e("ee_between:c")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.between($ctx.krl.SelectWhen.e("ee_between:a"), $ctx.krl.SelectWhen.e("ee_between:b"), $ctx.krl.SelectWhen.e("ee_between:c")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "between" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["between"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["between"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.notBetween($env.SelectWhen.e("ee_not_between:a"), $env.SelectWhen.e("ee_not_between:b"), $env.SelectWhen.e("ee_not_between:c")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.notBetween($ctx.krl.SelectWhen.e("ee_not_between:a"), $ctx.krl.SelectWhen.e("ee_not_between:b"), $ctx.krl.SelectWhen.e("ee_not_between:c")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "not_between" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["not between"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["not between"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.or($env.SelectWhen.and($env.SelectWhen.e("ee_andor:a"), $env.SelectWhen.e("ee_andor:b")), $env.SelectWhen.e("ee_andor:c")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.and($ctx.krl.SelectWhen.e("ee_andor:a"), $ctx.krl.SelectWhen.e("ee_andor:b")), $ctx.krl.SelectWhen.e("ee_andor:c")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "and_or" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["(a and b) or c"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["(a and b) or c"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.and($env.SelectWhen.e("ee_orand:a"), $env.SelectWhen.or($env.SelectWhen.e("ee_orand:b"), $env.SelectWhen.e("ee_orand:c"))), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.and($ctx.krl.SelectWhen.e("ee_orand:a"), $ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.e("ee_orand:b"), $ctx.krl.SelectWhen.e("ee_orand:c"))), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "or_and" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["a and (b or c)"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["a and (b or c)"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.before($env.SelectWhen.e("ee_before_n:a"), $env.SelectWhen.e("ee_before_n:b"), $env.SelectWhen.e("ee_before_n:c")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.before($ctx.krl.SelectWhen.e("ee_before_n:a"), $ctx.krl.SelectWhen.e("ee_before_n:b"), $ctx.krl.SelectWhen.e("ee_before_n:c")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "before_n" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["before_n"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["before_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.after($env.SelectWhen.e("ee_after_n:a"), $env.SelectWhen.e("ee_after_n:b"), $env.SelectWhen.e("ee_after_n:c")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.after($ctx.krl.SelectWhen.e("ee_after_n:a"), $ctx.krl.SelectWhen.e("ee_after_n:b"), $ctx.krl.SelectWhen.e("ee_after_n:c")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "after_n" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["after_n"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["after_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.then($env.SelectWhen.e("ee_then_n:a"), $env.SelectWhen.e("ee_then_n:b"), $env.SelectWhen.e("ee_then_n:c")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.then($ctx.krl.SelectWhen.e("ee_then_n:a"), $ctx.krl.SelectWhen.e("ee_then_n:b"), $ctx.krl.SelectWhen.e("ee_then_n:c")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "then_n" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["then_n"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["then_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.and($env.SelectWhen.e("ee_and_n:a"), $env.SelectWhen.e("ee_and_n:b"), $env.SelectWhen.e("ee_and_n:c")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.and($ctx.krl.SelectWhen.e("ee_and_n:a"), $ctx.krl.SelectWhen.e("ee_and_n:b"), $ctx.krl.SelectWhen.e("ee_and_n:c")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "and_n" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["and_n"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["and_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.or($env.SelectWhen.e("ee_or_n:a"), $env.SelectWhen.e("ee_or_n:b"), $env.SelectWhen.e("ee_or_n:c"), $env.SelectWhen.e("ee_or_n:d")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.e("ee_or_n:a"), $ctx.krl.SelectWhen.e("ee_or_n:b"), $ctx.krl.SelectWhen.e("ee_or_n:c"), $ctx.krl.SelectWhen.e("ee_or_n:d")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "or_n" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["or_n"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["or_n"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.any(2, $env.SelectWhen.e("ee_any:a"), $env.SelectWhen.e("ee_any:b"), $env.SelectWhen.e("ee_any:c"), $env.SelectWhen.e("ee_any:d")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.any(2, $ctx.krl.SelectWhen.e("ee_any:a"), $ctx.krl.SelectWhen.e("ee_any:b"), $ctx.krl.SelectWhen.e("ee_any:c"), $ctx.krl.SelectWhen.e("ee_any:d")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "any" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["any"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["any"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.count(3, $env.SelectWhen.e("ee_count:a")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.count(3, $ctx.krl.SelectWhen.e("ee_count:a")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "count" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["count"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["count"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.repeat(3, $env.SelectWhen.e("ee_repeat:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.repeat(3, $ctx.krl.SelectWhen.e("ee_repeat:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -221,14 +221,14 @@ module.exports = {
       $ctx.log.debug("rule selected", { "rule_name": "repeat" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["repeat"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["repeat"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.count(3, $env.SelectWhen.e("ee_count_max:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.count(3, $ctx.krl.SelectWhen.e("ee_count_max:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -241,7 +241,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      $state = await $ctx.aggregateEvent($state, "max", [[
+      $state = await $ctx.krl.aggregateEvent($state, "max", [[
           "m",
           matches[0]
         ]]);
@@ -255,7 +255,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "count_max",
           { "m": m2 }
         ]);
@@ -265,7 +265,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.repeat(3, $env.SelectWhen.e("ee_repeat_min:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.repeat(3, $ctx.krl.SelectWhen.e("ee_repeat_min:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -278,7 +278,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      $state = await $ctx.aggregateEvent($state, "min", [[
+      $state = await $ctx.krl.aggregateEvent($state, "min", [[
           "m",
           matches[0]
         ]]);
@@ -292,7 +292,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_min",
           { "m": m2 }
         ]);
@@ -302,7 +302,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.repeat(3, $env.SelectWhen.e("ee_repeat_sum:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.repeat(3, $ctx.krl.SelectWhen.e("ee_repeat_sum:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -315,7 +315,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      $state = await $ctx.aggregateEvent($state, "sum", [[
+      $state = await $ctx.krl.aggregateEvent($state, "sum", [[
           "m",
           matches[0]
         ]]);
@@ -329,7 +329,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_sum",
           { "m": m2 }
         ]);
@@ -339,7 +339,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.repeat(3, $env.SelectWhen.e("ee_repeat_avg:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.repeat(3, $ctx.krl.SelectWhen.e("ee_repeat_avg:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -352,7 +352,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      $state = await $ctx.aggregateEvent($state, "avg", [[
+      $state = await $ctx.krl.aggregateEvent($state, "avg", [[
           "m",
           matches[0]
         ]]);
@@ -366,7 +366,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_avg",
           { "m": m2 }
         ]);
@@ -376,7 +376,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.repeat(3, $env.SelectWhen.e("ee_repeat_push:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.repeat(3, $ctx.krl.SelectWhen.e("ee_repeat_push:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -389,7 +389,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      $state = await $ctx.aggregateEvent($state, "push", [[
+      $state = await $ctx.krl.aggregateEvent($state, "push", [[
           "m",
           matches[0]
         ]]);
@@ -403,7 +403,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_push",
           { "m": m2 }
         ]);
@@ -413,7 +413,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.repeat(5, $env.SelectWhen.e("ee_repeat_push_multi:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.repeat(5, $ctx.krl.SelectWhen.e("ee_repeat_push_multi:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -434,7 +434,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      $state = await $ctx.aggregateEvent($state, "push", [
+      $state = await $ctx.krl.aggregateEvent($state, "push", [
         [
           "a",
           matches[0]
@@ -465,7 +465,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_push_multi",
           {
             "a": a2,
@@ -480,7 +480,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.repeat(3, $env.SelectWhen.e("ee_repeat_sum_multi:a", async function ($event, $state) {
+    $rs.when($ctx.krl.SelectWhen.repeat(3, $ctx.krl.SelectWhen.e("ee_repeat_sum_multi:a", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -501,7 +501,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      $state = await $ctx.aggregateEvent($state, "sum", [
+      $state = await $ctx.krl.aggregateEvent($state, "sum", [
         [
           "a",
           matches[0]
@@ -522,7 +522,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "repeat_sum_multi",
           {
             "a": a2,
@@ -535,44 +535,44 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.or($env.SelectWhen.before($env.SelectWhen.e("ee_or_duppath:a"), $env.SelectWhen.e("ee_or_duppath:a")), $env.SelectWhen.e("ee_or_duppath:a")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.before($ctx.krl.SelectWhen.e("ee_or_duppath:a"), $ctx.krl.SelectWhen.e("ee_or_duppath:a")), $ctx.krl.SelectWhen.e("ee_or_duppath:a")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "or_duppath" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["(a before a) or a"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["(a before a) or a"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.notBetween($env.SelectWhen.e("ee_notbet_duppath:a"), $env.SelectWhen.e("ee_notbet_duppath:b"), $env.SelectWhen.e("ee_notbet_duppath:a")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.notBetween($ctx.krl.SelectWhen.e("ee_notbet_duppath:a"), $ctx.krl.SelectWhen.e("ee_notbet_duppath:b"), $ctx.krl.SelectWhen.e("ee_notbet_duppath:a")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "notbet_duppath" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["a not between (b, a)"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["a not between (b, a)"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.or($env.SelectWhen.and($env.SelectWhen.e("ee_ab_or_b:a"), $env.SelectWhen.e("ee_ab_or_b:b")), $env.SelectWhen.e("ee_ab_or_b:b")), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.and($ctx.krl.SelectWhen.e("ee_ab_or_b:a"), $ctx.krl.SelectWhen.e("ee_ab_or_b:b")), $ctx.krl.SelectWhen.e("ee_ab_or_b:b")), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "ab_or_b" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["(a and b) or b"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["(a and b) or b"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.or($env.SelectWhen.and($env.SelectWhen.e("ee_ab_or_ca:a"), $env.SelectWhen.e("ee_ab_or_ca:b")), $env.SelectWhen.and($env.SelectWhen.e("ee_ab_or_ca:c"), $env.SelectWhen.e("ee_ab_or_ca:a"))), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.and($ctx.krl.SelectWhen.e("ee_ab_or_ca:a"), $ctx.krl.SelectWhen.e("ee_ab_or_ca:b")), $ctx.krl.SelectWhen.and($ctx.krl.SelectWhen.e("ee_ab_or_ca:c"), $ctx.krl.SelectWhen.e("ee_ab_or_ca:a"))), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "ab_or_ca" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["(a and b) or (c and a)"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["(a and b) or (c and a)"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

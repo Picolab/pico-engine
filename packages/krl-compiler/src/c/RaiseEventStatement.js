@@ -16,7 +16,7 @@ module.exports = function (ast, comp, e) {
               'call',
               e(
                 '.',
-                e('call', e('id', '$env.krl.toString'), [
+                e('call', e('id', '$ctx.krl.toString'), [
                   comp(ast.event_domainAndType)
                 ]),
                 e('id', 'replace')

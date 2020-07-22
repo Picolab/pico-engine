@@ -1,5 +1,4 @@
 import {
-  aggregateEvent,
   CurrentPicoEvent,
   CurrentPicoQuery,
   Directive,
@@ -12,7 +11,6 @@ import * as _ from "lodash";
 import { PicoFramework, RulesetContext } from "pico-framework";
 import { Pico } from "pico-framework/dist/src/Pico";
 import { createRulesetContext } from "pico-framework/dist/src/RulesetContext";
-import * as SelectWhen from "select-when";
 import { RulesetRegistry } from "./RulesetRegistry";
 
 export class PicoRidDependencies {
@@ -38,10 +36,6 @@ export class PicoRidDependencies {
 }
 
 export class RulesetEnvironment {
-  krl = krl;
-
-  SelectWhen = SelectWhen;
-
   modules: { [domain: string]: krl.Module } = {};
 
   public picoFramework?: PicoFramework;
@@ -107,7 +101,6 @@ export class RulesetEnvironment {
         directives = [];
         return tmp;
       },
-      aggregateEvent,
 
       getPicoLogs() {
         return environment.getPicoLogs(picoId);
@@ -156,6 +149,8 @@ export class RulesetEnvironment {
         myModules[alias] = module;
         environment.picoRidDependencies.use(pico.id, rsCtx.ruleset.rid, rid);
       },
+
+      krl,
     };
     return krlCtx;
   }

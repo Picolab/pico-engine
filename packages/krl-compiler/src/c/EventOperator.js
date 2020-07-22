@@ -11,9 +11,9 @@ module.exports = function (ast, comp, e) {
     case 'after':
     case 'between':
     case 'any':
-      return e('call', e('id', `$env.SelectWhen.${ast.op}`), args)
+      return e('call', e('id', `$ctx.krl.SelectWhen.${ast.op}`), args)
     case 'not between':
-      return e('call', e('id', `$env.SelectWhen.notBetween`), args)
+      return e('call', e('id', `$ctx.krl.SelectWhen.notBetween`), args)
   }
 
   throw new Error('EventOperator.op not supported: ' + ast.op)

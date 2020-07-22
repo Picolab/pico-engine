@@ -3,7 +3,7 @@ module.exports = function (ast, comp, e) {
   switch (ast.op) {
     case 'count':
     case 'repeat':
-      op = e('id', '$env.SelectWhen.' + ast.op)
+      op = e('id', '$ctx.krl.SelectWhen.' + ast.op)
       break
     default:
       throw comp.error('EventGroupOperator.op not supported: ' + ast.op)

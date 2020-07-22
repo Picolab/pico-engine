@@ -47,7 +47,7 @@ module.exports = function (ast, comp, e) {
       break// great!
     case 'Unknown':
       // runtime check the type
-      callee = e('call', e('id', '$env.krl.assertFunction'), [callee])
+      callee = e('call', e('id', '$ctx.krl.assertFunction'), [callee])
       break// ok
     default:
       throw comp.error(ast.action.loc, 'Not a function')

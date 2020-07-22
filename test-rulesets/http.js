@@ -18,21 +18,21 @@ module.exports = {
     const decode1 = $stdlib["decode"];
     const url1 = $stdlib["url"];
     const send_directive1 = $stdlib["send_directive"];
-    const getResp1 = $env.krl.Function([], async function () {
+    const getResp1 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("resp");
     });
-    const getLastPostEvent1 = $env.krl.Function([], async function () {
+    const getLastPostEvent1 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("last_post_event");
     });
-    const fmtResp1 = $env.krl.Function(["r"], async function (r2) {
-      return await $env.krl.assertFunction($delete$1)($ctx, [
-        await $env.krl.assertFunction($delete$1)($ctx, [
-          await $env.krl.assertFunction($delete$1)($ctx, [
-            await $env.krl.assertFunction($delete$1)($ctx, [
-              await $env.krl.assertFunction(set1)($ctx, [
+    const fmtResp1 = $ctx.krl.Function(["r"], async function (r2) {
+      return await $ctx.krl.assertFunction($delete$1)($ctx, [
+        await $ctx.krl.assertFunction($delete$1)($ctx, [
+          await $ctx.krl.assertFunction($delete$1)($ctx, [
+            await $ctx.krl.assertFunction($delete$1)($ctx, [
+              await $ctx.krl.assertFunction(set1)($ctx, [
                 r2,
                 "content",
-                await $env.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
+                await $ctx.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
                     r2,
                     ["content"]
                   ])])
@@ -56,14 +56,14 @@ module.exports = {
         ]
       ]);
     });
-    const doPost1 = $env.krl.Action([
+    const doPost1 = $ctx.krl.Action([
       "base_url",
       "to",
       "msg"
     ], async function (base_url2, to2, msg2) {
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction($ctx.module("http")["post"])(this, {
+        await $ctx.krl.assertAction($ctx.module("http")["post"])(this, {
           "0": await $stdlib["+"]($ctx, [
             url1,
             "/msg.json"
@@ -75,26 +75,26 @@ module.exports = {
         });
       }
     });
-    const fnGet1 = $env.krl.Function([
+    const fnGet1 = $ctx.krl.Function([
       "url",
       "qs"
     ], async function (url2, qs2) {
-      return await $env.krl.assertFunction($ctx.module("http")["get"])($ctx, {
+      return await $ctx.krl.assertFunction($ctx.module("http")["get"])($ctx, {
         "0": url2,
         "qs": qs2
       });
     });
-    const fnPost1 = $env.krl.Function([
+    const fnPost1 = $ctx.krl.Function([
       "url",
       "json"
     ], async function (url2, json2) {
-      return await $env.krl.assertFunction($ctx.module("http")["post"])($ctx, {
+      return await $ctx.krl.assertFunction($ctx.module("http")["post"])($ctx, {
         "0": url2,
         "json": json2
       });
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("http_test:get"), async function ($event, $state, $last) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.e("http_test:get"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "http_get" });
       const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
@@ -102,7 +102,7 @@ module.exports = {
       ]);
       var $fired = true;
       if ($fired) {
-        var resp2 = await $env.krl.assertAction($ctx.module("http")["get"])($ctx, {
+        var resp2 = await $ctx.krl.assertAction($ctx.module("http")["get"])($ctx, {
           "0": url2,
           "qs": { "foo": "bar" },
           "headers": { "baz": "quix" }
@@ -113,10 +113,10 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("resp", await $env.krl.assertFunction(fmtResp1)($ctx, [resp2]));
+        await $ctx.rsCtx.putEnt("resp", await $ctx.krl.assertFunction(fmtResp1)($ctx, [resp2]));
       }
     });
-    $rs.when($env.SelectWhen.e("http_test:post"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("http_test:post"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "http_post" });
       const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
@@ -124,17 +124,17 @@ module.exports = {
       ]);
       var $fired = true;
       if ($fired) {
-        var resp2 = await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+        var resp2 = await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
           "0": url2,
           "json": {
             "foo": "bar",
             "baz": doPost1
           }
         });
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "resp.content.body",
-          await $env.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
-              await $env.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
+          await $ctx.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
+              await $ctx.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
                   resp2,
                   ["content"]
                 ])]),
@@ -147,7 +147,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("http_test:post_action"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("http_test:post_action"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "http_post_action" });
       const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
@@ -155,7 +155,7 @@ module.exports = {
       ]);
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(doPost1)($ctx, [
+        await $ctx.krl.assertAction(doPost1)($ctx, [
           url2,
           "bob",
           "foobar"
@@ -166,7 +166,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("http_test:post_setting"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("http_test:post_setting"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "http_post_setting" });
       const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
@@ -174,7 +174,7 @@ module.exports = {
       ]);
       var $fired = true;
       if ($fired) {
-        var resp2 = await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+        var resp2 = await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
           "0": url2,
           "qs": { "foo": "bar" },
           "form": { "baz": "qux" }
@@ -185,10 +185,10 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("resp", await $env.krl.assertFunction(fmtResp1)($ctx, [resp2]));
+        await $ctx.rsCtx.putEnt("resp", await $ctx.krl.assertFunction(fmtResp1)($ctx, [resp2]));
       }
     });
-    $rs.when($env.SelectWhen.e("http_test:autoraise"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("http_test:autoraise"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "http_autorase" });
       const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
@@ -196,7 +196,7 @@ module.exports = {
       ]);
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+        await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
           "0": url2,
           "qs": { "foo": "bar" },
           "form": { "baz": "qux" },
@@ -208,12 +208,12 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("http:post"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("http:post"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "http_post_event_handler" });
-      const resp2 = await $env.krl.assertFunction(fmtResp1)($ctx, [$event.data.attrs]);
+      const resp2 = await $ctx.krl.assertFunction(fmtResp1)($ctx, [$event.data.attrs]);
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "http_post_event_handler",
           { "attrs": resp2 }
         ]);

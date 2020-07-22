@@ -24,7 +24,7 @@ module.exports = function (ast, comp, e) {
     return e('string', p.id.value, p.id.loc)
   }), ast.params.loc)
 
-  const estree = e('call', e('id', '$env.krl.Function'), [
+  const estree = e('call', e('id', '$ctx.krl.Function'), [
     paramOrder,
     {
       type: 'FunctionExpression',

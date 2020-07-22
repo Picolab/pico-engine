@@ -13,18 +13,18 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const append1 = $stdlib["append"];
-    const getLog1 = $env.krl.Function([], async function () {
+    const getLog1 = $ctx.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("log");
     });
-    const listScheduled1 = $env.krl.Function([], async function () {
-      return await $env.krl.assertFunction($ctx.module("schedule")["list"])($ctx, []);
+    const listScheduled1 = $ctx.krl.Function([], async function () {
+      return await $ctx.krl.assertFunction($ctx.module("schedule")["list"])($ctx, []);
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("schedule:clear_log"), async function ($event, $state, $last) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.e("schedule:clear_log"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "clear_log" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["clear_log"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["clear_log"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -34,28 +34,28 @@ module.exports = {
         await $ctx.rsCtx.putEnt("log", []);
       }
     });
-    $rs.when($env.SelectWhen.e("schedule:push_log"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("schedule:push_log"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "push_log" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["push_log"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["push_log"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("log", await $env.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           $event.data.attrs
         ]));
       }
     });
-    $rs.when($env.SelectWhen.e("schedule:in_5min"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("schedule:in_5min"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "in_5min" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["in_5min"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["in_5min"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -73,22 +73,22 @@ module.exports = {
           },
           "domain": "schedule",
           "name": "push_log",
-          "time": await $env.krl.assertFunction($ctx.module("time")["add"])($ctx, [
-            await $env.krl.assertFunction($ctx.module("time")["now"])($ctx, []),
+          "time": await $ctx.krl.assertFunction($ctx.module("time")["add"])($ctx, [
+            await $ctx.krl.assertFunction($ctx.module("time")["now"])($ctx, []),
             { "minutes": 5 }
           ])
         });
-        await $ctx.rsCtx.putEnt("log", await $env.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           { "scheduled in_5min": foo2 }
         ]));
       }
     });
-    $rs.when($env.SelectWhen.e("schedule:every_1min"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("schedule:every_1min"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "every_1min" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, ["every_1min"]);
+        await $ctx.krl.assertAction(send_directive1)($ctx, ["every_1min"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -108,17 +108,17 @@ module.exports = {
           "name": "push_log",
           "timespec": "* */1 * * * *"
         });
-        await $ctx.rsCtx.putEnt("log", await $env.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           { "scheduled every_1min": foo2 }
         ]));
       }
     });
-    $rs.when($env.SelectWhen.e("schedule:rm_from_schedule"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("schedule:rm_from_schedule"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "rm_from_schedule" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction($ctx.module("schedule")["remove"])($ctx, [await $stdlib["get"]($ctx, [
+        await $ctx.krl.assertAction($ctx.module("schedule")["remove"])($ctx, [await $stdlib["get"]($ctx, [
             $event.data.attrs,
             "id"
           ])]);
@@ -128,7 +128,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("schedule:dynamic_at"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("schedule:dynamic_at"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "dynamic_at" });
       var $fired = true;
       if ($fired)
@@ -154,13 +154,13 @@ module.exports = {
             "at"
           ])
         });
-        await $ctx.rsCtx.putEnt("log", await $env.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           { "scheduled dynamic_at": foo2 }
         ]));
       }
     });
-    $rs.when($env.SelectWhen.e("schedule:dynamic_repeat"), async function ($event, $state, $last) {
+    $rs.when($ctx.krl.SelectWhen.e("schedule:dynamic_repeat"), async function ($event, $state, $last) {
       $ctx.log.debug("rule selected", { "rule_name": "dynamic_repeat" });
       var $fired = true;
       if ($fired)
@@ -186,7 +186,7 @@ module.exports = {
             "timespec"
           ])
         });
-        await $ctx.rsCtx.putEnt("log", await $env.krl.assertFunction(append1)($ctx, [
+        await $ctx.rsCtx.putEnt("log", await $ctx.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("log"),
           { "scheduled dynamic_repeat": foo2 }
         ]));

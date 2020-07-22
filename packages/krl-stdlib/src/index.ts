@@ -1,4 +1,3 @@
-import { aggregateEvent } from "./aggregateEvent";
 import * as krl from "./krl";
 import {
   CurrentPicoEvent,
@@ -11,7 +10,6 @@ import { KrlLogger, krlLogLevelCodeToHuman, makeKrlLogger } from "./KrlLogger";
 import stdlib from "./stdlib";
 
 export {
-  aggregateEvent,
   krl,
   CurrentPicoEvent,
   CurrentPicoQuery,

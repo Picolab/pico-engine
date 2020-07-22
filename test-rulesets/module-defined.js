@@ -16,7 +16,7 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
     const configured_name1 = $ctx.configure("configured_name", "Bob");
-    const privateFn1 = $env.krl.Function([], async function () {
+    const privateFn1 = $ctx.krl.Function([], async function () {
       return await $stdlib["+"]($ctx, [
         await $stdlib["+"]($ctx, [
           await $stdlib["+"]($ctx, [
@@ -28,39 +28,39 @@ module.exports = {
         await $ctx.rsCtx.getEnt("memo")
       ]);
     });
-    const getName1 = $env.krl.Function([], async function () {
+    const getName1 = $ctx.krl.Function([], async function () {
       return configured_name1;
     });
-    const getInfo1 = $env.krl.Function([], async function () {
+    const getInfo1 = $ctx.krl.Function([], async function () {
       return {
-        "name": await $env.krl.assertFunction(getName1)($ctx, []),
+        "name": await $ctx.krl.assertFunction(getName1)($ctx, []),
         "memo": await $ctx.rsCtx.getEnt("memo"),
-        "privateFn": await $env.krl.assertFunction(privateFn1)($ctx, [])
+        "privateFn": await $ctx.krl.assertFunction(privateFn1)($ctx, [])
       };
     });
-    const getInfoAction1 = $env.krl.Action([], async function () {
+    const getInfoAction1 = $ctx.krl.Action([], async function () {
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)(this, [
+        await $ctx.krl.assertAction(send_directive1)(this, [
           "getInfoAction",
-          await $env.krl.assertFunction(getInfo1)($ctx, [])
+          await $ctx.krl.assertFunction(getInfo1)($ctx, [])
         ]);
       }
       return {
         "name": await $stdlib["get"]($ctx, [
-          await $env.krl.assertFunction(getInfo1)($ctx, []),
+          await $ctx.krl.assertFunction(getInfo1)($ctx, []),
           ["name"]
         ])
       };
     });
-    const sayHello1 = $env.krl.Function(["name"], async function ($name$2) {
+    const sayHello1 = $ctx.krl.Function(["name"], async function ($name$2) {
       return "hello " + await $stdlib["as"]($ctx, [
         $name$2,
         "String"
       ]) + ".";
     });
-    const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("module_defined:store_memo", async function ($event, $state) {
+    const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    $rs.when($ctx.krl.SelectWhen.e("module_defined:store_memo", async function ($event, $state) {
       var matches = [];
       var setting = {};
       var m;
@@ -84,7 +84,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive1)($ctx, [
+        await $ctx.krl.assertAction(send_directive1)($ctx, [
           "store_memo",
           {
             "name": configured_name1,

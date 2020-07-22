@@ -47,7 +47,7 @@ module.exports = function (ast, comp, e, context) {
   })
   body = body.concat(context.foreach_body)
 
-  stmts.push(e('let', id('pairs'), e('call', e('id', '$env.krl.toPairs'), [comp(ast.expression)])))
+  stmts.push(e('let', id('pairs'), e('call', e('id', '$ctx.krl.toPairs'), [comp(ast.expression)])))
   stmts.push(e('let', id('len'), e('.', id('pairs'), e('id', 'length'))))
   stmts.push(e('let', id('i')))
   stmts.push(e('for',

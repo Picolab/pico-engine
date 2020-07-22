@@ -3,7 +3,7 @@ module.exports = function (ast, comp, e) {
     const selectWhenRule = comp(ast.event)
 
     if (ast.within) {
-      return e('call', e('id', '$env.SelectWhen.within'), [
+      return e('call', e('id', '$ctx.krl.SelectWhen.within'), [
         comp(ast.within),
         selectWhenRule,
         e('fn', ['$event', '$state'], [
@@ -22,7 +22,7 @@ module.exports = function (ast, comp, e) {
   } else if (ast.kind === 'where') {
     const expr = comp(ast.expression)
 
-    return e('call', e('id', '$env.SelectWhen.e'),
+    return e('call', e('id', '$ctx.krl.SelectWhen.e'),
       [
         e('str', '*'),
         e('asyncfn', ['$event', '$state'], [
