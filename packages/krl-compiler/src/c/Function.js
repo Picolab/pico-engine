@@ -1,4 +1,5 @@
 var _ = require('lodash')
+var declarationBlock = require('../utils/declarationBlock')
 
 module.exports = function (ast, comp, e) {
   var body = []
@@ -10,9 +11,7 @@ module.exports = function (ast, comp, e) {
   const { params, defaultSetups } = comp(ast.params)
   body = body.concat(defaultSetups)
 
-  _.each(ast.body, function (part, i) {
-    body.push(comp(part))
-  })
+  body = body.concat(declarationBlock(ast.body, comp))
 
   body.push(e('return', comp(ast.return)))
 

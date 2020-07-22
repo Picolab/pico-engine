@@ -98,17 +98,17 @@ test('compiler errors', function (t) {
     'Error: Duplicate rule name: b'
   )
 
-  tstWarn(
+  tstFail(
     'ruleset a{global{b=1;c=3;b=1}}',
-    'Duplicate declaration: b'
+    'Error: Duplicate declaration: b'
   )
-  tstWarn(
+  tstFail(
     'ruleset a{rule b{select when a b pre{b=1;c=3;b=1}}}',
-    'Duplicate declaration: b'
+    'Error: Duplicate declaration: b'
   )
-  tstWarn(
+  tstFail(
     'ruleset a{global{act=defaction(){noop()};act=1}}',
-    'Duplicate declaration: act'
+    'Error: Duplicate declaration: act'
   )
 
   tstFail(
@@ -221,4 +221,35 @@ test('share somethingNotDefined', function (t) {
     }
   }
   `), { message: 'Trying to share: somethingNotDefined but it\'s not defined in global' })
+})
+
+test('allow function body to use a variable declared later', function (t) {
+  let out = compiler(`
+  ruleset rs {
+    global {
+      foo = function(){ bar }
+      bar = 1
+    }
+  }
+  `)
+  t.is(out.warnings.length, 0)
+
+  out = compiler(`
+  ruleset rs {
+    global {
+      foo = function(){ bar() }
+      bar = function(){ 1 }
+    }
+  }
+  `)
+  t.is(out.warnings.length, 0)
+
+  t.throws(() => compiler(`
+  ruleset rs {
+    global {
+      foo = bar()
+      bar = function(){ 1 }
+    }
+  }
+  `), { message: 'Undefined id: bar' })
 })

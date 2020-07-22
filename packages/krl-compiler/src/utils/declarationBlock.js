@@ -1,23 +1,35 @@
 var _ = require('lodash')
 
 module.exports = function (astList, comp) {
-  var usedIDs = {}
-  return _.map(astList, function (ast) {
-    var id
-    if (ast.type === 'Declaration') {
-      if (ast.left.type === 'Identifier') {
-        id = ast.left.value
-      }
-    } else {
+  const declaredIds = []
+  const compiled = {}
+  for (const ast of astList) {
+    if (ast.type !== 'Declaration' || ast.left.type !== 'Identifier') {
       throw comp.error(ast.loc, 'Only declarations should be in this block')
     }
-    if (id) {
-      if (usedIDs[id]) {
-        // TODO make this an error, but right now some code relies on this
-        comp.warn(ast.loc, 'Duplicate declaration: ' + id)
-      }
-      usedIDs[id] = true
+    const id = ast.left.value
+    if (declaredIds.includes(id)) {
+      throw comp.error(ast.loc, 'Duplicate declaration: ' + id)
     }
-    return comp(ast)
+    declaredIds.push(id)
+
+    if (ast.right.type === 'Function' || ast.right.type === 'Action') {
+      // don't compile yet, compile all expression declarations first
+      comp.scope.set(ast.left.value, { type: 'Unknown' })
+    } else {
+      compiled[id] = comp(ast)
+    }
+  }
+
+  // second pass for functions/actions
+  for (const ast of astList) {
+    const id = ast.left.value
+    if (!compiled[id]) {
+      compiled[id] = comp(ast)
+    }
+  }
+
+  return _.map(declaredIds, function (id) {
+    return compiled[id]
   })
 }

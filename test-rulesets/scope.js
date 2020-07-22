@@ -16,8 +16,8 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const reduce1 = $stdlib["reduce"];
     const map1 = $stdlib["map"];
+    const reduce1 = $stdlib["reduce"];
     const send_directive1 = $stdlib["send_directive"];
     const __testing1 = {
       "queries": [
