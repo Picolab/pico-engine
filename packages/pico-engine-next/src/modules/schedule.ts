@@ -23,87 +23,6 @@ interface ScheduledEvent_repeat extends ScheduledEvent_base {
 
 export type ScheduledEvent = ScheduledEvent_at | ScheduledEvent_repeat;
 
-async function addToSchedule(
-  ctx: KrlCtx,
-  sEvent: ScheduledEvent
-): Promise<ScheduledEvent> {
-  const schedule = (await ctx.rsCtx.getEnt("_schedule")) || {};
-  schedule[sEvent.id] = sEvent;
-  await ctx.rsCtx.putEnt("_schedule", schedule);
-  ctx.scheduleEvent(sEvent);
-  return sEvent;
-}
-
-const schedule: krl.Module = {
-  at: krl.Postlude(["time", "eci", "domain", "name", "attrs"], function (
-    time,
-    eci,
-    domain,
-    name,
-    attrs
-  ) {
-    return addToSchedule(this, {
-      id: cuid(),
-      type: "at",
-      time,
-      event: {
-        eci,
-        domain,
-        name,
-        data: { attrs },
-        time: 0,
-      },
-    });
-  }),
-
-  repeat: krl.Postlude(
-    ["timespec", "eci", "domain", "name", "attrs"],
-    function (timespec, eci, domain, name, attrs) {
-      return addToSchedule(this, {
-        id: cuid(),
-        type: "repeat",
-        timespec,
-        event: {
-          eci,
-          domain,
-          name,
-          data: { attrs },
-          time: 0,
-        },
-      });
-    }
-  ),
-
-  list: krl.Function([], async function () {
-    const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
-    return Object.values(schedule);
-  }),
-
-  get: krl.Function(["id"], async function (id) {
-    const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
-    return schedule[id] || null;
-  }),
-
-  remove: krl.Action(["id"], async function (id) {
-    await this.rsCtx.putEnt(
-      "_schedule",
-      _.omit(this.rsCtx.getEnt("_schedule") || {}, id)
-    );
-    this.removeScheduledEvent(id);
-  }),
-
-  clear: krl.Action([], async function () {
-    const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
-    const ids = Object.keys(schedule);
-    await this.rsCtx.delEnt("_schedule");
-    for (const id of ids) {
-      this.removeScheduledEvent(id);
-    }
-  }),
-};
-
-export default schedule;
-
 type ScheduleJob = (
   timespec: string,
   handler: () => void
@@ -202,7 +121,7 @@ export class Scheduler {
   }
 }
 
-export function schedulerStartup(pf: PicoFramework) {
+export function initScheduleModule(pf: PicoFramework) {
   const scheduler = new Scheduler();
 
   function addScheduledEvent(rid: string, sEvent: ScheduledEvent) {
@@ -239,9 +158,87 @@ export function schedulerStartup(pf: PicoFramework) {
     }
   }
 
+  async function addToSchedule(
+    ctx: KrlCtx,
+    sEvent: ScheduledEvent
+  ): Promise<ScheduledEvent> {
+    const schedule = (await ctx.rsCtx.getEnt("_schedule")) || {};
+    schedule[sEvent.id] = sEvent;
+    await ctx.rsCtx.putEnt("_schedule", schedule);
+    addScheduledEvent(ctx.rsCtx.ruleset.rid, sEvent);
+    return sEvent;
+  }
+
+  const module: krl.Module = {
+    at: krl.Postlude(["time", "eci", "domain", "name", "attrs"], function (
+      time,
+      eci,
+      domain,
+      name,
+      attrs
+    ) {
+      return addToSchedule(this, {
+        id: cuid(),
+        type: "at",
+        time,
+        event: {
+          eci,
+          domain,
+          name,
+          data: { attrs },
+          time: 0,
+        },
+      });
+    }),
+
+    repeat: krl.Postlude(
+      ["timespec", "eci", "domain", "name", "attrs"],
+      function (timespec, eci, domain, name, attrs) {
+        return addToSchedule(this, {
+          id: cuid(),
+          type: "repeat",
+          timespec,
+          event: {
+            eci,
+            domain,
+            name,
+            data: { attrs },
+            time: 0,
+          },
+        });
+      }
+    ),
+
+    list: krl.Function([], async function () {
+      const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
+      return Object.values(schedule);
+    }),
+
+    get: krl.Function(["id"], async function (id) {
+      const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
+      return schedule[id] || null;
+    }),
+
+    remove: krl.Action(["id"], async function (id) {
+      await this.rsCtx.putEnt(
+        "_schedule",
+        _.omit(this.rsCtx.getEnt("_schedule") || {}, id)
+      );
+      scheduler.remove(id);
+    }),
+
+    clear: krl.Action([], async function () {
+      const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
+      const ids = Object.keys(schedule);
+      await this.rsCtx.delEnt("_schedule");
+      for (const id of ids) {
+        scheduler.remove(id);
+      }
+    }),
+  };
+
   return {
-    addScheduledEvent,
-    removeScheduledEvent: (id: string) => scheduler.remove(id),
+    module,
     start() {
       return new Promise((resolve, reject) => {
         const s = pf.db.createReadStream({

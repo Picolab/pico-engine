@@ -15,8 +15,6 @@ import { PicoFramework, RulesetContext } from "pico-framework";
 import { NewPicoRuleset, Pico } from "pico-framework/dist/src/Pico";
 import { createRulesetContext } from "pico-framework/dist/src/RulesetContext";
 import * as SelectWhen from "select-when";
-import * as modules from "./modules";
-import { ScheduledEvent } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
 
 export class RulesetEnvironment {
@@ -24,7 +22,7 @@ export class RulesetEnvironment {
 
   SelectWhen = SelectWhen;
 
-  modules: { [domain: string]: krl.Module } = modules;
+  modules: { [domain: string]: krl.Module } = {};
 
   picoRidUses: {
     [picoId: string]: { [rid: string]: { [usesRid: string]: true } };
@@ -33,8 +31,6 @@ export class RulesetEnvironment {
     [picoId: string]: { [rid: string]: { [usedByRid: string]: true } };
   } = {};
 
-  public addScheduledEvent?: (rid: string, sEvent: ScheduledEvent) => void;
-  public removeScheduledEvent?: (id: string) => void;
   public picoFramework?: PicoFramework;
 
   constructor(
@@ -97,18 +93,6 @@ export class RulesetEnvironment {
         return tmp;
       },
       aggregateEvent,
-
-      scheduleEvent(sEvent) {
-        if (environment.addScheduledEvent) {
-          environment.addScheduledEvent(rsCtx.ruleset.rid, sEvent);
-        }
-      },
-
-      removeScheduledEvent(id) {
-        if (environment.removeScheduledEvent) {
-          environment.removeScheduledEvent(id);
-        }
-      },
 
       getPicoLogs() {
         return environment.getPicoLogs(picoId);

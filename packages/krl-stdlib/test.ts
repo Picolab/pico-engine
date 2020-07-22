@@ -41,8 +41,6 @@ async function mkCallLib(onLogLine?: (str: string) => void) {
     async install(url, config) {},
     async uninstall(rid) {},
     async flush(url) {},
-    scheduleEvent(sEvent) {},
-    removeScheduledEvent(id) {},
     async getPicoLogs() {
       return [];
     },

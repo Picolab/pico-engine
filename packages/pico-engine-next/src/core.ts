@@ -2,7 +2,11 @@ import { AbstractLevelDOWN } from "abstract-leveldown";
 import { krl, KrlLogger, PicoLogEntry } from "krl-stdlib";
 import * as _ from "lodash";
 import { PicoFramework } from "pico-framework";
-import { schedulerStartup } from "./modules/schedule";
+import module_ctx from "./modules/ctx";
+import module_event from "./modules/event";
+import { initScheduleModule } from "./modules/schedule";
+import module_stdlib from "./modules/stdlib";
+import module_time from "./modules/time";
 import { RulesetEnvironment } from "./RulesetEnvironment";
 import { RulesetRegistry, RulesetRegistryLoader } from "./RulesetRegistry";
 
@@ -48,12 +52,6 @@ export async function startPicoEngineCore(
     rsRegistry,
     configuration.getPicoLogs
   );
-
-  if (configuration.modules) {
-    _.each(configuration.modules, function (mod, domain) {
-      rsEnvironment.modules[domain] = mod;
-    });
-  }
 
   const pf = new PicoFramework({
     leveldown: configuration.leveldown,
@@ -113,12 +111,23 @@ export async function startPicoEngineCore(
     useEventInputTime: configuration.useEventInputTime,
   });
 
-  const schdlr = schedulerStartup(pf);
-  rsEnvironment.addScheduledEvent = schdlr.addScheduledEvent;
-  rsEnvironment.removeScheduledEvent = schdlr.removeScheduledEvent;
   rsEnvironment.picoFramework = pf;
-  await schdlr.start();
 
+  rsEnvironment.modules["ctx"] = module_ctx;
+  rsEnvironment.modules["event"] = module_event;
+  rsEnvironment.modules["stdlib"] = module_stdlib;
+  rsEnvironment.modules["time"] = module_time;
+
+  const scheduler = initScheduleModule(pf);
+  rsEnvironment.modules["schedule"] = scheduler.module;
+
+  if (configuration.modules) {
+    _.each(configuration.modules, function (mod, domain) {
+      rsEnvironment.modules[domain] = mod;
+    });
+  }
+
+  await scheduler.start();
   await pf.start();
 
   return {

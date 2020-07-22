@@ -44,23 +44,6 @@ export interface RulesetCtxInfoMeta {
   };
 }
 
-interface ScheduledEvent_base {
-  id: string;
-  event: PicoEvent;
-}
-
-interface ScheduledEvent_at extends ScheduledEvent_base {
-  type: "at";
-  time: number;
-}
-
-interface ScheduledEvent_repeat extends ScheduledEvent_base {
-  type: "repeat";
-  timespec: string;
-}
-
-export type ScheduledEvent = ScheduledEvent_at | ScheduledEvent_repeat;
-
 export interface KrlCtx {
   rsCtx: RulesetContext;
 
@@ -93,8 +76,6 @@ export interface KrlCtx {
   install(url: string, config: RulesetConfig): Promise<void>;
   uninstall(rid: string): Promise<void>;
   flush(url: string): Promise<void>;
-  scheduleEvent(sEvent: ScheduledEvent): void;
-  removeScheduledEvent(id: string): void;
 
   // compiler lib
   aggregateEvent(state: any, op: string, pairs: [string, string][]): any;
