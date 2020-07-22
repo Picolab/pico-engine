@@ -11,10 +11,10 @@ test("chevron.krl", async (t) => {
     args: {},
   });
   t.is(
-    resp,
+    resp.replace(/\r\n|\r|\n/g, "\n"),
     `
             hi 1 + 2 = 3
             <h1>some<b>html</b></h1>
-        `
+        `.replace(/\r\n|\r|\n/g, "\n")
   );
 });
