@@ -2,12 +2,19 @@ import { PicoBox } from "./types/PicoBox";
 
 function apiResponse(resp: Promise<Response>) {
   return resp
-    .then(resp => resp.json())
-    .then(data => {
-      if (!data) {
-        return Promise.reject(new Error("Empty response"));
+    .then(async (resp) => {
+      const text = await resp.text();
+      if (text === "") {
+        return null;
       }
-      if (data.error) {
+      const json = JSON.parse(text);
+      if (json === void 0) {
+        return null;
+      }
+      return json;
+    })
+    .then((data) => {
+      if (data?.error) {
         return Promise.reject(data.error);
       }
       return data;
@@ -23,9 +30,9 @@ export function apiPost(path: string, body: any) {
     fetch(path, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json; charset=utf-8"
+        "Content-Type": "application/json; charset=utf-8",
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     })
   );
 }
