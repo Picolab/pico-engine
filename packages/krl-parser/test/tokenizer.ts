@@ -17,7 +17,10 @@ test("tokenizer", async t => {
         t.is(tok.src, src.substring(tok.loc.start, src.length));
       }
     }
-    t.deepEqual(tokens.map(tok => "[" + tok.type + "]" + tok.src), expected);
+    t.deepEqual(
+      tokens.map(tok => "[" + tok.type + "]" + tok.src),
+      expected
+    );
   }
 
   tst('""', ['[STRING]""']);
@@ -177,6 +180,16 @@ test("tokenizer", async t => {
   tst("re#regex#ig", ["[REGEXP]re#regex#ig"]);
   tst("re#regex#igok", ["[REGEXP]re#regex#ig", "[SYMBOL]ok"]);
   tst("re#regex#giok", ["[REGEXP]re#regex#gi", "[SYMBOL]ok"]);
+  tst("re#regex#gimok", ["[REGEXP]re#regex#gim", "[SYMBOL]ok"]);
+  tst("re#regex#mgi", ["[REGEXP]re#regex#mgi"]);
+  tst("re#regex#mig", ["[REGEXP]re#regex#mig"]);
+  tst("re#regex#img", ["[REGEXP]re#regex#img"]);
+  tst("re#regex#gmi", ["[REGEXP]re#regex#gmi"]);
+  tst("re#regex#igm", ["[REGEXP]re#regex#igm"]);
+  tst("re#regex#gim", ["[REGEXP]re#regex#gim"]);
+  tst("re#regex#m", ["[REGEXP]re#regex#m"]);
+  tst("re#regex#gm", ["[REGEXP]re#regex#gm"]);
+  tst("re#regex#mi", ["[REGEXP]re#regex#mi"]);
   tst("re#\\##", ["[REGEXP]re#\\##"]);
   tst("re#\\#\\\\#", ["[REGEXP]re#\\#\\\\#"]);
   tst("re##", ["[REGEXP]re##"]);

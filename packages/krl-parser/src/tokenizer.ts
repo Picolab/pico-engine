@@ -177,19 +177,21 @@ export default function tokenizer(src: string): Token[] {
         return c === "#" && buff.length > 2;
       }, true);
 
-      peek = src.substring(i + 1, i + 3);
-      if (peek === "gi" || peek === "ig") {
-        pushTok(buff + "#" + peek, "REGEXP");
-        advance(3);
-      } else if (peek[0] === "i" || peek[0] === "g") {
-        pushTok(buff + "#" + peek[0], "REGEXP");
-        advance(2);
-      } else if (i < src.length) {
-        pushTok(buff + "#", "REGEXP");
-        advance(1);
-      } else {
+      if (src[i] !== "#") {
         pushTok(buff, "MISSING-CLOSE", "#");
+        continue;
       }
+
+      let flags = "";
+      for (let j = i + 1; j < src.length; j++) {
+        let flag = src[j];
+        if (!/[gim]/.test(flag)) {
+          break;
+        }
+        flags += flag;
+      }
+      pushTok(buff + "#" + flags, "REGEXP");
+      advance(1 + flags.length);
 
       continue;
     }
