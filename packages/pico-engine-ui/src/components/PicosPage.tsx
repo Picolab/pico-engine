@@ -8,7 +8,7 @@ interface Props {
   match: { params: { [name: string]: string } };
 }
 
-const PicosPage: React.FC<Props> = props => {
+const PicosPage: React.FC<Props> = (props) => {
   const { match } = props;
 
   const openEci: string | undefined = match.params.eci;
@@ -27,7 +27,7 @@ const PicosPage: React.FC<Props> = props => {
       case "moving": {
         picoPageStore.updateBox(picoPage.picoMoving.eci, {
           x: e.clientX - (picoPage.picoMoving.relX || 0),
-          y: e.clientY - (picoPage.picoMoving.relY || 0)
+          y: e.clientY - (picoPage.picoMoving.relY || 0),
         });
         break;
       }
@@ -36,7 +36,7 @@ const PicosPage: React.FC<Props> = props => {
         if (box) {
           picoPageStore.updateBox(picoPage.picoMoving.eci, {
             width: Math.max(0, e.clientX - box.x),
-            height: Math.max(0, e.clientY - box.y)
+            height: Math.max(0, e.clientY - box.y),
           });
         }
         break;
@@ -53,7 +53,7 @@ const PicosPage: React.FC<Props> = props => {
         x: box.x,
         y: box.y,
         width: box.width,
-        height: box.height
+        height: box.height,
       });
     }
 
@@ -62,9 +62,17 @@ const PicosPage: React.FC<Props> = props => {
 
   return (
     <div id="picos-page" onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
+      <footer className="fixed-bottom-right p-5">
+        <div>
+          Powered by{" "}
+          <a href="https://github.com/Picolab/pico-engine">pico-engine</a>
+        </div>
+        <div>
+          {picoPage.uiContext ? `version: ${picoPage.uiContext.version}` : ""}
+        </div>
+      </footer>
+
       <div className="container-fluid">
-        <h1>pico-engine NEXT</h1>
-        {picoPage.uiContext ? `version: ${picoPage.uiContext.version}` : ""}
         {picoPage.loading ? "Loading..." : ""}
         {picoPage.error ? (
           <div className="alert alert-danger">{picoPage.error}</div>
@@ -73,7 +81,7 @@ const PicosPage: React.FC<Props> = props => {
         )}
       </div>
 
-      {Object.values(picoPage.picoBoxes).map(pico => {
+      {Object.values(picoPage.picoBoxes).map((pico) => {
         return (
           <Pico
             key={pico.eci + pico.x + pico.y + pico.width + pico.height}

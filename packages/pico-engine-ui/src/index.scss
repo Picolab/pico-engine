@@ -37,6 +37,12 @@ body {
   user-select: none;
 }
 
+.fixed-bottom-right {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+}
+
 .pico {
   position: absolute;
   min-width: 50px;
