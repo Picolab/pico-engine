@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import * as tempDir from "temp-dir";
-import { RulesetRegistry } from "../src/RulesetRegistry";
+import { RulesetRegistry } from "pico-engine-core";
 import { RulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
 import { toFileUrl } from "../src/utils/toFileUrl";
 

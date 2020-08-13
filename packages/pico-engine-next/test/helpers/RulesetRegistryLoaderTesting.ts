@@ -1,8 +1,5 @@
+import { CachedRuleset, RulesetRegistryLoader } from "pico-engine-core";
 import { Ruleset } from "pico-framework";
-import {
-  CachedRuleset,
-  RulesetRegistryLoader,
-} from "../../src/RulesetRegistry";
 
 export function RulesetRegistryLoaderTesting(rulesets: {
   [url: string]: Ruleset;

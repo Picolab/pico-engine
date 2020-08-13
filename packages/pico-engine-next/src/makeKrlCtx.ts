@@ -6,8 +6,8 @@ import {
   KrlCtx,
 } from "krl-stdlib";
 import * as _ from "lodash";
+import { PicoEngineCore } from "pico-engine-core";
 import { RulesetContext } from "pico-framework";
-import { PicoEngineCore } from "./PicoEngineCore";
 
 export function makeKrlCtx(
   core: PicoEngineCore,

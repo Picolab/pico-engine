@@ -1,6 +1,6 @@
 import fetch from "cross-fetch";
 import { krl, KrlCtx } from "krl-stdlib";
-import { PicoEngineCore } from "../PicoEngineCore";
+import { PicoEngineCore } from "pico-engine-core";
 const qs = require("qs");
 
 function ensureMap(arg: any, defaultTo: any) {

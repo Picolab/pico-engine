@@ -1,8 +1,10 @@
 import test from "ava";
 import { makeKrlLogger } from "krl-stdlib";
-import { PicoEngineCore } from "../src/PicoEngineCore";
-import { PicoEngineCoreConfiguration } from "../src/PicoEngineCoreConfiguration";
-import { RulesetRegistryLoaderMem } from "../src/RulesetRegistryLoaderMem";
+import {
+  PicoEngineCore,
+  PicoEngineCoreConfiguration,
+  RulesetRegistryLoaderMem,
+} from "pico-engine-core";
 import { allowAllChannelConf, mkSignalBase } from "./helpers/startTestEngine";
 
 const memdown = require("memdown");

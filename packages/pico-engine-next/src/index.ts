@@ -3,12 +3,14 @@ import leveldown from "leveldown";
 import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
+import {
+  PicoEngineCore,
+  RulesetRegistry,
+  RulesetRegistryLoaderMem,
+} from "pico-engine-core";
 import { PicoFramework } from "pico-framework";
-import { PicoEngineCore } from "./PicoEngineCore";
 import { getPicoLogs, makeRotatingFileLogWriter } from "./logging";
-import { RulesetRegistry } from "./RulesetRegistry";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
-import { RulesetRegistryLoaderMem } from "./RulesetRegistryLoaderMem";
 import { server } from "./server";
 import { toFileUrl } from "./utils/toFileUrl";
 

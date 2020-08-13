@@ -1,8 +1,8 @@
+import fetch from "cross-fetch";
 import { krl } from "krl-stdlib";
 import * as normalizeUrl from "normalize-url";
 import { ChannelConfig, cleanChannelTags, RulesetConfig } from "pico-framework";
 import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
-import * as request from "request";
 import { PicoEngineCore } from "../PicoEngineCore";
 
 export interface RulesetCtxInfo {
@@ -214,20 +214,14 @@ export default function initCtxModule(core: PicoEngineCore) {
         if (host) {
           const url = `${host}/c/${eci}/event/${domain}/${name}`;
 
-          request(
-            {
-              method: "POST",
-              url,
-              headers: { "content-type": "application/json" },
-              body: krl.encode(attrs),
-            },
-            (err, res, body) => {
-              if (err) {
-                this.log.error(err + ""); // TODO better handling
-              }
-              // ignore
-            }
-          );
+          fetch(url, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: krl.encode(attrs),
+          }).catch((err) => {
+            this.log.error(err + ""); // TODO better handling
+          });
+
           return;
         }
 

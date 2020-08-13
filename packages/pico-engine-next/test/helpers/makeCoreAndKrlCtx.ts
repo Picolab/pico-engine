@@ -1,5 +1,5 @@
 import { KrlCtx, makeKrlLogger } from "krl-stdlib";
-import { PicoEngineCore } from "../../src/PicoEngineCore";
+import { PicoEngineCore } from "pico-engine-core";
 import { RulesetRegistryLoaderTesting } from "./RulesetRegistryLoaderTesting";
 const memdown = require("memdown");
 

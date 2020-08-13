@@ -17,49 +17,49 @@ export function server(pf: PicoFramework, uiECI: string): Express {
   const app = express();
 
   app.use(helmet());
-  app.use(express.static(path.resolve(__dirname, "..", "www")));
+  app.use(express.static(path.resolve(__dirname, "..", "public")));
   app.use(bodyParser.json({ type: "application/json" }));
   app.use(
     bodyParser.urlencoded({
       limit: "512mb",
       type: "application/x-www-form-urlencoded",
-      extended: false
+      extended: false,
     })
   );
 
-  app.get("/api/ui-context", function(req, res, next) {
+  app.get("/api/ui-context", function (req, res, next) {
     res.json({ version: engineVersion, eci: uiECI });
   });
 
-  app.all("/c/:eci/event/:domain/:name", function(req, res, next) {
+  app.all("/c/:eci/event/:domain/:name", function (req, res, next) {
     pf.event({
       eci: req.params.eci,
       domain: req.params.domain,
       name: req.params.name,
       data: { attrs: mergeGetPost(req) },
-      time: 0 // TODO remove this typescript requirement
+      time: 0, // TODO remove this typescript requirement
     })
-      .then(data => {
+      .then((data) => {
         res.json(data);
       })
       .catch(next);
   });
 
-  app.all("/c/:eci/event-wait/:domain/:name", function(req, res, next) {
+  app.all("/c/:eci/event-wait/:domain/:name", function (req, res, next) {
     pf.eventWait({
       eci: req.params.eci,
       domain: req.params.domain,
       name: req.params.name,
       data: { attrs: mergeGetPost(req) },
-      time: 0 // TODO remove this typescript requirement
+      time: 0, // TODO remove this typescript requirement
     })
-      .then(data => {
+      .then((data) => {
         res.json(data);
       })
       .catch(next);
   });
 
-  app.all("/sky/event/:eci/:eid/:domain/:type", function(req, res, next) {
+  app.all("/sky/event/:eci/:eid/:domain/:type", function (req, res, next) {
     const attrs = mergeGetPost(req);
     if (req.params.eid !== "none" && !attrs.hasOwnProperty("__eid")) {
       attrs.__eid = req.params.eid;
@@ -69,15 +69,15 @@ export function server(pf: PicoFramework, uiECI: string): Express {
       domain: req.params.domain,
       name: req.params["type"],
       data: { attrs },
-      time: 0 // TODO remove this typescript requirement
+      time: 0, // TODO remove this typescript requirement
     })
-      .then(data => {
+      .then((data) => {
         res.json(data);
       })
       .catch(next);
   });
 
-  app.all("/c/:eci/event/:domain/:name/query/:rid/:qname", function(
+  app.all("/c/:eci/event/:domain/:name/query/:rid/:qname", function (
     req,
     res,
     next
@@ -89,48 +89,48 @@ export function server(pf: PicoFramework, uiECI: string): Express {
         domain: req.params.domain,
         name: req.params.name,
         data: { attrs },
-        time: 0 // TODO remove this typescript requirement
+        time: 0, // TODO remove this typescript requirement
       },
       {
         eci: req.params.eci,
         rid: req.params.rid,
         name: req.params.qname,
-        args: attrs
+        args: attrs,
       }
     )
-      .then(data => {
+      .then((data) => {
         res.json(data);
       })
       .catch(next);
   });
 
-  app.all("/c/:eci/query/:rid/:name", function(req, res, next) {
+  app.all("/c/:eci/query/:rid/:name", function (req, res, next) {
     pf.query({
       eci: req.params.eci,
       rid: req.params.rid,
       name: req.params.name,
-      args: mergeGetPost(req)
+      args: mergeGetPost(req),
     })
-      .then(data => {
+      .then((data) => {
         res.json(data);
       })
       .catch(next);
   });
 
-  app.all("/sky/cloud/:eci/:rid/:function", function(req, res, next) {
+  app.all("/sky/cloud/:eci/:rid/:function", function (req, res, next) {
     pf.query({
       eci: req.params.eci,
       rid: req.params.rid,
       name: req.params["function"],
-      args: mergeGetPost(req)
+      args: mergeGetPost(req),
     })
-      .then(data => {
+      .then((data) => {
         res.json(data);
       })
       .catch(next);
   });
 
-  app.use(function(
+  app.use(function (
     err: any,
     req: express.Request,
     res: express.Response,

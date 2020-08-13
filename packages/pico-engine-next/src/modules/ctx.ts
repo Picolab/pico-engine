@@ -1,9 +1,9 @@
 import { krl } from "krl-stdlib";
 import * as normalizeUrl from "normalize-url";
+import { PicoEngineCore } from "pico-engine-core";
 import { ChannelConfig, cleanChannelTags, RulesetConfig } from "pico-framework";
 import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
 import * as request from "request";
-import { PicoEngineCore } from "../PicoEngineCore";
 
 export interface RulesetCtxInfo {
   rid: string;
