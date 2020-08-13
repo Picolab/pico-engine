@@ -4,8 +4,8 @@ import {
   createRulesetContext,
   RulesetContext,
 } from "pico-framework/dist/src/RulesetContext";
-import { PicoEngineCore } from "./PicoEngineCore";
 import { makeKrlCtx } from "./makeKrlCtx";
+import { PicoEngineCore } from "./PicoEngineCore";
 import { CachedRuleset } from "./RulesetRegistry";
 
 export class CorePico {
@@ -28,7 +28,7 @@ export class CorePico {
     };
   } = {};
 
-  constructor(private coreEnv: PicoEngineCore) {}
+  constructor(private core: PicoEngineCore) {}
 
   async use(
     krlCtx: KrlCtx,
@@ -42,25 +42,25 @@ export class CorePico {
     const picoId = rsCtx.pico().id;
     let pfPico: Pico;
     try {
-      pfPico = this.coreEnv.picoFramework.getPico(picoId);
+      pfPico = this.core.picoFramework.getPico(picoId);
     } catch (err) {
       throw new Error("PicoFramework not yet setup");
     }
-    const ruleset = this.coreEnv.rsRegistry.getCached(
+    const ruleset = this.core.rsRegistry.getCached(
       pfPico.rulesets[usesRid]?.config?.url || ""
     );
     if (!ruleset) {
       throw new Error(`Module not found: ${usesRid}`);
     }
     const rsI = await ruleset.ruleset.init(
-      createRulesetContext(this.coreEnv.picoFramework, pfPico, {
+      createRulesetContext(this.core.picoFramework, pfPico, {
         rid: ruleset.rid,
         config: {
           ...rsCtx.ruleset.config,
           _krl_module_config: configure,
         },
       }),
-      (rsCtx2: RulesetContext) => makeKrlCtx(this.coreEnv, rsCtx2)
+      (rsCtx2: RulesetContext) => makeKrlCtx(this.core, rsCtx2)
     );
     const module: krl.Module = (rsI as any).provides || {};
     if (!alias) {
@@ -84,8 +84,8 @@ export class CorePico {
     };
   }
 
-  getModule(alias: string): krl.Module | null {
-    for (const userRid of Object.keys(this.dependencies)) {
+  getModule(userRid: string, alias: string): krl.Module | null {
+    if (this.dependencies[userRid]) {
       for (const rm of Object.values(this.dependencies[userRid].uses)) {
         if (rm[alias]) {
           return rm[alias].module;

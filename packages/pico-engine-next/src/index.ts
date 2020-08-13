@@ -86,7 +86,7 @@ export async function startEngine(
     ? configuration.log
     : makeKrlLogger(makeRotatingFileLogWriter(logFilePath));
 
-  const coreEnv = new PicoEngineCore({
+  const core = new PicoEngineCore({
     leveldown: leveldown(path.resolve(home, "db")) as any,
     rsRegLoader: configuration.__test__memFetchKrl
       ? RulesetRegistryLoaderMem(configuration.__test__memFetchKrl)
@@ -98,13 +98,12 @@ export async function startEngine(
       return getPicoLogs(logFilePath, picoId);
     },
   });
-  await coreEnv.start();
-  const rsRegistry = coreEnv.rsRegistry;
-  const pf = coreEnv.picoFramework;
+  await core.start();
+  const rsRegistry = core.rsRegistry;
+  const pf = core.picoFramework;
 
   const url = toFileUrl(path.resolve(__dirname, "..", "io.picolabs.next.krl"));
   const { ruleset } = await rsRegistry.flush(url);
-  pf.reInitRuleset(ruleset);
   await pf.rootPico.install(ruleset, { url, config: {} });
   let uiChannel = pf.rootPico
     .toReadOnly()

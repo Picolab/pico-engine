@@ -109,6 +109,7 @@ export class PicoEngineCore {
   }
 
   onRulesetLoaded(crs: CachedRuleset) {
+    this.picoFramework.reInitRuleset(crs.ruleset);
     for (const picoId of Object.keys(this.picos)) {
       this.picos[picoId].onRulesetLoaded(crs);
     }

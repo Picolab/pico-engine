@@ -22,7 +22,7 @@ export interface RulesetCtxInfoMeta {
   };
 }
 
-export default function initCtxModule(coreEnv: PicoEngineCore) {
+export default function initCtxModule(core: PicoEngineCore) {
   const module: krl.Module = {
     rid: krl.Property(function rid() {
       return this.rsCtx.ruleset.rid;
@@ -56,7 +56,7 @@ export default function initCtxModule(coreEnv: PicoEngineCore) {
       }
       const toInstall: NewPicoRuleset[] = [];
       for (const rs of rulesets) {
-        const result = await coreEnv.rsRegistry.load(rs.url);
+        const result = await core.rsRegistry.load(rs.url);
         toInstall.push({
           rs: result.ruleset,
           config: {
@@ -124,7 +124,7 @@ export default function initCtxModule(coreEnv: PicoEngineCore) {
       const results: RulesetCtxInfo[] = [];
 
       for (const rs of pico.rulesets) {
-        const cached = coreEnv.rsRegistry.getCached(rs.config.url);
+        const cached = core.rsRegistry.getCached(rs.config.url);
         results.push({
           rid: rs.rid,
           url: rs.config.url,
@@ -153,7 +153,7 @@ export default function initCtxModule(coreEnv: PicoEngineCore) {
         );
       }
       url = normalizeUrl(url);
-      const rs = await coreEnv.rsRegistry.load(url);
+      const rs = await core.rsRegistry.load(url);
       await this.rsCtx.install(rs.ruleset, {
         url: url,
         config: config || {},
@@ -169,7 +169,7 @@ export default function initCtxModule(coreEnv: PicoEngineCore) {
         );
       }
 
-      const corePico = coreEnv.getPico(pico.id);
+      const corePico = core.getPico(pico.id);
       if (!corePico) {
         throw new TypeError("Pico not found in core: " + pico.id);
       }
@@ -193,8 +193,7 @@ export default function initCtxModule(coreEnv: PicoEngineCore) {
         );
       }
       url = normalizeUrl(url);
-      const rs = await coreEnv.rsRegistry.flush(url);
-      coreEnv.picoFramework.reInitRuleset(rs.ruleset);
+      await core.rsRegistry.flush(url);
     }),
 
     raiseEvent: krl.Postlude(

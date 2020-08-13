@@ -10,15 +10,15 @@ import { RulesetContext } from "pico-framework";
 import { PicoEngineCore } from "./PicoEngineCore";
 
 export function makeKrlCtx(
-  coreEnv: PicoEngineCore,
+  core: PicoEngineCore,
   rsCtx: RulesetContext
 ): KrlCtx {
   const pico = rsCtx.pico();
   const picoId = pico.id;
   const logCtxBase = { picoId, rid: rsCtx.ruleset.rid };
-  let log = coreEnv.log.child(logCtxBase);
+  let log = core.log.child(logCtxBase);
 
-  let corePico = coreEnv.addPico(picoId);
+  let corePico = core.addPico(picoId);
 
   let currentEvent: CurrentPicoEvent | null = null;
   let currentQuery: CurrentPicoQuery | null = null;
@@ -29,11 +29,11 @@ export function makeKrlCtx(
     log,
     rsCtx,
     module(domain) {
-      const module = corePico.getModule(domain);
+      const module = corePico.getModule(rsCtx.ruleset.rid, domain);
       if (module) {
         return module;
       }
-      return coreEnv.modules[domain] || null;
+      return core.modules[domain] || null;
     },
     getEvent() {
       return currentEvent;
@@ -65,7 +65,7 @@ export function makeKrlCtx(
     },
 
     getPicoLogs() {
-      return coreEnv.getPicoLogs(picoId);
+      return core.getPicoLogs(picoId);
     },
 
     configure(name, dflt) {
