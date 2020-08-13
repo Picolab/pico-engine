@@ -29,7 +29,6 @@ interface DbUrlRuleset {
   hash: string;
   flushed: Date;
   rid: string;
-  version: string;
   compiler: {
     version: string;
     warnings: any[];
@@ -88,8 +87,6 @@ export function RulesetRegistryLoaderFs(
     }
 
     const ruleset: Ruleset = require(jsFile);
-    ruleset.version =
-      typeof ruleset.version === "string" ? ruleset.version : "draft";
 
     return {
       ruleset,

@@ -65,12 +65,11 @@ export async function startPicoEngineCore(
 
     rulesetLoader: rsRegistry.loader,
 
-    onStartupRulesetInitError(picoId, rid, version, config, error) {
+    onStartupRulesetInitError(picoId, rid, config, error) {
       // TODO mark it as not installed and raise an error event
       log.error("onStartupRulesetInitError", {
         picoId,
         rid,
-        rulesetVersion: version,
         rulesetConfig: config,
         error,
       });

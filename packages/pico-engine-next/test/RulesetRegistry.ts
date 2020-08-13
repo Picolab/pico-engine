@@ -8,7 +8,7 @@ import { RulesetRegistry } from "../src/RulesetRegistry";
 import { RulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
 import { toFileUrl } from "../src/utils/toFileUrl";
 
-test("RulesetRegistry", async t => {
+test("RulesetRegistry", async (t) => {
   const dir = path.resolve(tempDir, "pico-engine", cuid());
   await makeDir(dir);
 
@@ -24,17 +24,17 @@ test("RulesetRegistry", async t => {
 
   let rs = await rsReg.load(url0);
   t.is(rs.ruleset.rid, "rid.hello");
-  t.is(rs.ruleset.version, "draft");
+  t.is((rs.ruleset as any).version, "draft");
 
   await fs.promises.writeFile(file0, `ruleset rid.hello { version "1.0.0" }`);
   await sleep(200);
-  t.is((await rsReg.load(url0)).ruleset.version, "draft");
+  t.is(((await rsReg.load(url0)).ruleset as any).version, "draft");
   await sleep(200);
-  t.is((await rsReg.flush(url0)).ruleset.version, "1.0.0");
+  t.is(((await rsReg.flush(url0)).ruleset as any).version, "1.0.0");
   await sleep(200);
-  t.is((await rsReg.load(url0)).ruleset.version, "1.0.0");
+  t.is(((await rsReg.load(url0)).ruleset as any).version, "1.0.0");
 });
 
 function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

@@ -111,7 +111,6 @@ export function makeKrlCtx(
       const rsI = await ruleset.ruleset.init(
         createRulesetContext(picoFramework, pfPico, {
           rid: ruleset.rid,
-          version: ruleset.version,
           config: {
             ...rsCtx.ruleset.config,
             _krl_module_config: configure,

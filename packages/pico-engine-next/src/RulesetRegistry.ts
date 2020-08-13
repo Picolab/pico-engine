@@ -8,7 +8,6 @@ export interface CachedRuleset {
   hash: string;
   flushed: Date;
   rid: string;
-  version: string;
   compiler: {
     version: string;
     warnings: any[];
@@ -50,12 +49,10 @@ export class RulesetRegistry {
     });
   }
 
-  loader: RulesetLoader = async (picoId, rid, version, config) => {
+  loader: RulesetLoader = async (picoId, rid, config) => {
     const url = config && config["url"];
     if (typeof url !== "string") {
-      throw new Error(
-        `Unable to get url for pico ruleset ${picoId}-${rid}@${version}`
-      );
+      throw new Error(`Unable to get url for pico ruleset ${picoId}-${rid}`);
     }
     const rs = await this.load(url);
     return rs.ruleset;
@@ -100,7 +97,6 @@ export class RulesetRegistry {
       hash,
       flushed: new Date(),
       rid: ruleset.rid,
-      version: ruleset.version,
       compiler,
       ruleset,
     };

@@ -13,7 +13,6 @@ import { RulesetRegistry } from "../RulesetRegistry";
 
 export interface RulesetCtxInfo {
   rid: string;
-  version: string;
   config: RulesetConfig | null;
   url: string;
   meta: RulesetCtxInfoMeta | null;
@@ -40,7 +39,7 @@ export default function initCtxModule(
     }),
 
     rid_version: krl.Property(function rid_version() {
-      return this.rsCtx.ruleset.version;
+      return (this.rsCtx.ruleset as any).version || "draft";
     }),
 
     rid_url: krl.Property(function rid_url() {
@@ -138,7 +137,6 @@ export default function initCtxModule(
         const cached = rsRegistry.getCached(rs.config.url);
         results.push({
           rid: rs.rid,
-          version: rs.version,
           url: rs.config.url,
           config: rs.config.config,
           meta: cached

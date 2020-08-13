@@ -29,17 +29,15 @@ export function RulesetRegistryLoaderMem(
       }
 
       const ruleset: Ruleset = eval(out.code);
-      ruleset.version =
-        typeof ruleset.version === "string" ? ruleset.version : "draft";
 
       return {
         ruleset,
-        compiler: { version: krlCompilerVersion, warnings: out.warnings }
+        compiler: { version: krlCompilerVersion, warnings: out.warnings },
       };
     },
 
     async attemptLoad(url: string) {
       return urlData[url] || null;
-    }
+    },
   };
 }
