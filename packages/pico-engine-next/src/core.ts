@@ -65,22 +65,20 @@ export async function startPicoEngineCore(
 
     rulesetLoader: rsRegistry.loader,
 
-    onStartupRulesetInitError(picoId, rid, config, error) {
-      // TODO mark it as not installed and raise an error event
-      log.error("onStartupRulesetInitError", {
-        picoId,
-        rid,
-        rulesetConfig: config,
-        error,
-      });
-    },
-
     onFrameworkEvent(ev) {
       switch (ev.type) {
         case "startup":
           break;
         case "startupDone":
           log.debug("pico-framework started");
+          break;
+        case "startupRulesetInitError":
+          log.error("onStartupRulesetInitError", {
+            picoId: ev.picoId,
+            rid: ev.rid,
+            rulesetConfig: ev.config,
+            error: ev.error,
+          });
           break;
         case "txnQueued":
           log.debug(ev.type, {

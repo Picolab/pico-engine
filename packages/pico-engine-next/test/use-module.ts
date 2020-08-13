@@ -48,3 +48,55 @@ test("use-module install order", async (t) => {
 
   pe = await startPicoEngineCore(conf);
 });
+
+test("use-module startup dependency", async (t) => {
+  const krlUrls: { [url: string]: string } = {
+    "mem://aaa": `ruleset aaa {
+      meta {
+        use module bbb
+        shares out
+      }
+      global {
+        out = function(){ bbb:sayHello() }
+      }
+    }`,
+    "mem://bbb": `ruleset bbb {
+      meta {
+        provides sayHello
+      }
+      global {
+        sayHello = function(){
+          return "Hello from: bbb"
+        }
+      }
+    }`,
+  };
+  const conf: PicoEngineCoreConfiguration = {
+    leveldown: memdown(),
+    rsRegLoader: RulesetRegistryLoaderMem(async (url) => krlUrls[url]),
+    log: makeKrlLogger((line: string) => null),
+    async getPicoLogs(picoId) {
+      return [];
+    },
+  };
+
+  let pe = await startPicoEngineCore(conf);
+  const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
+  const eci = chann.id;
+  function query(rid: string, name: string) {
+    return pe.pf.query({ eci, rid, name, args: {} });
+  }
+
+  async function installUrl(url: string) {
+    const { ruleset } = await pe.rsRegistry.flush(url);
+    await pe.pf.rootPico.install(ruleset, { url, config: {} });
+  }
+  await installUrl("mem://bbb");
+  await installUrl("mem://aaa");
+
+  t.is(await query("aaa", "out"), "Hello from: bbb");
+
+  // stop and startup
+  pe = await startPicoEngineCore(conf);
+  t.is(await query("aaa", "out"), "Hello from: bbb");
+});
