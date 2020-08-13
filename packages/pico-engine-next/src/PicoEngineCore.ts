@@ -5,6 +5,7 @@ import { makeKrlCtx } from "./makeKrlCtx";
 import initCtxModule from "./modules/ctx";
 import module_event from "./modules/event";
 import { initScheduleModule } from "./modules/schedule";
+import initHttpModule from "./modules/http";
 import module_stdlib from "./modules/stdlib";
 import module_time from "./modules/time";
 import { PicoEngineCoreConfiguration } from "./PicoEngineCoreConfiguration";
@@ -89,6 +90,7 @@ export class PicoEngineCore {
     this.modules["event"] = module_event;
     this.modules["stdlib"] = module_stdlib;
     this.modules["time"] = module_time;
+    this.modules["http"] = initHttpModule(this);
 
     const scheduler = initScheduleModule(this.picoFramework);
     this.modules["schedule"] = scheduler.module;
