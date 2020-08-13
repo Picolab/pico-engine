@@ -89,7 +89,7 @@ export function makeKrlCtx(
     async useModule(rid, alias, configure) {
       await environment.picoRidDependencies.use(
         environment,
-        rsCtx,
+        krlCtx,
         rid,
         alias,
         configure

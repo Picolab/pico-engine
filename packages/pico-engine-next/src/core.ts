@@ -47,14 +47,18 @@ export async function startPicoEngineCore(
   configuration: PicoEngineCoreConfiguration
 ): Promise<PicoEngineCore> {
   const log = configuration.log;
-  const rsRegistry = new RulesetRegistry(configuration.rsRegLoader);
+
+  const picoRidDependencies = new PicoRidDependencies();
+  const rsRegistry = new RulesetRegistry(configuration.rsRegLoader, (crs) =>
+    picoRidDependencies.onRulesetLoaded(crs)
+  );
 
   const environment: KrlCtxMakerConfig = {
     log,
     rsRegistry,
     getPicoLogs: configuration.getPicoLogs,
     modules: {},
-    picoRidDependencies: new PicoRidDependencies(),
+    picoRidDependencies,
   };
 
   const pf = new PicoFramework({

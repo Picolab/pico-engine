@@ -1,23 +1,27 @@
-import { krl } from "krl-stdlib";
+import { krl, KrlCtx } from "krl-stdlib";
 import { Pico } from "pico-framework/dist/src/Pico";
 import {
   createRulesetContext,
   RulesetContext,
 } from "pico-framework/dist/src/RulesetContext";
 import { KrlCtxMakerConfig, makeKrlCtx } from "./makeKrlCtx";
+import { CachedRuleset } from "./RulesetRegistry";
 
 export class RulesetDependencies {
   dependencies: {
     [rid: string]: {
-      [usesRid: string]: {
-        [alias: string]: {
-          configure?: {
-            [name: string]: any;
-          };
+      krlCtx: KrlCtx;
+      uses: {
+        [usesRid: string]: {
+          [alias: string]: {
+            configure?: {
+              [name: string]: any;
+            };
 
-          url: string;
-          hash: string;
-          module: krl.Module;
+            url: string;
+            hash: string;
+            module: krl.Module;
+          };
         };
       };
     };
@@ -26,13 +30,14 @@ export class RulesetDependencies {
   constructor(private environment: KrlCtxMakerConfig) {}
 
   async use(
-    rsCtx: RulesetContext,
+    krlCtx: KrlCtx,
     usesRid: string,
     alias?: string | null,
     configure?: {
       [name: string]: any;
     }
   ) {
+    const rsCtx = krlCtx.rsCtx;
     const picoId = rsCtx.pico().id;
     let pfPico: Pico;
     const picoFramework = this.environment.picoFramework;
@@ -66,12 +71,15 @@ export class RulesetDependencies {
     }
 
     if (!this.dependencies[rsCtx.ruleset.rid]) {
-      this.dependencies[rsCtx.ruleset.rid] = {};
+      this.dependencies[rsCtx.ruleset.rid] = {
+        krlCtx,
+        uses: {},
+      };
     }
-    if (!this.dependencies[rsCtx.ruleset.rid][usesRid]) {
-      this.dependencies[rsCtx.ruleset.rid][usesRid] = {};
+    if (!this.dependencies[rsCtx.ruleset.rid].uses[usesRid]) {
+      this.dependencies[rsCtx.ruleset.rid].uses[usesRid] = {};
     }
-    this.dependencies[rsCtx.ruleset.rid][usesRid][alias] = {
+    this.dependencies[rsCtx.ruleset.rid].uses[usesRid][alias] = {
       configure,
       url: ruleset.url,
       hash: ruleset.hash,
@@ -81,7 +89,7 @@ export class RulesetDependencies {
 
   getModule(alias: string): krl.Module | null {
     for (const userRid of Object.keys(this.dependencies)) {
-      for (const rm of Object.values(this.dependencies[userRid])) {
+      for (const rm of Object.values(this.dependencies[userRid].uses)) {
         if (rm[alias]) {
           return rm[alias].module;
         }
@@ -93,7 +101,7 @@ export class RulesetDependencies {
   whoUses(rid: string): string[] {
     const userRids: string[] = [];
     for (const userRid of Object.keys(this.dependencies)) {
-      if (this.dependencies[userRid][rid]) {
+      if (this.dependencies[userRid].uses[rid]) {
         userRids.push(userRid);
       }
     }
@@ -103,25 +111,53 @@ export class RulesetDependencies {
   unUse(rid: string) {
     delete this.dependencies[rid];
   }
+
+  onRulesetLoaded(crs: CachedRuleset) {
+    const rid = crs.ruleset.rid;
+    for (const userRid of Object.keys(this.dependencies)) {
+      const { uses, krlCtx } = this.dependencies[userRid];
+      if (uses[rid]) {
+        for (const alias of Object.keys(uses[rid])) {
+          const rsm = uses[rid][alias];
+          if (rsm.url === crs.url && rsm.hash !== crs.hash) {
+            this.use(krlCtx, rid, alias, rsm.configure).catch((error) => {
+              krlCtx.log.error("Failed to update dependent ruleset", {
+                userRid,
+                url: crs.url,
+                hash: crs.hash,
+                error,
+              });
+            });
+          }
+        }
+      }
+    }
+  }
 }
 
 export class PicoRidDependencies {
   private picos: { [picoId: string]: RulesetDependencies } = {};
 
+  onRulesetLoaded(crs: CachedRuleset) {
+    for (const picoId of Object.keys(this.picos)) {
+      this.picos[picoId].onRulesetLoaded(crs);
+    }
+  }
+
   async use(
     environment: KrlCtxMakerConfig,
-    rsCtx: RulesetContext,
+    krlCtx: KrlCtx,
     rid: string,
     alias?: string | null,
     configure?: {
       [name: string]: any;
     }
   ) {
-    const picoId = rsCtx.pico().id;
+    const picoId = krlCtx.rsCtx.pico().id;
     if (!this.picos[picoId]) {
       this.picos[picoId] = new RulesetDependencies(environment);
     }
-    await this.picos[picoId].use(rsCtx, rid, alias, configure);
+    await this.picos[picoId].use(krlCtx, rid, alias, configure);
   }
 
   getModule(picoId: string, alias: string): krl.Module | null {
