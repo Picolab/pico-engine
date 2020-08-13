@@ -100,3 +100,85 @@ test("use-module startup dependency", async (t) => {
   pe = await startPicoEngineCore(conf);
   t.is(await query("aaa", "out"), "Hello from: bbb");
 });
+
+test("use-module get dependency updates", async (t) => {
+  const krlUrls: { [url: string]: string } = {
+    "mem://main": `ruleset main {
+      rule install {
+        select when main:install
+        ctx:install(event:attrs{"url"})
+      }
+      rule flush {
+        select when main:flush
+        ctx:flush(event:attrs{"url"})
+      }
+    }`,
+    "mem://aaa": `ruleset aaa {
+      meta {
+        use module bbb with configured_name = "Alice"
+        shares out
+      }
+      global {
+        out = function(){ bbb:sayHello() }
+      }
+    }`,
+    "mem://bbb": `ruleset bbb {
+      meta {
+        configure using configured_name = "Bob"
+        provides sayHello
+        shares sayHello
+      }
+      global {
+        sayHello = function(){
+          return "Hello " + configured_name
+        }
+      }
+    }`,
+  };
+
+  const conf: PicoEngineCoreConfiguration = {
+    leveldown: memdown(),
+    rsRegLoader: RulesetRegistryLoaderMem(async (url) => krlUrls[url]),
+    log: makeKrlLogger((line: string) => null),
+    async getPicoLogs(picoId) {
+      return [];
+    },
+  };
+
+  let pe = await startPicoEngineCore(conf);
+  const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
+  const { ruleset } = await pe.rsRegistry.flush("mem://main");
+  await pe.pf.rootPico.install(ruleset, { url: "mem://main", config: {} });
+  const eci = chann.id;
+  let signal = mkSignalBase(pe.pf)(eci);
+  function query(rid: string, name: string) {
+    return pe.pf.query({ eci, rid, name, args: {} });
+  }
+  t.deepEqual(await signal("main", "install", { url: "mem://bbb" }), []);
+  t.deepEqual(await signal("main", "install", { url: "mem://aaa" }), []);
+
+  // All setup now
+
+  t.is(await query("aaa", "out"), "Hello Alice");
+  t.is(await query("bbb", "sayHello"), "Hello Bob");
+
+  // Make a new version and flush it
+  krlUrls["mem://bbb"] = `ruleset bbb {
+      meta {
+        configure using configured_name = "Bob"
+        provides sayHello
+        shares sayHello
+      }
+      global {
+        sayHello = function(){
+          return "v2!!! hi " + configured_name
+        }
+      }
+    }`;
+  await new Promise((res) => setTimeout(res, 120)); // need to wait until the flush memoize clears
+  t.deepEqual(await signal("main", "flush", { url: "mem://bbb" }), []);
+
+  // Now we should see new version
+  t.is(await query("bbb", "sayHello"), "v2!!! hi Bob");
+  t.is(await query("aaa", "out"), "v2!!! hi Alice");
+});

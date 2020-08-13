@@ -40,7 +40,10 @@ export class RulesetRegistry {
   public load: (url: string) => Promise<CachedRuleset>;
   public flush: (url: string) => Promise<CachedRuleset>;
 
-  constructor(private regLoader: RulesetRegistryLoader) {
+  constructor(
+    private regLoader: RulesetRegistryLoader,
+    public onRulesetLoaded?: (crs: CachedRuleset) => void
+  ) {
     this.load = pMemoize((url: string) => this.loadBase(url), {
       maxAge: 100,
     });
@@ -62,13 +65,20 @@ export class RulesetRegistry {
     return this.rulesetCache[url] || null;
   }
 
+  private setCachedRuleset(rs: CachedRuleset) {
+    this.rulesetCache[rs.url] = rs;
+    if (this.onRulesetLoaded) {
+      this.onRulesetLoaded(rs);
+    }
+  }
+
   private async loadBase(url: string): Promise<CachedRuleset> {
     if (this.rulesetCache[url]) {
       return this.rulesetCache[url];
     }
     const data = await this.regLoader.attemptLoad(url);
     if (data) {
-      this.rulesetCache[url] = data;
+      this.setCachedRuleset(data);
       return this.rulesetCache[url];
     }
     return this.flush(url);
@@ -102,7 +112,7 @@ export class RulesetRegistry {
     };
 
     await this.regLoader.save(toSave);
-
-    return (this.rulesetCache[url] = toSave);
+    this.setCachedRuleset(toSave);
+    return toSave;
   }
 }

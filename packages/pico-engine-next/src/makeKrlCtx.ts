@@ -9,8 +9,6 @@ import {
 } from "krl-stdlib";
 import * as _ from "lodash";
 import { PicoFramework, RulesetContext } from "pico-framework";
-import { Pico } from "pico-framework/dist/src/Pico";
-import { createRulesetContext } from "pico-framework/dist/src/RulesetContext";
 import { PicoRidDependencies } from "./PicoRidDependencies";
 import { RulesetRegistry } from "./RulesetRegistry";
 
@@ -32,21 +30,18 @@ export function makeKrlCtx(
   const logCtxBase = { picoId, rid: rsCtx.ruleset.rid };
   let log = environment.log.child(logCtxBase);
 
-  const rsRegistry = environment.rsRegistry;
-
   let currentEvent: CurrentPicoEvent | null = null;
   let currentQuery: CurrentPicoQuery | null = null;
 
   let directives: Directive[] = [];
 
-  const myModules: { [domain: string]: krl.Module } = {};
-
   const krlCtx: KrlCtx = {
     log,
     rsCtx,
     module(domain) {
-      if (myModules[domain]) {
-        return myModules[domain];
+      const module = environment.picoRidDependencies.getModule(picoId, domain);
+      if (module) {
+        return module;
       }
       return environment.modules[domain] || null;
     },
@@ -92,38 +87,13 @@ export function makeKrlCtx(
     },
 
     async useModule(rid, alias, configure) {
-      let pfPico: Pico;
-      const picoFramework = environment.picoFramework;
-      if (!picoFramework) {
-        throw new Error("PicoFramework not yet setup");
-      }
-      try {
-        pfPico = picoFramework.getPico(picoId);
-      } catch (err) {
-        throw new Error("PicoFramework not yet setup");
-      }
-      const ruleset = rsRegistry.getCached(
-        pfPico.rulesets[rid]?.config?.url || ""
+      await environment.picoRidDependencies.use(
+        environment,
+        rsCtx,
+        rid,
+        alias,
+        configure
       );
-      if (!ruleset) {
-        throw new Error(`Module not found: ${rid}`);
-      }
-      const rsI = await ruleset.ruleset.init(
-        createRulesetContext(picoFramework, pfPico, {
-          rid: ruleset.rid,
-          config: {
-            ...rsCtx.ruleset.config,
-            _krl_module_config: configure,
-          },
-        }),
-        (rsCtx2: RulesetContext) => makeKrlCtx(environment, rsCtx2)
-      );
-      const module: krl.Module = (rsI as any).provides || {};
-      if (!alias) {
-        alias = rid;
-      }
-      myModules[alias] = module;
-      environment.picoRidDependencies.use(pico.id, rsCtx.ruleset.rid, rid);
     },
 
     krl,
