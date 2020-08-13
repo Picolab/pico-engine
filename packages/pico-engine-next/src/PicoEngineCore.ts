@@ -4,8 +4,10 @@ import { CorePico } from "./CorePico";
 import { makeKrlCtx } from "./makeKrlCtx";
 import initCtxModule from "./modules/ctx";
 import module_event from "./modules/event";
-import { initScheduleModule } from "./modules/schedule";
 import initHttpModule from "./modules/http";
+import module_math from "./modules/math";
+import module_random from "./modules/random";
+import { initScheduleModule } from "./modules/schedule";
 import module_stdlib from "./modules/stdlib";
 import module_time from "./modules/time";
 import { PicoEngineCoreConfiguration } from "./PicoEngineCoreConfiguration";
@@ -88,13 +90,17 @@ export class PicoEngineCore {
 
     this.modules["ctx"] = initCtxModule(this);
     this.modules["event"] = module_event;
-    this.modules["stdlib"] = module_stdlib;
-    this.modules["time"] = module_time;
     this.modules["http"] = initHttpModule(this);
+
+    this.modules["math"] = module_math;
+    this.modules["random"] = module_random;
 
     const scheduler = initScheduleModule(this.picoFramework);
     this.modules["schedule"] = scheduler.module;
     this.startupModules.push(scheduler.start);
+
+    this.modules["stdlib"] = module_stdlib;
+    this.modules["time"] = module_time;
 
     if (conf.modules) {
       for (const domain of Object.keys(conf.modules)) {
