@@ -1,15 +1,9 @@
 import { krl } from "krl-stdlib";
 import * as normalizeUrl from "normalize-url";
-import {
-  ChannelConfig,
-  cleanChannelTags,
-  PicoFramework,
-  RulesetConfig,
-} from "pico-framework";
+import { ChannelConfig, cleanChannelTags, RulesetConfig } from "pico-framework";
 import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
 import * as request from "request";
-import { PicoRidDependencies } from "../PicoRidDependencies";
-import { RulesetRegistry } from "../RulesetRegistry";
+import { PicoEngineCore } from "../PicoEngineCore";
 
 export interface RulesetCtxInfo {
   rid: string;
@@ -28,11 +22,7 @@ export interface RulesetCtxInfoMeta {
   };
 }
 
-export default function initCtxModule(
-  rsRegistry: RulesetRegistry,
-  picoFramework: PicoFramework,
-  picoRidDependencies: PicoRidDependencies
-) {
+export default function initCtxModule(coreEnv: PicoEngineCore) {
   const module: krl.Module = {
     rid: krl.Property(function rid() {
       return this.rsCtx.ruleset.rid;
@@ -66,7 +56,7 @@ export default function initCtxModule(
       }
       const toInstall: NewPicoRuleset[] = [];
       for (const rs of rulesets) {
-        const result = await rsRegistry.load(rs.url);
+        const result = await coreEnv.rsRegistry.load(rs.url);
         toInstall.push({
           rs: result.ruleset,
           config: {
@@ -134,7 +124,7 @@ export default function initCtxModule(
       const results: RulesetCtxInfo[] = [];
 
       for (const rs of pico.rulesets) {
-        const cached = rsRegistry.getCached(rs.config.url);
+        const cached = coreEnv.rsRegistry.getCached(rs.config.url);
         results.push({
           rid: rs.rid,
           url: rs.config.url,
@@ -163,7 +153,7 @@ export default function initCtxModule(
         );
       }
       url = normalizeUrl(url);
-      const rs = await rsRegistry.load(url);
+      const rs = await coreEnv.rsRegistry.load(url);
       await this.rsCtx.install(rs.ruleset, {
         url: url,
         config: config || {},
@@ -179,7 +169,12 @@ export default function initCtxModule(
         );
       }
 
-      const usedBy = picoRidDependencies.whoUses(pico.id, rid);
+      const corePico = coreEnv.getPico(pico.id);
+      if (!corePico) {
+        throw new TypeError("Pico not found in core: " + pico.id);
+      }
+
+      const usedBy = corePico.whoUses(rid);
       if (usedBy.length > 0) {
         throw new Error(
           `Cannot uninstall ${rid} because ${usedBy.join(
@@ -187,7 +182,7 @@ export default function initCtxModule(
           )} depends on it`
         );
       }
-      picoRidDependencies.unUse(pico.id, rid);
+      corePico.unUse(rid);
       await this.rsCtx.uninstall(rid);
     }),
 
@@ -198,10 +193,8 @@ export default function initCtxModule(
         );
       }
       url = normalizeUrl(url);
-      const rs = await rsRegistry.flush(url);
-      if (picoFramework) {
-        picoFramework.reInitRuleset(rs.ruleset);
-      }
+      const rs = await coreEnv.rsRegistry.flush(url);
+      coreEnv.picoFramework.reInitRuleset(rs.ruleset);
     }),
 
     raiseEvent: krl.Postlude(

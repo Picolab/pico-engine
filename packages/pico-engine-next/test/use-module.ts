@@ -1,8 +1,10 @@
 import test from "ava";
 import { makeKrlLogger } from "krl-stdlib";
-import { PicoEngineCoreConfiguration, startPicoEngineCore } from "../src/core";
+import { PicoEngineCore } from "../src/PicoEngineCore";
+import { PicoEngineCoreConfiguration } from "../src/PicoEngineCoreConfiguration";
 import { RulesetRegistryLoaderMem } from "../src/RulesetRegistryLoaderMem";
 import { allowAllChannelConf, mkSignalBase } from "./helpers/startTestEngine";
+
 const memdown = require("memdown");
 
 test("use-module install order", async (t) => {
@@ -29,12 +31,17 @@ test("use-module install order", async (t) => {
     },
   };
 
-  let pe = await startPicoEngineCore(conf);
-  const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
+  let pe = new PicoEngineCore(conf);
+  await pe.start();
+
+  const chann = await pe.picoFramework.rootPico.newChannel(allowAllChannelConf);
   const { ruleset } = await pe.rsRegistry.flush("mem://main");
-  await pe.pf.rootPico.install(ruleset, { url: "mem://main", config: {} });
+  await pe.picoFramework.rootPico.install(ruleset, {
+    url: "mem://main",
+    config: {},
+  });
   const eci = chann.id;
-  let signal = mkSignalBase(pe.pf)(eci);
+  let signal = mkSignalBase(pe.picoFramework)(eci);
 
   let err = await t.throwsAsync(
     signal("main", "install", { url: "mem://aaa" })
@@ -46,7 +53,8 @@ test("use-module install order", async (t) => {
   t.deepEqual(await signal("main", "install", { url: "mem://aaa" }), []);
   t.deepEqual(await signal("main", "install", { url: "mem://ccc" }), []);
 
-  pe = await startPicoEngineCore(conf);
+  pe = new PicoEngineCore(conf);
+  await pe.start();
 });
 
 test("use-module startup dependency", async (t) => {
@@ -80,16 +88,17 @@ test("use-module startup dependency", async (t) => {
     },
   };
 
-  let pe = await startPicoEngineCore(conf);
-  const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
+  let pe = new PicoEngineCore(conf);
+  await pe.start();
+  const chann = await pe.picoFramework.rootPico.newChannel(allowAllChannelConf);
   const eci = chann.id;
   function query(rid: string, name: string) {
-    return pe.pf.query({ eci, rid, name, args: {} });
+    return pe.picoFramework.query({ eci, rid, name, args: {} });
   }
 
   async function installUrl(url: string) {
     const { ruleset } = await pe.rsRegistry.flush(url);
-    await pe.pf.rootPico.install(ruleset, { url, config: {} });
+    await pe.picoFramework.rootPico.install(ruleset, { url, config: {} });
   }
   await installUrl("mem://bbb");
   await installUrl("mem://aaa");
@@ -97,7 +106,8 @@ test("use-module startup dependency", async (t) => {
   t.is(await query("aaa", "out"), "Hello from: bbb");
 
   // stop and startup
-  pe = await startPicoEngineCore(conf);
+  pe = new PicoEngineCore(conf);
+  await pe.start();
   t.is(await query("aaa", "out"), "Hello from: bbb");
 });
 
@@ -145,14 +155,18 @@ test("use-module get dependency updates", async (t) => {
     },
   };
 
-  let pe = await startPicoEngineCore(conf);
-  const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
+  let pe = new PicoEngineCore(conf);
+  await pe.start();
+  const chann = await pe.picoFramework.rootPico.newChannel(allowAllChannelConf);
   const { ruleset } = await pe.rsRegistry.flush("mem://main");
-  await pe.pf.rootPico.install(ruleset, { url: "mem://main", config: {} });
+  await pe.picoFramework.rootPico.install(ruleset, {
+    url: "mem://main",
+    config: {},
+  });
   const eci = chann.id;
-  let signal = mkSignalBase(pe.pf)(eci);
+  let signal = mkSignalBase(pe.picoFramework)(eci);
   function query(rid: string, name: string) {
-    return pe.pf.query({ eci, rid, name, args: {} });
+    return pe.picoFramework.query({ eci, rid, name, args: {} });
   }
   t.deepEqual(await signal("main", "install", { url: "mem://bbb" }), []);
   t.deepEqual(await signal("main", "install", { url: "mem://aaa" }), []);

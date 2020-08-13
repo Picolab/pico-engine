@@ -4,31 +4,21 @@ import {
   Directive,
   krl,
   KrlCtx,
-  KrlLogger,
-  PicoLogEntry,
 } from "krl-stdlib";
 import * as _ from "lodash";
-import { PicoFramework, RulesetContext } from "pico-framework";
-import { PicoRidDependencies } from "./PicoRidDependencies";
-import { RulesetRegistry } from "./RulesetRegistry";
-
-export interface KrlCtxMakerConfig {
-  log: KrlLogger;
-  rsRegistry: RulesetRegistry;
-  getPicoLogs: (picoId: string) => Promise<PicoLogEntry[]>;
-  modules: { [domain: string]: krl.Module };
-  picoRidDependencies: PicoRidDependencies;
-  picoFramework?: PicoFramework;
-}
+import { RulesetContext } from "pico-framework";
+import { PicoEngineCore } from "./PicoEngineCore";
 
 export function makeKrlCtx(
-  environment: KrlCtxMakerConfig,
+  coreEnv: PicoEngineCore,
   rsCtx: RulesetContext
 ): KrlCtx {
   const pico = rsCtx.pico();
   const picoId = pico.id;
   const logCtxBase = { picoId, rid: rsCtx.ruleset.rid };
-  let log = environment.log.child(logCtxBase);
+  let log = coreEnv.log.child(logCtxBase);
+
+  let corePico = coreEnv.addPico(picoId);
 
   let currentEvent: CurrentPicoEvent | null = null;
   let currentQuery: CurrentPicoQuery | null = null;
@@ -39,11 +29,11 @@ export function makeKrlCtx(
     log,
     rsCtx,
     module(domain) {
-      const module = environment.picoRidDependencies.getModule(picoId, domain);
+      const module = corePico.getModule(domain);
       if (module) {
         return module;
       }
-      return environment.modules[domain] || null;
+      return coreEnv.modules[domain] || null;
     },
     getEvent() {
       return currentEvent;
@@ -75,7 +65,7 @@ export function makeKrlCtx(
     },
 
     getPicoLogs() {
-      return environment.getPicoLogs(picoId);
+      return coreEnv.getPicoLogs(picoId);
     },
 
     configure(name, dflt) {
@@ -87,13 +77,7 @@ export function makeKrlCtx(
     },
 
     async useModule(rid, alias, configure) {
-      await environment.picoRidDependencies.use(
-        environment,
-        krlCtx,
-        rid,
-        alias,
-        configure
-      );
+      await corePico.use(krlCtx, rid, alias, configure);
     },
 
     krl,

@@ -4,8 +4,8 @@ import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import { PicoFramework } from "pico-framework";
-import { startPicoEngineCore } from "./core";
-import { makeRotatingFileLogWriter, getPicoLogs } from "./logging";
+import { PicoEngineCore } from "./PicoEngineCore";
+import { getPicoLogs, makeRotatingFileLogWriter } from "./logging";
 import { RulesetRegistry } from "./RulesetRegistry";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { RulesetRegistryLoaderMem } from "./RulesetRegistryLoaderMem";
@@ -86,7 +86,7 @@ export async function startEngine(
     ? configuration.log
     : makeKrlLogger(makeRotatingFileLogWriter(logFilePath));
 
-  const { rsRegistry, pf } = await startPicoEngineCore({
+  const coreEnv = new PicoEngineCore({
     leveldown: leveldown(path.resolve(home, "db")) as any,
     rsRegLoader: configuration.__test__memFetchKrl
       ? RulesetRegistryLoaderMem(configuration.__test__memFetchKrl)
@@ -98,6 +98,9 @@ export async function startEngine(
       return getPicoLogs(logFilePath, picoId);
     },
   });
+  await coreEnv.start();
+  const rsRegistry = coreEnv.rsRegistry;
+  const pf = coreEnv.picoFramework;
 
   const url = toFileUrl(path.resolve(__dirname, "..", "io.picolabs.next.krl"));
   const { ruleset } = await rsRegistry.flush(url);
