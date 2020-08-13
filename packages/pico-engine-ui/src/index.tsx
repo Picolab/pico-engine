@@ -5,6 +5,9 @@ import "whatwg-fetch"; // polyfill for fetch
 import PicosPage from "./components/PicosPage";
 import "./index.scss";
 
+const mountPoint = document.createElement("DIV");
+document.body.append(mountPoint);
+
 ReactDOM.render(
   <HashRouter>
     <RouterSwitch>
@@ -15,5 +18,5 @@ ReactDOM.render(
       <Route component={PicosPage} />
     </RouterSwitch>
   </HashRouter>,
-  document.getElementById("react-app")
+  mountPoint
 );
