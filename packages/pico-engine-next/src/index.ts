@@ -3,11 +3,7 @@ import leveldown from "leveldown";
 import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
-import {
-  PicoEngineCore,
-  RulesetRegistry,
-  RulesetRegistryLoaderMem,
-} from "pico-engine-core";
+import { PicoEngineCore, RulesetRegistry } from "pico-engine-core";
 import { PicoFramework } from "pico-framework";
 import { getPicoLogs, makeRotatingFileLogWriter } from "./logging";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
@@ -55,8 +51,6 @@ export interface PicoEngineConfiguration {
   useEventInputTime?: boolean;
 
   log?: KrlLogger;
-
-  __test__memFetchKrl?: (url: string) => Promise<string>;
 }
 
 export interface PicoEngine {
@@ -90,9 +84,7 @@ export async function startEngine(
 
   const core = new PicoEngineCore({
     leveldown: leveldown(path.resolve(home, "db")) as any,
-    rsRegLoader: configuration.__test__memFetchKrl
-      ? RulesetRegistryLoaderMem(configuration.__test__memFetchKrl)
-      : RulesetRegistryLoaderFs(home),
+    rsRegLoader: RulesetRegistryLoaderFs(home),
     log,
     modules: configuration.modules,
     useEventInputTime: configuration.useEventInputTime,

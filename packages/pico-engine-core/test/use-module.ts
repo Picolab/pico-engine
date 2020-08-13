@@ -4,8 +4,9 @@ import {
   PicoEngineCore,
   PicoEngineCoreConfiguration,
   RulesetRegistryLoaderMem,
-} from "pico-engine-core";
-import { allowAllChannelConf, mkSignalBase } from "./helpers/startTestEngine";
+} from "../src";
+import { allowAllChannelConf } from "./helpers/allowAllChannelConf";
+import { mkSignalBase } from "./helpers/mkSignalBase";
 
 const memdown = require("memdown");
 
