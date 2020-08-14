@@ -43,6 +43,15 @@ ruleset io.picolabs.events {
 
         send_directive("get", {"thing": thing});
     }
+    rule attrs_get {
+        select when events attrs_get
+
+        pre {
+            thing = event:attrs.get("thing")
+        }
+
+        send_directive("attrs_get", {"thing": thing});
+    }
     rule noop {
         select when events noop
     }

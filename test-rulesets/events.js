@@ -14,6 +14,7 @@ module.exports = {
     const $ctx = $mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive1 = $stdlib["send_directive"];
+    const get1 = $stdlib["get"];
     const noop1 = $stdlib["noop"];
     const match1 = $stdlib["match"];
     const __testing1 = {
@@ -49,6 +50,11 @@ module.exports = {
         {
           "domain": "events",
           "name": "get",
+          "attrs": ["thing"]
+        },
+        {
+          "domain": "events",
+          "name": "attrs_get",
           "attrs": ["thing"]
         },
         {
@@ -306,6 +312,24 @@ module.exports = {
       if ($fired) {
         await send_directive1($ctx, [
           "get",
+          { "thing": thing3 }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($ctx.krl.SelectWhen.e("events:attrs_get"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "attrs_get" });
+      const thing3 = await get1($ctx, [
+        $event.data.attrs,
+        "thing"
+      ]);
+      var $fired = true;
+      if ($fired) {
+        await send_directive1($ctx, [
+          "attrs_get",
           { "thing": thing3 }
         ]);
       }

@@ -24,6 +24,19 @@ module.exports = function (ast, comp, e) {
       // inject left-hand of the dot as the first argument
       args: [ast.callee.object].concat(ast.args.args)
     }))
+
+    // event:attrs("the_attr")
+    if (ast.callee.object.type === 'DomainIdentifier' &&
+      ast.callee.object.domain === 'event' &&
+      ast.callee.object.value === 'attrs' &&
+      ast.callee.property.type === 'Identifier' &&
+      ast.callee.property.value === 'get'
+    ) {
+      let arg0 = ast.args.args[0]
+      if (arg0 && arg0.type === 'String') {
+        comp.eventScope.addAttr(arg0.value)
+      }
+    }
   } else if (ast.callee.type === 'DomainIdentifier') {
     callee = comp(ast.callee, { isGoingToBeApplied: true })
     args = comp(ast.args)
