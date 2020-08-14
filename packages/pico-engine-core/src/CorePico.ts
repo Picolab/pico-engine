@@ -1,9 +1,5 @@
 import { krl, KrlCtx } from "krl-stdlib";
-import { Pico } from "pico-framework/dist/src/Pico";
-import {
-  createRulesetContext,
-  RulesetContext,
-} from "pico-framework/dist/src/RulesetContext";
+import { createRulesetContext, Pico, RulesetContext } from "pico-framework";
 import { makeKrlCtx } from "./makeKrlCtx";
 import { PicoEngineCore } from "./PicoEngineCore";
 import { CachedRuleset } from "./RulesetRegistry";

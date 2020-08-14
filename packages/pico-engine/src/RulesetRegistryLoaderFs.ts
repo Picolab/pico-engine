@@ -1,3 +1,4 @@
+import fetch from "cross-fetch";
 import * as fs from "fs";
 import leveldown from "leveldown";
 import { default as level } from "levelup";
@@ -11,7 +12,6 @@ const krlCompilerVersion = require("krl-compiler/package.json").version;
 const charwise = require("charwise");
 const encode = require("encoding-down");
 const safeJsonCodec = require("level-json-coerce-null");
-const request = require("request");
 
 function getUrlFilename(url: string): string | null {
   try {
@@ -130,10 +130,10 @@ export function RulesetRegistryLoaderFs(
   };
 }
 
-function fetchKrl(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const urlParsed = urlLib.parse(url);
-    if (urlParsed.protocol === "file:") {
+async function fetchKrl(url: string): Promise<string> {
+  const urlParsed = urlLib.parse(url);
+  if (urlParsed.protocol === "file:") {
+    return new Promise((resolve, reject) => {
       fs.readFile(
         decodeURI(urlParsed.path || "").replace(/^\/([a-z]:\/)/i, "$1"),
         { flag: "rs", encoding: "utf8" },
@@ -142,20 +142,15 @@ function fetchKrl(url: string): Promise<string> {
           else resolve(data.toString());
         }
       );
-    } else {
-      request(url, function (err: any, resp: any, body: any) {
-        if (err) {
-          return reject(err);
-        }
-        if (resp.statusCode !== 200) {
-          return reject(
-            new Error("Got a statusCode=" + resp.statusCode + " for: " + url)
-          );
-        }
-        resolve(body);
-      });
-    }
-  });
+    });
+  }
+
+  const res = await fetch(url);
+  if (res.status < 200 || res.status >= 300) {
+    throw new Error("Got a statusCode=" + res.status + " for: " + url);
+  }
+  const krl = await res.text();
+  return krl;
 }
 
 function fsExist(filePath: string): Promise<boolean> {

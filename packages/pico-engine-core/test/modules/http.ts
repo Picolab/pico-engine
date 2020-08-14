@@ -329,8 +329,9 @@ test("http redirects", async function (t) {
         Location: "/other",
       });
       res.end();
+    } else {
+      res.end("some response");
     }
-    res.end("some response");
   });
   server.unref();
   await new Promise(function (resolve) {

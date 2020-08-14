@@ -1,7 +1,6 @@
 import * as cuid from "cuid";
 import * as path from "path";
-import { ChannelConfig, PicoFramework } from "pico-framework";
-import { Pico } from "pico-framework/dist/src/Pico";
+import { ChannelConfig, Pico, PicoFramework } from "pico-framework";
 import * as tempDir from "temp-dir";
 import { PicoEngineConfiguration, startEngine } from "../../src/index";
 import { cleanDirectives } from "./cleanDirectives";

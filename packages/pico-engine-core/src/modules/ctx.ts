@@ -2,7 +2,7 @@ import fetch from "cross-fetch";
 import { krl } from "krl-stdlib";
 import * as normalizeUrl from "normalize-url";
 import { ChannelConfig, cleanChannelTags, RulesetConfig } from "pico-framework";
-import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
+import { NewPicoRuleset } from "pico-framework";
 import { PicoEngineCore } from "../PicoEngineCore";
 
 export interface RulesetCtxInfo {
