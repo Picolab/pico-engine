@@ -40,12 +40,15 @@ module.exports = {
         {
           "domain": "events",
           "name": "bind",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "events",
           "name": "set_attr2",
-          "attrs": []
+          "attrs": [
+            "number",
+            "name"
+          ]
         },
         {
           "domain": "events",
@@ -70,22 +73,25 @@ module.exports = {
         {
           "domain": "events",
           "name": "ifthen",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "events",
           "name": "on_fired",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "events",
           "name": "on_choose",
-          "attrs": []
+          "attrs": ["thing"]
         },
         {
           "domain": "events",
           "name": "on_choose_if",
-          "attrs": ["fire"]
+          "attrs": [
+            "thing",
+            "fire"
+          ]
         },
         {
           "domain": "events",
@@ -105,72 +111,72 @@ module.exports = {
         {
           "domain": "events",
           "name": "select_where",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "where_match_0",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "where_match_null",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "where_match_false",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "where_match_empty_str",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "where_after_setting",
-          "attrs": []
+          "attrs": ["a"]
         },
         {
           "domain": "events",
           "name": "where_using_global",
-          "attrs": []
+          "attrs": ["a"]
         },
         {
           "domain": "events",
           "name": "implicit_match_0",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "implicit_match_null",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "implicit_match_false",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "implicit_match_empty_str",
-          "attrs": []
+          "attrs": ["something"]
         },
         {
           "domain": "events",
           "name": "no_action",
-          "attrs": []
+          "attrs": ["fired"]
         },
         {
           "domain": "events",
           "name": "action_send",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "events",
           "name": "store_sent_name",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "events",
@@ -180,22 +186,22 @@ module.exports = {
         {
           "domain": "events",
           "name": "raise_set_name",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "events",
           "name": "raise_set_name_attr",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "events",
           "name": "raise_set_name_rid",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "events",
           "name": "raise_dynamic",
-          "attrs": []
+          "attrs": ["domainType"]
         },
         {
           "domain": "events",

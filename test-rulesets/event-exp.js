@@ -32,12 +32,12 @@ module.exports = {
         {
           "domain": "ee_then",
           "name": "a",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "ee_then",
           "name": "b",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "ee_and",
@@ -227,42 +227,48 @@ module.exports = {
         {
           "domain": "ee_repeat",
           "name": "a",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "ee_count_max",
           "name": "a",
-          "attrs": []
+          "attrs": ["b"]
         },
         {
           "domain": "ee_repeat_min",
           "name": "a",
-          "attrs": []
+          "attrs": ["b"]
         },
         {
           "domain": "ee_repeat_sum",
           "name": "a",
-          "attrs": []
+          "attrs": ["b"]
         },
         {
           "domain": "ee_repeat_avg",
           "name": "a",
-          "attrs": []
+          "attrs": ["b"]
         },
         {
           "domain": "ee_repeat_push",
           "name": "a",
-          "attrs": []
+          "attrs": ["b"]
         },
         {
           "domain": "ee_repeat_push_multi",
           "name": "a",
-          "attrs": []
+          "attrs": [
+            "a",
+            "b"
+          ]
         },
         {
           "domain": "ee_repeat_sum_multi",
           "name": "a",
-          "attrs": []
+          "attrs": [
+            "a",
+            "b"
+          ]
         },
         {
           "domain": "ee_or_duppath",

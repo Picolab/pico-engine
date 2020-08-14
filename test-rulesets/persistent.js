@@ -32,12 +32,12 @@ module.exports = {
         {
           "domain": "store",
           "name": "name",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "store",
           "name": "user_firstname",
-          "attrs": []
+          "attrs": ["firstname"]
         },
         {
           "domain": "store",

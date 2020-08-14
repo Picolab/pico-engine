@@ -7,6 +7,8 @@ module.exports = function (ast, comp, e) {
     comp.warn(ast.loc, 'DEPRECATED SYNTAX - ' + ast.deprecated)
   }
 
+  comp.eventScope.add(ast.event_domain.value, ast.event_type.value)
+
   var fnBody = []
 
   if (!_.isEmpty(ast.event_attrs)) {
@@ -22,6 +24,8 @@ module.exports = function (ast, comp, e) {
 
       // m = regex.exec(attr string or "")
       var key = e('string', a.key.value, a.key.loc)
+      comp.eventScope.addAttr(a.key.value)
+
       var regexExec = e('.', comp(a.value), id('exec', a.value.loc), a.value.loc)
       fnBody.push(e(';', e('=', id('m'), e('call', regexExec, [
         e('?', e('call', e('id', 'Object.prototype.hasOwnProperty.call'), [id('$event.data.attrs'), key]), e('call', e('id', '$stdlib.as', a.key.loc), [
@@ -89,8 +93,6 @@ module.exports = function (ast, comp, e) {
         ), ast.aggregator.loc
       ), ast.aggregator.loc))
   }
-
-  comp.eventScope.add(ast.event_domain.value, ast.event_type.value)
 
   const ee = [
     e('str', `${ast.event_domain.value}:${ast.event_type.value}`)

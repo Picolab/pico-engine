@@ -53,37 +53,37 @@ module.exports = {
         {
           "domain": "scope",
           "name": "eventOr0",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "scope",
           "name": "eventOr1",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "scope",
           "name": "eventAnd0",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "scope",
           "name": "eventAnd1",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "scope",
           "name": "eventWithin0",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "scope",
           "name": "eventWithin1",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "scope",
           "name": "eventWithin2",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "scope",
@@ -93,7 +93,7 @@ module.exports = {
         {
           "domain": "scope",
           "name": "prelude",
-          "attrs": []
+          "attrs": ["name"]
         },
         {
           "domain": "scope",

@@ -23,7 +23,7 @@ module.exports = {
       "events": [{
           "domain": "module_defined",
           "name": "store_memo",
-          "attrs": []
+          "attrs": ["memo"]
         }]
     };
     const configured_name2 = $ctx.configure("configured_name", "Bob");

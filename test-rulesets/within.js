@@ -47,7 +47,7 @@ module.exports = {
         {
           "domain": "qux",
           "name": "a",
-          "attrs": []
+          "attrs": ["b"]
         }
       ]
     };

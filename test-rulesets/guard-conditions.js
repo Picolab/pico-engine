@@ -17,7 +17,7 @@ module.exports = {
         {
           "domain": "foo",
           "name": "a",
-          "attrs": []
+          "attrs": ["b"]
         },
         {
           "domain": "bar",
