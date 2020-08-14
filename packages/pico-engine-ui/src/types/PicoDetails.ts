@@ -9,7 +9,6 @@ export interface PicoDetails {
 
 export interface PicoRuleset {
   rid: string;
-  version: string;
   config: any;
   url: string;
   meta: RulesetCtxInfoMeta | null;
@@ -17,6 +16,12 @@ export interface PicoRuleset {
 
 interface RulesetCtxInfoMeta {
   krl: string;
+  krlMeta?: {
+    version?: string;
+    name?: string;
+    description?: string;
+    author?: string;
+  };
   hash: string;
   flushed: Date;
   compiler: {

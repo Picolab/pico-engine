@@ -89,7 +89,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
       <ErrorStatus error={picoDetails.error} />
       {picoDetails.data && picoDetails.data.rulesets.length > 0 ? (
         picoDetails.data.rulesets.map((ruleset) => {
-          const key = `${ruleset.rid}-${ruleset.version}`;
+          const key = ruleset.rid;
           const id = `id-rid-${key}`;
           const isOpen = !!expandedRulesets[key];
           return (
@@ -113,7 +113,10 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
                   />
                   <label className="form-check-label" htmlFor={id}>
                     <span className="text-mono">
-                      {ruleset.rid}@{ruleset.version}
+                      {ruleset.rid}
+                      {ruleset?.meta?.krlMeta?.version
+                        ? "@" + ruleset?.meta?.krlMeta?.version
+                        : ""}
                     </span>
                   </label>
                 </div>

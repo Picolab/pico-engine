@@ -1,8 +1,12 @@
 import fetch from "cross-fetch";
 import { krl } from "krl-stdlib";
 import * as normalizeUrl from "normalize-url";
-import { ChannelConfig, cleanChannelTags, RulesetConfig } from "pico-framework";
-import { NewPicoRuleset } from "pico-framework";
+import {
+  ChannelConfig,
+  cleanChannelTags,
+  NewPicoRuleset,
+  RulesetConfig,
+} from "pico-framework";
 import { PicoEngineCore } from "../PicoEngineCore";
 
 export interface RulesetCtxInfo {
@@ -14,6 +18,12 @@ export interface RulesetCtxInfo {
 
 export interface RulesetCtxInfoMeta {
   krl: string;
+  krlMeta?: {
+    version?: string;
+    name?: string;
+    description?: string;
+    author?: string;
+  };
   hash: string;
   flushed: Date;
   compiler: {
@@ -132,6 +142,7 @@ export default function initCtxModule(core: PicoEngineCore) {
           meta: cached
             ? {
                 krl: cached.krl,
+                krlMeta: (cached?.ruleset as any).meta,
                 hash: cached.hash,
                 flushed: cached.flushed,
                 compiler: cached.compiler,
