@@ -1,7 +1,7 @@
 ruleset io.picolabs.pico-engine-ui {
   version "0.0.0"
   meta {
-    shares box, uiECI, pico, logs
+    shares box, uiECI, pico, logs, testingECI
   }
   global {
     uiECI = function(){
@@ -12,6 +12,9 @@ ruleset io.picolabs.pico-engine-ui {
     }
     getOtherUiECI = function(eci){
       return eci => ctx:query(eci, ctx:rid, "uiECI") | null
+    }
+    testingECI = function(){
+      return ent:testingECI
     }
     box = function(){
       return {
@@ -54,6 +57,7 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "engine_ui", "name": "flush" },
           { "domain": "engine_ui", "name": "new_channel" },
           { "domain": "engine_ui", "name": "del_channel" },
+          { "domain": "engine_ui", "name": "testing_eci" },
           { "domain": "engine", "name": "started" }
         ],
         "deny": []
@@ -64,7 +68,8 @@ ruleset io.picolabs.pico-engine-ui {
           { "rid": "io.picolabs.pico-engine-ui", "name": "uiECI" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "box" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "pico" },
-          { "rid": "io.picolabs.pico-engine-ui", "name": "logs" }
+          { "rid": "io.picolabs.pico-engine-ui", "name": "logs" },
+          { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" }
         ],
         "deny": []
       }
@@ -148,5 +153,11 @@ ruleset io.picolabs.pico-engine-ui {
   rule del_channel {
     select when engine_ui del_channel
     ctx:delChannel(event:attrs{"eci"})
+  }
+  rule testing_eci {
+    select when engine_ui testing_eci
+    always {
+      ent:testingECI := event:attrs{"eci"}
+    }
   }
 }

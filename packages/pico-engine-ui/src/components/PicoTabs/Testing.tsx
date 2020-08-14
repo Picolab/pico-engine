@@ -33,6 +33,9 @@ const Testing: React.FC<Props> = ({ pico }) => {
   const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
     apiGet(`/c/${pico.eci}/query/io.picolabs.pico-engine-ui/pico`)
   );
+  const getTestingECI = useAsyncLoader<string | null>(null, () =>
+    apiGet(`/c/${pico.eci}/query/io.picolabs.pico-engine-ui/testingECI`)
+  );
 
   const [testingECI, setTestingECI] = React.useState<string>(pico.eci);
   const [testError, setTestError] = React.useState<string | null>(null);
@@ -53,8 +56,15 @@ const Testing: React.FC<Props> = ({ pico }) => {
 
   React.useEffect(() => {
     picoDetails.load();
+    getTestingECI.load();
     setTestingSchema({});
   }, [pico.eci]);
+
+  React.useEffect(() => {
+    if (getTestingECI.data) {
+      setTestingECI(getTestingECI.data);
+    }
+  }, [getTestingECI.data]);
 
   async function getTestingSchema(rid: string) {
     setTestingSchema({
@@ -135,7 +145,12 @@ const Testing: React.FC<Props> = ({ pico }) => {
               <select
                 className="form-control form-control-sm ml-2 text-mono"
                 value={testingECI}
-                onChange={(e) => setTestingECI(e.target.value)}
+                onChange={(e) => {
+                  setTestingECI(e.target.value);
+                  apiPost(`/c/${pico.eci}/event/engine_ui/testing_eci`, {
+                    eci: e.target.value,
+                  }).catch(console.error);
+                }}
               >
                 {channels.map((channel) => {
                   const label =
