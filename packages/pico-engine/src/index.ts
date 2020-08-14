@@ -9,6 +9,8 @@ import { getPicoLogs, makeRotatingFileLogWriter } from "./logging";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { server } from "./server";
 import { toFileUrl } from "./utils/toFileUrl";
+import * as fs from "fs";
+import { reject } from "lodash";
 
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
@@ -96,9 +98,18 @@ export async function startEngine(
   const rsRegistry = core.rsRegistry;
   const pf = core.picoFramework;
 
-  const url = toFileUrl(path.resolve(__dirname, "..", "io.picolabs.next.krl"));
-  const { ruleset } = await rsRegistry.flush(url);
-  await pf.rootPico.install(ruleset, { url, config: {} });
+  const krl_dir = path.resolve(__dirname, "..", "krl");
+  const krl_urls: string[] = await new Promise((resolve, reject) =>
+    fs.readdir(krl_dir, (err, files) => {
+      if (err) reject(err);
+      else resolve(files.map((file) => toFileUrl(path.resolve(krl_dir, file))));
+    })
+  );
+  for (const url of krl_urls) {
+    const { ruleset } = await rsRegistry.flush(url);
+    await pf.rootPico.install(ruleset, { url, config: {} });
+  }
+
   let uiChannel = pf.rootPico
     .toReadOnly()
     .channels.find(

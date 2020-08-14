@@ -1,4 +1,4 @@
-ruleset io.picolabs.next {
+ruleset io.picolabs.pico-engine-ui {
   version "0.0.0"
   meta {
     shares box, uiECI, pico, logs
@@ -61,10 +61,10 @@ ruleset io.picolabs.next {
       queryPolicy = {
         "allow": [
           { "rid": "*", "name": "__testing" },
-          { "rid": "io.picolabs.next", "name": "uiECI" },
-          { "rid": "io.picolabs.next", "name": "box" },
-          { "rid": "io.picolabs.next", "name": "pico" },
-          { "rid": "io.picolabs.next", "name": "logs" }
+          { "rid": "io.picolabs.pico-engine-ui", "name": "uiECI" },
+          { "rid": "io.picolabs.pico-engine-ui", "name": "box" },
+          { "rid": "io.picolabs.pico-engine-ui", "name": "pico" },
+          { "rid": "io.picolabs.pico-engine-ui", "name": "logs" }
         ],
         "deny": []
       }
@@ -95,7 +95,7 @@ ruleset io.picolabs.next {
         eci=newEci,
         domain="engine_ui",
         name="setup",
-        rid="io.picolabs.next",
+        rid="io.picolabs.pico-engine-ui",
         queryName="uiECI"
       ) setting(newUiECI)
       ctx:event(

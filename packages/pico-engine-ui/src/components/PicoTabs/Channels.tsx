@@ -45,20 +45,20 @@ const Channels: React.FC<Props> = ({ pico }) => {
   }
 
   const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
-    apiGet(`/c/${pico.eci}/query/io.picolabs.next/pico`)
+    apiGet(`/c/${pico.eci}/query/io.picolabs.pico-engine-ui/pico`)
   );
 
   const addChannel = useAsyncAction<{ eci: string; data: any }>(
     ({ eci, data }) =>
       apiPost(
-        `/c/${eci}/event/engine_ui/new_channel/query/io.picolabs.next/pico`,
+        `/c/${eci}/event/engine_ui/new_channel/query/io.picolabs.pico-engine-ui/pico`,
         data
       ).then((d) => picoDetails.setData(d))
   );
 
   const delChannel = useAsyncAction<string>((eci) =>
     apiPost(
-      `/c/${pico.eci}/event/engine_ui/del_channel/query/io.picolabs.next/pico`,
+      `/c/${pico.eci}/event/engine_ui/del_channel/query/io.picolabs.pico-engine-ui/pico`,
       { eci }
     ).then((d) => picoDetails.setData(d))
   );

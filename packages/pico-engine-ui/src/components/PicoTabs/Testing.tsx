@@ -31,7 +31,7 @@ function serializeFormAttrsOrArgs(e: React.FormEvent<HTMLFormElement>) {
 
 const Testing: React.FC<Props> = ({ pico }) => {
   const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
-    apiGet(`/c/${pico.eci}/query/io.picolabs.next/pico`)
+    apiGet(`/c/${pico.eci}/query/io.picolabs.pico-engine-ui/pico`)
   );
 
   const [testingECI, setTestingECI] = React.useState<string>(pico.eci);
@@ -59,18 +59,18 @@ const Testing: React.FC<Props> = ({ pico }) => {
   async function getTestingSchema(rid: string) {
     setTestingSchema({
       ...testingSchema,
-      [rid]: { waiting: true, error: null }
+      [rid]: { waiting: true, error: null },
     });
     try {
       const schema = await apiGet(`/c/${pico.eci}/query/${rid}/__testing`);
       setTestingSchema({
         ...testingSchema,
-        [rid]: { schema }
+        [rid]: { schema },
       });
     } catch (err) {
       setTestingSchema({
         ...testingSchema,
-        [rid]: { error: err + "" }
+        [rid]: { error: err + "" },
       });
     }
   }
@@ -135,13 +135,13 @@ const Testing: React.FC<Props> = ({ pico }) => {
               <select
                 className="form-control form-control-sm ml-2 text-mono"
                 value={testingECI}
-                onChange={e => setTestingECI(e.target.value)}
+                onChange={(e) => setTestingECI(e.target.value)}
               >
-                {channels.map(channel => {
+                {channels.map((channel) => {
                   const label =
                     channel.id +
                     " " +
-                    channel.tags.map(tag => `#${tag}`).join(" ");
+                    channel.tags.map((tag) => `#${tag}`).join(" ");
                   return (
                     <option key={channel.id} value={channel.id}>
                       {label}
@@ -152,7 +152,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
             </form>
           </div>
 
-          {rulesets.map(rs => {
+          {rulesets.map((rs) => {
             const isOpen = !!expandedRIDs[rs.rid];
             const testing = testingSchema[rs.rid] || null;
             return (
@@ -162,7 +162,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
                     className="form-check-input"
                     type="checkbox"
                     id={`rid-${rs.rid}`}
-                    onChange={e => {
+                    onChange={(e) => {
                       const map = Object.assign({}, expandedRIDs);
                       if (e.target.checked) {
                         map[rs.rid] = true;
@@ -183,7 +183,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
                     <ErrorStatus error={testing.error} />
                     {testing.schema ? (
                       <div className="pl-4">
-                        {(testing.schema.queries || []).map(q => {
+                        {(testing.schema.queries || []).map((q) => {
                           return (
                             <form
                               key={q.name}
@@ -191,7 +191,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
                               className="border border-primary p-2"
                             >
                               <div>
-                                {(q.args || []).map(arg => {
+                                {(q.args || []).map((arg) => {
                                   return (
                                     <input
                                       key={arg}
@@ -210,7 +210,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
                             </form>
                           );
                         })}
-                        {(testing.schema.events || []).map(e => {
+                        {(testing.schema.events || []).map((e) => {
                           const doname = `${e.domain}:${e.name}`;
 
                           return (
@@ -220,7 +220,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
                               className="border border-warning p-2"
                             >
                               <div>
-                                {(e.attrs || []).map(attr => {
+                                {(e.attrs || []).map((attr) => {
                                   return (
                                     <input
                                       key={attr}

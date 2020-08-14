@@ -49,7 +49,7 @@ export function apiSavePicoBox(
   }
 ): Promise<PicoBox> {
   return apiPost(
-    `/c/${eci}/event/engine_ui/box/query/io.picolabs.next/box`,
+    `/c/${eci}/event/engine_ui/box/query/io.picolabs.pico-engine-ui/box`,
     toUpdate
   );
 }
@@ -57,7 +57,7 @@ export function apiSavePicoBox(
 export async function getAllPicoBoxes(eci: string): Promise<PicoBox[]> {
   let results: PicoBox[] = [];
 
-  const pico = await apiGet(`/c/${eci}/query/io.picolabs.next/box`);
+  const pico = await apiGet(`/c/${eci}/query/io.picolabs.pico-engine-ui/box`);
   results.push(pico);
 
   for (const eci of pico.children) {

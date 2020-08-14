@@ -25,7 +25,7 @@ const About: React.FC<Props> = ({ pico }) => {
     name: string;
     backgroundColor: string;
   }>(({ eci, name, backgroundColor }) =>
-    apiSavePicoBox(eci, { name, backgroundColor }).then(d => {
+    apiSavePicoBox(eci, { name, backgroundColor }).then((d) => {
       picoPageStore.fetchAll();
     })
   );
@@ -35,16 +35,19 @@ const About: React.FC<Props> = ({ pico }) => {
     name: string;
     backgroundColor: string;
   }>(({ eci, name, backgroundColor }) =>
-    apiPost(`/c/${eci}/event/engine_ui/new/query/io.picolabs.next/box`, {
-      name,
-      backgroundColor
-    }).then(d => {
+    apiPost(
+      `/c/${eci}/event/engine_ui/new/query/io.picolabs.pico-engine-ui/box`,
+      {
+        name,
+        backgroundColor,
+      }
+    ).then((d) => {
       picoPageStore.fetchAll();
     })
   );
 
-  const delPico = useAsyncAction<string>(eci =>
-    apiGet(`/c/${pico.eci}/event-wait/engine_ui/del?eci=${eci}`).then(d => {
+  const delPico = useAsyncAction<string>((eci) =>
+    apiGet(`/c/${pico.eci}/event-wait/engine_ui/del?eci=${eci}`).then((d) => {
       picoPageStore.fetchAll();
       return null;
     })
@@ -72,7 +75,7 @@ const About: React.FC<Props> = ({ pico }) => {
 
       <form
         className="form-inline"
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           const name = getRefVal(input_name) || "";
           const backgroundColor = getRefVal(input_backgroundColor) || "";
@@ -80,7 +83,7 @@ const About: React.FC<Props> = ({ pico }) => {
           savePico.act({
             eci: pico.eci,
             name,
-            backgroundColor
+            backgroundColor,
           });
         }}
       >
@@ -114,7 +117,7 @@ const About: React.FC<Props> = ({ pico }) => {
         <span className="text-muted">- no children -</span>
       ) : (
         <ul>
-          {pico.children.map(eci => {
+          {pico.children.map((eci) => {
             return (
               <li key={eci}>
                 <Link to={"/pico/" + eci} className="text-mono mr-2">
@@ -124,7 +127,7 @@ const About: React.FC<Props> = ({ pico }) => {
                 <button
                   className="btn btn-link btn-sm"
                   type="button"
-                  onClick={e => {
+                  onClick={(e) => {
                     e.preventDefault();
                     delPico.act(eci);
                   }}
@@ -139,7 +142,7 @@ const About: React.FC<Props> = ({ pico }) => {
 
       <form
         className="form-inline mt-2"
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           const name = getRefVal(input_add_name) || "";
           const backgroundColor = getRefVal(input_add_backgroundColor) || "";
@@ -147,7 +150,7 @@ const About: React.FC<Props> = ({ pico }) => {
           addPico.act({
             eci: pico.eci,
             name,
-            backgroundColor
+            backgroundColor,
           });
         }}
       >

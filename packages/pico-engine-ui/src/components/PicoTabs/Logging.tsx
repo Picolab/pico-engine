@@ -45,7 +45,9 @@ function logDetailsToHuman(entry: any): string {
 }
 
 async function getLogs(eci: string): Promise<LogEntryGroup[]> {
-  const results = await apiGet(`/c/${eci}/query/io.picolabs.next/logs`);
+  const results = await apiGet(
+    `/c/${eci}/query/io.picolabs.pico-engine-ui/logs`
+  );
   const groupBy: { [txn: string]: LogEntryGroup } = {};
   for (const result of results) {
     if (!result.txnId) {

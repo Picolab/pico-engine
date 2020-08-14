@@ -30,7 +30,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
   }
 
   const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
-    apiGet(`/c/${pico.eci}/query/io.picolabs.next/pico`)
+    apiGet(`/c/${pico.eci}/query/io.picolabs.pico-engine-ui/pico`)
   );
 
   const install = useAsyncAction<{
@@ -39,7 +39,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     config: any;
   }>((params) =>
     apiPost(
-      `/c/${params.eci}/event/engine_ui/install/query/io.picolabs.next/pico`,
+      `/c/${params.eci}/event/engine_ui/install/query/io.picolabs.pico-engine-ui/pico`,
       {
         url: params.url,
         config: params.config,
@@ -55,9 +55,12 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     eci: string;
     rid: string;
   }>(({ eci, rid }) =>
-    apiPost(`/c/${eci}/event/engine_ui/uninstall/query/io.picolabs.next/pico`, {
-      rid,
-    }).then((d) => {
+    apiPost(
+      `/c/${eci}/event/engine_ui/uninstall/query/io.picolabs.pico-engine-ui/pico`,
+      {
+        rid,
+      }
+    ).then((d) => {
       picoDetails.setData(d);
     })
   );
@@ -66,9 +69,12 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     eci: string;
     url: string;
   }>(({ eci, url }) =>
-    apiPost(`/c/${eci}/event/engine_ui/flush/query/io.picolabs.next/pico`, {
-      url,
-    }).then((d) => {
+    apiPost(
+      `/c/${eci}/event/engine_ui/flush/query/io.picolabs.pico-engine-ui/pico`,
+      {
+        url,
+      }
+    ).then((d) => {
       picoDetails.setData(d);
     })
   );
