@@ -11,11 +11,9 @@
     "publish": "npm run build && lerna publish",
     "start": "cd packages/pico-engine && npm start",
     "test": "lerna run test",
-    "docs": "docsify serve ./docs",
     "build": "cd packages/krl-parser && npm run build && cd ../pico-engine-browser && npm run build"
   },
   "devDependencies": {
-    "docsify-cli": "^4.3.0",
     "lerna": "^3.2.1"
   }
 }

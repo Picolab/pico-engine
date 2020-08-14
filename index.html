@@ -1,0 +1,7 @@
+<script>
+var url = document.location.origin + document.location.pathname
+if(url[url.length-1] != '/'){
+url += '/'
+}
+document.location.replace(url + 'packages/pico-engine/public/docs/')
+</script>

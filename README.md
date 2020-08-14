@@ -51,8 +51,6 @@ NOTE: When running via `npm start` the `PICO_ENGINE_HOME` will default to your c
 
 Use a branch (or fork) to do your work. When you are ready, create a pull request. That way we can review it before merging it into master.
 
-View [docs/git-cheatsheet.md](https://github.com/Picolab/pico-engine/blob/master/docs/git-cheatsheet.md) for more.
-
 The Pico Labs documentation has a page inviting contributions and giving a step-by-step example, at [Pico Engine welcoming your contributions](https://picolabs.atlassian.net/wiki/spaces/docs/pages/704675843/Pico+Engine+welcoming+your+contributions).
 
 ## Changelog
