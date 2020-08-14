@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.defaction",
-  "version": "draft",
   "meta": {
     "shares": [
       "getSettingVal",

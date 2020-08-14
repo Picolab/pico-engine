@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.guard-conditions",
-  "version": "draft",
   "meta": { "shares": ["getB"] },
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");

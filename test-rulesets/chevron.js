@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.chevron",
-  "version": "draft",
   "meta": {
     "description": "\nHello Chevrons!\n        ",
     "shares": ["d"]

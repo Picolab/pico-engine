@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.with",
-  "version": "draft",
   "meta": {
     "shares": [
       "add",

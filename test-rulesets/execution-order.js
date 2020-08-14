@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.execution-order",
-  "version": "draft",
   "meta": { "shares": ["getOrder"] },
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");

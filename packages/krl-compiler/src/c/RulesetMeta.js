@@ -1,6 +1,12 @@
 var _ = require('lodash')
 
 var propTypes = {
+  'version': function (props, comp, e) {
+    if (_.size(props) > 1) {
+      throw comp.error(props[1].loc, 'only 1 meta.version allowed')
+    }
+    return comp(_.head(props).value)
+  },
   'name': function (props, comp, e) {
     if (_.size(props) > 1) {
       throw comp.error(props[1].loc, 'only 1 meta.name allowed')

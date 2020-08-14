@@ -811,6 +811,7 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
   let value: any = null;
 
   switch (key.value) {
+    case "version":
     case "name":
     case "description":
     case "author":
@@ -856,10 +857,6 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
         chomp(state, "SYMBOL", "module");
 
         const rid = rulesetID(state);
-        let version = null;
-        if (chompMaybe(state, "SYMBOL", "version")) {
-          version = chompString(state);
-        }
         let alias = null;
         if (chompMaybe(state, "SYMBOL", "alias")) {
           alias = chompIdentifier(state);
@@ -871,7 +868,6 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
         value = {
           kind: "module",
           rid,
-          version,
           alias,
           with: withExpr
         };
@@ -882,11 +878,7 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
       {
         chomp(state, "SYMBOL", "to");
         const rid = rulesetID(state);
-        let version = null;
-        if (chompMaybe(state, "SYMBOL", "version")) {
-          version = chompString(state);
-        }
-        value = { rid, version };
+        value = { rid };
       }
       break;
 

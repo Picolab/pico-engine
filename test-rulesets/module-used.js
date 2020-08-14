@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.module-used",
-  "version": "draft",
   "meta": {
     "use": [
       {

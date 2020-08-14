@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.last2",
-  "version": "draft",
   "meta": { "name": "This second ruleset tests that `last` only stops the current ruleset" },
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");

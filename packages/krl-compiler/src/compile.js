@@ -193,13 +193,9 @@ module.exports = function (ast, options) {
   }
 
   var rid
-  var version
   if (ast && ast.type === 'Ruleset') {
     if (ast.rid && ast.rid.type === 'RulesetID') {
       rid = ast.rid.value
-    }
-    if (ast.version && ast.version.type === 'String') {
-      version = ast.version.value
     }
   }
 
@@ -208,7 +204,6 @@ module.exports = function (ast, options) {
 
   return {
     rid,
-    version,
     estree,
     warnings
   }

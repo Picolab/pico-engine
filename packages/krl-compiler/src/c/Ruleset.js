@@ -3,8 +3,17 @@ var declarationBlock = require('../utils/declarationBlock')
 
 module.exports = function (ast, comp, e) {
   var rs = {
-    rid: comp(ast.rid),
-    version: ast.version ? comp(ast.version) : e('str', 'draft')
+    rid: comp(ast.rid)
+  }
+
+  if (ast.version) {
+    comp.warn(ast.loc, 'ruleset{version ...} is deprecated. Use ruleset{meta{version ...}} instead')
+    ast.meta.properties.push({
+      loc: ast.version.loc,
+      type: 'RulesetMetaProperty',
+      key: { loc: ast.version.loc, type: 'Keyword', value: 'version' },
+      value: ast.version
+    })
   }
 
   const shares = []

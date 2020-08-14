@@ -35,7 +35,6 @@ module.exports = function (input, options) {
   var r = {
     code: out.code,
     rid: compiled.rid,
-    version: compiled.version,
     warnings: compiled.warnings
   }
 

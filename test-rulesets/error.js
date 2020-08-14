@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.error",
-  "version": "draft",
   "meta": { "shares": ["getErrors"] },
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");

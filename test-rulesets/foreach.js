@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.foreach",
-  "version": "draft",
   "meta": { "name": "testing foreach" },
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");

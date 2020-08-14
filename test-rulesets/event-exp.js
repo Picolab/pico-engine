@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.event-exp",
-  "version": "draft",
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");
     const $ctx = $mkCtx($rsCtx);

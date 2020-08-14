@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.test-error-messages",
-  "version": "draft",
   "meta": {
     "description": "\nThis is a ruleset that will compile, but does things\nthe wrong way to test how they are handled at runtime\n        ",
     "shares": [

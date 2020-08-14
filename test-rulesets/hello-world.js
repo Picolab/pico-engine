@@ -1,7 +1,7 @@
 module.exports = {
   "rid": "io.picolabs.hello_world",
-  "version": "0.0.0",
   "meta": {
+    "version": "0.0.0",
     "name": "Hello World",
     "description": "\nA first ruleset for the Quickstart\n    ",
     "author": "Phil Windley",

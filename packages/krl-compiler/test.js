@@ -186,11 +186,9 @@ test('special cases', function (t) {
 }))`)
 })
 
-test('rid+version output', function (t) {
-  const out = compiler('ruleset some.rid {version "some-version" global {a=2}}')
-
+test('rid output', function (t) {
+  const out = compiler('ruleset some.rid {global {a=2}}')
   t.is(out.rid, 'some.rid')
-  t.is(out.version, 'some-version')
 })
 
 test('stdlib and missing variables', function (t) {

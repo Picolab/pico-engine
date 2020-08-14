@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.http",
-  "version": "draft",
   "meta": {
     "shares": [
       "getResp",

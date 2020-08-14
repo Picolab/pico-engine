@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.schedule",
-  "version": "draft",
   "meta": {
     "shares": [
       "getLog",

@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.events",
-  "version": "draft",
   "meta": {
     "shares": [
       "getOnChooseFired",

@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.module-defined",
-  "version": "draft",
   "meta": {
     "provides": [
       "getInfo",

@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.last",
-  "version": "draft",
   "meta": { "name": "testing postlude `last` statement" },
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");

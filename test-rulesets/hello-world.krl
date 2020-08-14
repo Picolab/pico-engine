@@ -1,6 +1,6 @@
 ruleset io.picolabs.hello_world {
-    version "0.0.0"
     meta {
+        version "0.0.0"
         name "Hello World"
         description <<
 A first ruleset for the Quickstart

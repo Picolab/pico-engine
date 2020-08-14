@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.js-module",
-  "version": "draft",
   "meta": { "shares": ["qFn"] },
   "init": async function ($rsCtx, $mkCtx) {
     const $default = Symbol("default");

@@ -14,7 +14,7 @@ test("RulesetRegistry", async (t) => {
 
   await fs.promises.writeFile(
     path.resolve(dir, "krl0.krl"),
-    `ruleset rid.hello { }`
+    `ruleset rid.hello { meta { version "0.0.0" } }`
   );
 
   const file0 = path.resolve(dir, "krl0.krl");
@@ -24,15 +24,18 @@ test("RulesetRegistry", async (t) => {
 
   let rs = await rsReg.load(url0);
   t.is(rs.ruleset.rid, "rid.hello");
-  t.is((rs.ruleset as any).version, "draft");
+  t.is((rs.ruleset as any).meta.version, "0.0.0");
 
-  await fs.promises.writeFile(file0, `ruleset rid.hello { version "1.0.0" }`);
+  await fs.promises.writeFile(
+    file0,
+    `ruleset rid.hello { meta { version "1.0.0" } }`
+  );
   await sleep(200);
-  t.is(((await rsReg.load(url0)).ruleset as any).version, "draft");
+  t.is(((await rsReg.load(url0)).ruleset as any).meta.version, "0.0.0");
   await sleep(200);
-  t.is(((await rsReg.flush(url0)).ruleset as any).version, "1.0.0");
+  t.is(((await rsReg.flush(url0)).ruleset as any).meta.version, "1.0.0");
   await sleep(200);
-  t.is(((await rsReg.load(url0)).ruleset as any).version, "1.0.0");
+  t.is(((await rsReg.load(url0)).ruleset as any).meta.version, "1.0.0");
 });
 
 function sleep(ms: number) {

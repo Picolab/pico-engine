@@ -68,20 +68,6 @@ test("ruleset", t => {
       }
     ]
   });
-
-  t.deepEqual(parseRuleset(tokenizer('ruleset rs {version "some-version"}')), {
-    type: "Ruleset",
-    loc: { start: 0, end: 35 },
-    rid: { type: "RulesetID", value: "rs", loc: { start: 8, end: 10 } },
-    version: {
-      type: "String",
-      value: "some-version",
-      loc: { start: 20, end: 34 }
-    },
-    meta: null,
-    global: [],
-    rules: []
-  });
 });
 
 test("rulesetID", t => {
@@ -89,9 +75,7 @@ test("rulesetID", t => {
     try {
       const node = parseRuleset(tokenizer(`ruleset ${src} {}`)).rid;
       if (
-        Object.keys(node)
-          .sort()
-          .join(",") === "loc,type,value" &&
+        Object.keys(node).sort().join(",") === "loc,type,value" &&
         node.type === "RulesetID" &&
         node.value === src &&
         node.loc.start === 8 &&
@@ -145,9 +129,7 @@ test("Ruleset meta", t => {
       const node = parseRuleset(tokenizer(`ruleset rs{meta{${src}}}`)).meta;
       if (
         node &&
-        Object.keys(node)
-          .sort()
-          .join(",") === "loc,properties,type" &&
+        Object.keys(node).sort().join(",") === "loc,properties,type" &&
         node.type === "RulesetMeta"
       ) {
         return node.properties.map(rmLoc);
@@ -189,6 +171,8 @@ test("Ruleset meta", t => {
     ]
   );
 
+  t.deepEqual(parseMeta('version "blah"'), [mk.meta("version", mk("blah"))]);
+
   t.deepEqual(parseMeta("logging on"), [mk.meta("logging", mk(true))]);
 
   t.deepEqual(parseMeta("logging off"), [mk.meta("logging", mk(false))]);
@@ -208,21 +192,19 @@ test("Ruleset meta", t => {
     parseMeta(
       [
         "use module com.blah",
-        'use module com.blah version "2" alias blah with one = 2 three = 4'
+        "use module com.blah alias blah with one = 2 three = 4"
       ].join("\n")
     ),
     [
       mk.meta("use", {
         kind: "module",
         rid: { type: "RulesetID", value: "com.blah" },
-        version: null,
         alias: null,
         with: null
       }),
       mk.meta("use", {
         kind: "module",
         rid: { type: "RulesetID", value: "com.blah" },
-        version: mk("2"),
         alias: mk.id("blah"),
         with: [
           mk.declare("=", mk.id("one"), mk(2)),
@@ -233,17 +215,13 @@ test("Ruleset meta", t => {
   );
 
   t.deepEqual(
-    parseMeta(
-      ["errors to com.blah", 'errors to com.blah version "2"'].join("\n")
-    ),
+    parseMeta(["errors to com.blah", "errors to com.blah"].join("\n")),
     [
       mk.meta("errors", {
-        rid: { type: "RulesetID", value: "com.blah" },
-        version: null
+        rid: { type: "RulesetID", value: "com.blah" }
       }),
       mk.meta("errors", {
-        rid: { type: "RulesetID", value: "com.blah" },
-        version: mk("2")
+        rid: { type: "RulesetID", value: "com.blah" }
       })
     ]
   );
@@ -307,7 +285,7 @@ test("Ruleset meta", t => {
   );
 });
 
-test("with", function(t) {
+test("with", function (t) {
   function tst(src: string, expected: any) {
     const node = parseRulesetBody(
       `meta{use module m ${src}}`,
@@ -360,7 +338,6 @@ test("with", function(t) {
       mk.meta("use", {
         kind: "module",
         rid: { type: "RulesetID", value: "m" },
-        version: null,
         alias: null,
         with: [
           mk.declare("=", mk.id("a"), mk("b")),
@@ -570,7 +547,7 @@ test("select when ... within", t => {
 });
 
 test("select when ... foreach ...", t => {
-  var tst = function(src: string, expected: any) {
+  var tst = function (src: string, expected: any) {
     var ast = parseRuleBody(src, r => r.foreach);
     t.deepEqual(ast, expected);
   };
@@ -609,8 +586,8 @@ test("select when ... foreach ...", t => {
   ]);
 });
 
-test("ActionBlock", function(t) {
-  var tstActionBlock = function(abSrc: string, expected: any) {
+test("ActionBlock", function (t) {
+  var tstActionBlock = function (abSrc: string, expected: any) {
     var src = "rule r1{select when foo bar " + abSrc + "}";
 
     t.deepEqual(
@@ -818,7 +795,7 @@ test("ActionBlock", function(t) {
 });
 
 test("Action setting", t => {
-  var testAction = function(abSrc: string, expected: any) {
+  var testAction = function (abSrc: string, expected: any) {
     var src = "rule r1{select when foo bar " + abSrc + "}";
 
     t.deepEqual(
@@ -856,7 +833,7 @@ test("Action setting", t => {
 });
 
 test("RulePostlude", t => {
-  var testPost = function(postlude: string, expected: any) {
+  var testPost = function (postlude: string, expected: any) {
     var src = "rule r1{select when foo bar " + postlude + "}";
 
     t.deepEqual(
