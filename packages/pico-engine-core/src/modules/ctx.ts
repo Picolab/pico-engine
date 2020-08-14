@@ -33,13 +33,18 @@ export interface RulesetCtxInfoMeta {
 }
 
 export default function initCtxModule(core: PicoEngineCore) {
+  function rulesetKrlMetaProperty(key: string) {
+    return krl.Property(function () {
+      const url = this.rsCtx.ruleset.config["url"];
+      const cached = core.rsRegistry.getCached(url);
+      const krlMeta = (cached?.ruleset as any).meta || {};
+      return krlMeta[key] || null;
+    });
+  }
+
   const module: krl.Module = {
     rid: krl.Property(function rid() {
       return this.rsCtx.ruleset.rid;
-    }),
-
-    rid_version: krl.Property(function rid_version() {
-      return (this.rsCtx.ruleset as any).version || "draft";
     }),
 
     rid_url: krl.Property(function rid_url() {
@@ -49,6 +54,11 @@ export default function initCtxModule(core: PicoEngineCore) {
     rid_config: krl.Property(function rid_config() {
       return this.rsCtx.ruleset.config["config"];
     }),
+
+    rid_version: rulesetKrlMetaProperty("version"),
+    rid_name: rulesetKrlMetaProperty("name"),
+    rid_description: rulesetKrlMetaProperty("description"),
+    rid_author: rulesetKrlMetaProperty("author"),
 
     parent: krl.Property(function parent() {
       return this.rsCtx.pico().parent;
