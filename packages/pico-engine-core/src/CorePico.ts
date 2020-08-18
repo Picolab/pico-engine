@@ -1,4 +1,5 @@
 import { krl, KrlCtx } from "krl-stdlib";
+import * as _ from "lodash";
 import { createRulesetContext, Pico, RulesetContext } from "pico-framework";
 import { makeKrlCtxKrlModule } from "./makeKrlCtxKrlModule";
 import { PicoEngineCore } from "./PicoEngineCore";
@@ -78,6 +79,14 @@ export class CorePico {
       hash: ruleset.hash,
       module,
     };
+  }
+
+  configure(rsCtx: RulesetContext, name: string, dflt: any): any {
+    const config = rsCtx.ruleset.config;
+    if (_.has(config, ["_krl_module_config", name])) {
+      return config._krl_module_config[name];
+    }
+    return dflt;
   }
 
   getModule(userRid: string, domain: string): krl.Module | null {
