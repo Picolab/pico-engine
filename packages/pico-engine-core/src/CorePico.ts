@@ -1,6 +1,6 @@
 import { krl, KrlCtx } from "krl-stdlib";
 import { createRulesetContext, Pico, RulesetContext } from "pico-framework";
-import { makeKrlCtx } from "./makeKrlCtx";
+import { makeKrlCtxKrlModule } from "./makeKrlCtxKrlModule";
 import { PicoEngineCore } from "./PicoEngineCore";
 import { CachedRuleset } from "./RulesetRegistry";
 
@@ -42,21 +42,21 @@ export class CorePico {
     } catch (err) {
       throw new Error("PicoFramework not yet setup");
     }
-    const ruleset = this.core.rsRegistry.getCached(
-      pfPico.rulesets[usesRid]?.config?.url || ""
-    );
+    const usesRidConfig = pfPico.rulesets[usesRid]?.config || {};
+    const ruleset = this.core.rsRegistry.getCached(usesRidConfig.url || "");
     if (!ruleset) {
       throw new Error(`Module not found: ${usesRid}`);
     }
+
     const rsI = await ruleset.ruleset.init(
       createRulesetContext(this.core.picoFramework, pfPico, {
         rid: ruleset.rid,
         config: {
-          ...rsCtx.ruleset.config,
+          ...usesRidConfig,
           _krl_module_config: configure,
         },
       }),
-      (rsCtx2: RulesetContext) => makeKrlCtx(this.core, rsCtx2)
+      (rsCtx2: RulesetContext) => makeKrlCtxKrlModule(this.core, krlCtx, rsCtx2)
     );
     const module: krl.Module = (rsI as any).provides || {};
     if (!alias) {
@@ -80,15 +80,15 @@ export class CorePico {
     };
   }
 
-  getModule(userRid: string, alias: string): krl.Module | null {
+  getModule(userRid: string, domain: string): krl.Module | null {
     if (this.dependencies[userRid]) {
       for (const rm of Object.values(this.dependencies[userRid].uses)) {
-        if (rm[alias]) {
-          return rm[alias].module;
+        if (rm[domain]) {
+          return rm[domain].module;
         }
       }
     }
-    return null;
+    return this.core.modules[domain] || null;
   }
 
   whoUses(rid: string): string[] {

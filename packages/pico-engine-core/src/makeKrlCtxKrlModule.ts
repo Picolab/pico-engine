@@ -1,60 +1,36 @@
-import {
-  CurrentPicoEvent,
-  CurrentPicoQuery,
-  Directive,
-  krl,
-  KrlCtx,
-} from "krl-stdlib";
+import { krl, KrlCtx } from "krl-stdlib";
 import * as _ from "lodash";
 import { RulesetContext } from "pico-framework";
 import { PicoEngineCore } from "./PicoEngineCore";
 
-export function makeKrlCtx(
+export function makeKrlCtxKrlModule(
   core: PicoEngineCore,
+  host: KrlCtx,
   rsCtx: RulesetContext
 ): KrlCtx {
   const pico = rsCtx.pico();
   const picoId = pico.id;
-  const logCtxBase = { picoId, rid: rsCtx.ruleset.rid };
-  let log = core.log.child(logCtxBase);
 
   let corePico = core.addPico(picoId);
-
-  let currentEvent: CurrentPicoEvent | null = null;
-  let currentQuery: CurrentPicoQuery | null = null;
-
-  let directives: Directive[] = [];
 
   const krlCtx: KrlCtx = {
     rsCtx, // the basic pico+ruleset context from pico-framework
 
     ///////////////////////////////////////////////////////////////////////////
     // logging
-    log,
+    get log() {
+      return host.log.child({ rid: rsCtx.ruleset.rid });
+    },
     getPicoLogs() {
-      return core.getPicoLogs(picoId);
+      return host.getPicoLogs();
     },
 
     ///////////////////////////////////////////////////////////////////////////
-    // current event/query
-    getEvent() {
-      return currentEvent;
-    },
-    setEvent(event) {
-      krlCtx.log = log = core.log.child(
-        event ? { ...logCtxBase, txnId: event.eid } : logCtxBase
-      );
-      currentEvent = event;
-    },
-    getQuery() {
-      return currentQuery;
-    },
-    setQuery(query) {
-      krlCtx.log = log = core.log.child(
-        query ? { ...logCtxBase, txnId: query.qid } : logCtxBase
-      );
-      currentQuery = query;
-    },
+    // current event/query is not applicable for krl modules
+    getEvent: () => null,
+    setEvent(event) {},
+    getQuery: () => null,
+    setQuery(query) {},
 
     ///////////////////////////////////////////////////////////////////////////
     // modules
@@ -75,15 +51,9 @@ export function makeKrlCtx(
     ///////////////////////////////////////////////////////////////////////////
     // directives
     addDirective(name, options) {
-      const directive: Directive = { name, options: options || {} };
-      directives.push(directive);
-      return directive;
+      return host.addDirective(name, options);
     },
-    drainDirectives() {
-      const tmp = directives;
-      directives = [];
-      return tmp;
-    },
+    drainDirectives: () => [], // not used since krl modules are not installed
 
     ///////////////////////////////////////////////////////////////////////////
     // compiler lib
