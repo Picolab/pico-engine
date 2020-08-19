@@ -43,16 +43,21 @@ module.exports = {
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("say:hello"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "say_hello" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("said", await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "name"
-      ]));
+      try {
+        $ctx.setCurrentRuleName("say_hello");
+        $ctx.log.debug("rule selected", { "rule_name": "say_hello" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("said", await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "name"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     return {
       "event": async function (event, eid) {

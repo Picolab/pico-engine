@@ -248,20 +248,25 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "set_attr" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "bound",
-          { "name": my_name3 }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("set_attr");
+        $ctx.log.debug("rule selected", { "rule_name": "set_attr" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "bound",
+            { "name": my_name3 }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:set_attr2", async function ($event, $state) {
       var matches = [];
@@ -291,76 +296,101 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "set_attr2" });
-      var number3 = $state.setting["number"];
-      var $name$3 = $state.setting["name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "set_attr2",
-          {
-            "number": number3,
-            "name": $name$3
-          }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("set_attr2");
+        $ctx.log.debug("rule selected", { "rule_name": "set_attr2" });
+        var number3 = $state.setting["number"];
+        var $name$3 = $state.setting["name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "set_attr2",
+            {
+              "number": number3,
+              "name": $name$3
+            }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:get"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "get_attr" });
-      const thing3 = await $ctx.krl.assertFunction($ctx.module("event")["attr"])($ctx, ["thing"]);
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "get",
-          { "thing": thing3 }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("get_attr");
+        $ctx.log.debug("rule selected", { "rule_name": "get_attr" });
+        const thing3 = await $ctx.krl.assertFunction($ctx.module("event")["attr"])($ctx, ["thing"]);
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "get",
+            { "thing": thing3 }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:attrs_get"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "attrs_get" });
-      const thing3 = await get1($ctx, [
-        $event.data.attrs,
-        "thing"
-      ]);
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "attrs_get",
-          { "thing": thing3 }
+      try {
+        $ctx.setCurrentRuleName("attrs_get");
+        $ctx.log.debug("rule selected", { "rule_name": "attrs_get" });
+        const thing3 = await get1($ctx, [
+          $event.data.attrs,
+          "thing"
         ]);
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "attrs_get",
+            { "thing": thing3 }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:noop"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "noop" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
+      try {
+        $ctx.setCurrentRuleName("noop");
+        $ctx.log.debug("rule selected", { "rule_name": "noop" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:noop2"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "noop2" });
-      var $fired = true;
-      if ($fired) {
-        await noop1($ctx, []);
+      try {
+        $ctx.setCurrentRuleName("noop2");
+        $ctx.log.debug("rule selected", { "rule_name": "noop2" });
+        var $fired = true;
+        if ($fired) {
+          await noop1($ctx, []);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:ifthen", async function ($event, $state) {
       var matches = [];
@@ -381,17 +411,22 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "ifthen" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = my_name3;
-      if ($fired) {
-        await send_directive1($ctx, ["ifthen"]);
+      try {
+        $ctx.setCurrentRuleName("ifthen");
+        $ctx.log.debug("rule selected", { "rule_name": "ifthen" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = my_name3;
+        if ($fired) {
+          await send_directive1($ctx, ["ifthen"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:on_fired", async function ($event, $state) {
       var matches = [];
@@ -412,22 +447,27 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "on_fired" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "on_fired",
-          { "previous_name": await $ctx.rsCtx.getEnt("on_fired_prev_name") }
-        ]);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("on_fired_prev_name", my_name3);
+      try {
+        $ctx.setCurrentRuleName("on_fired");
+        $ctx.log.debug("rule selected", { "rule_name": "on_fired" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "on_fired",
+            { "previous_name": await $ctx.rsCtx.getEnt("on_fired_prev_name") }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("on_fired_prev_name", my_name3);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:on_choose", async function ($event, $state) {
@@ -449,29 +489,34 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "on_choose" });
-      var thing3 = $state.setting["thing"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        switch (thing3) {
-        case "one":
-          await send_directive1($ctx, ["on_choose - one"]);
-          break;
-        case "two":
-          await send_directive1($ctx, ["on_choose - two"]);
-          break;
+      try {
+        $ctx.setCurrentRuleName("on_choose");
+        $ctx.log.debug("rule selected", { "rule_name": "on_choose" });
+        var thing3 = $state.setting["thing"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          switch (thing3) {
+          case "one":
+            await send_directive1($ctx, ["on_choose - one"]);
+            break;
+          case "two":
+            await send_directive1($ctx, ["on_choose - two"]);
+            break;
+          }
         }
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("on_choose_fired", true);
-      }
-      if (!$fired) {
-        await $ctx.rsCtx.putEnt("on_choose_fired", false);
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("on_choose_fired", true);
+        }
+        if (!$fired) {
+          await $ctx.rsCtx.putEnt("on_choose_fired", false);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:on_choose_if", async function ($event, $state) {
@@ -493,96 +538,116 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "on_choose_if" });
-      var thing3 = $state.setting["thing"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = await $stdlib["=="]($ctx, [
-        await $stdlib["get"]($ctx, [
-          $event.data.attrs,
-          "fire"
-        ]),
-        "yes"
-      ]);
-      if ($fired) {
-        switch (thing3) {
-        case "one":
-          await send_directive1($ctx, ["on_choose_if - one"]);
-          break;
-        case "two":
-          await send_directive1($ctx, ["on_choose_if - two"]);
-          break;
+      try {
+        $ctx.setCurrentRuleName("on_choose_if");
+        $ctx.log.debug("rule selected", { "rule_name": "on_choose_if" });
+        var thing3 = $state.setting["thing"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = await $stdlib["=="]($ctx, [
+          await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "fire"
+          ]),
+          "yes"
+        ]);
+        if ($fired) {
+          switch (thing3) {
+          case "one":
+            await send_directive1($ctx, ["on_choose_if - one"]);
+            break;
+          case "two":
+            await send_directive1($ctx, ["on_choose_if - two"]);
+            break;
+          }
         }
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("on_choose_fired", true);
-      }
-      if (!$fired) {
-        await $ctx.rsCtx.putEnt("on_choose_fired", false);
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("on_choose_fired", true);
+        }
+        if (!$fired) {
+          await $ctx.rsCtx.putEnt("on_choose_fired", false);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:on_every"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "on_every" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["on_every - one"]);
-        await send_directive1($ctx, ["on_every - two"]);
+      try {
+        $ctx.setCurrentRuleName("on_every");
+        $ctx.log.debug("rule selected", { "rule_name": "on_every" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["on_every - one"]);
+          await send_directive1($ctx, ["on_every - two"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:on_sample"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "on_sample" });
-      var $fired = true;
-      if ($fired) {
-        switch (Math.floor(Math.random() * 3)) {
-        case 0:
-          await send_directive1($ctx, ["on_sample - one"]);
-          break;
-        case 1:
-          await send_directive1($ctx, ["on_sample - two"]);
-          break;
-        case 2:
-          await send_directive1($ctx, ["on_sample - three"]);
-          break;
+      try {
+        $ctx.setCurrentRuleName("on_sample");
+        $ctx.log.debug("rule selected", { "rule_name": "on_sample" });
+        var $fired = true;
+        if ($fired) {
+          switch (Math.floor(Math.random() * 3)) {
+          case 0:
+            await send_directive1($ctx, ["on_sample - one"]);
+            break;
+          case 1:
+            await send_directive1($ctx, ["on_sample - two"]);
+            break;
+          case 2:
+            await send_directive1($ctx, ["on_sample - three"]);
+            break;
+          }
         }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:on_sample_if"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "on_sample_if" });
-      var $fired = await $stdlib["=="]($ctx, [
-        await $stdlib["get"]($ctx, [
-          $event.data.attrs,
-          "fire"
-        ]),
-        "yes"
-      ]);
-      if ($fired) {
-        switch (Math.floor(Math.random() * 3)) {
-        case 0:
-          await send_directive1($ctx, ["on_sample - one"]);
-          break;
-        case 1:
-          await send_directive1($ctx, ["on_sample - two"]);
-          break;
-        case 2:
-          await send_directive1($ctx, ["on_sample - three"]);
-          break;
+      try {
+        $ctx.setCurrentRuleName("on_sample_if");
+        $ctx.log.debug("rule selected", { "rule_name": "on_sample_if" });
+        var $fired = await $stdlib["=="]($ctx, [
+          await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "fire"
+          ]),
+          "yes"
+        ]);
+        if ($fired) {
+          switch (Math.floor(Math.random() * 3)) {
+          case 0:
+            await send_directive1($ctx, ["on_sample - one"]);
+            break;
+          case 1:
+            await send_directive1($ctx, ["on_sample - two"]);
+            break;
+          case 2:
+            await send_directive1($ctx, ["on_sample - three"]);
+            break;
+          }
         }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:select_where", async function ($event, $state) {
       if (!await match1($ctx, [
@@ -598,15 +663,20 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "select_where" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["select_where"]);
+      try {
+        $ctx.setCurrentRuleName("select_where");
+        $ctx.log.debug("rule selected", { "rule_name": "select_where" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["select_where"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:where_match_0", async function ($event, $state) {
       if (!await match1($ctx, [
@@ -622,15 +692,20 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "where_match_0" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["where_match_0"]);
+      try {
+        $ctx.setCurrentRuleName("where_match_0");
+        $ctx.log.debug("rule selected", { "rule_name": "where_match_0" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["where_match_0"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:where_match_null", async function ($event, $state) {
       if (!await match1($ctx, [
@@ -646,15 +721,20 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "where_match_null" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["where_match_null"]);
+      try {
+        $ctx.setCurrentRuleName("where_match_null");
+        $ctx.log.debug("rule selected", { "rule_name": "where_match_null" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["where_match_null"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:where_match_false", async function ($event, $state) {
       if (!await match1($ctx, [
@@ -670,15 +750,20 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "where_match_false" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["where_match_false"]);
+      try {
+        $ctx.setCurrentRuleName("where_match_false");
+        $ctx.log.debug("rule selected", { "rule_name": "where_match_false" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["where_match_false"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:where_match_empty_str", async function ($event, $state) {
       if (!await match1($ctx, [
@@ -694,15 +779,20 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "where_match_empty_str" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["where_match_empty_str"]);
+      try {
+        $ctx.setCurrentRuleName("where_match_empty_str");
+        $ctx.log.debug("rule selected", { "rule_name": "where_match_empty_str" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["where_match_empty_str"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:where_after_setting", async function ($event, $state) {
       var matches = [];
@@ -728,17 +818,22 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "where_after_setting" });
-      var a3 = $state.setting["a"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["where_after_setting"]);
+      try {
+        $ctx.setCurrentRuleName("where_after_setting");
+        $ctx.log.debug("rule selected", { "rule_name": "where_after_setting" });
+        var a3 = $state.setting["a"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["where_after_setting"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:where_using_global", async function ($event, $state) {
       var matches = [];
@@ -764,17 +859,22 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "where_using_global" });
-      var global03 = $state.setting["global0"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["where_using_global"]);
+      try {
+        $ctx.setCurrentRuleName("where_using_global");
+        $ctx.log.debug("rule selected", { "rule_name": "where_using_global" });
+        var global03 = $state.setting["global0"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["where_using_global"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:implicit_match_0", async function ($event, $state) {
       var matches = [];
@@ -794,15 +894,20 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "implicit_match_0" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["implicit_match_0"]);
+      try {
+        $ctx.setCurrentRuleName("implicit_match_0");
+        $ctx.log.debug("rule selected", { "rule_name": "implicit_match_0" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["implicit_match_0"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:implicit_match_null", async function ($event, $state) {
       var matches = [];
@@ -822,15 +927,20 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "implicit_match_null" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["implicit_match_null"]);
+      try {
+        $ctx.setCurrentRuleName("implicit_match_null");
+        $ctx.log.debug("rule selected", { "rule_name": "implicit_match_null" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["implicit_match_null"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:implicit_match_false", async function ($event, $state) {
       var matches = [];
@@ -850,15 +960,20 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "implicit_match_false" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["implicit_match_false"]);
+      try {
+        $ctx.setCurrentRuleName("implicit_match_false");
+        $ctx.log.debug("rule selected", { "rule_name": "implicit_match_false" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["implicit_match_false"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:implicit_match_empty_str", async function ($event, $state) {
       var matches = [];
@@ -878,15 +993,20 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "implicit_match_empty_str" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["implicit_match_empty_str"]);
+      try {
+        $ctx.setCurrentRuleName("implicit_match_empty_str");
+        $ctx.log.debug("rule selected", { "rule_name": "implicit_match_empty_str" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["implicit_match_empty_str"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:no_action", async function ($event, $state) {
       var matches = [];
@@ -906,17 +1026,22 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "no_action" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("no_action_fired", true);
-      }
-      if (!$fired) {
-        await $ctx.rsCtx.putEnt("no_action_fired", false);
+      try {
+        $ctx.setCurrentRuleName("no_action");
+        $ctx.log.debug("rule selected", { "rule_name": "no_action" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("no_action_fired", true);
+        }
+        if (!$fired) {
+          await $ctx.rsCtx.putEnt("no_action_fired", false);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:action_send", async function ($event, $state) {
@@ -938,26 +1063,31 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "action_send" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await $ctx.krl.assertAction($ctx.module("ctx")["event"])($ctx, {
-          "eci": $event.eci,
-          "domain": "events",
-          "name": "store_sent_name",
-          "attrs": {
-            "name": my_name3,
-            "empty": [],
-            "r": new RegExp("hi", "i")
-          }
-        });
+      try {
+        $ctx.setCurrentRuleName("action_send");
+        $ctx.log.debug("rule selected", { "rule_name": "action_send" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await $ctx.krl.assertAction($ctx.module("ctx")["event"])($ctx, {
+            "eci": $event.eci,
+            "domain": "events",
+            "name": "store_sent_name",
+            "attrs": {
+              "name": my_name3,
+              "empty": [],
+              "r": new RegExp("hi", "i")
+            }
+          });
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:store_sent_name", async function ($event, $state) {
       var matches = [];
@@ -978,28 +1108,38 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "store_sent_name" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("sent_attrs", $event.data.attrs);
-        await $ctx.rsCtx.putEnt("sent_name", my_name3);
+      try {
+        $ctx.setCurrentRuleName("store_sent_name");
+        $ctx.log.debug("rule selected", { "rule_name": "store_sent_name" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("sent_attrs", $event.data.attrs);
+          await $ctx.rsCtx.putEnt("sent_name", my_name3);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:raise_basic"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "raise_basic" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.raiseEvent("events", "event_attrs", undefined);
+      try {
+        $ctx.setCurrentRuleName("raise_basic");
+        $ctx.log.debug("rule selected", { "rule_name": "raise_basic" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.raiseEvent("events", "event_attrs", undefined);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:raise_set_name", async function ($event, $state) {
@@ -1021,16 +1161,21 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "raise_set_name" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
+      try {
+        $ctx.setCurrentRuleName("raise_set_name");
+        $ctx.log.debug("rule selected", { "rule_name": "raise_set_name" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:raise_set_name_attr", async function ($event, $state) {
@@ -1052,16 +1197,21 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "raise_set_name_attr" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
+      try {
+        $ctx.setCurrentRuleName("raise_set_name_attr");
+        $ctx.log.debug("rule selected", { "rule_name": "raise_set_name_attr" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:raise_set_name_rid", async function ($event, $state) {
@@ -1083,17 +1233,22 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "raise_set_name_rid" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      const rid3 = "io.picolabs.events";
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
+      try {
+        $ctx.setCurrentRuleName("raise_set_name_rid");
+        $ctx.log.debug("rule selected", { "rule_name": "raise_set_name_rid" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        const rid3 = "io.picolabs.events";
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:raise_dynamic", async function ($event, $state) {
@@ -1115,48 +1270,63 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "raise_dynamic" });
-      var domainType3 = $state.setting["domainType"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        {
-          let $parts = $ctx.krl.toString(domainType3).replace(/\s+/g, "").split(":");
-          await $ctx.rsCtx.raiseEvent($parts[0], $parts.slice(1).join(":"), $event.data.attrs);
+      try {
+        $ctx.setCurrentRuleName("raise_dynamic");
+        $ctx.log.debug("rule selected", { "rule_name": "raise_dynamic" });
+        var domainType3 = $state.setting["domainType"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          {
+            let $parts = $ctx.krl.toString(domainType3).replace(/\s+/g, "").split(":");
+            await $ctx.rsCtx.raiseEvent($parts[0], $parts.slice(1).join(":"), $event.data.attrs);
+          }
         }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("events:event_eid"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "event_eid" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "event_eid",
-          { "eid": $ctx.module("event")["eid"]($ctx) }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("event_eid");
+        $ctx.log.debug("rule selected", { "rule_name": "event_eid" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "event_eid",
+            { "eid": $ctx.module("event")["eid"]($ctx) }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("events:event_attrs"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "event_attrs" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "event_attrs",
-          { "attrs": $event.data.attrs }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("event_attrs");
+        $ctx.log.debug("rule selected", { "rule_name": "event_attrs" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "event_attrs",
+            { "attrs": $event.data.attrs }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     null;
     return {

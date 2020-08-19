@@ -4,7 +4,7 @@ import { Express, Request } from "express";
 import * as helmet from "helmet";
 import * as _ from "lodash";
 import * as path from "path";
-import { PicoFramework } from "pico-framework";
+import { PicoEngineCore } from "pico-engine-core";
 
 const engineVersion = require("../package.json").version;
 
@@ -13,7 +13,7 @@ function mergeGetPost(req: Request) {
   return _.assign({}, req.query, req.body, { _headers: req.headers });
 }
 
-export function server(pf: PicoFramework, uiECI: string): Express {
+export function server(core: PicoEngineCore, uiECI: string): Express {
   const app = express();
 
   app.use(helmet());
@@ -32,27 +32,29 @@ export function server(pf: PicoFramework, uiECI: string): Express {
   });
 
   app.all("/c/:eci/event/:domain/:name", function (req, res, next) {
-    pf.event({
-      eci: req.params.eci,
-      domain: req.params.domain,
-      name: req.params.name,
-      data: { attrs: mergeGetPost(req) },
-      time: 0, // TODO remove this typescript requirement
-    })
-      .then((data) => {
-        res.json(data);
+    core
+      .event({
+        eci: req.params.eci,
+        domain: req.params.domain,
+        name: req.params.name,
+        data: { attrs: mergeGetPost(req) },
+        time: 0, // TODO remove this typescript requirement
+      })
+      .then((eid) => {
+        res.json(eid);
       })
       .catch(next);
   });
 
   app.all("/c/:eci/event-wait/:domain/:name", function (req, res, next) {
-    pf.eventWait({
-      eci: req.params.eci,
-      domain: req.params.domain,
-      name: req.params.name,
-      data: { attrs: mergeGetPost(req) },
-      time: 0, // TODO remove this typescript requirement
-    })
+    core
+      .eventWait({
+        eci: req.params.eci,
+        domain: req.params.domain,
+        name: req.params.name,
+        data: { attrs: mergeGetPost(req) },
+        time: 0, // TODO remove this typescript requirement
+      })
       .then((data) => {
         res.json(data);
       })
@@ -64,13 +66,14 @@ export function server(pf: PicoFramework, uiECI: string): Express {
     if (req.params.eid !== "none" && !attrs.hasOwnProperty("__eid")) {
       attrs.__eid = req.params.eid;
     }
-    pf.eventWait({
-      eci: req.params.eci,
-      domain: req.params.domain,
-      name: req.params["type"],
-      data: { attrs },
-      time: 0, // TODO remove this typescript requirement
-    })
+    core
+      .eventWait({
+        eci: req.params.eci,
+        domain: req.params.domain,
+        name: req.params["type"],
+        data: { attrs },
+        time: 0, // TODO remove this typescript requirement
+      })
       .then((data) => {
         res.json(data);
       })
@@ -83,21 +86,22 @@ export function server(pf: PicoFramework, uiECI: string): Express {
     next
   ) {
     const attrs = mergeGetPost(req);
-    pf.eventQuery(
-      {
-        eci: req.params.eci,
-        domain: req.params.domain,
-        name: req.params.name,
-        data: { attrs },
-        time: 0, // TODO remove this typescript requirement
-      },
-      {
-        eci: req.params.eci,
-        rid: req.params.rid,
-        name: req.params.qname,
-        args: attrs,
-      }
-    )
+    core
+      .eventQuery(
+        {
+          eci: req.params.eci,
+          domain: req.params.domain,
+          name: req.params.name,
+          data: { attrs },
+          time: 0, // TODO remove this typescript requirement
+        },
+        {
+          eci: req.params.eci,
+          rid: req.params.rid,
+          name: req.params.qname,
+          args: attrs,
+        }
+      )
       .then((data) => {
         res.json(data);
       })
@@ -105,12 +109,13 @@ export function server(pf: PicoFramework, uiECI: string): Express {
   });
 
   app.all("/c/:eci/query/:rid/:name", function (req, res, next) {
-    pf.query({
-      eci: req.params.eci,
-      rid: req.params.rid,
-      name: req.params.name,
-      args: mergeGetPost(req),
-    })
+    core
+      .query({
+        eci: req.params.eci,
+        rid: req.params.rid,
+        name: req.params.name,
+        args: mergeGetPost(req),
+      })
       .then((data) => {
         res.json(data);
       })
@@ -118,12 +123,13 @@ export function server(pf: PicoFramework, uiECI: string): Express {
   });
 
   app.all("/sky/cloud/:eci/:rid/:function", function (req, res, next) {
-    pf.query({
-      eci: req.params.eci,
-      rid: req.params.rid,
-      name: req.params["function"],
-      args: mergeGetPost(req),
-    })
+    core
+      .query({
+        eci: req.params.eci,
+        rid: req.params.rid,
+        name: req.params["function"],
+        args: mergeGetPost(req),
+      })
       .then((data) => {
         res.json(data);
       })

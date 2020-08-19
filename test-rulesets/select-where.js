@@ -16,22 +16,27 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "all" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "all",
-          {
-            "domain": $ctx.module("event")["domain"]($ctx),
-            "name": $ctx.module("event")["name"]($ctx),
-            "attrs": $event.data.attrs
-          }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("all");
+        $ctx.log.debug("rule selected", { "rule_name": "all" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "all",
+            {
+              "domain": $ctx.module("event")["domain"]($ctx),
+              "name": $ctx.module("event")["name"]($ctx),
+              "attrs": $event.data.attrs
+            }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("*", async function ($event, $state) {
       return {
@@ -45,16 +50,21 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "set_watcher" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("watcher", await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "domain"
-      ]));
+      try {
+        $ctx.setCurrentRuleName("set_watcher");
+        $ctx.log.debug("rule selected", { "rule_name": "set_watcher" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("watcher", await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "domain"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     $rs.when($ctx.krl.SelectWhen.e("*", async function ($event, $state) {
       return {
@@ -65,15 +75,20 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "watcher" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["watcher matched!"]);
+      try {
+        $ctx.setCurrentRuleName("watcher");
+        $ctx.log.debug("rule selected", { "rule_name": "watcher" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["watcher matched!"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     return {
       "event": async function (event, eid) {

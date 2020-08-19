@@ -20,7 +20,9 @@ test("defaction.krl", async (t) => {
     { name: "bar", options: { a: "baz", b: "qux", c: "quux" } },
   ]);
 
-  t.deepEqual(await query("getSettingVal"), {
+  const { meta, ...output_getSettingVal } = await query("getSettingVal");
+  t.deepEqual(output_getSettingVal, {
+    type: "directive",
     name: "bar",
     options: { a: "baz", b: "qux", c: "quux" },
   });

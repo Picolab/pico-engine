@@ -33,71 +33,91 @@ module.exports = {
     };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "foo" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["foo"]);
+      try {
+        $ctx.setCurrentRuleName("foo");
+        $ctx.log.debug("rule selected", { "rule_name": "foo" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["foo"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          if (await $stdlib["=="]($ctx, [
+              await $stdlib["get"]($ctx, [
+                $event.data.attrs,
+                "stop"
+              ]),
+              "foo"
+            ]))
+            return $last();
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        if (await $stdlib["=="]($ctx, [
-            await $stdlib["get"]($ctx, [
-              $event.data.attrs,
-              "stop"
-            ]),
-            "foo"
-          ]))
+    });
+    $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      try {
+        $ctx.setCurrentRuleName("bar");
+        $ctx.log.debug("rule selected", { "rule_name": "bar" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["bar"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          if (await $stdlib["=="]($ctx, [
+              await $stdlib["get"]($ctx, [
+                $event.data.attrs,
+                "stop"
+              ]),
+              "bar"
+            ]))
+            return $last();
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
+    });
+    $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      try {
+        $ctx.setCurrentRuleName("baz");
+        $ctx.log.debug("rule selected", { "rule_name": "baz" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["baz"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
           return $last();
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "bar" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["bar"]);
+      try {
+        $ctx.setCurrentRuleName("qux");
+        $ctx.log.debug("rule selected", { "rule_name": "qux" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["qux"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        if (await $stdlib["=="]($ctx, [
-            await $stdlib["get"]($ctx, [
-              $event.data.attrs,
-              "stop"
-            ]),
-            "bar"
-          ]))
-          return $last();
-      }
-    });
-    $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "baz" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["baz"]);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        return $last();
-      }
-    });
-    $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "qux" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["qux"]);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     return {
       "event": async function (event, eid) {

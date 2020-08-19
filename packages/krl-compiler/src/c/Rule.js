@@ -16,6 +16,7 @@ function Rule (ast, comp, e) {
   const selectWhenRule = comp(ast.select)
 
   var ruleBody = [
+    e(';', e('call', e('id', '$ctx.setCurrentRuleName'), [e('str', ast.name.value)])),
     e(';', e('call', e('id', '$ctx.log.debug'), [
       e('str', 'rule selected'),
       e('obj', { rule_name: e('str', ast.name.value) })
@@ -82,7 +83,16 @@ function Rule (ast, comp, e) {
 
   return e(';', e('call', e('id', '$rs.when'), [
     selectWhenRule,
-    e('asyncfn', ['$event', '$state', '$last'], ruleBody)
+    e('asyncfn', ['$event', '$state', '$last'], [
+      {
+        type: 'TryStatement',
+        block: e('block',
+          ruleBody
+        ),
+        finalizer: e('block', [
+          e(';', e('call', e('id', '$ctx.setCurrentRuleName'), [e('null')]))
+        ])
+      }])
   ]))
 }
 

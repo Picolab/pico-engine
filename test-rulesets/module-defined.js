@@ -89,36 +89,41 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "store_memo" });
-      var text3 = $state.setting["text"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "store_memo",
-          {
-            "name": configured_name2,
-            "memo_to_store": text3
-          }
-        ]);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("memo", await $stdlib["+"]($ctx, [
-        await $stdlib["+"]($ctx, [
+      try {
+        $ctx.setCurrentRuleName("store_memo");
+        $ctx.log.debug("rule selected", { "rule_name": "store_memo" });
+        var text3 = $state.setting["text"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "store_memo",
+            {
+              "name": configured_name2,
+              "memo_to_store": text3
+            }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("memo", await $stdlib["+"]($ctx, [
           await $stdlib["+"]($ctx, [
             await $stdlib["+"]($ctx, [
-              "[\"",
-              text3
+              await $stdlib["+"]($ctx, [
+                "[\"",
+                text3
+              ]),
+              "\" by "
             ]),
-            "\" by "
+            configured_name2
           ]),
-          configured_name2
-        ]),
-        "]"
-      ]));
+          "]"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     return {
       "event": async function (event, eid) {

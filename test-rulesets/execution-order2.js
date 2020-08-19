@@ -45,61 +45,81 @@ module.exports = {
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("execution_order:reset_order"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "reset_order" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["2 - reset_order"]);
+      try {
+        $ctx.setCurrentRuleName("reset_order");
+        $ctx.log.debug("rule selected", { "rule_name": "reset_order" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["2 - reset_order"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("order", []);
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", []);
     });
     $rs.when($ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.e("execution_order:foo"), $ctx.krl.SelectWhen.e("execution_order:bar")), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "foo_or_bar" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["2 - foo_or_bar"]);
+      try {
+        $ctx.setCurrentRuleName("foo_or_bar");
+        $ctx.log.debug("rule selected", { "rule_name": "foo_or_bar" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["2 - foo_or_bar"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("order", await append1($ctx, [
+          await $ctx.rsCtx.getEnt("order"),
+          "2 - foo_or_bar"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
-        await $ctx.rsCtx.getEnt("order"),
-        "2 - foo_or_bar"
-      ]));
     });
     $rs.when($ctx.krl.SelectWhen.e("execution_order:foo"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "foo" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["2 - foo"]);
+      try {
+        $ctx.setCurrentRuleName("foo");
+        $ctx.log.debug("rule selected", { "rule_name": "foo" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["2 - foo"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("order", await append1($ctx, [
+          await $ctx.rsCtx.getEnt("order"),
+          "2 - foo"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
-        await $ctx.rsCtx.getEnt("order"),
-        "2 - foo"
-      ]));
     });
     $rs.when($ctx.krl.SelectWhen.e("execution_order:bar"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "bar" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["2 - bar"]);
+      try {
+        $ctx.setCurrentRuleName("bar");
+        $ctx.log.debug("rule selected", { "rule_name": "bar" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["2 - bar"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("order", await append1($ctx, [
+          await $ctx.rsCtx.getEnt("order"),
+          "2 - bar"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
-        await $ctx.rsCtx.getEnt("order"),
-        "2 - bar"
-      ]));
     });
     return {
       "event": async function (event, eid) {

@@ -136,7 +136,7 @@ export async function startEngine(
 
   const uiECI = uiChannel.id;
 
-  const app = server(pf, uiECI);
+  const app = server(core, uiECI);
 
   if ((!port || !_.isInteger(port) || port < 1) && port !== 0) {
     port = 3000;

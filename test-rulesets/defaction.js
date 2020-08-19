@@ -208,201 +208,236 @@ module.exports = {
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("defa:foo"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "foo" });
-      var $fired = true;
-      if ($fired) {
-        await foo2($ctx, ["bar"]);
+      try {
+        $ctx.setCurrentRuleName("foo");
+        $ctx.log.debug("rule selected", { "rule_name": "foo" });
+        var $fired = true;
+        if ($fired) {
+          await foo2($ctx, ["bar"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:bar"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "bar" });
-      var $fired = true;
-      if ($fired) {
-        await bar2($ctx, {
-          "0": "baz",
-          "two": "qux",
-          "three": "quux"
-        });
+      try {
+        $ctx.setCurrentRuleName("bar");
+        $ctx.log.debug("rule selected", { "rule_name": "bar" });
+        var $fired = true;
+        if ($fired) {
+          await bar2($ctx, {
+            "0": "baz",
+            "two": "qux",
+            "three": "quux"
+          });
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:bar_setting"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "bar_setting" });
-      var $fired = true;
-      if ($fired) {
-        var val3 = await bar2($ctx, {
-          "0": "baz",
-          "two": "qux",
-          "three": "quux"
-        });
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("setting_val", val3);
+      try {
+        $ctx.setCurrentRuleName("bar_setting");
+        $ctx.log.debug("rule selected", { "rule_name": "bar_setting" });
+        var $fired = true;
+        if ($fired) {
+          var val3 = await bar2($ctx, {
+            "0": "baz",
+            "two": "qux",
+            "three": "quux"
+          });
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("setting_val", val3);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:chooser"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "chooser" });
-      var $fired = true;
-      if ($fired) {
-        await chooser2($ctx, [await $stdlib["get"]($ctx, [
-            $event.data.attrs,
-            "val"
-          ])]);
+      try {
+        $ctx.setCurrentRuleName("chooser");
+        $ctx.log.debug("rule selected", { "rule_name": "chooser" });
+        var $fired = true;
+        if ($fired) {
+          await chooser2($ctx, [await $stdlib["get"]($ctx, [
+              $event.data.attrs,
+              "val"
+            ])]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:ifAnotB"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "ifAnotB" });
-      var $fired = true;
-      if ($fired) {
-        await ifAnotB2($ctx, [
-          await $stdlib["=="]($ctx, [
-            await $stdlib["get"]($ctx, [
-              $event.data.attrs,
-              "a"
+      try {
+        $ctx.setCurrentRuleName("ifAnotB");
+        $ctx.log.debug("rule selected", { "rule_name": "ifAnotB" });
+        var $fired = true;
+        if ($fired) {
+          await ifAnotB2($ctx, [
+            await $stdlib["=="]($ctx, [
+              await $stdlib["get"]($ctx, [
+                $event.data.attrs,
+                "a"
+              ]),
+              "true"
             ]),
-            "true"
-          ]),
-          await $stdlib["=="]($ctx, [
-            await $stdlib["get"]($ctx, [
-              $event.data.attrs,
-              "b"
-            ]),
-            "true"
-          ])
-        ]);
+            await $stdlib["=="]($ctx, [
+              await $stdlib["get"]($ctx, [
+                $event.data.attrs,
+                "b"
+              ]),
+              "true"
+            ])
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:returns"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "returns" });
-      var $fired = true;
-      if ($fired) {
-        var abc3 = await echoAction2($ctx, [
-          "where",
-          "in",
-          "the"
-        ]);
-        var d3 = await complexAction2($ctx, [
-          await $stdlib["+"]($ctx, [
+      try {
+        $ctx.setCurrentRuleName("returns");
+        $ctx.log.debug("rule selected", { "rule_name": "returns" });
+        var $fired = true;
+        if ($fired) {
+          var abc3 = await echoAction2($ctx, [
+            "where",
+            "in",
+            "the"
+          ]);
+          var d3 = await complexAction2($ctx, [
             await $stdlib["+"]($ctx, [
-              await $stdlib["get"]($ctx, [
-                abc3,
-                [0]
+              await $stdlib["+"]($ctx, [
+                await $stdlib["get"]($ctx, [
+                  abc3,
+                  [0]
+                ]),
+                await $stdlib["get"]($ctx, [
+                  abc3,
+                  [1]
+                ])
               ]),
               await $stdlib["get"]($ctx, [
                 abc3,
-                [1]
+                [2]
               ])
+            ]),
+            333
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("setting_val", [
+            await $stdlib["get"]($ctx, [
+              abc3,
+              [0]
+            ]),
+            await $stdlib["get"]($ctx, [
+              abc3,
+              [1]
             ]),
             await $stdlib["get"]($ctx, [
               abc3,
               [2]
-            ])
-          ]),
-          333
-        ]);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("setting_val", [
-          await $stdlib["get"]($ctx, [
-            abc3,
-            [0]
-          ]),
-          await $stdlib["get"]($ctx, [
-            abc3,
-            [1]
-          ]),
-          await $stdlib["get"]($ctx, [
-            abc3,
-            [2]
-          ]),
-          d3
-        ]);
+            ]),
+            d3
+          ]);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("defa:scope"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "scope" });
-      const something3 = $ctx.krl.Action([], async function () {
+      try {
+        $ctx.setCurrentRuleName("scope");
+        $ctx.log.debug("rule selected", { "rule_name": "scope" });
+        const something3 = $ctx.krl.Action([], async function () {
+          var $fired = true;
+          if ($fired) {
+            await noop1(this, []);
+          }
+          return "did something!";
+        });
+        const send_directive3 = $ctx.krl.Action([], async function () {
+          var $fired = true;
+          if ($fired) {
+            var foo4 = await noop1(this, []);
+          }
+          return await $stdlib["+"]($ctx, [
+            "send wat? noop returned: ",
+            foo4
+          ]);
+        });
+        const echoAction3 = $ctx.krl.Action([], async function () {
+          var $fired = true;
+          if ($fired) {
+            await noop1(this, []);
+          }
+          return [
+            "aint",
+            "no",
+            "echo"
+          ];
+        });
         var $fired = true;
         if ($fired) {
-          await noop1(this, []);
+          var abc3 = await echoAction3($ctx, [
+            "where",
+            "in",
+            "the"
+          ]);
+          var d3 = await something3($ctx, []);
+          var e3 = await send_directive3($ctx, []);
         }
-        return "did something!";
-      });
-      const send_directive3 = $ctx.krl.Action([], async function () {
-        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
         if ($fired) {
-          var foo4 = await noop1(this, []);
+          await $ctx.rsCtx.putEnt("setting_val", [
+            await $stdlib["get"]($ctx, [
+              abc3,
+              [0]
+            ]),
+            await $stdlib["get"]($ctx, [
+              abc3,
+              [1]
+            ]),
+            await $stdlib["get"]($ctx, [
+              abc3,
+              [2]
+            ]),
+            d3,
+            e3
+          ]);
         }
-        return await $stdlib["+"]($ctx, [
-          "send wat? noop returned: ",
-          foo4
-        ]);
-      });
-      const echoAction3 = $ctx.krl.Action([], async function () {
-        var $fired = true;
-        if ($fired) {
-          await noop1(this, []);
-        }
-        return [
-          "aint",
-          "no",
-          "echo"
-        ];
-      });
-      var $fired = true;
-      if ($fired) {
-        var abc3 = await echoAction3($ctx, [
-          "where",
-          "in",
-          "the"
-        ]);
-        var d3 = await something3($ctx, []);
-        var e3 = await send_directive3($ctx, []);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("setting_val", [
-          await $stdlib["get"]($ctx, [
-            abc3,
-            [0]
-          ]),
-          await $stdlib["get"]($ctx, [
-            abc3,
-            [1]
-          ]),
-          await $stdlib["get"]($ctx, [
-            abc3,
-            [2]
-          ]),
-          d3,
-          e3
-        ]);
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     return {

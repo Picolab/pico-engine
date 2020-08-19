@@ -21,6 +21,7 @@ export function makeKrlCtx(
 
   let currentEvent: CurrentPicoEvent | null = null;
   let currentQuery: CurrentPicoQuery | null = null;
+  let currentRuleName: string | null = null;
 
   let directives: Directive[] = [];
 
@@ -44,6 +45,12 @@ export function makeKrlCtx(
         event ? { ...logCtxBase, txnId: event.eid } : logCtxBase
       );
       currentEvent = event;
+    },
+    getCurrentRuleName() {
+      return currentRuleName;
+    },
+    setCurrentRuleName(ruleName) {
+      currentRuleName = ruleName;
     },
     getQuery() {
       return currentQuery;
@@ -70,7 +77,16 @@ export function makeKrlCtx(
     ///////////////////////////////////////////////////////////////////////////
     // directives
     addDirective(name, options) {
-      const directive: Directive = { name, options: options || {} };
+      const directive: Directive = {
+        type: "directive",
+        name,
+        options: options || {},
+        meta: {
+          rid: rsCtx.ruleset.rid,
+          rule_name: currentRuleName,
+          txnId: currentEvent?.eid || null,
+        },
+      };
       directives.push(directive);
       return directive;
     },

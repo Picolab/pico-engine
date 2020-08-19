@@ -11,8 +11,14 @@ export interface CurrentPicoQuery extends PicoQuery {
 }
 
 export interface Directive {
+  type: "directive";
   name: string;
   options: { [name: string]: any };
+  meta: {
+    rid: string;
+    rule_name: string | null;
+    txnId: string | null;
+  };
 }
 
 export interface PicoLogEntry {
@@ -31,6 +37,8 @@ export interface KrlCtx {
   // current event/query
   getEvent(): CurrentPicoEvent | null;
   setEvent(event: CurrentPicoEvent | null): void;
+  setCurrentRuleName(ruleName: string | null): void;
+  getCurrentRuleName(): string | null;
   getQuery(): CurrentPicoQuery | null;
   setQuery(query: CurrentPicoQuery | null): void;
 

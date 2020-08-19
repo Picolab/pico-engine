@@ -19,6 +19,10 @@ async function mkCallLib(onLogLine?: (str: string) => void) {
       return null;
     },
     setEvent(event) {},
+    setCurrentRuleName(rn) {},
+    getCurrentRuleName() {
+      return null;
+    },
     getQuery() {
       return null;
     },
@@ -29,7 +33,16 @@ async function mkCallLib(onLogLine?: (str: string) => void) {
     configure(name, dflt) {},
     useModule(rid, alias, configure) {},
     addDirective(name, options) {
-      return { name, options: options || {} };
+      return {
+        type: "directive",
+        name,
+        options: options || {},
+        meta: {
+          rid: "test",
+          rule_name: "test",
+          txnId: "test",
+        },
+      };
     },
     drainDirectives() {
       return [];

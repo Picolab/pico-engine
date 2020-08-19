@@ -14,18 +14,23 @@ module.exports = {
     };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("log:levels"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "levels" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        $ctx.log.info("hello default");
-        $ctx.log.error("hello error");
-        $ctx.log.warn("hello warn");
-        $ctx.log.info("hello info");
-        $ctx.log.debug("hello debug");
+      try {
+        $ctx.setCurrentRuleName("levels");
+        $ctx.log.debug("rule selected", { "rule_name": "levels" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          $ctx.log.info("hello default");
+          $ctx.log.error("hello error");
+          $ctx.log.warn("hello warn");
+          $ctx.log.info("hello info");
+          $ctx.log.debug("hello debug");
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     return {

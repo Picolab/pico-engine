@@ -94,106 +94,146 @@ module.exports = {
     const dfltName2 = await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []);
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("module_used:dflt_name"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "dflt_name" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "dflt_name",
-          { "name": await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []) }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("dflt_name");
+        $ctx.log.debug("rule selected", { "rule_name": "dflt_name" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "dflt_name",
+            { "name": await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []) }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:conf_name"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "conf_name" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "conf_name",
-          { "name": await $ctx.krl.assertFunction($ctx.module("my_module_conf")["getName"])($ctx, []) }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("conf_name");
+        $ctx.log.debug("rule selected", { "rule_name": "conf_name" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "conf_name",
+            { "name": await $ctx.krl.assertFunction($ctx.module("my_module_conf")["getName"])($ctx, []) }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:dflt_info"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "dflt_info" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "dflt_info",
-          { "info": await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getInfo"])($ctx, []) }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("dflt_info");
+        $ctx.log.debug("rule selected", { "rule_name": "dflt_info" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "dflt_info",
+            { "info": await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["getInfo"])($ctx, []) }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:conf_info"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "conf_info" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "conf_info",
-          { "info": await $ctx.krl.assertFunction($ctx.module("my_module_conf")["getInfo"])($ctx, []) }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("conf_info");
+        $ctx.log.debug("rule selected", { "rule_name": "conf_info" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "conf_info",
+            { "info": await $ctx.krl.assertFunction($ctx.module("my_module_conf")["getInfo"])($ctx, []) }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:dflt_getInfoAction"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "dflt_getInfoAction" });
-      var $fired = true;
-      if ($fired) {
-        var info3 = await $ctx.krl.assertAction($ctx.module("my_module_dflt")["getInfoAction"])($ctx, []);
+      try {
+        $ctx.setCurrentRuleName("dflt_getInfoAction");
+        $ctx.log.debug("rule selected", { "rule_name": "dflt_getInfoAction" });
+        var $fired = true;
+        if ($fired) {
+          var info3 = await $ctx.krl.assertAction($ctx.module("my_module_dflt")["getInfoAction"])($ctx, []);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("val", info3);
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("val", info3);
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:conf_getInfoAction"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "conf_getInfoAction" });
-      var $fired = true;
-      if ($fired) {
-        var info3 = await $ctx.krl.assertAction($ctx.module("my_module_conf")["getInfoAction"])($ctx, []);
+      try {
+        $ctx.setCurrentRuleName("conf_getInfoAction");
+        $ctx.log.debug("rule selected", { "rule_name": "conf_getInfoAction" });
+        var $fired = true;
+        if ($fired) {
+          var info3 = await $ctx.krl.assertAction($ctx.module("my_module_conf")["getInfoAction"])($ctx, []);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("val", info3);
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("val", info3);
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:sayHelloWithOperator"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "sayHelloWithOperator" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"]($ctx))($ctx, ["bob"])]);
+      try {
+        $ctx.setCurrentRuleName("sayHelloWithOperator");
+        $ctx.log.debug("rule selected", { "rule_name": "sayHelloWithOperator" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"]($ctx))($ctx, ["bob"])]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("module_used:uninstall"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "uninstall" });
-      var $fired = true;
-      if ($fired) {
-        await $ctx.krl.assertAction($ctx.module("ctx")["uninstall"])($ctx, ["io.picolabs.module-defined"]);
+      try {
+        $ctx.setCurrentRuleName("uninstall");
+        $ctx.log.debug("rule selected", { "rule_name": "uninstall" });
+        var $fired = true;
+        if ($fired) {
+          await $ctx.krl.assertAction($ctx.module("ctx")["uninstall"])($ctx, ["io.picolabs.module-defined"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     return {
       "event": async function (event, eid) {

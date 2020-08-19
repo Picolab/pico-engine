@@ -151,135 +151,165 @@ module.exports = {
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("http_test:get"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "http_get" });
-      const url3 = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "url"
-      ]);
-      var $fired = true;
-      if ($fired) {
-        var resp3 = await $ctx.krl.assertAction($ctx.module("http")["get"])($ctx, {
-          "0": url3,
-          "qs": { "foo": "bar" },
-          "headers": { "baz": "quix" }
-        });
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
+      try {
+        $ctx.setCurrentRuleName("http_get");
+        $ctx.log.debug("rule selected", { "rule_name": "http_get" });
+        const url3 = await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "url"
+        ]);
+        var $fired = true;
+        if ($fired) {
+          var resp3 = await $ctx.krl.assertAction($ctx.module("http")["get"])($ctx, {
+            "0": url3,
+            "qs": { "foo": "bar" },
+            "headers": { "baz": "quix" }
+          });
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("http_test:post"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "http_post" });
-      const url3 = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "url"
-      ]);
-      var $fired = true;
-      if ($fired) {
-        var resp3 = await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
-          "0": url3,
-          "json": {
-            "foo": "bar",
-            "baz": doPost2
-          }
-        });
-        await send_directive1($ctx, [
-          "resp.content.body",
-          await decode1($ctx, [await $stdlib["get"]($ctx, [
-              await decode1($ctx, [await $stdlib["get"]($ctx, [
-                  resp3,
-                  ["content"]
-                ])]),
-              ["body"]
-            ])])
+      try {
+        $ctx.setCurrentRuleName("http_post");
+        $ctx.log.debug("rule selected", { "rule_name": "http_post" });
+        const url3 = await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "url"
         ]);
+        var $fired = true;
+        if ($fired) {
+          var resp3 = await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
+            "0": url3,
+            "json": {
+              "foo": "bar",
+              "baz": doPost2
+            }
+          });
+          await send_directive1($ctx, [
+            "resp.content.body",
+            await decode1($ctx, [await $stdlib["get"]($ctx, [
+                await decode1($ctx, [await $stdlib["get"]($ctx, [
+                    resp3,
+                    ["content"]
+                  ])]),
+                ["body"]
+              ])])
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("http_test:post_action"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "http_post_action" });
-      const url3 = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "url"
-      ]);
-      var $fired = true;
-      if ($fired) {
-        await doPost2($ctx, [
-          url3,
-          "bob",
-          "foobar"
+      try {
+        $ctx.setCurrentRuleName("http_post_action");
+        $ctx.log.debug("rule selected", { "rule_name": "http_post_action" });
+        const url3 = await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "url"
         ]);
+        var $fired = true;
+        if ($fired) {
+          await doPost2($ctx, [
+            url3,
+            "bob",
+            "foobar"
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("http_test:post_setting"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "http_post_setting" });
-      const url3 = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "url"
-      ]);
-      var $fired = true;
-      if ($fired) {
-        var resp3 = await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
-          "0": url3,
-          "qs": { "foo": "bar" },
-          "form": { "baz": "qux" }
-        });
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
+      try {
+        $ctx.setCurrentRuleName("http_post_setting");
+        $ctx.log.debug("rule selected", { "rule_name": "http_post_setting" });
+        const url3 = await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "url"
+        ]);
+        var $fired = true;
+        if ($fired) {
+          var resp3 = await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
+            "0": url3,
+            "qs": { "foo": "bar" },
+            "form": { "baz": "qux" }
+          });
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     $rs.when($ctx.krl.SelectWhen.e("http_test:autoraise"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "http_autorase" });
-      const url3 = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "url"
-      ]);
-      var $fired = true;
-      if ($fired) {
-        await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
-          "0": url3,
-          "qs": { "foo": "bar" },
-          "form": { "baz": "qux" },
-          "autoraise": "foobar"
-        });
+      try {
+        $ctx.setCurrentRuleName("http_autorase");
+        $ctx.log.debug("rule selected", { "rule_name": "http_autorase" });
+        const url3 = await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "url"
+        ]);
+        var $fired = true;
+        if ($fired) {
+          await $ctx.krl.assertAction($ctx.module("http")["post"])($ctx, {
+            "0": url3,
+            "qs": { "foo": "bar" },
+            "form": { "baz": "qux" },
+            "autoraise": "foobar"
+          });
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     $rs.when($ctx.krl.SelectWhen.e("http:post"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "http_post_event_handler" });
-      const resp3 = await fmtResp2($ctx, [$event.data.attrs]);
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "http_post_event_handler",
-          { "attrs": resp3 }
-        ]);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
-        await $ctx.rsCtx.putEnt("last_post_event", resp3);
+      try {
+        $ctx.setCurrentRuleName("http_post_event_handler");
+        $ctx.log.debug("rule selected", { "rule_name": "http_post_event_handler" });
+        const resp3 = await fmtResp2($ctx, [$event.data.attrs]);
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "http_post_event_handler",
+            { "attrs": resp3 }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("last_post_event", resp3);
+        }
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
     });
     return {

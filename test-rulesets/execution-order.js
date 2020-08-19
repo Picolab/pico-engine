@@ -55,103 +55,133 @@ module.exports = {
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("execution_order:all"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "first" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["first"]);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
+      try {
+        $ctx.setCurrentRuleName("first");
+        $ctx.log.debug("rule selected", { "rule_name": "first" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["first"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("order", await append1($ctx, [
+            await $ctx.rsCtx.getEnt("order"),
+            "first-fired"
+          ]));
+        }
         await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
-          "first-fired"
+          "first-finally"
         ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
-        await $ctx.rsCtx.getEnt("order"),
-        "first-finally"
-      ]));
     });
     $rs.when($ctx.krl.SelectWhen.e("execution_order:all"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "second" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["second"]);
-      }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      if ($fired) {
+      try {
+        $ctx.setCurrentRuleName("second");
+        $ctx.log.debug("rule selected", { "rule_name": "second" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["second"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        if ($fired) {
+          await $ctx.rsCtx.putEnt("order", await append1($ctx, [
+            await $ctx.rsCtx.getEnt("order"),
+            "second-fired"
+          ]));
+        }
         await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
-          "second-fired"
+          "second-finally"
         ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
-        await $ctx.rsCtx.getEnt("order"),
-        "second-finally"
-      ]));
     });
     $rs.when($ctx.krl.SelectWhen.e("execution_order:reset_order"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "reset_order" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["reset_order"]);
+      try {
+        $ctx.setCurrentRuleName("reset_order");
+        $ctx.log.debug("rule selected", { "rule_name": "reset_order" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["reset_order"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("order", []);
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", []);
     });
     $rs.when($ctx.krl.SelectWhen.or($ctx.krl.SelectWhen.e("execution_order:foo"), $ctx.krl.SelectWhen.e("execution_order:bar")), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "foo_or_bar" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["foo_or_bar"]);
+      try {
+        $ctx.setCurrentRuleName("foo_or_bar");
+        $ctx.log.debug("rule selected", { "rule_name": "foo_or_bar" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["foo_or_bar"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("order", await append1($ctx, [
+          await $ctx.rsCtx.getEnt("order"),
+          "foo_or_bar"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
-        await $ctx.rsCtx.getEnt("order"),
-        "foo_or_bar"
-      ]));
     });
     $rs.when($ctx.krl.SelectWhen.e("execution_order:foo"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "foo" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["foo"]);
+      try {
+        $ctx.setCurrentRuleName("foo");
+        $ctx.log.debug("rule selected", { "rule_name": "foo" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["foo"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("order", await append1($ctx, [
+          await $ctx.rsCtx.getEnt("order"),
+          "foo"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
-        await $ctx.rsCtx.getEnt("order"),
-        "foo"
-      ]));
     });
     $rs.when($ctx.krl.SelectWhen.e("execution_order:bar"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "bar" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["bar"]);
+      try {
+        $ctx.setCurrentRuleName("bar");
+        $ctx.log.debug("rule selected", { "rule_name": "bar" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["bar"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("order", await append1($ctx, [
+          await $ctx.rsCtx.getEnt("order"),
+          "bar"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await append1($ctx, [
-        await $ctx.rsCtx.getEnt("order"),
-        "bar"
-      ]));
     });
     return {
       "event": async function (event, eid) {

@@ -77,21 +77,26 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "store_my_name" });
-      var my_name3 = $state.setting["my_name"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "store_name",
-          { "name": my_name3 }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("store_my_name");
+        $ctx.log.debug("rule selected", { "rule_name": "store_my_name" });
+        var my_name3 = $state.setting["my_name"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "store_name",
+            { "name": my_name3 }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("name", my_name3);
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("name", my_name3);
     });
     $rs.when($ctx.krl.SelectWhen.e("store:user_firstname", async function ($event, $state) {
       var matches = [];
@@ -112,38 +117,48 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "store_user_firstname" });
-      var firstname3 = $state.setting["firstname"];
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, [
-          "store_user_firstname",
-          { "name": firstname3 }
-        ]);
+      try {
+        $ctx.setCurrentRuleName("store_user_firstname");
+        $ctx.log.debug("rule selected", { "rule_name": "store_user_firstname" });
+        var firstname3 = $state.setting["firstname"];
+        this.rule.state = Object.assign({}, $state, { "setting": {} });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, [
+            "store_user_firstname",
+            { "name": firstname3 }
+          ]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("user", { "lastname": "McCoy" });
+        await $ctx.rsCtx.putEnt("user", await $stdlib.set($ctx, [
+          await $ctx.rsCtx.getEnt("user"),
+          ["firstname"],
+          firstname3
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("user", { "lastname": "McCoy" });
-      await $ctx.rsCtx.putEnt("user", await $stdlib.set($ctx, [
-        await $ctx.rsCtx.getEnt("user"),
-        ["firstname"],
-        firstname3
-      ]));
     });
     $rs.when($ctx.krl.SelectWhen.e("store:clear_user"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "clear_user" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["clear_user"]);
+      try {
+        $ctx.setCurrentRuleName("clear_user");
+        $ctx.log.debug("rule selected", { "rule_name": "clear_user" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["clear_user"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.delEnt("user");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.delEnt("user");
     });
     return {
       "event": async function (event, eid) {

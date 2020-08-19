@@ -1,6 +1,12 @@
 import { krl, KrlLogger, PicoLogEntry } from "krl-stdlib";
-import { PicoFramework, RulesetContext } from "pico-framework";
+import {
+  PicoEvent,
+  PicoFramework,
+  PicoQuery,
+  RulesetContext,
+} from "pico-framework";
 import { CorePico } from "./CorePico";
+import { CoreEventOutput, formatEventOutput } from "./formatEventOutput";
 import { makeKrlCtx } from "./makeKrlCtx";
 import initCtxModule from "./modules/ctx";
 import module_event from "./modules/event";
@@ -132,5 +138,21 @@ export class PicoEngineCore {
 
   getPico(picoId: string): CorePico | null {
     return this.picos[picoId] || null;
+  }
+
+  event(event: PicoEvent): Promise<string> {
+    return this.picoFramework.event(event);
+  }
+
+  eventWait(event: PicoEvent): Promise<CoreEventOutput> {
+    return this.picoFramework.eventWait(event).then(formatEventOutput);
+  }
+
+  eventQuery(event: PicoEvent, query: PicoQuery) {
+    return this.picoFramework.eventQuery(event, query);
+  }
+
+  query(query: PicoQuery) {
+    return this.picoFramework.query(query);
   }
 }

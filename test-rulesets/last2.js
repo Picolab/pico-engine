@@ -16,15 +16,20 @@ module.exports = {
     };
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("last:all"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "foo" });
-      var $fired = true;
-      if ($fired) {
-        await send_directive1($ctx, ["last2 foo"]);
+      try {
+        $ctx.setCurrentRuleName("foo");
+        $ctx.log.debug("rule selected", { "rule_name": "foo" });
+        var $fired = true;
+        if ($fired) {
+          await send_directive1($ctx, ["last2 foo"]);
+        }
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+      } finally {
+        $ctx.setCurrentRuleName(null);
       }
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
     });
     return {
       "event": async function (event, eid) {

@@ -28,6 +28,8 @@ export function makeKrlCtxKrlModule(
     // current event/query is not applicable for krl modules
     getEvent: () => null,
     setEvent(event) {},
+    getCurrentRuleName: () => null,
+    setCurrentRuleName(ruleName) {},
     getQuery: () => null,
     setQuery(query) {},
 

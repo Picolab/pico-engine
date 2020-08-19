@@ -89,104 +89,139 @@ module.exports = {
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
     $rs.when($ctx.krl.SelectWhen.e("pindex:setfoo"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "setfoo" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("foo", $event.data.attrs);
+      try {
+        $ctx.setCurrentRuleName("setfoo");
+        $ctx.log.debug("rule selected", { "rule_name": "setfoo" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("foo", $event.data.attrs);
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     $rs.when($ctx.krl.SelectWhen.e("pindex:putfoo"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "putfoo" });
-      const key3 = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "key"
-      ]);
-      const value3 = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "value"
-      ]);
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("foo", await $stdlib.set($ctx, [
-        await $ctx.rsCtx.getEnt("foo"),
-        key3,
-        value3
-      ]));
+      try {
+        $ctx.setCurrentRuleName("putfoo");
+        $ctx.log.debug("rule selected", { "rule_name": "putfoo" });
+        const key3 = await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "key"
+        ]);
+        const value3 = await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "value"
+        ]);
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("foo", await $stdlib.set($ctx, [
+          await $ctx.rsCtx.getEnt("foo"),
+          key3,
+          value3
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     $rs.when($ctx.krl.SelectWhen.e("pindex:delfoo"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "delfoo" });
-      const key3 = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "key"
-      ]);
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("foo", await $stdlib.delete($ctx, [
-        await $ctx.rsCtx.getEnt("foo"),
-        key3
-      ]));
+      try {
+        $ctx.setCurrentRuleName("delfoo");
+        $ctx.log.debug("rule selected", { "rule_name": "delfoo" });
+        const key3 = await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "key"
+        ]);
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("foo", await $stdlib.delete($ctx, [
+          await $ctx.rsCtx.getEnt("foo"),
+          key3
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     $rs.when($ctx.krl.SelectWhen.e("pindex:nukefoo"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "nukefoo" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.delEnt("foo");
+      try {
+        $ctx.setCurrentRuleName("nukefoo");
+        $ctx.log.debug("rule selected", { "rule_name": "nukefoo" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.delEnt("foo");
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     $rs.when($ctx.krl.SelectWhen.e("pindex:putbaz"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "putbaz" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("baz", await $stdlib.set($ctx, [
-        await $ctx.rsCtx.getEnt("baz"),
-        [
-          "one",
-          "two"
-        ],
-        "three"
-      ]));
+      try {
+        $ctx.setCurrentRuleName("putbaz");
+        $ctx.log.debug("rule selected", { "rule_name": "putbaz" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("baz", await $stdlib.set($ctx, [
+          await $ctx.rsCtx.getEnt("baz"),
+          [
+            "one",
+            "two"
+          ],
+          "three"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     $rs.when($ctx.krl.SelectWhen.e("pindex:setmaplist"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "setmaplist" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("maplist", [
-        { "id": "one" },
-        { "id": "two" },
-        { "id": "three" }
-      ]);
+      try {
+        $ctx.setCurrentRuleName("setmaplist");
+        $ctx.log.debug("rule selected", { "rule_name": "setmaplist" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("maplist", [
+          { "id": "one" },
+          { "id": "two" },
+          { "id": "three" }
+        ]);
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     $rs.when($ctx.krl.SelectWhen.e("pindex:putmaplist"), async function ($event, $state, $last) {
-      $ctx.log.debug("rule selected", { "rule_name": "putmaplist" });
-      var $fired = true;
-      if ($fired)
-        $ctx.log.debug("fired");
-      else
-        $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("maplist", await $stdlib.set($ctx, [
-        await $ctx.rsCtx.getEnt("maplist"),
-        [
-          1,
-          "other"
-        ],
-        "thing"
-      ]));
+      try {
+        $ctx.setCurrentRuleName("putmaplist");
+        $ctx.log.debug("rule selected", { "rule_name": "putmaplist" });
+        var $fired = true;
+        if ($fired)
+          $ctx.log.debug("fired");
+        else
+          $ctx.log.debug("not fired");
+        await $ctx.rsCtx.putEnt("maplist", await $stdlib.set($ctx, [
+          await $ctx.rsCtx.getEnt("maplist"),
+          [
+            1,
+            "other"
+          ],
+          "thing"
+        ]));
+      } finally {
+        $ctx.setCurrentRuleName(null);
+      }
     });
     return {
       "event": async function (event, eid) {
