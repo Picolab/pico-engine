@@ -23,9 +23,8 @@ const generateDID = krl.Function([], function () {
     };
   });
 
-export default function initUrsaModule(core: PicoEngineCore) {
-  const module: krl.Module = {
-    generateDID: generateDID,
-  };
-  return module;
-}
+const ursa: krl.Module = {
+  generateDID: generateDID,
+};
+
+export default ursa;
