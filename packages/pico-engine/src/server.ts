@@ -123,15 +123,21 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
   });
 
   app.all("/sky/cloud/:eci/:rid/:function", function (req, res, next) {
+    const funcPart = req.params["function"].split(".");
     core
       .query({
         eci: req.params.eci,
         rid: req.params.rid,
-        name: req.params["function"],
+        name: funcPart[0],
         args: mergeGetPost(req),
       })
       .then((data) => {
-        res.json(data);
+        if (funcPart[1] === "html") {
+          res.header("Content-Type", "text/html");
+          res.end(data);
+        } else {
+          res.json(data);
+        }
       })
       .catch(next);
   });
