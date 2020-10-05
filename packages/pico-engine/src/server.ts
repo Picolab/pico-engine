@@ -18,7 +18,7 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
 
   app.use(helmet());
   app.use(express.static(path.resolve(__dirname, "..", "public")));
-  app.use(bodyParser.json({ type: "application/json" }));
+  app.use(bodyParser.json({ type: [ "application/json", 'application/octet-stream', 'application/ssi-agent-wire' ] }));
   app.use(
     bodyParser.urlencoded({
       limit: "512mb",
