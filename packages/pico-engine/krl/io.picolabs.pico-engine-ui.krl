@@ -135,6 +135,11 @@ ruleset io.picolabs.pico-engine-ui {
       ctx:flush(url=event:attrs{"url"})
       ctx:install(url=event:attrs{"url"}, config=event:attrs{"config"})
     }
+    fired {
+      raise wrangler event "ruleset_installed" attributes {
+        "rids": ctx:rulesets.map(function(r){r.get("rid")})
+      }
+    }
   }
   rule uninstall {
     select when engine_ui uninstall
