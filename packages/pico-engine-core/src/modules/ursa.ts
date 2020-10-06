@@ -3,27 +3,30 @@ import { krl } from "krl-stdlib";
 const nacl = require('tweetnacl');
 const bs58 = require('bs58');
 
+// Thanks to https://github.com/dbluhm/indy-pack-unpack-js
+const sodium = require('libsodium-wrappers')
+
 const generateDID = krl.Function([], function () {
     const seed = nacl.randomBytes(nacl.sign.seedLength);
     const x = nacl.sign.keyPair.fromSeed(seed);
     const secretKey = x.secretKey.subarray(0,32);
     const signKey = bs58.encode(Buffer.from(secretKey));
     const keyPair = nacl.box.keyPair.fromSecretKey(secretKey);
+    const ariesPair = sodium.crypto_sign_keypair();
 
     return {
       did: bs58.encode(Buffer.from(x.publicKey.subarray(0,16))),
       verifyKey: bs58.encode(Buffer.from(x.publicKey)),
       encryptionPublicKey: bs58.encode(Buffer.from(keyPair.publicKey)),
+      ariesPublicKey: bs58.encode(Buffer.from(ariesPair.publicKey)),
       secret: {
         seed: Buffer.from(seed).toString('hex'),
         signKey: signKey,
-        encryptionPrivateKey: bs58.encode(Buffer.from(keyPair.secretKey))
+        encryptionPrivateKey: bs58.encode(Buffer.from(keyPair.secretKey)),
+        ariesPrivateKey: bs58.encode(Buffer.from(ariesPair.privateKey)),
       }
     };
   });
-
-// Thanks to https://github.com/dbluhm/indy-pack-unpack-js
-const sodium = require('libsodium-wrappers')
 
 function b64url (input : Uint8Array) : string {
   return sodium.to_base64(input, sodium.base64_variants.URLSAFE)
@@ -42,9 +45,9 @@ const unpack = krl.Function([
     'chann'
   ], (messageIn : any, chann : any) => {
     const keys = {
-      public: bs58.decode(chann.verifyKey),
-      public58: chann.verifyKey,
-      private: bs58.decode(chann.secret.signKey)
+      public: bs58.decode(chann.ariesPublicKey),
+      public58: chann.ariesPublicKey,
+      private: bs58.decode(chann.secret.ariesPrivateKey)
     }
 
     const wrapper = krl.isString(messageIn)
