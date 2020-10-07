@@ -40,6 +40,24 @@ function b64decStr (input : string) : string {
   return sodium.to_string(sodium.from_base64(input, sodium.base64_variants.URLSAFE))
 }
 
+const verify_signed_field = krl.Function([
+    'signed_field'
+  ], (signed_field) => {
+    const signatureBytes = b64dec(signed_field.signature)
+    const sigDataBytes = b64dec(signed_field.sig_data)
+    const signer = bs58.decode(signed_field.signer)
+    const verified = sodium.crypto_sign_verify_detached(
+      signatureBytes,
+      sigDataBytes,
+      signer)
+    const data = Buffer.from(sigDataBytes.slice(8)).toString('ascii')
+    return {
+      'sig_verified': verified,
+      'field': data,
+      'timestamp': sigDataBytes.slice(0, 8)
+    }
+  })
+
 const unpack = krl.Function([
     'messageIn',
     'chann'
@@ -175,6 +193,7 @@ const pack = krl.Function([
 
 const ursa: krl.Module = {
   generateDID: generateDID,
+  verify_signed_field: verify_signed_field,
   unpack: unpack,
   pack: pack,
 };
