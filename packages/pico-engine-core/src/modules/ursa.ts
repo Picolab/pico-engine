@@ -32,6 +32,10 @@ function b64url (input : string) : string {
   return sodium.to_base64(input, sodium.base64_variants.URLSAFE)
 }
 
+function b64url_2 (input : Uint8Array) : string {
+  return sodium.to_base64(input, sodium.base64_variants.URLSAFE)
+}
+
 function b64dec (input : string) : Uint8Array {
   return sodium.from_base64(input, sodium.base64_variants.URLSAFE)
 }
@@ -39,6 +43,20 @@ function b64dec (input : string) : Uint8Array {
 function b64decStr (input : string) : string {
   return sodium.to_string(sodium.from_base64(input, sodium.base64_variants.URLSAFE))
 }
+
+const sig_data = krl.Function([
+    'bytes'
+  ], (bytes) => {
+    return b64url_2(Uint8Array.from(bytes))
+  })
+
+const crypto_sign = krl.Function([
+    'bytes',
+    'chann'
+  ], (bytes, chann) => {
+    const key = bs58.decode(chann.secret.ariesPrivateKey)
+    return b64url(sodium.crypto_sign_detached(Uint8Array.from(bytes), key))
+  })
 
 const verify_signed_field = krl.Function([
     'signed_field'
@@ -193,6 +211,8 @@ const pack = krl.Function([
 
 const ursa: krl.Module = {
   generateDID: generateDID,
+  sig_data: sig_data,
+  crypto_sign: crypto_sign,
   verify_signed_field: verify_signed_field,
   unpack: unpack,
   pack: pack,
