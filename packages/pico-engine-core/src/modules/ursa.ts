@@ -28,11 +28,7 @@ const generateDID = krl.Function([], function () {
     };
   });
 
-function b64url (input : string) : string {
-  return sodium.to_base64(input, sodium.base64_variants.URLSAFE)
-}
-
-function b64url_2 (input : Uint8Array) : string {
+function b64url (input : string | Uint8Array) : string {
   return sodium.to_base64(input, sodium.base64_variants.URLSAFE)
 }
 
@@ -47,7 +43,7 @@ function b64decStr (input : string) : string {
 const sig_data = krl.Function([
     'bytes'
   ], (bytes) => {
-    return b64url_2(Uint8Array.from(bytes))
+    return b64url(Uint8Array.from(bytes))
   })
 
 const crypto_sign = krl.Function([
