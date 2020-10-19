@@ -102,11 +102,12 @@ const Pico: React.FC<Props> = props => {
           <Link
             to={`/`}
             className={"btn btn-light position-absolute"}
-            style={{ right: 0, top: 0 }}
+            style={{ right: 5, top: 5 }}
           >
             Close
           </Link>
           <div className="card-header">
+            <div className="card-header-pico-name">{pico.name}</div>
             <ul className="nav nav-tabs card-header-tabs">
               {returnTabLink(pico, "About")}
               {returnTabLink(pico, "Rulesets", "rulesets")}

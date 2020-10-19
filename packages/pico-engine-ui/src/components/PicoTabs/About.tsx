@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { apiGet, apiPost, apiSavePicoBox } from "../../api";
+import { apiGet, apiPost, apiSavePicoBox, getAllPicoBoxes } from "../../api";
 import picoPageStore from "../../stores/picoPageStore";
 import { PicoBox } from "../../types/PicoBox";
 import useAsyncAction from "../../useAsyncAction";
@@ -19,6 +19,22 @@ const About: React.FC<Props> = ({ pico }) => {
 
   const input_add_name = React.useRef<HTMLInputElement | null>(null);
   const input_add_backgroundColor = React.useRef<HTMLInputElement | null>(null);
+
+  var [association, setAssociation] = React.useState(new Map());
+
+  React.useEffect(() => {
+    //Creates a map of eci to name for children and parent.
+    let arr = [...pico.children]
+    if(pico.parent) {
+      arr.push(pico.parent)
+    }
+    arr.map((eci) => {
+      let promise = getAllPicoBoxes(eci);
+      promise.then((resp)=>{
+        setAssociation(new Map(association.set(eci, resp[0].name)))
+      })
+    });
+  }, [pico.children])
 
   const savePico = useAsyncAction<{
     eci: string;
@@ -62,6 +78,7 @@ const About: React.FC<Props> = ({ pico }) => {
           <Link to={"/pico/" + pico.parent} className="text-mono mr-2">
             {pico.parent}
           </Link>
+          {association.get(pico.parent)}
         </div>
       ) : (
         ""
@@ -123,6 +140,7 @@ const About: React.FC<Props> = ({ pico }) => {
                 <Link to={"/pico/" + eci} className="text-mono mr-2">
                   {eci}
                 </Link>
+                {association.get(eci)}{' '}
                 |
                 <button
                   className="btn btn-link btn-sm"
