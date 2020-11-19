@@ -499,7 +499,7 @@ ruleset io.picolabs.wrangler {
       invalid_rids = rid_list.difference(valid_rids)
       initial_install = event:attr("init").defaultsTo(false) // if this is a new pico
     }
-    if(rids !=  "") && valid_rids.length() > 0 then every{
+    if valid_rids.length() > 0 then every{
       installRulesets(valid_rids) setting(rids)
       send_directive("rulesets installed", { "rids": rids{"rids"} });
     }
