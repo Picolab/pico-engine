@@ -19,7 +19,7 @@ ruleset io.picolabs.wrangler {
     provides skyQuery ,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci, createChannel, newPolicy,//channel
-    children, parent_eci, name, profile, pico, randomPicoName, deleteChild, pico, myself, isMarkedForDeath
+    children, parent_eci, name, profile, pico, randomPicoName, pico, myself, isMarkedForDeath
     shares skyQuery ,
     rulesetsInfo,installedRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci,//channel
