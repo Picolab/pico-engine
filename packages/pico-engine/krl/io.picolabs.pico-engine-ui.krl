@@ -3,7 +3,8 @@ ruleset io.picolabs.pico-engine-ui {
     version "0.0.0"
     name "pico-engine-ui"
     description "This is the only ruleset the pico-engine-ui.js needs to operate"
-    shares box, uiECI, pico, logs, testingECI
+    shares box, uiECI, pico, logs, testingECI, name
+    provides uiECI
   }
   global {
     uiECI = function(){
@@ -18,12 +19,15 @@ ruleset io.picolabs.pico-engine-ui {
     testingECI = function(){
       return ent:testingECI
     }
+    name = function(){
+      ent:name || "Pico"
+    }
     box = function(){
       return {
         "eci": uiECI(),
         "parent": getOtherUiECI(ctx:parent),
         "children": ctx:children.map(getOtherUiECI),
-        "name": ent:name || "Pico",
+        "name": name(),
         "backgroundColor": ent:backgroundColor || "#87cefa",
         "x": ent:x || 100,
         "y": ent:y || 100,
