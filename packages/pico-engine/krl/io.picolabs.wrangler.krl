@@ -173,20 +173,20 @@ ruleset io.picolabs.wrangler {
       every{
         engine:installRuleset(meta:picoId, rids) setting(new_ruleset)
       }
-      returns {"rids": new_ruleset}
+      return {"rids": new_ruleset}
     }
 
     installRulesetByURL = defaction(url){
       every{
         engine:installRuleset(meta:picoId, url=url) setting(new_ruleset)
       }
-      returns [new_ruleset]
+      return [new_ruleset]
     }
 
     uninstallRulesets = defaction(rids){
       every{
        engine:uninstallRuleset(meta:picoId, rids)
-      }returns{}
+      }return{}
     }
     
 
@@ -237,7 +237,7 @@ ruleset io.picolabs.wrangler {
         channel = channel(value,null,null)
         eci = channel{"id"}
         engine:removeChannel(eci)
-        returns channel
+        return channel
     }
 
     createChannel = defaction(id , name, type, policy_id) {
@@ -246,7 +246,7 @@ ruleset io.picolabs.wrangler {
         T => engine:newChannel(id , name, type, policy_id) setting(channel);
         F => engine:newChannel(id , name, type) setting(channel);
       }
-      returns channel
+      return channel
     }
 
     /*
@@ -256,7 +256,7 @@ ruleset io.picolabs.wrangler {
       every{
         engine:newPolicy( new_policy ) setting(created_policy)
       }
-      returns created_policy
+      return created_policy
     }
 
 // ********************************************************************************************
@@ -422,7 +422,7 @@ ruleset io.picolabs.wrangler {
             }))
           });
       }
-      returns {
+      return {
        "parent_eci": parent_channel{"id"},
        "name": name,
        "id" : child{"id"},
