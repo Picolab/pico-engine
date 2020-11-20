@@ -15,7 +15,6 @@ ruleset io.picolabs.wrangler {
     >>
     author "BYU Pico Lab"
 
-    use module io.picolabs.pico-engine-ui alias ui
     provides skyQuery ,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci, createChannel, newPolicy,//channel
@@ -275,11 +274,11 @@ ruleset io.picolabs.wrangler {
     }
   
     children = function(name, allowRogue = true) {
-      myECI = ui:uiECI()
       convert = function(eci){
-        pico = {}.put("eci",eci)
+        pico = {}
+          .put("eci",eci)
           .put("name",ctx:query(eci,"io.picolabs.pico-engine-ui","name"))
-          .put("parent_eci",myECI)
+          .put("parent_eci",ctx:query(eci,ctx:rid,"parent_eci"))
         pico
       }
       wrangler_children = ctx:children
@@ -301,7 +300,7 @@ ruleset io.picolabs.wrangler {
     }
   
     parent_eci = function() {
-      ent:parent_eci.defaultsTo("")
+      ctx:parent
     }
   
     profile = function(key) {
