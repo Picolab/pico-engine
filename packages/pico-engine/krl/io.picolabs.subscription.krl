@@ -11,7 +11,31 @@ ruleset io.picolabs.subscription {
     logging on
   }
 
- global{
+  global{
+    __testing = __testing
+      .put("queries",__testing.get("queries").map(function(q){
+        q.delete("args")
+      }))
+      .put("events",[
+        { "domain": "wrangler", "name": "subscription",
+          "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","Tx_host","password"] },
+        { "domain": "wrangler", "name": "subscription",
+          "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","password"] },
+        { "domain": "wrangler", "name": "subscription",
+          "attrs": [ "wellKnown_Tx","password"] },
+        { "domain": "wrangler", "name": "subscription",
+          "attrs": [ "wellKnown_Tx"] },
+        { "domain": "wrangler", "name": "pending_subscription_approval",
+          "attrs": [ "Id" ] },
+        { "domain": "wrangler", "name": "subscription_cancellation",
+          "attrs": [ "Id" ] },
+        { "domain": "wrangler", "name": "inbound_rejection",
+          "attrs": [ "Id" ] },
+        { "domain": "wrangler", "name": "outbound_cancellation",
+          "attrs": [ "Id" ] },
+        { "domain": "wrangler", "name": "autoAcceptConfigUpdate",
+          "attrs": [ "configName", "password", "regexMap","delete" ] }
+      ])
 /*
 ent:inbound [
   {
