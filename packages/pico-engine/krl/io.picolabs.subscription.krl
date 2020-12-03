@@ -51,7 +51,7 @@ ent:inbound [
 
 ent:outbound [
   {
-    "Wellknown_Tx":"", //only in originating bus, the wellknown is the original channel on which picos are introduced to each other.
+    "wellKnown_Tx":"", //only in originating bus, the wellKnown is the original channel on which picos are introduced to each other.
     "Tx":"", //The channel identifier this pico will send events to
     "Rx":"", //The channel identifier this pico will be listening and receiving events on
     "Tx_role":"", //The subscription role or purpose that the pico on the other side of the subscription serves
@@ -73,15 +73,17 @@ ent:established [
 ]
 */
 
-    wellknown_Policy = { // we need to restrict what attributes are allowed on this channel, specifically Id.
-      "name": "wellknown",
-      "event": {
-          "allow": [
-              {"domain": "wrangler", "type": "subscription"},
-              {"domain": "wrangler", "type": "new_subscription_request"},
-              {"domain": "wrangler", "type": "inbound_removal"}
-          ]
-      }
+    wellKnown_eventPolicy = { // we need to restrict what attributes are allowed on this channel, specifically Id.
+      "allow": [
+          {"domain": "wrangler", "name": "subscription"},
+          {"domain": "wrangler", "name": "new_subscription_request"},
+          {"domain": "wrangler", "name": "inbound_removal"}
+        ],
+        "deny": []
+    }
+    wellKnown_queryPolicy = {
+      "allow": [],
+      "deny": []
     }
     autoAcceptConfig = function(){
       ent:autoAcceptConfig.defaultsTo({})
@@ -122,7 +124,11 @@ ent:established [
     }
 
     wellKnown_Rx = function(){
-      wrangler:channel("wellKnown_Rx")
+      tags = ["wellKnown_Rx","Tx_Rx"]
+        .map(function(t){t.lc()}).sort().join(",")
+      return ctx:channels
+        .filter(function(c){c["tags"].sort().join(",") == tags})
+        .head()
     }
 
     /**
@@ -170,15 +176,13 @@ ent:established [
   }//end global
 
   rule create_wellKnown_Rx{
-    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
+    select when wrangler ruleset_installed where event:attr("rids") >< ctx:rid
     pre{ channel = wellKnown_Rx() }
-    if(channel.isnull() || channel{"type"} != "Tx_Rx") then every{
-      wrangler:newPolicy(wellknown_Policy) setting(__wellknown_Policy)
-      wrangler:createChannel(meta:picoId, "wellKnown_Rx", "Tx_Rx", __wellknown_Policy{"id"})
+    if channel.isnull() then every{
+      ctx:newChannel(["wellKnown_Rx","Tx_Rx"], wellKnown_eventPolicy,wellKnown_queryPolicy)
     }
     fired{
       raise wrangler event "wellKnown_Rx_created" attributes event:attrs;
-      ent:wellknown_Policy := __wellknown_Policy;
     }
     else{
       raise wrangler event "wellKnown_Rx_not_created" attributes event:attrs; //exists
