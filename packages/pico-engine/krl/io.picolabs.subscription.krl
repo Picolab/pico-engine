@@ -6,35 +6,12 @@ ruleset io.picolabs.subscription {
     >>
     author "Tedrub Modulus"
     use module io.picolabs.wrangler alias wrangler
-    provides established, outbound, inbound, wellKnown_Rx, autoAcceptConfig, __testing
-    shares   established, outbound, inbound, wellKnown_Rx, autoAcceptConfig, __testing
+    provides established, outbound, inbound, wellKnown_Rx, autoAcceptConfig
+    shares   established, outbound, inbound, wellKnown_Rx, autoAcceptConfig
     logging on
   }
 
  global{
-    __testing = { "queries": [  { "name": "wellKnown_Rx"} ,
-                                { "name": "established" /*,"args":["key","value"]*/},
-                                { "name": "outbound"} ,
-                                { "name": "inbound"} ,
-                                { "name": "autoAcceptConfig"} ],
-                  "events": [ { "domain": "wrangler", "type": "subscription",
-                                "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","Tx_host","password"] },
-                              { "domain": "wrangler", "type": "subscription",
-                                "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","password"] },
-                              { "domain": "wrangler", "type": "subscription",
-                                "attrs": [ "wellKnown_Tx","password"] },
-                              { "domain": "wrangler", "type": "subscription",
-                                "attrs": [ "wellKnown_Tx"] },
-                              { "domain": "wrangler", "type": "pending_subscription_approval",
-                                "attrs": [ "Id" ] },
-                              { "domain": "wrangler", "type": "subscription_cancellation",
-                                "attrs": [ "Id" ] },
-                              { "domain": "wrangler", "type": "inbound_rejection",
-                                "attrs": [ "Id" ] },
-                              { "domain": "wrangler", "type": "outbound_cancellation",
-                                "attrs": [ "Id" ] },
-                              { "domain": "wrangler", "type": "autoAcceptConfigUpdate",
-                                "attrs": [ "configName", "password", "regexMap","delete" ] } ]}
 /*
 ent:inbound [
   {
