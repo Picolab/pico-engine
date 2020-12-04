@@ -306,6 +306,10 @@ export default function initCtxModule(core: PicoEngineCore) {
       const entries = await this.getPicoLogs();
       return entries;
     }),
+
+    host: krl.Property(function host() {
+      return "http://localhost:8080";
+    }),
   };
 
   return module;
