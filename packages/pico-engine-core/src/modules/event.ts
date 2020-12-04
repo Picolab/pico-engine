@@ -28,6 +28,40 @@ const event: krl.Module = {
 
   eid: eventProperty((event) => event.eid),
   time: eventProperty((event) => event.time),
+
+  send: krl.Action(
+    ["options", "host"],
+    async function event(options, host) {
+      let eci = options.eci;
+      let domain = options.domain;
+      let name = options.name || options.type;
+      let attrs = options.attrs;
+      if (host) {
+        const url = `${host}/c/${eci}/event/${domain}/${name}`;
+
+        fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: krl.encode(attrs),
+        }).catch((err) => {
+          this.log.error(err + ""); // TODO better handling
+        });
+
+        return;
+      }
+
+      // fire-n-forget event not eventWait
+      const eid = await this.rsCtx.event({
+        eci,
+        domain,
+        name,
+        data: { attrs },
+        time: 0,
+      });
+
+      return eid;
+    }
+  ),
 };
 
 export default event;
