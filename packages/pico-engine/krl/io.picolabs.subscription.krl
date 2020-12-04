@@ -44,8 +44,6 @@ ent:inbound [
     "Tx_role":"", //The subscription role or purpose that the pico on the other side of the subscription serves
     "Rx_role":"", //The role this pico serves, or this picos purpose in relation to the subscription
     "Tx_host": "", //the host location of the other pico if that pico is running on a separate engine
-    "Tx_verify_key": ,
-    "Tx_public_key":
   },...,...
 ]
 
@@ -67,12 +65,12 @@ ent:established [
     "Tx_role":"", //The subscription role or purpose that the pico on the other side of the subscription serves
     "Rx_role":"", //The role this pico serves, or this picos purpose in relation to the subscription
     "Tx_host": "" //the host location of the other pico if that pico is running on a separate engine
-    "Tx_verify_key": ,
-    "Tx_public_key":
   },...,...
 ]
 */
 
+    allow_all_eventPolicy = {"allow":[{"domain":"*","name":"*"}],"deny":[]}
+    allow_all_queryPolicy = {"allow":[{"rid":"*","name":"*"}],"deny":[]}
     wellKnown_eventPolicy = { // we need to restrict what attributes are allowed on this channel, specifically Id.
       "allow": [
           {"domain": "wrangler", "name": "subscription"},
@@ -82,7 +80,7 @@ ent:established [
         "deny": []
     }
     wellKnown_queryPolicy = {
-      "allow": [],
+      "allow": [{"rid": ctx:rid, "name": "wellKnown_Rx"}],
       "deny": []
     }
     autoAcceptConfig = function(){
@@ -150,12 +148,13 @@ ent:established [
     }
 
     pending_entry = function(){
+      host   = event:attr("Tx_host") == ctx:host => null | event:attr("Tx_host")
       roles  = event:attr("Rx_role") => { // add possible roles
                   "Rx_role"      : event:attr("Rx_role"),
                   "Tx_role"      : event:attr("Tx_role")
                 } | {};
       _roles = event:attr("Tx_host") => // add possible host
-                roles.put(["Tx_host"] , event:attr("Tx_host"))  | roles;
+                roles.put(["Tx_host"] , host)  | roles;
       event:attr("Id") => // add subscription identifier
                  _roles.put(["Id"], event:attr("Id")) | _roles.put(["Id"], random:uuid())
     }
@@ -283,14 +282,12 @@ ent:established [
       pending_entry = pending_entry().put(["wellKnown_Tx"],event:attr("wellKnown_Tx"))
     }
     if( pending_entry{"wellKnown_Tx"}) then // check if we have someone to send a request to
-      wrangler:createChannel(meta:picoId, channel_name ,channel_type) setting(channel); // create Rx
+      ctx:newChannel([channel_name,channel_type],allow_all_eventPolicy,allow_all_queryPolicy) setting(channel); // create Rx
     fired {
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
       fullNewBus    = newBus.put(
                                   {  "channel_name": channel_name,
                                      "channel_type": channel_type,
-                                     "verify_key"  : channel{"sovrin"}{"verifyKey"},
-                                     "public_key"  : channel{"sovrin"}{"encryptionPublicKey"}
                                    }
                                  );
       ent:outbound := outbound().append( newBus );
@@ -308,7 +305,7 @@ ent:established [
       pre {
         myHost = event:attr("Rx_host") == "localhost" => null                  |
                  event:attr("Rx_host")                => event:attr("Rx_host") |
-                                                         meta:host
+                                                         ctx:host
       }
       event:send({
           "eci"   : event:attr("wellKnown_Tx"),
@@ -319,8 +316,7 @@ ent:established [
                                       "Tx_role"      : event:attr("Rx_role"),
                                       "Tx"           : event:attr("Rx"),
                                       "Tx_host"      : myHost,
-                                      "Tx_verify_key": event:attr("verify_key"),
-                                      "Tx_public_key": event:attr("public_key")})
+                                      })
           }, event:attr("Tx_host")); //send event to this host if provided
   }
 
@@ -330,12 +326,10 @@ ent:established [
       pending_entry = pending_entry().put(["Tx"],event:attr("Tx"))
     }
     if( pending_entry{"Tx"} ) then
-      wrangler:createChannel(meta:picoId, event:attr("channel_name") ,event:attr("channel_type")) setting(channel); // create Rx
+      ctx:newChannel([event:attr("channel_name"),event:attr("channel_type")],allow_all_eventPolicy,allow_all_queryPolicy) setting(channel); // create Rx
     fired {
       Rx = channel{"id"};
       newBus       = pending_entry.put({"Rx" : Rx,
-                                        "Tx_verify_key" : event:attr("Tx_verify_key"),
-                                        "Tx_public_key" : event:attr("Tx_public_key")
                                        });
       ent:inbound := inbound().append( newBus );
       raise wrangler event "inbound_pending_subscription_added" attributes event:attrs.put(["Rx"], Rx); // API event
@@ -349,7 +343,6 @@ ent:established [
     select when wrangler pending_subscription_approval
     pre {
       bus     = findBus(inbound())
-      channel = wrangler:channel(bus{"Rx"})
     }
       event:send({
           "eci": bus{"Tx"},
@@ -357,8 +350,6 @@ ent:established [
           "attrs": event:attrs.put({
                     "Id"            : bus{"Id"} ,
                     "Tx"           : bus{"Rx"} ,
-                    "Tx_verify_key": channel{"sovrin"}{"verifyKey"},
-                    "Tx_public_key": channel{"sovrin"}{"encryptionPublicKey"}
                     })
           }, bus{"Tx_host"})
     always {
@@ -371,8 +362,6 @@ ent:established [
     pre{
       outbound = outbound()
       bus      = findBus(outbound).put({"Tx"           : event:attr("Tx"),
-                                        "Tx_verify_key": event:attr("Tx_verify_key"),
-                                        "Tx_public_key": event:attr("Tx_public_key")
                                        })
                                   .delete(["wellKnown_Tx"])
       index    = indexOfId(outbound, bus{"Id"})
@@ -557,7 +546,7 @@ ent:established [
    * 
    * entryVar: [regEx, regEx, ...]
       }*/                                                                         
-      matches = ent:autoAcceptConfig.map(function(config, configName) { // For eaech config
+      matches = autoAcceptConfig().map(function(config, configName) { // For eaech config
                                       doesConfigMatch(config)
                                     }).klog("final map").values().any(function(bool){bool}) // If any did match then we can approve the subscription
     }
@@ -604,6 +593,7 @@ ent:established [
       }
     if (givenName.klog("configName")) then noop()// && configPassword.klog("configPassword") && passwordMatch.klog("passwordMatch")) then noop()
     fired {
+      ent:autoAcceptConfig := autoAcceptConfig()
       ent:autoAcceptConfig{[givenName]} := configToAdd.klog("added config");
       ent:autoAcceptConfig := ent:autoAcceptConfig.delete(givenName) if event:attr("delete");
       raise wrangler event "auto_accept_config_updated" attributes event:attrs
