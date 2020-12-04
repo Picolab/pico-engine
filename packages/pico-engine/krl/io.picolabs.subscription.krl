@@ -421,7 +421,7 @@ ent:established [
       index = indexOfId(buses, bus{"Id"})
     }
     if index >= 0 then
-      engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ...
+      ctx:delChannel(bus{"Rx"})
     fired {
       ent:established := buses.splice(index,1);
       raise wrangler event "subscription_removed" attributes event:attrs.put({ "bus" : bus }) // API event
@@ -454,7 +454,7 @@ ent:established [
       index = indexOfId(buses, bus{"Id"})
     }
     if index >= 0 then
-      engine:removeChannel(bus{"Rx"})
+      ctx:delChannel(bus{"Rx"})
     fired {
       ent:inbound := buses.splice(index,1);
       raise wrangler event "inbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
@@ -488,7 +488,7 @@ ent:established [
       index = indexOfId(buses,bus{"Id"})
     }
     if index >= 0 then
-      engine:removeChannel(bus{"Rx"})
+      ctx:delChannel(bus{"Rx"})
     fired {
       ent:outbound := buses.splice(index,1);
       raise wrangler event "outbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
