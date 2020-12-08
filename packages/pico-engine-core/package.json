@@ -33,10 +33,12 @@
     "test": "ava"
   },
   "dependencies": {
+    "bs58": "^4.0.1",
     "cross-fetch": "^3.0.5",
     "cuid": "^2.1.8",
     "krl-compiler": "^1.0.0-alpha.0",
     "krl-stdlib": "^1.0.0-alpha.0",
+    "libsodium-wrappers": "^0.7.8",
     "lodash": "^4.17.11",
     "memdown": "^5.1.0",
     "moment-timezone": "^0.5.31",
