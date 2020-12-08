@@ -1,3 +1,12 @@
+# 1.0.0 - December 7, 2020
+
+* Ruleset versioning by url to facilitate decentralized code sharing.
+* A more pico-centric architecture that makes pico's easier to transfer between hosts.
+* Better channel policies.
+* A new UI written in React and only uses pico channels to render.
+* Built on top of [pico-framework](https://www.npmjs.com/package/pico-framework) and [select-when](https://www.npmjs.com/package/select-when).
+* For more on v1.0.0 see [the picolabs wiki](https://picolabs.atlassian.net/wiki)
+
 # 0.52.4 - February 20, 2020
 
 * Improvements to ruleset editor and agent tab - see [more](https://github.com/Picolab/pico-engine/compare/73156ecd..90020b00)

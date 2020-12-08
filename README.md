@@ -16,6 +16,7 @@ The `pico-engine` is made up of several smaller modules. Each with their own doc
 However they live in this repository in the `packages/` directory (mono-repo style using [lerna](https://github.com/lerna/lerna))
  * **pico-engine** - this is the npm package people install and use
  * **pico-engine-core** - executes compiled KRL and manages event life-cycle
+ * **pico-engine-ui** - the default UI of pico-engine
  * **krl-stdlib** - standard library for KRL
  * **krl-compiler** - compiles AST into a JavaScript module
  * **krl-parser** - parses KRL to produce an abstract syntax tree (String -> AST)
