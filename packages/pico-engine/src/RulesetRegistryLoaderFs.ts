@@ -81,7 +81,7 @@ export function RulesetRegistryLoaderFs(
       await makeDir(path.dirname(jsFile));
       await new Promise((resolve, reject) => {
         fs.writeFile(jsFile, out.code, { encoding: "utf8" }, (err) =>
-          err ? reject(err) : resolve()
+          err ? reject(err) : resolve(undefined)
         );
       });
     }

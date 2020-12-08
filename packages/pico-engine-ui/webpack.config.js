@@ -46,7 +46,7 @@ const conf = {
       {
         test: /\.(j|t)sx?$/,
         exclude: /node_modules/,
-        loader: "awesome-typescript-loader",
+        loader: "ts-loader",
       },
       {
         test: /\.(png|jpg|otf|eot|svg|ttf|woff|woff2)(\?.*)?$/i,

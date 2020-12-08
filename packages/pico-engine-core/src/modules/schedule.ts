@@ -246,7 +246,7 @@ export function initScheduleModule(pf: PicoFramework) {
           lte: ["entvar", undefined], // charwise sorts with null at the bottom and undefined at the top
         });
         s.on("error", reject);
-        s.on("end", () => resolve());
+        s.on("end", () => resolve(undefined));
         s.on("data", (data) => {
           if (data.key[3] === "_schedule") {
             const rid = data.key[2];

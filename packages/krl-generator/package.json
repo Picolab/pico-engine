@@ -29,6 +29,6 @@
     "standard": "^12.0.1"
   },
   "dependencies": {
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.11"
   }
 }

@@ -11,7 +11,7 @@
     "publish": "npm run build && lerna publish",
     "start": "cd packages/pico-engine && npm start",
     "test": "lerna run test",
-    "build": "cd packages/krl-parser && npm run build && cd ../pico-engine-browser && npm run build"
+    "build": "cd packages/krl-parser && npm run build && cd ../krl-stdlib && npm run build && cd ../pico-engine-core && npm run build && cd ../pico-engine && npm run build"
   },
   "devDependencies": {
     "lerna": "^3.2.1"

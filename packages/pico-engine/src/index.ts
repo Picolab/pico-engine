@@ -98,13 +98,15 @@ export async function startEngine(
   const rsRegistry = core.rsRegistry;
   const pf = core.picoFramework;
 
-  const krl_dir = path.resolve(__dirname, "..", "krl");
-  const krl_urls: string[] = await new Promise((resolve, reject) =>
-    fs.readdir(krl_dir, (err, files) => {
-      if (err) reject(err);
-      else resolve(files.map((file) => toFileUrl(path.resolve(krl_dir, file))));
-    })
-  );
+  const krl_urls: string[] = [
+    toFileUrl(
+      path.resolve(__dirname, "..", "krl", "io.picolabs.pico-engine-ui.krl")
+    ),
+    toFileUrl(path.resolve(__dirname, "..", "krl", "io.picolabs.wrangler.krl")),
+    toFileUrl(
+      path.resolve(__dirname, "..", "krl", "io.picolabs.subscription.krl")
+    ),
+  ];
   for (const url of krl_urls) {
     const { ruleset } = await rsRegistry.flush(url);
     await pf.rootPico.install(ruleset, { url, config: {} });
@@ -150,7 +152,7 @@ export async function startEngine(
           port = addr.port;
         }
       }
-      resolve();
+      resolve(undefined);
     });
   });
   if (typeof base_url !== "string") {
