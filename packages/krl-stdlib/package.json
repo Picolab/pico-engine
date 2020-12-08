@@ -52,5 +52,6 @@
     "require": [
       "ts-node/register"
     ]
-  }
+  },
+  "gitHead": "26aee8aeb73a2450f9224f2d8d81f3a3d49b33f2"
 }

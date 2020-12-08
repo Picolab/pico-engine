@@ -46,7 +46,8 @@
     "pico-framework": "^0.5.2",
     "qs": "^6.9.4",
     "random-words": "^1.1.1",
-    "strftime": "^0.10.0"
+    "strftime": "^0.10.0",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@types/abstract-leveldown": "^5.0.1",
@@ -64,5 +65,6 @@
     "require": [
       "ts-node/register"
     ]
-  }
+  },
+  "gitHead": "26aee8aeb73a2450f9224f2d8d81f3a3d49b33f2"
 }
