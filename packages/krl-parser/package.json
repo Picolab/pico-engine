@@ -1,6 +1,6 @@
 {
   "name": "krl-parser",
-  "version": "0.52.3",
+  "version": "1.0.0-alpha.0",
   "description": "Parse KRL source code into an AST",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

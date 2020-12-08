@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-core",
-  "version": "0.51.1",
+  "version": "1.0.0-alpha.0",
   "description": "This provides the environment for KRL to run.",
   "repository": {
     "type": "git",
@@ -35,8 +35,8 @@
   "dependencies": {
     "cross-fetch": "^3.0.5",
     "cuid": "^2.1.8",
-    "krl-compiler": "^0.52.3",
-    "krl-stdlib": "^0.52.0",
+    "krl-compiler": "^1.0.0-alpha.0",
+    "krl-stdlib": "^1.0.0-alpha.0",
     "lodash": "^4.17.11",
     "memdown": "^5.1.0",
     "moment-timezone": "^0.5.31",
