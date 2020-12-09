@@ -97,8 +97,8 @@ Enter the URL of that file in the "Rulesets" tab and click on the "Install" butt
 Heads up! Especially when downgrading there may be a risk of data loss. It's recommended you backup your pico-engine home folder first. By default the folder is located `~/.pico-engine/` it contains your database.
 
 ```sh
-# ~to view your current version~
-$ ~pico-engine --version~
+# to view your current version
+$ pico-engine --version
 
 # to view what npm has installed globally, including current version
 $ npm ls -g --depth 0 pico-engine
