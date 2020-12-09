@@ -27,10 +27,9 @@ To start the engine simply run this command
 
 ```sh
 $ pico-engine
-http://localhost:3000
 ```
 
-Copy the url into a browser and see the UI.
+Visit the url `http://localhost:3000` in a browser to use the developer UI (described below).
 
 #### Troubleshooting
 
@@ -59,47 +58,49 @@ sudo yum groupinstall "Development Tools"
 
 For more help, see [node-gyp](https://github.com/nodejs/node-gyp#installation).
 
-###### If these steps don't help
+##### Folder problems
+
+When you run the `npm install` command, if you are in a folder which contains a folder named `pico-engine`, the command can fail in various ways.
+Otherwise it doesn't matter which folder you are in, since you are doing a global install.
+
+##### If these steps don't help
 
 Open an [issue](https://github.com/picolab/pico-engine/issues/new) and tag @farskipper. Please include your operating system, node.js version (`node -v`), and a copy of the error output.
 
 ### Bootstrap
 
-The first time you run the system it will create a root Pico and install three rulesets.
+The first time you run the system it will create a root Pico with three rulesets installed.
 
 There are three rulesets used by all Picos:
 
 - `io.picolabs.wrangler` is used by each Pico to keep track of itself and its children
-- `io.picolabs.pico-engine-ui` is used by each Pico to keep track of it in the My Picos page
+- `io.picolabs.pico-engine-ui` is used by each Pico to keep track of its rectangle in the developer UI
 - `io.picolabs.subscription` is used by each Pico to keep track of its subscriptions to other picos
 
-### Using the My Picos page
+### Using the developer UI
 
-With the rulesets installed, you can drag the rounded rectangle of your Pico and drop it
+With the rulesets installed, you can drag the rectangle representing your Pico and drop it
 wherever you want it. In its "About" tab (click on it to reveal the tabs) you can change its
 display name and color.
 
 Also in the "About" tab, you can add and delete child Picos.
 
-In the "Rulesets" tab you can see the information held for your Pico by each of its rulesets.
+In the "Rulesets" tab you can see the rulesets installed in your Pico.
 By clicking on a ruleset id,
-you will be taken to the Engine Rulesets page
-where you can see its source code.
+you will see the location of its source code.
 
-To make your own ruleset, write your code in the box in the
-Engine Rulesets page.
-Then use the "register" button to register this version
-of your code with the engine.
+To make your own ruleset, use an editor to write its KRL code.
+Enter the URL of that file in the "Rulesets" tab and click on the "Install" button.
 
 ### Updating/downgrading
 
 Heads up! Especially when downgrading there may be a risk of data loss. It's recommended you backup your pico-engine home folder first. By default the folder is located `~/.pico-engine/` it contains your database.
 
 ```sh
-# to view your current version
-$ pico-engine --version
+# ~to view your current version~
+$ ~pico-engine --version~
 
-# to view what npm has installed globally
+# to view what npm has installed globally, including current version
 $ npm ls -g --depth 0 pico-engine
 
 # to view available versions
