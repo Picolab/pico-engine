@@ -118,7 +118,7 @@ module.exports = {
         $ctx.setCurrentRuleName("on_final_no_foreach");
         $ctx.log.debug("rule selected", { "rule_name": "on_final_no_foreach" });
         const x3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "x"
         ]);
         var $fired = true;

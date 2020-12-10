@@ -345,7 +345,7 @@ module.exports = {
         $ctx.setCurrentRuleName("attrs_get");
         $ctx.log.debug("rule selected", { "rule_name": "attrs_get" });
         const thing3 = await get1($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "thing"
         ]);
         var $fired = true;
@@ -545,7 +545,7 @@ module.exports = {
         this.rule.state = Object.assign({}, $state, { "setting": {} });
         var $fired = await $stdlib["=="]($ctx, [
           await $stdlib["get"]($ctx, [
-            $event.data.attrs,
+            $ctx.module("event")["attrs"]($ctx),
             "fire"
           ]),
           "yes"
@@ -623,7 +623,7 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "on_sample_if" });
         var $fired = await $stdlib["=="]($ctx, [
           await $stdlib["get"]($ctx, [
-            $event.data.attrs,
+            $ctx.module("event")["attrs"]($ctx),
             "fire"
           ]),
           "yes"
@@ -652,7 +652,7 @@ module.exports = {
     $rs.when($ctx.krl.SelectWhen.e("events:select_where", async function ($event, $state) {
       if (!await match1($ctx, [
           await $stdlib["get"]($ctx, [
-            $event.data.attrs,
+            $ctx.module("event")["attrs"]($ctx),
             "something"
           ]),
           new RegExp("^wat", "")
@@ -681,7 +681,7 @@ module.exports = {
     $rs.when($ctx.krl.SelectWhen.e("events:where_match_0", async function ($event, $state) {
       if (!await match1($ctx, [
           await $stdlib["get"]($ctx, [
-            $event.data.attrs,
+            $ctx.module("event")["attrs"]($ctx),
             "something"
           ]),
           new RegExp("0", "")
@@ -710,7 +710,7 @@ module.exports = {
     $rs.when($ctx.krl.SelectWhen.e("events:where_match_null", async function ($event, $state) {
       if (!await match1($ctx, [
           await $stdlib["get"]($ctx, [
-            $event.data.attrs,
+            $ctx.module("event")["attrs"]($ctx),
             "something"
           ]),
           new RegExp("null", "")
@@ -739,7 +739,7 @@ module.exports = {
     $rs.when($ctx.krl.SelectWhen.e("events:where_match_false", async function ($event, $state) {
       if (!await match1($ctx, [
           await $stdlib["get"]($ctx, [
-            $event.data.attrs,
+            $ctx.module("event")["attrs"]($ctx),
             "something"
           ]),
           new RegExp("false", "")
@@ -768,7 +768,7 @@ module.exports = {
     $rs.when($ctx.krl.SelectWhen.e("events:where_match_empty_str", async function ($event, $state) {
       if (!await match1($ctx, [
           await $stdlib["get"]($ctx, [
-            $event.data.attrs,
+            $ctx.module("event")["attrs"]($ctx),
             "something"
           ]),
           new RegExp("(?:)", "")
@@ -1071,7 +1071,7 @@ module.exports = {
         var $fired = true;
         if ($fired) {
           await $ctx.krl.assertAction($ctx.module("ctx")["event"])($ctx, {
-            "eci": $event.eci,
+            "eci": $ctx.module("event")["eci"]($ctx),
             "domain": "events",
             "name": "store_sent_name",
             "attrs": {
@@ -1119,7 +1119,7 @@ module.exports = {
         else
           $ctx.log.debug("not fired");
         if ($fired) {
-          await $ctx.rsCtx.putEnt("sent_attrs", $event.data.attrs);
+          await $ctx.rsCtx.putEnt("sent_attrs", $ctx.module("event")["attrs"]($ctx));
           await $ctx.rsCtx.putEnt("sent_name", my_name3);
         }
       } finally {
@@ -1283,7 +1283,7 @@ module.exports = {
         if ($fired) {
           {
             let $parts = $ctx.krl.toString(domainType3).replace(/\s+/g, "").split(":");
-            await $ctx.rsCtx.raiseEvent($parts[0], $parts.slice(1).join(":"), $event.data.attrs);
+            await $ctx.rsCtx.raiseEvent($parts[0], $parts.slice(1).join(":"), $ctx.module("event")["attrs"]($ctx));
           }
         }
       } finally {
@@ -1317,7 +1317,7 @@ module.exports = {
         if ($fired) {
           await send_directive1($ctx, [
             "event_attrs",
-            { "attrs": $event.data.attrs }
+            { "attrs": $ctx.module("event")["attrs"]($ctx) }
           ]);
         }
         if ($fired)

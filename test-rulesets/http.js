@@ -155,7 +155,7 @@ module.exports = {
         $ctx.setCurrentRuleName("http_get");
         $ctx.log.debug("rule selected", { "rule_name": "http_get" });
         const url3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "url"
         ]);
         var $fired = true;
@@ -182,7 +182,7 @@ module.exports = {
         $ctx.setCurrentRuleName("http_post");
         $ctx.log.debug("rule selected", { "rule_name": "http_post" });
         const url3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "url"
         ]);
         var $fired = true;
@@ -218,7 +218,7 @@ module.exports = {
         $ctx.setCurrentRuleName("http_post_action");
         $ctx.log.debug("rule selected", { "rule_name": "http_post_action" });
         const url3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "url"
         ]);
         var $fired = true;
@@ -242,7 +242,7 @@ module.exports = {
         $ctx.setCurrentRuleName("http_post_setting");
         $ctx.log.debug("rule selected", { "rule_name": "http_post_setting" });
         const url3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "url"
         ]);
         var $fired = true;
@@ -269,7 +269,7 @@ module.exports = {
         $ctx.setCurrentRuleName("http_autorase");
         $ctx.log.debug("rule selected", { "rule_name": "http_autorase" });
         const url3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "url"
         ]);
         var $fired = true;
@@ -293,7 +293,7 @@ module.exports = {
       try {
         $ctx.setCurrentRuleName("http_post_event_handler");
         $ctx.log.debug("rule selected", { "rule_name": "http_post_event_handler" });
-        const resp3 = await fmtResp2($ctx, [$event.data.attrs]);
+        const resp3 = await fmtResp2($ctx, [$ctx.module("event")["attrs"]($ctx)]);
         var $fired = true;
         if ($fired) {
           await send_directive1($ctx, [

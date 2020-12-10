@@ -97,7 +97,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
-        await $ctx.rsCtx.putEnt("foo", $event.data.attrs);
+        await $ctx.rsCtx.putEnt("foo", $ctx.module("event")["attrs"]($ctx));
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -107,11 +107,11 @@ module.exports = {
         $ctx.setCurrentRuleName("putfoo");
         $ctx.log.debug("rule selected", { "rule_name": "putfoo" });
         const key3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "key"
         ]);
         const value3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "value"
         ]);
         var $fired = true;
@@ -133,7 +133,7 @@ module.exports = {
         $ctx.setCurrentRuleName("delfoo");
         $ctx.log.debug("rule selected", { "rule_name": "delfoo" });
         const key3 = await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "key"
         ]);
         var $fired = true;

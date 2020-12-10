@@ -26,7 +26,7 @@ module.exports = {
             {
               "domain": $ctx.module("event")["domain"]($ctx),
               "name": $ctx.module("event")["name"]($ctx),
-              "attrs": $event.data.attrs
+              "attrs": $ctx.module("event")["attrs"]($ctx)
             }
           ]);
         }
@@ -59,7 +59,7 @@ module.exports = {
         else
           $ctx.log.debug("not fired");
         await $ctx.rsCtx.putEnt("watcher", await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "domain"
         ]));
       } finally {

@@ -47,7 +47,7 @@ module.exports = {
         if ($fired) {
           if (await $stdlib["=="]($ctx, [
               await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "stop"
               ]),
               "foo"
@@ -73,7 +73,7 @@ module.exports = {
         if ($fired) {
           if (await $stdlib["=="]($ctx, [
               await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "stop"
               ]),
               "bar"

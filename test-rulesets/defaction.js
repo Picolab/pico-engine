@@ -273,7 +273,7 @@ module.exports = {
         var $fired = true;
         if ($fired) {
           await chooser2($ctx, [await $stdlib["get"]($ctx, [
-              $event.data.attrs,
+              $ctx.module("event")["attrs"]($ctx),
               "val"
             ])]);
         }
@@ -294,14 +294,14 @@ module.exports = {
           await ifAnotB2($ctx, [
             await $stdlib["=="]($ctx, [
               await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "a"
               ]),
               "true"
             ]),
             await $stdlib["=="]($ctx, [
               await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "b"
               ]),
               "true"

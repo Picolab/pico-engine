@@ -110,7 +110,7 @@ module.exports = {
         if ($fired) {
           await $ctx.rsCtx.putEnt("log", await append1($ctx, [
             await $ctx.rsCtx.getEnt("log"),
-            $event.data.attrs
+            $ctx.module("event")["attrs"]($ctx)
           ]));
         }
       } finally {
@@ -135,7 +135,7 @@ module.exports = {
             "attrs": {
               "from": "in_5min",
               "name": await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "name"
               ])
             },
@@ -173,7 +173,7 @@ module.exports = {
             "attrs": {
               "from": "every_1min",
               "name": await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "name"
               ])
             },
@@ -197,7 +197,7 @@ module.exports = {
         var $fired = true;
         if ($fired) {
           await $ctx.krl.assertAction($ctx.module("schedule")["remove"])($ctx, [await $stdlib["get"]($ctx, [
-              $event.data.attrs,
+              $ctx.module("event")["attrs"]($ctx),
               "id"
             ])]);
         }
@@ -224,16 +224,16 @@ module.exports = {
             "attrs": {
               "from": "dynamic_at",
               "name": await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "name"
               ])
             },
             "domainAndType": await $stdlib["get"]($ctx, [
-              $event.data.attrs,
+              $ctx.module("event")["attrs"]($ctx),
               "dn"
             ]),
             "time": await $stdlib["get"]($ctx, [
-              $event.data.attrs,
+              $ctx.module("event")["attrs"]($ctx),
               "at"
             ])
           });
@@ -261,16 +261,16 @@ module.exports = {
             "attrs": {
               "from": "dynamic_repeat",
               "name": await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "name"
               ])
             },
             "domainAndType": await $stdlib["get"]($ctx, [
-              $event.data.attrs,
+              $ctx.module("event")["attrs"]($ctx),
               "dn"
             ]),
             "timespec": await $stdlib["get"]($ctx, [
-              $event.data.attrs,
+              $ctx.module("event")["attrs"]($ctx),
               "timespec"
             ])
           });

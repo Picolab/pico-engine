@@ -225,7 +225,7 @@ module.exports = {
       try {
         let $foreach0_pairs = $ctx.krl.toPairs(await split1($ctx, [
           await $stdlib["get"]($ctx, [
-            $event.data.attrs,
+            $ctx.module("event")["attrs"]($ctx),
             "x"
           ]),
           ","
@@ -236,7 +236,7 @@ module.exports = {
           let x3 = $foreach0_pairs[$foreach0_i][1];
           let $foreach1_pairs = $ctx.krl.toPairs(await split1($ctx, [
             await $stdlib["get"]($ctx, [
-              $event.data.attrs,
+              $ctx.module("event")["attrs"]($ctx),
               "y"
             ]),
             ","
@@ -283,11 +283,11 @@ module.exports = {
             "final_raised",
             {
               "x": await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "x"
               ]),
               "y": await $stdlib["get"]($ctx, [
-                $event.data.attrs,
+                $ctx.module("event")["attrs"]($ctx),
                 "y"
               ])
             }

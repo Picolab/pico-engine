@@ -4,12 +4,6 @@ module.exports = function (ast, comp, e, context) {
       e('str', ast.value)
     ])
   }
-  if (ast.domain === 'event' && ast.value === 'attrs') {
-    return e('id', '$event.data.attrs')
-  }
-  if (ast.domain === 'event' && ast.value === 'eci') {
-    return e('id', '$event.eci')
-  }
   if (ast.domain === 'event' && ast.value === 'attr') {
     comp.warn(ast.loc, 'event:attr(key) is deprecated. Use event:attrs{key} instead')
   }

@@ -56,7 +56,7 @@ module.exports = {
         if ($fired) {
           await $ctx.rsCtx.putEnt("error_log", await append1($ctx, [
             await $ctx.rsCtx.getEnt("error_log"),
-            $event.data.attrs
+            $ctx.module("event")["attrs"]($ctx)
           ]));
         }
       } finally {

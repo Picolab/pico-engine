@@ -30,7 +30,7 @@ module.exports = {
         else
           $ctx.log.debug("not fired");
         await $ctx.rsCtx.putEnt("said", await $stdlib["get"]($ctx, [
-          $event.data.attrs,
+          $ctx.module("event")["attrs"]($ctx),
           "name"
         ]));
       } finally {
