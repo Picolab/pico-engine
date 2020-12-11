@@ -1,4 +1,5 @@
 import { PicoEngineConfiguration, startEngine } from "./index";
+const version = require("../package.json").version;
 
 const args: {
   help: boolean;
@@ -10,6 +11,10 @@ const args: {
   },
 });
 
+if (args.version) {
+  console.log(version);
+  process.exit(0);
+}
 if (args.help) {
   console.log(`
 USAGE
