@@ -32,19 +32,19 @@ ruleset io.picolabs.wrangler {
                                 //{"name":"children" , "args":["name", "allowRogue"]},
                                 ],
                   "events": [
-                              { "domain": "wrangler", "type": "child_creation",
-                                "attrs": [ "name" , "rids"] },
-                              { "domain": "wrangler", "type": "child_deletion",
+                              { "domain": "wrangler", "name": "new_child_request",
+                                "attrs": [ "name" , "backgroundColor"] },
+                              { "domain": "wrangler", "name": "child_deletion",
                               "attrs": [ "id","name"] },
-                              { "domain": "wrangler", "type": "child_sync",
+                              { "domain": "wrangler", "name": "child_sync",
                               "attrs": [ ] },
-                              { "domain": "wrangler", "type": "channel_creation_requested",
+                              { "domain": "wrangler", "name": "channel_creation_requested",
                                 "attrs": [ "name", "channel_type" ] },
-                              { "domain": "wrangler", "type": "channel_deletion_requested",
+                              { "domain": "wrangler", "name": "channel_deletion_requested",
                                 "attrs": [ "eci" ] },
-                              { "domain": "wrangler", "type": "install_rulesets_requested",
+                              { "domain": "wrangler", "name": "install_rulesets_requested",
                                 "attrs": [ "rids","url" ] },
-                              { "domain": "wrangler", "type": "force_child_deletion",
+                              { "domain": "wrangler", "name": "force_child_deletion",
                               "attrs": [ "id", "name"] }
                                 ] }
                                 
@@ -642,7 +642,7 @@ ruleset io.picolabs.wrangler {
       backgroundColor re#.*#
     pre {
       name = event:attrs{"name"}
-      backgroundColor = event:attrs{"backgroundColor"}
+      backgroundColor = event:attrs{"backgroundColor"} || "#87CEFA"
       engine_ui_rid = "io.picolabs.pico-engine-ui"
       engine_ui_ruleset = function(){
         the_ruleset = ctx:rulesets
