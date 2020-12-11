@@ -18,7 +18,15 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
 
   app.use(helmet());
   app.use(express.static(path.resolve(__dirname, "..", "public")));
-  app.use(bodyParser.json({ type: [ "application/json", 'application/octet-stream', 'application/ssi-agent-wire' ] }));
+  app.use(
+    bodyParser.json({
+      type: [
+        "application/json",
+        "application/octet-stream",
+        "application/ssi-agent-wire",
+      ],
+    })
+  );
   app.use(
     bodyParser.urlencoded({
       limit: "512mb",
@@ -80,33 +88,32 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
       .catch(next);
   });
 
-  app.all("/c/:eci/event/:domain/:name/query/:rid/:qname", function (
-    req,
-    res,
-    next
-  ) {
-    const attrs = mergeGetPost(req);
-    core
-      .eventQuery(
-        {
-          eci: req.params.eci,
-          domain: req.params.domain,
-          name: req.params.name,
-          data: { attrs },
-          time: 0, // TODO remove this typescript requirement
-        },
-        {
-          eci: req.params.eci,
-          rid: req.params.rid,
-          name: req.params.qname,
-          args: attrs,
-        }
-      )
-      .then((data) => {
-        res.json(data);
-      })
-      .catch(next);
-  });
+  app.all(
+    "/c/:eci/event/:domain/:name/query/:rid/:qname",
+    function (req, res, next) {
+      const attrs = mergeGetPost(req);
+      core
+        .eventQuery(
+          {
+            eci: req.params.eci,
+            domain: req.params.domain,
+            name: req.params.name,
+            data: { attrs },
+            time: 0, // TODO remove this typescript requirement
+          },
+          {
+            eci: req.params.eci,
+            rid: req.params.rid,
+            name: req.params.qname,
+            args: attrs,
+          }
+        )
+        .then((data) => {
+          res.json(data);
+        })
+        .catch(next);
+    }
+  );
 
   app.all("/c/:eci/query/:rid/:name", function (req, res, next) {
     core
@@ -150,6 +157,26 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
   ) {
     let message = err + "";
     console.error(err);
+    if (err?.krl_compiler?.loc?.start) {
+      message +=
+        " [at line " +
+        err.krl_compiler.loc.start.line +
+        " col " +
+        err.krl_compiler.loc.start.column;
+      if (
+        err.krl_compiler.loc.end &&
+        err.krl_compiler.loc.end.line !== err.krl_compiler.loc.start.line
+      ) {
+        message +=
+          " to line " +
+          err.krl_compiler.loc.end.line +
+          " col " +
+          err.krl_compiler.loc.end.column;
+      }
+      message += "]";
+    } else if (err?.where?.filename) {
+      message += ` [at line ${err.where.line} col ${err.where.col}]`;
+    }
     res.json({ error: message });
   });
 
