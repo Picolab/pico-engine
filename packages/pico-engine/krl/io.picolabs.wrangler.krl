@@ -16,10 +16,12 @@ ruleset io.picolabs.wrangler {
     author "BYU Pico Lab"
 
     provides skyQuery ,
+    channels,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci, createChannel, newPolicy,//channel
     children, parent_eci, name, profile, pico, randomPicoName, pico, myself, isMarkedForDeath
     shares skyQuery ,
+    channels,
     rulesetsInfo,installedRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci,//channel
     children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, isMarkedForDeath, getPicoMap, timeForCleanup,
@@ -201,6 +203,9 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
+    channels = function(){
+      ctx:channels
+    }
 /* NOT UPDATED FOR 1.0.0 */
     channelNameExists = function(name){
       not channel(name, null, null).isnull()
@@ -255,12 +260,22 @@ ruleset io.picolabs.wrangler {
     }
 
 /* NOT UPDATED FOR 1.0.0 */
+/*
     createChannel = defaction(id , name, type, policy_id) {
       policy_present = policy_id => "T" | "F";
       choose policy_present {
         T => engine:newChannel(id , name, type, policy_id) setting(channel);
         F => engine:newChannel(id , name, type) setting(channel);
       }
+      return channel
+    }
+*/
+    createChannel = defaction(tags,eventPolicy,queryPolicy){
+      ctx:newChannel(
+        tags=tags,
+        eventPolicy=eventPolicy,
+        queryPolicy=queryPolicy
+      ) setting(channel)
       return channel
     }
 
