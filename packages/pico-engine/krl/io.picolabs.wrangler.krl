@@ -462,6 +462,7 @@ ruleset io.picolabs.wrangler {
 // ***                                                                                      ***
 // ********************************************************************************************
 
+/* NOT UPDATED FOR 1.0.0 */
   rule asyncSkyQuery {
     select when wrangler asyncSkyQuery 
     pre {
@@ -475,6 +476,7 @@ ruleset io.picolabs.wrangler {
 // ***                                      System                                          ***
 // ***                                                                                      ***
 // ********************************************************************************************
+/* NOT USED IN 1.0.0 */
   rule systemOnLine {
     select when system online
     foreach children() setting(child)
@@ -489,6 +491,7 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 
   
+/* NOT UPDATED FOR 1.0.0 */
   rule installURLRulesets {
     select when wrangler install_rulesets_requested
     foreach gatherGivenArray("urls","url") setting(url)
@@ -502,6 +505,7 @@ ruleset io.picolabs.wrangler {
     }
   }
   
+/* NOT UPDATED FOR 1.0.0 */
     rule installRulesets {
     select when wrangler install_rulesets_requested
     pre {
@@ -540,6 +544,7 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+/* NOT UPDATED FOR 1.0.0 */
   rule uninstallRulesets {
     select when wrangler uninstall_rulesets_requested
     pre {
@@ -554,6 +559,7 @@ ruleset io.picolabs.wrangler {
 // ***                                      Channels                                        ***
 // ********************************************************************************************
 
+/* NOT UPDATED FOR 1.0.0 */
   rule createChannel {
     select when wrangler channel_creation_requested
     pre { 
@@ -575,6 +581,7 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+/* NOT UPDATED FOR 1.0.0 */
   rule deleteChannel {
     select when wrangler channel_deletion_requested
     pre {
@@ -601,6 +608,7 @@ ruleset io.picolabs.wrangler {
 // ***                                      Picos                                           ***
 // ********************************************************************************************
   //-------------------- Picos initializing  ----------------------
+/* NOT UPDATED FOR 1.0.0 */
 /*
   rule createChild {
     select when wrangler child_creation or wrangler new_child_request
@@ -697,6 +705,7 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+/* NOT UPDATED FOR 1.0.0 */
   rule initialize_child_after_creation {
     select when wrangler child_created
     pre {
@@ -725,6 +734,7 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+/* NOT UPDATED FOR 1.0.0 */
   rule finish_child_initialization {
     select when wrangler finish_initialization
       event:send({ "eci"   : event:attr("parent_eci"),
@@ -738,6 +748,7 @@ ruleset io.picolabs.wrangler {
   
   // this pico is the primary pico
 
+/* NOT USED IN 1.0.0 */
   rule pico_root_created {
     select when wrangler root_created
     always {
@@ -765,6 +776,7 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+/* NOT UPDATED FOR 1.0.0 */
   rule deleteChild {
     select when wrangler child_deletion or wrangler delete_children
     pre {
@@ -782,6 +794,7 @@ ruleset io.picolabs.wrangler {
     }
   }
   
+/* NOT UPDATED FOR 1.0.0 */
   rule send_intent_to_delete {
     select when wrangler send_intent_to_delete
     foreach event:attr("picoIDArray") setting (picoID)
@@ -796,6 +809,7 @@ ruleset io.picolabs.wrangler {
     }
   }
   
+/* NOT UPDATED FOR 1.0.0 */
   rule delete_child {
     select when wrangler child_ready_for_deletion
     pre {
@@ -816,6 +830,7 @@ ruleset io.picolabs.wrangler {
   // Sync with children that may not have been created or deleted by wrangler.
   // Assumes all picos have a channel of type "admin" with a policy that will allow all events from a parent ruleset
   // If the child does not have wrangler installed, any wrangler event chains requiring child cooperation will not work
+/* NOT UPDATED FOR 1.0.0 */
   rule syncChildren {
     select when wrangler child_sync
                          or wrangler force_child_deletion
@@ -847,6 +862,7 @@ ruleset io.picolabs.wrangler {
     }
   }
   
+/* NOT UPDATED FOR 1.0.0 */
   rule forceChildrenDeletion {
     select when wrangler force_child_deletion or wrangler force_children_deletion
     pre {
@@ -865,6 +881,7 @@ ruleset io.picolabs.wrangler {
     }
   }
     
+/* NOT UPDATED FOR 1.0.0 */
   rule delete_each_pico_id {
     select when wrangler picos_to_force_delete_ready
     foreach event:attr("picoIDArray") setting (picoID)
@@ -882,6 +899,7 @@ ruleset io.picolabs.wrangler {
   
     //-------------------- CHILD PERSPECTIVE  ----------------------
     
+/* NOT UPDATED FOR 1.0.0 */
   rule parent_requested_deletion {
     select when wrangler intent_to_delete_pico
     always {
@@ -900,6 +918,7 @@ ruleset io.picolabs.wrangler {
     }  
   }
   
+/* NOT UPDATED FOR 1.0.0 */
   rule setDeletionTimeoutPeriod {
     select when wrangler set_timeout_before_pico_deleted
     pre{
@@ -919,6 +938,7 @@ ruleset io.picolabs.wrangler {
     // } 
   }
   
+/* NOT UPDATED FOR 1.0.0 */
   rule registerForCleanup {
     select when wrangler ruleset_needs_cleanup_period
     pre {
@@ -936,6 +956,7 @@ ruleset io.picolabs.wrangler {
     }
   }
   
+/* NOT UPDATED FOR 1.0.0 */
   rule cleanupFinished {
     select when wrangler cleanup_finished
     pre {
@@ -948,6 +969,7 @@ ruleset io.picolabs.wrangler {
     }
   }
   
+/* NOT UPDATED FOR 1.0.0 */
   rule cleanup_timed_out {
     select when wrangler pico_cleanup_timed_out
     always{
@@ -958,6 +980,7 @@ ruleset io.picolabs.wrangler {
     }
   }
     
+/* NOT UPDATED FOR 1.0.0 */
   rule is_pico_ready_to_delete {
     select when wrangler intent_to_delete_pico or     // if was ready when first asked to be deleted
                 wrangler cleanup_finished or          // if a ruleset just finished cleaning up
