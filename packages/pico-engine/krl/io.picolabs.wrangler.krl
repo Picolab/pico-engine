@@ -571,8 +571,10 @@ ruleset io.picolabs.wrangler {
       url = parts.splice(parts.length()-1,1,rid+".krl").join("/")
     }
     fired {
-      raise wrangler event "install_ruleset_request"
-        attributes {"url":url, "config":event:attr("config")}
+      raise wrangler event "install_ruleset_request" attributes
+        event:attrs
+          .delete("absoluteURL") // so this rule won't select again!
+          .put({"url":url})
     }
   }
 
