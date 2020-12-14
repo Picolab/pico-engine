@@ -529,18 +529,9 @@ ruleset io.picolabs.wrangler {
   rule install_ruleset {
     select when wrangler install_ruleset_request
     pre {
-      rfc3986 = function(absoluteURL,rid){
-        parts = absoluteURL.split("/")
-        parts.splice(parts.length()-1,1,rid+".krl").join("/")
-      }
-      attr_url = event:attr("url")
-.klog("attr_url")
-      rid = event:attr("rid")
-.klog("rid")
-          || attr_url.extract(re#.*/([^/]+)[.]krl$#).head()
-      url = attr_url || rfc3986(event:attr("absoluteURL"),rid)
-.klog("url")
+      url = event:attr("url")
       config = event:attr("config") || {}
+      rid = url.extract(re#.*/([^/]+)[.]krl$#).head()
     }
     ctx:install(url=url,config=config)
     fired {
@@ -652,12 +643,26 @@ ruleset io.picolabs.wrangler {
           "config":the_ruleset.get("config")
         }
       }
+      subscription_ruleset_url = function(){
+        subscription_rid = "io.picolabs.subscription"
+        parts = ctx:rid_url.split("/")
+        parts.splice(parts.length()-1,1,subscription_rid+".krl").join("/")
+      }
+      subs_url = subscription_ruleset_url().klog("subs_url")
     }
     every {
       ctx:newPico(rulesets=[
         engine_ui_ruleset(),
         { "url": ctx:rid_url, "config": {} }
       ]) setting(newEci)
+      ctx:event(
+        eci=newEci,
+        domain="wrangler",
+        name="install_ruleset_request",
+        attrs={
+          "url": subs_url
+        }
+      )
       ctx:eventQuery(
         eci=newEci,
         domain="engine_ui",
