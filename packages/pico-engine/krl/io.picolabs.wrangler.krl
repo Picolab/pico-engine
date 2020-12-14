@@ -128,6 +128,7 @@ ruleset io.picolabs.wrangler {
        processHTTPResponse(response)
      }
     
+/* NOT UPDATED FOR 1.0.0 */
     getPicoMap = function() {
       {
         "name":ent:name,
@@ -137,20 +138,24 @@ ruleset io.picolabs.wrangler {
       }
     }
     
+/* NOT UPDATED FOR 1.0.0 */
     isMarkedForDeath = function() {
       ent:marked_for_death.defaultsTo(false)
     }
     
+/* NOT UPDATED FOR 1.0.0 */
     timeForCleanup = function() {
       ent:default_timeout
     }
 // ********************************************************************************************
 // ***                                      Rulesets                                        ***
 // ********************************************************************************************
+/* NOT UPDATED FOR 1.0.0 */
     registeredRulesets = function() {
       engine:listAllEnabledRIDs()
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     rulesetsInfo = function(rids) {
       _rids = ( rids.typeof() == "Array" ) => rids | ( rids.typeof() == "String" ) => rids.split(";") | "" ;
       _rids.map(function(rid) {engine:describeRuleset(rid);});
@@ -164,10 +169,12 @@ ruleset io.picolabs.wrangler {
       item_list
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     installedRulesets = function() {
       engine:listInstalledRIDs(meta:picoId)
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     installRulesets = defaction(rids){
       every{
         engine:installRuleset(meta:picoId, rids) setting(new_ruleset)
@@ -175,6 +182,7 @@ ruleset io.picolabs.wrangler {
       return {"rids": new_ruleset}
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     installRulesetByURL = defaction(url){
       every{
         engine:installRuleset(meta:picoId, url=url) setting(new_ruleset)
@@ -182,6 +190,7 @@ ruleset io.picolabs.wrangler {
       return [new_ruleset]
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     uninstallRulesets = defaction(rids){
       every{
        engine:uninstallRuleset(meta:picoId, rids)
@@ -192,10 +201,12 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
+/* NOT UPDATED FOR 1.0.0 */
     channelNameExists = function(name){
       not channel(name, null, null).isnull()
     }
     
+/* NOT UPDATED FOR 1.0.0 */
     channelNameExistsForType = function(name, type){
       channel_array = channel(null, "type", type);
       channel_array.any(function(channel){
@@ -203,17 +214,20 @@ ruleset io.picolabs.wrangler {
       });
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     nameFromEci = function(eci){ // internal function call
       channel = channel(eci,null,null);
       channel{"name"}
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     alwaysEci = function(value){   // always return a eci wether given a eci or name
       channels = engine:listChannels(meta:picoId);
       channel = channels.filter(function(chan){chan{"id"} == value || chan{"name"} == value}).head().defaultsTo({},"no channel found in alwayseci, by .head()");
       channel{"id"}
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     channel = function(value,collection,filtered) {
       channels = engine:listChannels(meta:picoId);
 
@@ -232,6 +246,7 @@ ruleset io.picolabs.wrangler {
       (value.isnull()) => return2 | single_channel(channels)
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     deleteChannel = defaction(value) {
         channel = channel(value,null,null)
         eci = channel{"id"}
@@ -239,6 +254,7 @@ ruleset io.picolabs.wrangler {
         return channel
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     createChannel = defaction(id , name, type, policy_id) {
       policy_present = policy_id => "T" | "F";
       choose policy_present {
@@ -251,6 +267,7 @@ ruleset io.picolabs.wrangler {
     /*
       see https://github.com/Picolab/pico-engine/pull/350#issue-160657235 for information on the format of @param new_policy and the return value
     */
+/* NOT USED IN 1.0.0 */
     newPolicy = defaction(new_policy) {
       every{
         engine:newPolicy( new_policy ) setting(created_policy)
@@ -261,6 +278,7 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 // ***                                      Picos                                           ***
 // ********************************************************************************************
+/* NOT UPDATED FOR 1.0.0 */
     myself = function(){
       {
         "name":ent:name,
@@ -269,6 +287,7 @@ ruleset io.picolabs.wrangler {
       }
     }
     
+/* NOT UPDATED FOR 1.0.0 */
     childrenAsMap = function() {
       ent:wrangler_children
     }
@@ -284,6 +303,7 @@ ruleset io.picolabs.wrangler {
       wrangler_children = ctx:children
         .map(convert)
       wrangler_children
+/* NOT UPDATED FOR 1.0.0 */
 /*
       ((allowRogue && not name) => ent:wrangler_children | 
                                    ent:wrangler_children.filter(function(pico, ID) {
@@ -295,6 +315,7 @@ ruleset io.picolabs.wrangler {
 */
     }
     
+/* NOT UPDATED FOR 1.0.0 */
     getChild = function(id) {
       ent:wrangler_children{id}
     }
@@ -303,10 +324,12 @@ ruleset io.picolabs.wrangler {
       ctx:parent
     }
   
+/* NOT UPDATED FOR 1.0.0 */
     profile = function(key) {
       /*PDS not implemented */ //pds:profile(key)
       {}
     }
+/* NOT UPDATED FOR 1.0.0 */
     pico = function() {
       profile_return = {};/*PDS not implemented */ //pds:profile();
       settings_return = {};/*PDS not implemented */ //pds:settings();
@@ -322,11 +345,13 @@ ruleset io.picolabs.wrangler {
       ent:name
     }
   
+/* NOT UPDATED FOR 1.0.0 */
     id = function() {
       meta:picoId
     }
   
     // deprecated -> the client can do this themselves, and pico names no longer have to be unique
+/* NOT UPDATED FOR 1.0.0 */
     picoECIFromName = function (name) {
       pico = ent:wrangler_children.filter(function(rec){rec{"name"} ==  name})
                                   .head();
@@ -347,6 +372,7 @@ ruleset io.picolabs.wrangler {
     }
     
     //deprecated
+/* NOT UPDATED FOR 1.0.0 */
     picoFromName = function(value){
       ret = children().defaultsTo([]).filter(function(child){
                                               (child{"name"} ==  value || child{"id"} == value)});
@@ -354,6 +380,7 @@ ruleset io.picolabs.wrangler {
     }
     
     //deprecated
+/* NOT UPDATED FOR 1.0.0 */
     hasChild = function(value){
       children().filter(function(child){
                           child{"name"} ==  value || child{"id"} == value
@@ -372,6 +399,7 @@ ruleset io.picolabs.wrangler {
           If "delete_all" is provided all children will be in the map
           If allowRogue is provided true, all rogue children (children w/out wrangler) will be included in the search, otherwise they will not be selected for
     */
+/* NOT UPDATED FOR 1.0.0 */
     getPicosToDelete = function(deleteMap, allowRogue = false) {
       givenPicoID = deleteMap{"id"};
       nameToDelete = deleteMap{"name"};
@@ -388,6 +416,7 @@ ruleset io.picolabs.wrangler {
     // Creates a map with a similar shape of ent:wrangler_children using engine calls, given pico IDs for children of this pico.
     // Will also try and ask those children if they have wrangler installed and use that info instead if they do.
     // Assumes the target picos have an admin channel of type secret.
+/* NOT UPDATED FOR 1.0.0 */
     getChildMapFromIDs = function(picoIDs) {
       picoIDs.collect(function(id){id})
              .map(function(picoIDArray){
@@ -412,6 +441,7 @@ ruleset io.picolabs.wrangler {
       })
     }
 
+/* NOT UPDATED FOR 1.0.0 */
     createPico = defaction(name, rids, rids_from_url){
       every{
         engine:newChannel(meta:picoId, name, "children") setting(parent_channel);// new eci for parent to child
@@ -443,6 +473,7 @@ ruleset io.picolabs.wrangler {
 
     MAX_RAND_ENGL_NAMES = 200
     
+/* NOT UPDATED FOR 1.0.0 */
     randomPicoName = function(){
         w_children = children();
         generateName = function() {
@@ -530,10 +561,26 @@ ruleset io.picolabs.wrangler {
     }
   }
 
-  rule install_ruleset {
+  rule install_ruleset_relatively {
     select when wrangler install_ruleset_request
+      absoluteURL re#(.+)#   // required
+      rid re#(.+)#           // required
+      setting(absoluteURL,rid)
     pre {
-      url = event:attr("url")
+      parts = absoluteURL.split("/")
+      url = parts.splice(parts.length()-1,1,rid+".krl").join("/")
+    }
+    fired {
+      raise wrangler event "install_ruleset_request"
+        attributes {"url":url, "config":event:attr("config")}
+    }
+  }
+
+  rule install_ruleset_absolutely {
+    select when wrangler install_ruleset_request
+      url re#(.+)#           // required
+      setting(url)
+    pre {
       config = event:attr("config") || {}
       rid = url.extract(re#.*/([^/]+)[.]krl$#).head()
     }
@@ -635,6 +682,7 @@ ruleset io.picolabs.wrangler {
     }
   }
 */
+
   rule createChild {
     select when wrangler new_child_request
       name re#.+#
