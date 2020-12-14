@@ -599,12 +599,12 @@ ruleset io.picolabs.wrangler {
       setting(url)
     pre {
       config = event:attr("config") || {}
-      rid = url.extract(re#.*/([^/]+)[.]krl$#).head()
     }
     ctx:install(url=url,config=config)
     fired {
-      raise wrangler event "ruleset_installed"
-        attributes event:attrs.put({"rids": [rid]})
+      this_rs = ctx:rulesets.filter(function(r){r.get("url")==url})
+      raise wrangler event "ruleset_installed" attributes
+        event:attrs.put({"rids": this_rs.map(function(r){r.get("rid")})})
     }
   }
 
