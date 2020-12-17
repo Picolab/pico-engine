@@ -600,7 +600,10 @@ ruleset io.picolabs.wrangler {
     pre {
       config = event:attr("config") || {}
     }
-    ctx:install(url=url,config=config)
+    every {
+      ctx:flush(url=url)
+      ctx:install(url=url, config=config)
+    }
     fired {
       this_rs = ctx:rulesets.filter(function(r){r.get("url")==url})
       raise wrangler event "ruleset_installed" attributes
