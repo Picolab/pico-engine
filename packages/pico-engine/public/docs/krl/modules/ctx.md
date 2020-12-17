@@ -2,6 +2,10 @@
 
 The `ctx` module provides context information and actions for running code. Context includes the pico, ruleset, and engine the code is running for and on.
 
+## ctx:picoId
+
+Get the identifier for the pico assigned by the engine. 
+
 ## ctx:rid
 
 Get the ruleset id (rid) string.
