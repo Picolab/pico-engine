@@ -8,6 +8,8 @@ import Logging from "./PicoTabs/Logging";
 import Rulesets from "./PicoTabs/Rulesets";
 import Testing from "./PicoTabs/Testing";
 
+import { titleColor } from '../Themes';
+
 function returnTabLink(pico: PicoBox, label: string, tab?: string) {
   let url = `/pico/${pico.eci}`;
   if (tab) {
@@ -107,7 +109,7 @@ const Pico: React.FC<Props> = props => {
             Close
           </Link>
           <div className="card-header">
-            <div className="card-header-pico-name">{pico.name}</div>
+            <div className="card-header-pico-name" style={{color: titleColor(pico.backgroundColor)}}>{pico.name}</div>
             <ul className="nav nav-tabs card-header-tabs">
               {returnTabLink(pico, "About")}
               {returnTabLink(pico, "Rulesets", "rulesets")}
@@ -128,6 +130,7 @@ const Pico: React.FC<Props> = props => {
               to={"/pico/" + pico.eci}
               className="pico-name-open-btn"
               onMouseDown={e => e.stopPropagation()}
+              style={{color: titleColor(pico.backgroundColor)}}
             >
               {pico.name}
             </Link>
