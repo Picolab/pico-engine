@@ -43,6 +43,10 @@ export default function initCtxModule(core: PicoEngineCore) {
   }
 
   const module: krl.Module = {
+    picoId: krl.Property(function rid(){
+      return this.rsCtx.pico().id;
+    }),
+
     rid: krl.Property(function rid() {
       return this.rsCtx.ruleset.rid;
     }),
