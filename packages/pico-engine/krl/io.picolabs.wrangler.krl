@@ -731,6 +731,13 @@ ruleset io.picolabs.wrangler {
         engine_ui_ruleset(),
         { "url": ctx:rid_url, "config": {} }
       ]) setting(newEci)
+      ctx:eventQuery(
+        eci=newEci,
+        domain="engine_ui",
+        name="setup",
+        rid=engine_ui_rid,
+        queryName="uiECI"
+      ) setting(newUiECI)
       ctx:event(
         eci=newEci,
         domain="wrangler",
@@ -739,13 +746,6 @@ ruleset io.picolabs.wrangler {
           "url": subs_url
         }
       )
-      ctx:eventQuery(
-        eci=newEci,
-        domain="engine_ui",
-        name="setup",
-        rid=engine_ui_rid,
-        queryName="uiECI"
-      ) setting(newUiECI)
       ctx:event(
         eci=newUiECI,
         domain="engine_ui",

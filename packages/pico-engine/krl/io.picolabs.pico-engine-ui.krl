@@ -97,26 +97,11 @@ ruleset io.picolabs.pico-engine-ui {
       name = event:attrs{"name"} || ent:name
       backgroundColor = event:attrs{"backgroundColor"} || ent:backgroundColor
     }
-    every {
-      ctx:newPico(rulesets=[
-        { "url": ctx:rid_url, "config": {} }
-      ]) setting(newEci)
-      ctx:eventQuery(
-        eci=newEci,
-        domain="engine_ui",
-        name="setup",
-        rid="io.picolabs.pico-engine-ui",
-        queryName="uiECI"
-      ) setting(newUiECI)
-      ctx:event(
-        eci=newUiECI,
-        domain="engine_ui",
-        name="box",
-        attrs={
-          "name": name,
-          "backgroundColor": backgroundColor
-        }
-      )
+    fired {
+      raise wrangler event "new_child_request" attributes
+        event:attrs
+          .put("name",name)
+          .put("backgroundColor",backgroundColor)
     }
   }
   rule del {
