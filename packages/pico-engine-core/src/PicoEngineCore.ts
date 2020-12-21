@@ -17,6 +17,7 @@ import { initScheduleModule } from "./modules/schedule";
 import module_stdlib from "./modules/stdlib";
 import module_time from "./modules/time";
 import module_ursa from "./modules/ursa";
+import module_meta from "./modules/meta";
 import { PicoEngineCoreConfiguration } from "./PicoEngineCoreConfiguration";
 import { CachedRuleset, RulesetRegistry } from "./RulesetRegistry";
 
@@ -109,6 +110,7 @@ export class PicoEngineCore {
     this.modules["stdlib"] = module_stdlib;
     this.modules["time"] = module_time;
     this.modules["ursa"] = module_ursa;
+    this.modules["meta"] = module_meta;
 
     if (conf.modules) {
       for (const domain of Object.keys(conf.modules)) {
