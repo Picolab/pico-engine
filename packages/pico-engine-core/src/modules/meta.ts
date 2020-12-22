@@ -47,6 +47,12 @@ const meta: krl.Module = {
     return this.rsCtx.ruleset.config["url"];
   }),
 
+  txnId: krl.Property(function txnId() {
+    const event = this.getEvent();
+    const query = this.getQuery();
+    return event ? event.eid : query ? query.qid : null;
+  }),
+
 };
 
 export default meta;
