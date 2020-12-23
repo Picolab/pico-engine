@@ -82,13 +82,19 @@ ruleset io.picolabs.pico-engine-ui {
   }
   rule box {
     select when engine_ui box
+    pre {
+      validateColor = function(v){
+        c = v.as("String")
+        c.match(re#^\#[0-9A-F]{6}$#i) => c | ent:backgroundColor
+      }
+    }
     always {
       ent:x := event:attrs{"x"}.as("Number") if event:attrs >< "x"
       ent:y := event:attrs{"y"}.as("Number") if event:attrs  >< "y"
       ent:width := event:attrs{"width"}.as("Number") if event:attrs >< "width"
       ent:height := event:attrs{"height"}.as("Number") if event:attrs  >< "height"
       ent:name := event:attrs{"name"}.as("String") if event:attrs  >< "name"
-      ent:backgroundColor := event:attrs{"backgroundColor"}.as("String") if event:attrs  >< "backgroundColor"
+      ent:backgroundColor := event:attrs{"backgroundColor"}.validateColor() if event:attrs >< "backgroundColor"
     }
   }
   rule new {
