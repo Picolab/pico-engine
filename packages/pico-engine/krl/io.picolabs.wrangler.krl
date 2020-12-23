@@ -29,6 +29,7 @@ ruleset io.picolabs.wrangler {
   }
   global {
     __testing = { "queries": [  {"name": "name"},
+                                {"name": "myself"},
                                 { "name": "channel", "args":["value","collection","filtered"] },
                                 {"name":"skyQuery" , "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
                                 {"name":"children" , "args":[]}
@@ -294,7 +295,7 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 // ***                                      Picos                                           ***
 // ********************************************************************************************
-/* NOT UPDATED FOR 1.0.0 */
+
     myself = function(){
       {
         "name":ent:name,
@@ -361,7 +362,6 @@ ruleset io.picolabs.wrangler {
       ent:name
     }
   
-/* NOT UPDATED FOR 1.0.0 */
     id = function() {
       meta:picoId
     }
@@ -748,9 +748,10 @@ ruleset io.picolabs.wrangler {
       ctx:event(
         eci=newEci,
         domain="wrangler",
-        name="install_ruleset_request",
+        name="pico_created",
         attrs={
-          "url": subs_url
+          "url": subs_url,
+          "name": name
         }
       )
       ctx:event(
@@ -764,7 +765,6 @@ ruleset io.picolabs.wrangler {
       )
     }
     fired {
-      //ent:name := name // needs to be done in child pico!!!
       raise wrangler event "new_child_created"
         attributes event:attrs.put({"eci":newEci})
     } else {
@@ -781,45 +781,27 @@ ruleset io.picolabs.wrangler {
     }
   }
 
-/* NOT UPDATED FOR 1.0.0 */
+//
+// NOTE: this rule runs in a newly created child pico
+//
   rule initialize_child_after_creation {
-    select when wrangler child_created
-    pre {
-      rids_to_install = event:attr("rids_to_install")
-      rids_to_install_from_url = event:attr("rids_from_url")
-    }
-    if rids_to_install.length() > 0 || rids_to_install_from_url.length() > 0 then
-    noop()
+    select when wrangler pico_created
     fired {
-      raise wrangler event "install_rulesets_requested"
-        attributes event:attrs.put("init", true)
-                              .put(["rids"], rids_to_install)
-                              .put(["urls"], rids_to_install_from_url)
-    }
-    else {
-      raise wrangler event "finish_initialization"
+      raise wrangler event "install_ruleset_request"
         attributes event:attrs
-    }
-    finally {
-      ent:parent_eci := event:attr("parent_eci");
-      ent:name := event:attr("name");
-      ent:id := event:attr("id");
-      ent:eci := event:attr("eci");
-      ent:wrangler_children := {};
-      ent:default_timeout := {"minutes":5}
+      ent:parent_eci := ctx:parent
+      ent:name := event:attr("name")
+      ent:id := ctx:picoId
+      ent:eci := event:eci
+      raise wrangler event "pico_initialized" attributes event:attrs
     }
   }
 
-/* NOT UPDATED FOR 1.0.0 */
   rule finish_child_initialization {
-    select when wrangler finish_initialization
-      event:send({ "eci"   : event:attr("parent_eci"),
+    select when wrangler pico_initialized
+      event:send({ "eci"   : ent:parent_eci,
                    "domain": "wrangler", "type": "child_initialized",
                    "attrs" : event:attrs })
-    always {
-      raise visual event "update"
-        attributes event:attrs.put("dname",event:attr("name"))
-    }
   }
   
   // this pico is the primary pico
