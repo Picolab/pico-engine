@@ -1,6 +1,7 @@
 import * as React from "react";
 import { apiGet, getAllPicoBoxes } from "../api";
 import { PicoBox } from "../types/PicoBox";
+import { fetchSubscriptions, computeSubscriptionLines } from "./subscriptions";
 
 interface UiContext {
   version: string;
@@ -25,6 +26,8 @@ interface State {
   picoMoving: PicoMoving | null;
   picoBoxes: { [eci: string]: PicoBox };
   channelLines: LineXYs[];
+  subLines: LineXYs[];
+  subs: { [id: string]: PicoBox[] };
 }
 
 export default (function picoPageStore() {
@@ -34,7 +37,9 @@ export default (function picoPageStore() {
     uiContext: null,
     picoMoving: null,
     picoBoxes: {},
-    channelLines: []
+    subLines: [],
+    channelLines: [],
+    subs: {}
   };
 
   // way to subscribe and notify react components of state change
@@ -74,12 +79,18 @@ export default (function picoPageStore() {
         state.picoBoxes[box.eci] = box;
       }
       computeChannelLines();
+      state.subs = {...await fetchSubscriptions(boxes)};
+      computeSubLines();
     } catch (err) {
       state.error = err + "";
     } finally {
       state.loading = false;
     }
     notify();
+  }
+
+  function computeSubLines() {
+    state.subLines = computeSubscriptionLines(state.subs, state.picoBoxes);
   }
 
   function computeChannelLines() {
@@ -110,6 +121,7 @@ export default (function picoPageStore() {
         ...updates
       };
       computeChannelLines();
+      computeSubLines();
       notify();
     }
   }

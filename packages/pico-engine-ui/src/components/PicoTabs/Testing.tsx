@@ -225,12 +225,12 @@ const Testing: React.FC<Props> = ({ pico }) => {
                             </form>
                           );
                         })}
-                        {(testing.schema.events || []).map((e) => {
+                        {(testing.schema.events || []).map((e, i) => {
                           const doname = `${e.domain}:${e.name}`;
 
                           return (
                             <form
-                              key={doname}
+                              key={doname+i}
                               onSubmit={sendTestEvent(e.domain, e.name)}
                               className="border border-warning p-2"
                             >

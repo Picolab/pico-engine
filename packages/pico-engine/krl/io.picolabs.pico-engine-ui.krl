@@ -74,7 +74,8 @@ ruleset io.picolabs.pico-engine-ui {
           { "rid": "io.picolabs.pico-engine-ui", "name": "box" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "pico" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "logs" },
-          { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" }
+          { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" },
+          { "rid": "io.picolabs.subscription", "name": "established" }
         ],
         "deny": []
       }
@@ -122,7 +123,7 @@ ruleset io.picolabs.pico-engine-ui {
   rule del {
     select when engine_ui del
     pre {
-      delUiEci = event:attrs{"eci"} 
+      delUiEci = event:attrs{"eci"}
       delEci = ctx:children
         .filter(function(eci){
           other = getOtherUiECI(eci)

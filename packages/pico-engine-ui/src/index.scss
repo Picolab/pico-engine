@@ -110,6 +110,19 @@ svg#picos-svg {
   }
 }
 
+svg#subs-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+  line {
+    stroke: #ff00ff;
+    stroke-width: 5px;
+  }
+}
+
 .card-header-pico-name {
   font-size: 20px;
   margin-top: -5px;

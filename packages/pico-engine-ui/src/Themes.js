@@ -6,6 +6,5 @@ const getBrightness = (color) => {
 }
 
 export const titleColor = (color) => {
-  console.log("gettin color")
   return (getBrightness(color) > 135) ? '#000000' : '#ffffff';
 }
