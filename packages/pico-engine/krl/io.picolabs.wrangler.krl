@@ -28,7 +28,8 @@ ruleset io.picolabs.wrangler {
      __testing
   }
   global {
-    __testing = { "queries": [  { "name": "channel", "args":["value","collection","filtered"] },
+    __testing = { "queries": [  {"name": "name"},
+                                { "name": "channel", "args":["value","collection","filtered"] },
                                 {"name":"skyQuery" , "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
                                 {"name":"children" , "args":[]}
                                 //{"name":"children" , "args":["name", "allowRogue"]},
@@ -763,6 +764,7 @@ ruleset io.picolabs.wrangler {
       )
     }
     fired {
+      ent:name := name
       raise wrangler event "new_child_created"
         attributes event:attrs.put({"eci":newEci})
     } else {
