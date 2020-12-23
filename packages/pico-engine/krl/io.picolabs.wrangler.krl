@@ -764,7 +764,7 @@ ruleset io.picolabs.wrangler {
       )
     }
     fired {
-      ent:name := name
+      //ent:name := name // needs to be done in child pico!!!
       raise wrangler event "new_child_created"
         attributes event:attrs.put({"eci":newEci})
     } else {
