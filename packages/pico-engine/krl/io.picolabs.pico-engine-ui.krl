@@ -84,8 +84,8 @@ ruleset io.picolabs.pico-engine-ui {
     select when engine_ui box
     pre {
       validateColor = function(v){
-        c = v.as("String")
-        c.match(re#^\#[0-9A-F]{6}$#i) => c | ent:backgroundColor
+        c = v.as("String").klog("attempting color change")
+        c.match(re#^\#[0-9A-F]{6}$#i) => c | (ent:backgroundColor).klog("sticking with existing color")
       }
     }
     always {
