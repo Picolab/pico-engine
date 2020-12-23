@@ -622,6 +622,12 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+  rule uninstall_one_ruleset {
+    select when wrangler uninstall_ruleset_request
+      rid re#(.+)# setting(rid)
+    ctx:uninstall(rid)
+  }
+
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
