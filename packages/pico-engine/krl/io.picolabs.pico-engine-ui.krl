@@ -63,7 +63,12 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "engine_ui", "name": "new_channel" },
           { "domain": "engine_ui", "name": "del_channel" },
           { "domain": "engine_ui", "name": "testing_eci" },
-          { "domain": "engine", "name": "started" }
+          { "domain": "engine", "name": "started" },
+          { "domain": "wrangler", "name": "subscription" },
+          { "domain": "wrangler", "name": "pending_subscription_approval" },
+          { "domain": "wrangler", "name": "inbound_rejection" },
+          { "domain": "wrangler", "name": "outbound_cancellation" },
+          { "domain": "wrangler", "name": "subscription_cancellation" }
         ],
         "deny": []
       },
@@ -75,7 +80,9 @@ ruleset io.picolabs.pico-engine-ui {
           { "rid": "io.picolabs.pico-engine-ui", "name": "pico" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "logs" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" },
-          { "rid": "io.picolabs.subscription", "name": "established" }
+          { "rid": "io.picolabs.subscription", "name": "established" },
+          { "rid": "io.picolabs.subscription", "name": "inbound" },
+          { "rid": "io.picolabs.subscription", "name": "outbound" }
         ],
         "deny": []
       }

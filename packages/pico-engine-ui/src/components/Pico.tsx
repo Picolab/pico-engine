@@ -7,6 +7,7 @@ import Channels from "./PicoTabs/Channels";
 import Logging from "./PicoTabs/Logging";
 import Rulesets from "./PicoTabs/Rulesets";
 import Testing from "./PicoTabs/Testing";
+import Subscriptions from "./PicoTabs/Subscriptions";
 
 import { titleColor } from '../Themes';
 
@@ -39,6 +40,9 @@ function renderTabsBody(pico: PicoBox, openTab?: string) {
 
     case "testing":
       return <Testing pico={pico} />;
+
+    case "subscriptions":
+      return <Subscriptions pico={pico} />;
   }
 
   return <About pico={pico} />;
@@ -117,6 +121,7 @@ const Pico: React.FC<Props> = props => {
 
               {returnTabLink(pico, "Logging", "logging")}
               {returnTabLink(pico, "Testing", "testing")}
+              {returnTabLink(pico, "Subscriptions", "subscriptions")}
             </ul>
           </div>
           <div className="card-body bg-white overflow-auto">
