@@ -82,7 +82,8 @@ ruleset io.picolabs.pico-engine-ui {
           { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" },
           { "rid": "io.picolabs.subscription", "name": "established" },
           { "rid": "io.picolabs.subscription", "name": "inbound" },
-          { "rid": "io.picolabs.subscription", "name": "outbound" }
+          { "rid": "io.picolabs.subscription", "name": "outbound" },
+          { "rid": "io.picolabs.subscription", "name": "wellKnown_Rx" }
         ],
         "deny": []
       }
