@@ -91,7 +91,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
 
   return (
     <div>
-      <h3>Subscriptions</h3><div>My wellKnown: {myWellKnown}</div>
+      <h4>Subscriptions - {myWellKnown}</h4>
       {established.length > 0 && <h5>Established</h5>}
       {established.map((sub) => {
         const isOpen = !!expandedSubs[sub.Id];
