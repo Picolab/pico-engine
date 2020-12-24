@@ -132,7 +132,8 @@ const Testing: React.FC<Props> = ({ pico }) => {
     : [];
 
   const channels: Channel[] =
-    (picoDetails.data && picoDetails.data.channels) || [];
+    (picoDetails.data && picoDetails.data.channels.filter((channel) => {
+      return channel.familyChannelPicoID === null})) || [];
 
   return (
     <div>
