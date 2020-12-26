@@ -34,6 +34,13 @@ const event: krl.Module = {
     ["options", "host"],
     async function event(options, host) {
       let eci = options.eci;
+      if (!krl.isString(eci)) {
+        throw new TypeError(
+          "eci was " +
+            krl.toString(eci) +
+            " instead of a string"
+        );
+      }
       let domain = options.domain;
       let name = options.name || options.type;
       let attrs = options.attrs;
@@ -58,6 +65,8 @@ const event: krl.Module = {
         name,
         data: { attrs },
         time: 0,
+      }).catch((err) => {
+        this.log.error(err + ""); // TODO better handling
       });
 
       return eid;
