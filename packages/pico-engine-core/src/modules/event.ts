@@ -1,3 +1,4 @@
+import fetch from "cross-fetch";
 import { CurrentPicoEvent, krl, KrlCtx } from "krl-stdlib";
 
 function eventProperty<T = any>(
