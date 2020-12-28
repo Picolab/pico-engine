@@ -18,7 +18,7 @@ ruleset io.picolabs.wrangler {
     provides skyQuery ,
     channels,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
-    channel, alwaysEci, nameFromEci, createChannel, newPolicy,//channel
+    channel, alwaysEci, nameFromEci, createChannel, deleteChannel,//channel
     children, parent_eci, name, profile, pico, randomPicoName, pico, myself, isMarkedForDeath
     shares skyQuery ,
     channels,
@@ -253,25 +253,10 @@ ruleset io.picolabs.wrangler {
       (value.isnull()) => return2 | single_channel(channels)
     }
 
-/* NOT UPDATED FOR 1.0.0 */
-    deleteChannel = defaction(value) {
-        channel = channel(value,null,null)
-        eci = channel{"id"}
-        engine:removeChannel(eci)
-        return channel
+    deleteChannel = defaction(eci) {
+      ctx:delChannel(eci)
     }
 
-/* NOT UPDATED FOR 1.0.0 */
-/*
-    createChannel = defaction(id , name, type, policy_id) {
-      policy_present = policy_id => "T" | "F";
-      choose policy_present {
-        T => engine:newChannel(id , name, type, policy_id) setting(channel);
-        F => engine:newChannel(id , name, type) setting(channel);
-      }
-      return channel
-    }
-*/
     createChannel = defaction(tags,eventPolicy,queryPolicy){
       ctx:newChannel(
         tags=tags,
