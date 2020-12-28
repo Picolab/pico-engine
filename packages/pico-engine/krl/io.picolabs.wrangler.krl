@@ -313,7 +313,7 @@ ruleset io.picolabs.wrangler {
       convert = function(eci){
         pico = {}
           .put("eci",eci)
-          .put("name",ctx:query(eci,"io.picolabs.pico-engine-ui","name"))
+          .put("name",ctx:query(eci,ctx:rid,"name"))
           .put("parent_eci",ctx:query(eci,ctx:rid,"parent_eci"))
         pico
       }
@@ -338,7 +338,7 @@ ruleset io.picolabs.wrangler {
     }
   
     parent_eci = function() {
-      ctx:parent
+      ent:parent_eci
     }
   
 /* NOT UPDATED FOR 1.0.0 */
@@ -807,17 +807,13 @@ ruleset io.picolabs.wrangler {
   // this pico is the primary pico
 
 /* NOT USED IN 1.0.0 */
+// issue #513
   rule pico_root_created {
     select when wrangler root_created
     always {
       ent:id := meta:picoId;
       ent:eci := event:attr("eci");
-      ent:wrangler_children := {};
-      //ent:children := {};
-      ent:name := "Root Pico";
-      raise wrangler event "install_rulesets_requested" attributes {
-        "rid":"io.picolabs.subscription"
-      }
+      ent:name := "Pico";
     }
   }
     
