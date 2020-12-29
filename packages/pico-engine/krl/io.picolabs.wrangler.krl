@@ -30,7 +30,7 @@ ruleset io.picolabs.wrangler {
   global {
     __testing = { "queries": [  {"name": "name"},
                                 {"name": "myself"},
-                                { "name": "channel", "args":["value","collection","filtered"] },
+                                { "name": "channels", "args":["tags"] },
                                 {"name":"skyQuery" , "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
                                 {"name":"children" , "args":[]}
                                 //{"name":"children" , "args":["name", "allowRogue"]},
@@ -205,9 +205,14 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
-    channels = function(){
-      ctx:channels
+    channels = function(tags){
+      all_channels = ctx:channels
+      str_tags = tags.typeof()=="Array" => tags.join(",") | tags
+      cf_tags = tags => str_tags.lc().split(",").sort().join(",") | null
+      cf_tags.isnull() => all_channels
+        | all_channels.filter(function(c){c{"tags"}.sort().join(",")==cf_tags})
     }
+
 /* NOT UPDATED FOR 1.0.0 */
     channelNameExists = function(name){
       not channel(name, null, null).isnull()
@@ -937,7 +942,7 @@ ruleset io.picolabs.wrangler {
   }
   
     //-------------------- CHILD PERSPECTIVE  ----------------------
-    
+
 /* NOT UPDATED FOR 1.0.0 */
   rule parent_requested_deletion {
     select when wrangler intent_to_delete_pico
