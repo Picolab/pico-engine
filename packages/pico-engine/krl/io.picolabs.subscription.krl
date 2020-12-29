@@ -125,10 +125,7 @@ ent:established [
 
     wellKnown_Rx = function(){
       tags = ["wellKnown_Rx","Tx_Rx"]
-        .map(function(t){t.lc()}).sort().join(",")
-      return ctx:channels
-        .filter(function(c){c["tags"].sort().join(",") == tags})
-        .head()
+      return wrangler:channels(tags).head()
     }
 
     /**
