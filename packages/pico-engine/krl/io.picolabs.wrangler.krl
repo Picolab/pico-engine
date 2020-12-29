@@ -716,12 +716,6 @@ ruleset io.picolabs.wrangler {
           "config":the_ruleset.get("config")
         }
       }
-      subscription_ruleset_url = function(){
-        subscription_rid = "io.picolabs.subscription"
-        parts = ctx:rid_url.split("/")
-        parts.splice(parts.length()-1,1,subscription_rid+".krl").join("/")
-      }
-      subs_url = subscription_ruleset_url().klog("subs_url")
     }
     every {
       ctx:newPico(rulesets=[
@@ -740,7 +734,6 @@ ruleset io.picolabs.wrangler {
         domain="wrangler",
         name="pico_created",
         attrs={
-          "url": subs_url,
           "name": name
         }
       )
@@ -757,12 +750,10 @@ ruleset io.picolabs.wrangler {
     fired {
       raise wrangler event "new_child_created"
         attributes event:attrs.put({"eci":newEci})
-    } else {
-      raise wrangler event "child_creation_failure"
-        attributes event:attrs
     }
   }
 
+/* EVENT NEVER RAISED IN 1.0.0 */
   rule createChild_failure {
     select when wrangler child_creation_failure
       send_directive("Pico_Not_Created", {});
@@ -776,9 +767,17 @@ ruleset io.picolabs.wrangler {
 //
   rule initialize_child_after_creation {
     select when wrangler pico_created
+    pre {
+      subscription_ruleset_url = function(){
+        subscription_rid = "io.picolabs.subscription"
+        parts = ctx:rid_url.split("/")
+        parts.splice(parts.length()-1,1,subscription_rid+".krl").join("/")
+      }
+      subs_url = subscription_ruleset_url()
+    }
     fired {
       raise wrangler event "install_ruleset_request"
-        attributes event:attrs
+        attributes {"url":subs_url}
       ent:parent_eci := ctx:parent
       ent:name := event:attr("name")
       ent:id := ctx:picoId
