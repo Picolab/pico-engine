@@ -9,7 +9,7 @@ ruleset io.picolabs.wrangler {
     description <<
       Wrangler Core Module,
       use example: "use module io.picolabs.wrangler alias wrangler".
-      This Ruleset/Module provides a developer interface to the pico (persistent computer object).
+      This Ruleset/Module provides a developer interface to the pico (persistent compute object).
       When a pico is created or authenticated this ruleset will be installed to provide essential
       services.
     >>
@@ -17,12 +17,12 @@ ruleset io.picolabs.wrangler {
 
     provides skyQuery ,
     channels,
-    rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
+    rulesetsInfo,installedRIDs, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci, createChannel, deleteChannel,//channel
     children, parent_eci, name, profile, pico, randomPicoName, pico, myself, isMarkedForDeath
     shares skyQuery ,
     channels,
-    rulesetsInfo,installedRulesets,registeredRulesets, //ruleset
+    rulesetsInfo,installedRIDs,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci,//channel
     children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, isMarkedForDeath, getPicoMap, timeForCleanup,
      __testing
@@ -31,6 +31,7 @@ ruleset io.picolabs.wrangler {
     __testing = { "queries": [  {"name": "name"},
                                 {"name": "myself"},
                                 { "name": "channels", "args":["tags"] },
+                                { "name": "installedRIDs"},
                                 {"name":"skyQuery" , "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
                                 {"name":"children" , "args":[]}
                                 //{"name":"children" , "args":["name", "allowRogue"]},
@@ -46,11 +47,13 @@ ruleset io.picolabs.wrangler {
                                 "attrs": [ "name", "channel_type" ] },
                               { "domain": "wrangler", "name": "channel_deletion_requested",
                                 "attrs": [ "eci" ] },
-                              { "domain": "wrangler", "name": "install_rulesets_requested",
-                                "attrs": [ "rids","url" ] },
-                              { "domain": "wrangler", "name": "force_child_deletion",
-                              "attrs": [ "id", "name"] }
-                                ] }
+                              { "domain": "wrangler", "name": "install_ruleset_request",
+                                "attrs": [ "url" ] },
+                              { "domain": "wrangler", "name": "install_ruleset_request",
+                                "attrs": [ "absoluteURL","rid" ] },
+                              { "domain": "wrangler", "name": "uninstall_ruleset_request",
+                                "attrs": [ "rid" ] },
+                            ] }
                                 
                                 
 // ********************************************************************************************
@@ -154,7 +157,7 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 // ***                                      Rulesets                                        ***
 // ********************************************************************************************
-/* NOT UPDATED FOR 1.0.0 */
+/* NOT APPLICABLE FOR 1.0.0 */
     registeredRulesets = function() {
       engine:listAllEnabledRIDs()
     }
@@ -167,15 +170,15 @@ ruleset io.picolabs.wrangler {
     
     //Given a semicolon-delimited array as a string or normal array returns a normal array
     //Checks attr1 then attr2 for the given array
+/* NOT UPDATED FOR 1.0.0 */
      gatherGivenArray = function(attr1, attr2) {
       items = event:attr(attr1).defaultsTo(event:attr(attr2)).defaultsTo("");
       item_list = (items.typeof() ==  "Array") => items | items => items.split(re#;#) | [];
       item_list
     }
 
-/* NOT UPDATED FOR 1.0.0 */
-    installedRulesets = function() {
-      engine:listInstalledRIDs(meta:picoId)
+    installedRIDs = function() {
+      ctx:rulesets.map(function(rs){rs{"rid"}})
     }
 
 /* NOT UPDATED FOR 1.0.0 */
@@ -617,6 +620,9 @@ ruleset io.picolabs.wrangler {
     select when wrangler uninstall_ruleset_request
       rid re#(.+)# setting(rid)
     ctx:uninstall(rid)
+    fired {
+      raise wrangler event "ruleset_uninstalled" attributes event:attrs
+    }
   }
 
 // ********************************************************************************************
