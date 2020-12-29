@@ -34,7 +34,9 @@ ruleset io.picolabs.subscription {
         { "domain": "wrangler", "name": "outbound_cancellation",
           "attrs": [ "Id" ] },
         { "domain": "wrangler", "name": "autoAcceptConfigUpdate",
-          "attrs": [ "configName", "password", "regexMap","delete" ] }
+          "attrs": [ "configName", "password", "regexMap","delete" ] },
+        { "domain": "wrangler", "name": "intent_to_delete",
+          "attrs": [ "Id" ] },
       ])
 /*
 ent:inbound [
@@ -602,6 +604,20 @@ ent:established [
     }
     else {
       raise wrangler event "autoAcceptConfigUpdate_failure" attributes event:attrs // API event
+    }
+  }
+
+  rule prepare_to_delete {
+    select when wrangler intent_to_delete
+      Id re#^(.+)$# setting(Id)
+    pre {
+      the_subs = established("Id",Id)
+    }
+    if the_subs then noop()
+    fired {
+      raise wrangler event "subscription_cancellation"
+        attributes event:attrs
+      raise wrangler event "ready_for_deletion"
     }
   }
 }

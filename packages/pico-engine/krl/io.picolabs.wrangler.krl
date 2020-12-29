@@ -943,6 +943,17 @@ ruleset io.picolabs.wrangler {
   
     //-------------------- CHILD PERSPECTIVE  ----------------------
 
+  rule child_initiates_deletion {
+    select when wrangler ready_for_deletion
+    pre {
+      my_eci = channels("system,child").head().get("id")
+    }
+    if my_eci then
+      event:send({"eci":ent:parent_eci,
+        "domain":"wrangler", "type":"child_deletion_request",
+        "attrs":{"eci":my_eci}})
+  }
+
 /* NOT UPDATED FOR 1.0.0 */
   rule parent_requested_deletion {
     select when wrangler intent_to_delete_pico
