@@ -123,13 +123,13 @@ ruleset io.picolabs.wrangler {
                                "skyQueryReturnValue": response_content});
        is_bad_response = (response_content.isnull() || (response_content == "null") || response_error || response_error_str);
        // if HTTP status was OK & the response was not null and there were no errors...
-       (status == 200 && not is_bad_response) => response_content | error
+       (status == 200 && not is_bad_response) => response_content | error.klog("error: ")
      }
      
      skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/"", _host must include protocol(http:// or https://)
        //.../sky/cloud/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
-       thisPico = eci => engine:getPicoIDByECI(eci.defaultsTo("")) == meta:picoId | false;
-       web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url);
+       thisPico = ctx:channels.any(function(c){c{"id"}==eci})
+       web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url)
 
        response = (not thisPico) => http:get(web_hook, {}.put(params)) | QUERY_SELF_INVALID_HTTP_MAP;
        processHTTPResponse(response)
