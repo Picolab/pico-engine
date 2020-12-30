@@ -10,19 +10,18 @@ ruleset io.picolabs.wrangler {
       Wrangler Core Module,
       use example: "use module io.picolabs.wrangler alias wrangler".
       This Ruleset/Module provides a developer interface to the pico (persistent compute object).
-      When a pico is created or authenticated this ruleset will be installed to provide essential
-      services.
+      When a pico is created this ruleset will be installed to provide essential services.
     >>
     author "BYU Pico Lab"
 
     provides skyQuery ,
     channels,
-    rulesetsInfo,installedRIDs, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
+    rulesetConfig, rulesetMeta,installedRIDs, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci, createChannel, deleteChannel,//channel
     children, parent_eci, name, profile, pico, randomPicoName, pico, myself, isMarkedForDeath
     shares skyQuery ,
     channels,
-    rulesetsInfo,installedRIDs,registeredRulesets, //ruleset
+    rulesetConfig, rulesetMeta,installedRIDs,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci,//channel
     children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, isMarkedForDeath, getPicoMap, timeForCleanup,
      __testing
@@ -157,6 +156,18 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 // ***                                      Rulesets                                        ***
 // ********************************************************************************************
+    rulesetByRID = function(rid) {
+      ctx:rulesets.filter(function(rs){rs{"rid"}==rid}).head()
+    }
+
+    rulesetConfig = function(rid) {
+      rulesetByRID(rid){"config"}
+    }
+
+    rulesetMeta = function(rid) {
+      rulesetByRID(rid){["meta","krlMeta"]}
+    }
+
 /* NOT APPLICABLE FOR 1.0.0 */
     registeredRulesets = function() {
       engine:listAllEnabledRIDs()
