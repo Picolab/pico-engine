@@ -281,10 +281,27 @@ ruleset io.picolabs.wrangler {
 
   rule createChannel {
     select when wrangler new_channel_request
+    pre {
+      tags = event:attrs{"tags"}
+      eventPolicy = event:attrs{"eventPolicy"}
+      queryPolicy = event:attrs{"queryPolicy"}
+    }
+    if tags && eventPolicy && queryPolicy then
+      createChannel(tags,eventPolicy,queryPolicy) setting(channel)
+    fired {
+      raise wrangler event "channel_created"
+        attributes event:attrs.put({"channel":channel})
+    }
   }
 
   rule deleteChannel {
     select when wrangler channel_deletion_request
+      eci re#^(.+)$# // required
+      setting(eci)
+    deleteChannel(eci)
+    fired {
+      raise wrangler event "channel_deleted" attributes event:attrs
+    }
   }
 
 // ********************************************************************************************
