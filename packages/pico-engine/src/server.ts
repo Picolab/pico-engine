@@ -142,6 +142,9 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
         if (funcPart[1] === "html") {
           res.header("Content-Type", "text/html");
           res.end(data);
+        } else if (funcPart[1] === "txt") {
+          res.header("Content-Type", "text/plain");
+          res.end(data);
         } else {
           res.json(data);
         }
