@@ -173,17 +173,31 @@ ent:established [
 
   }//end global
 
-  rule create_wellKnown_Rx{
+  rule initialize{
     select when wrangler ruleset_installed where event:attr("rids") >< ctx:rid
     pre{ channel = wellKnown_Rx() }
-    if channel.isnull() then every{
+    if channel.isnull() then noop()
+    fired{
+      raise wrangler event "need_wellKnown_Rx" attributes event:attrs;
+    }
+  }
+
+  rule create_wellKnown_Rx{
+    select when wrangler need_wellKnown_Rx
+    every{
       ctx:newChannel(["wellKnown_Rx","Tx_Rx"], wellKnown_eventPolicy,wellKnown_queryPolicy)
     }
     fired{
       raise wrangler event "wellKnown_Rx_created" attributes event:attrs;
     }
-    else{
-      raise wrangler event "wellKnown_Rx_not_created" attributes event:attrs; //exists
+  }
+
+  rule create_root_pico_wellKnown_Rx{
+    select when engine started
+    pre{ channel = wellKnown_Rx() }
+    if channel.isnull() then noop()
+    fired{
+      raise wrangler event "need_wellKnown_Rx" attributes event:attrs;
     }
   }
   
