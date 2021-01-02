@@ -395,17 +395,15 @@ ruleset io.picolabs.wrangler {
   
   // this pico is the primary pico
 
-/* NOT USED IN 1.0.0 */
-// issue #513
   rule pico_root_created {
-    select when wrangler root_created
-    always {
-      ent:id := meta:picoId;
-      ent:eci := event:attr("eci");
-      ent:name := "Pico";
+    select when engine_ui setup
+    if ent:id.isnull() && ent:parent_eci.isnull() then noop()
+    fired {
+      ent:id := ctx:picoId
+      ent:eci := channels("system,self").head(){"id"}
+      ent:name := "Pico"
     }
   }
-    
     
   
   //-------------------- PARENT PERSPECTIVE  ----------------------
