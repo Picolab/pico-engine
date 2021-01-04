@@ -74,8 +74,14 @@ export class PicoEngineCore {
             break;
           case "txnStart":
           case "txnDone":
-          case "txnError":
             log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
+            break;
+          case "txnError":
+            log.debug(ev.type, {
+              picoId: ev.picoId,
+              txnId: ev.txn.id,
+              error: ev.error + "",
+            });
             break;
           case "eventScheduleAdded":
             log.debug("event added to schedule", {
