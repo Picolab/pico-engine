@@ -105,6 +105,19 @@ const PicosPage: React.FC<Props> = (props) => {
           );
         })}
       </svg>
+      <svg id="subs-svg">
+        {picoPage.subLines.map((line, i) => {
+          return (
+            <line strokeDasharray="4"
+              key={i}
+              x1={line.from.x}
+              y1={line.from.y}
+              x2={line.to.x}
+              y2={line.to.y}
+            />
+          );
+        })}
+      </svg>
     </div>
   );
 };

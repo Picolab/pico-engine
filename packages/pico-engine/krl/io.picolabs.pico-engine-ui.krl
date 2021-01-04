@@ -63,7 +63,12 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "engine_ui", "name": "new_channel" },
           { "domain": "engine_ui", "name": "del_channel" },
           { "domain": "engine_ui", "name": "testing_eci" },
-          { "domain": "engine", "name": "started" }
+          { "domain": "engine", "name": "started" },
+          { "domain": "wrangler", "name": "subscription" },
+          { "domain": "wrangler", "name": "pending_subscription_approval" },
+          { "domain": "wrangler", "name": "inbound_rejection" },
+          { "domain": "wrangler", "name": "outbound_cancellation" },
+          { "domain": "wrangler", "name": "subscription_cancellation" }
         ],
         "deny": []
       },
@@ -74,7 +79,11 @@ ruleset io.picolabs.pico-engine-ui {
           { "rid": "io.picolabs.pico-engine-ui", "name": "box" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "pico" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "logs" },
-          { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" }
+          { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" },
+          { "rid": "io.picolabs.subscription", "name": "established" },
+          { "rid": "io.picolabs.subscription", "name": "inbound" },
+          { "rid": "io.picolabs.subscription", "name": "outbound" },
+          { "rid": "io.picolabs.subscription", "name": "wellKnown_Rx" }
         ],
         "deny": []
       }
@@ -82,13 +91,19 @@ ruleset io.picolabs.pico-engine-ui {
   }
   rule box {
     select when engine_ui box
+    pre {
+      validateColor = function(v){
+        c = v.as("String").klog("attempting color change")
+        c.match(re#^\#[0-9A-F]{6}$#i) => c | (ent:backgroundColor).klog("sticking with existing color")
+      }
+    }
     always {
       ent:x := event:attrs{"x"}.as("Number") if event:attrs >< "x"
       ent:y := event:attrs{"y"}.as("Number") if event:attrs  >< "y"
       ent:width := event:attrs{"width"}.as("Number") if event:attrs >< "width"
       ent:height := event:attrs{"height"}.as("Number") if event:attrs  >< "height"
       ent:name := event:attrs{"name"}.as("String") if event:attrs  >< "name"
-      ent:backgroundColor := event:attrs{"backgroundColor"}.as("String") if event:attrs  >< "backgroundColor"
+      ent:backgroundColor := event:attrs{"backgroundColor"}.validateColor() if event:attrs >< "backgroundColor"
     }
   }
   rule new {
@@ -97,32 +112,17 @@ ruleset io.picolabs.pico-engine-ui {
       name = event:attrs{"name"} || ent:name
       backgroundColor = event:attrs{"backgroundColor"} || ent:backgroundColor
     }
-    every {
-      ctx:newPico(rulesets=[
-        { "url": ctx:rid_url, "config": {} }
-      ]) setting(newEci)
-      ctx:eventQuery(
-        eci=newEci,
-        domain="engine_ui",
-        name="setup",
-        rid="io.picolabs.pico-engine-ui",
-        queryName="uiECI"
-      ) setting(newUiECI)
-      ctx:event(
-        eci=newUiECI,
-        domain="engine_ui",
-        name="box",
-        attrs={
-          "name": name,
-          "backgroundColor": backgroundColor
-        }
-      )
+    fired {
+      raise wrangler event "new_child_request" attributes
+        event:attrs
+          .put("name",name)
+          .put("backgroundColor",backgroundColor)
     }
   }
   rule del {
     select when engine_ui del
     pre {
-      delUiEci = event:attrs{"eci"} 
+      delUiEci = event:attrs{"eci"}
       delEci = ctx:children
         .filter(function(eci){
           other = getOtherUiECI(eci)
@@ -134,13 +134,17 @@ ruleset io.picolabs.pico-engine-ui {
   }
   rule install {
     select when engine_ui install
+    pre {
+      url = event:attrs{"url"}
+    }
     every {
-      ctx:flush(url=event:attrs{"url"})
-      ctx:install(url=event:attrs{"url"}, config=event:attrs{"config"})
+      ctx:flush(url=url)
+      ctx:install(url=url, config=event:attrs{"config"})
     }
     fired {
+      this_rs = ctx:rulesets.filter(function(r){r.get("url")==url})
       raise wrangler event "ruleset_installed" attributes {
-        "rids": ctx:rulesets.map(function(r){r.get("rid")})
+        "rids": this_rs.map(function(r){r.get("rid")})
       }
     }
   }

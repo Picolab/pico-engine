@@ -34,7 +34,9 @@ ruleset io.picolabs.subscription {
         { "domain": "wrangler", "name": "outbound_cancellation",
           "attrs": [ "Id" ] },
         { "domain": "wrangler", "name": "autoAcceptConfigUpdate",
-          "attrs": [ "configName", "password", "regexMap","delete" ] }
+          "attrs": [ "configName", "password", "regexMap","delete" ] },
+        { "domain": "wrangler", "name": "intent_to_delete",
+          "attrs": [ "Id" ] },
       ])
 /*
 ent:inbound [
@@ -123,10 +125,7 @@ ent:established [
 
     wellKnown_Rx = function(){
       tags = ["wellKnown_Rx","Tx_Rx"]
-        .map(function(t){t.lc()}).sort().join(",")
-      return ctx:channels
-        .filter(function(c){c["tags"].sort().join(",") == tags})
-        .head()
+      return wrangler:channels(tags).head()
     }
 
     /**
@@ -174,17 +173,31 @@ ent:established [
 
   }//end global
 
-  rule create_wellKnown_Rx{
+  rule initialize{
     select when wrangler ruleset_installed where event:attr("rids") >< ctx:rid
     pre{ channel = wellKnown_Rx() }
-    if channel.isnull() then every{
+    if channel.isnull() then noop()
+    fired{
+      raise wrangler event "need_wellKnown_Rx" attributes event:attrs;
+    }
+  }
+
+  rule create_wellKnown_Rx{
+    select when wrangler need_wellKnown_Rx
+    every{
       ctx:newChannel(["wellKnown_Rx","Tx_Rx"], wellKnown_eventPolicy,wellKnown_queryPolicy)
     }
     fired{
       raise wrangler event "wellKnown_Rx_created" attributes event:attrs;
     }
-    else{
-      raise wrangler event "wellKnown_Rx_not_created" attributes event:attrs; //exists
+  }
+
+  rule create_root_pico_wellKnown_Rx{
+    select when engine started
+    pre{ channel = wellKnown_Rx() }
+    if channel.isnull() then noop()
+    fired{
+      raise wrangler event "need_wellKnown_Rx" attributes event:attrs;
     }
   }
   
@@ -421,7 +434,7 @@ ent:established [
       index = indexOfId(buses, bus{"Id"})
     }
     if index >= 0 then
-      ctx:delChannel(bus{"Rx"})
+      wrangler:deleteChannel(bus{"Rx"})
     fired {
       ent:established := buses.splice(index,1);
       raise wrangler event "subscription_removed" attributes event:attrs.put({ "bus" : bus }) // API event
@@ -454,7 +467,7 @@ ent:established [
       index = indexOfId(buses, bus{"Id"})
     }
     if index >= 0 then
-      ctx:delChannel(bus{"Rx"})
+      wrangler:deleteChannel(bus{"Rx"})
     fired {
       ent:inbound := buses.splice(index,1);
       raise wrangler event "inbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
@@ -488,7 +501,7 @@ ent:established [
       index = indexOfId(buses,bus{"Id"})
     }
     if index >= 0 then
-      ctx:delChannel(bus{"Rx"})
+      wrangler:deleteChannel(bus{"Rx"})
     fired {
       ent:outbound := buses.splice(index,1);
       raise wrangler event "outbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
@@ -602,6 +615,20 @@ ent:established [
     }
     else {
       raise wrangler event "autoAcceptConfigUpdate_failure" attributes event:attrs // API event
+    }
+  }
+
+  rule prepare_to_delete {
+    select when wrangler intent_to_delete
+      Id re#^(.+)$# setting(Id)
+    pre {
+      the_subs = established("Id",Id)
+    }
+    if the_subs then noop()
+    fired {
+      raise wrangler event "subscription_cancellation"
+        attributes event:attrs
+      raise wrangler event "ready_for_deletion"
     }
   }
 }

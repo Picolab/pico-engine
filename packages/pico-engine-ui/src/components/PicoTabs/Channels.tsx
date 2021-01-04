@@ -73,6 +73,17 @@ const Channels: React.FC<Props> = ({ pico }) => {
   const channels: Channel[] =
     (picoDetails.data && picoDetails.data.channels) || [];
 
+  const ctrlC = (e: any) => {
+    e.preventDefault();
+    const range = document.createRange();
+    range.selectNodeContents(e.target);
+    const sel = window.getSelection();
+    if(sel){
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  };
+
   return (
     <div>
       <h3>Channels</h3>
@@ -110,7 +121,11 @@ const Channels: React.FC<Props> = ({ pico }) => {
                     className="form-check-label"
                     htmlFor={`chann-${channel.id}`}
                   >
-                    <span className="text-mono">{channel.id}</span>
+                    <span 
+                      className="text-mono"
+                      onDoubleClick={(event) => ctrlC(event)}
+                      onClick={(event) => {event.preventDefault();}}
+                    >{channel.id}</span>
                   </label>
                   {channel.tags.map((tag, i) => {
                     return (

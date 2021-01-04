@@ -174,8 +174,10 @@ const stdlib: krl.Module = {
       return _.findIndex(left, _.partial(krl.isEqual, right)) >= 0;
     } else if (krl.isMap(left)) {
       return _.has(left, right);
+    } else {
+      return false;
     }
-    throw new TypeError(">< only works with Array or Map");
+    // was throw new TypeError(">< only works with Array or Map");
   }),
 
   like: krl.Function(["val", "regex"], function (val, regex): boolean {
