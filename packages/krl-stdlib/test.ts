@@ -207,6 +207,7 @@ test("infix operators", async (t) => {
     pi: [3, 1, 4, 1, 5, 9, 3],
     foo: { bar: { "10": "I like cheese" } },
   };
+  t.false(callLib("><", 15, "colors"));
   t.false(callLib("><", obj, "many"));
   t.true(callLib("><", obj, "pi"));
   t.false(callLib("><", obj, "bar"));
