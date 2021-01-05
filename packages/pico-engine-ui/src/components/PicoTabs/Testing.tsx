@@ -95,7 +95,8 @@ const Testing: React.FC<Props> = ({ pico }) => {
       try {
         const data = await apiPost(
           `/c/${testingECI}/query/${rid}/${name}`,
-          args
+          args,
+          false
         );
         setTestResult(JSON.stringify(data, undefined, 2));
       } catch (err) {
@@ -116,7 +117,8 @@ const Testing: React.FC<Props> = ({ pico }) => {
       try {
         const data = await apiPost(
           `/c/${testingECI}/event-wait/${domain}/${name}`,
-          attrs
+          attrs,
+          false
         );
         setTestResult(JSON.stringify(data, undefined, 2));
       } catch (err) {

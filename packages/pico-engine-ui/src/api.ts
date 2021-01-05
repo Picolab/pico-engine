@@ -1,6 +1,6 @@
 import { PicoBox } from "./types/PicoBox";
 
-function apiResponse(resp: Promise<Response>) {
+function apiResponse(resp: Promise<Response>, checkErrors: boolean = true) {
   return resp
     .then(async (resp) => {
       const text = await resp.text();
@@ -14,7 +14,7 @@ function apiResponse(resp: Promise<Response>) {
       return json;
     })
     .then((data) => {
-      if (data?.error) {
+      if (checkErrors && data?.error) {
         return Promise.reject(data.error);
       }
       return data;
@@ -25,7 +25,7 @@ export function apiGet(path: string) {
   return apiResponse(fetch(path));
 }
 
-export function apiPost(path: string, body: any) {
+export function apiPost(path: string, body: any, checkErrors: boolean = true) {
   return apiResponse(
     fetch(path, {
       method: "POST",
@@ -33,7 +33,8 @@ export function apiPost(path: string, body: any) {
         "Content-Type": "application/json; charset=utf-8",
       },
       body: JSON.stringify(body),
-    })
+    }),
+    checkErrors
   );
 }
 
