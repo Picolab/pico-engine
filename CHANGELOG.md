@@ -1,3 +1,18 @@
+# 1.0.1 - January 5, 2021
+
+* functions can be queried requesting either HTML or plain text results (per [docs](https://picolabs.atlassian.net/wiki/spaces/docs/pages/358154241/Content+negotiation+with+HTTP))
+* `event:send` which allows ruleset evaulation to continue even if the ECI is not found
+* new Subscriptions tab in the developer UI and dashed magenta lines between subscription pico pairs
+* new built-in `meta` library to match the one in 0.52.4, with [docs](https://picolabs.atlassian.net/wiki/spaces/docs/pages/1189924/meta)
+* new built-in property `ctx:picoId`
+* fixes for issues 488, 490, 473, 489, 486, 501, 480, 491, 500, 502, 487, 513, 512, 503, and 518
+* the `io.picolabs.subscription` ruleset installed in all picos
+* command line `--version` option for `pico-engine` command
+* new and simplified `io.picolabs.wrangler` ruleset in all picos
+* show line/col numbers for parse and compile errors
+* allow access to event attributes within functions (when called from an event context)
+* `ursa` module for cryptographic needs of DIDs, and its dependencies
+
 # 1.0.0 - December 7, 2020
 
 * Ruleset versioning by url to facilitate decentralized code sharing.
