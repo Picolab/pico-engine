@@ -36,4 +36,9 @@ export interface PicoEngineCoreConfiguration {
    * Optionally specify how ids should be generated. Used for testing
    */
   genID?: () => string;
+
+  /**
+   * Provide the base URL
+   */
+  base_url?: string;
 }

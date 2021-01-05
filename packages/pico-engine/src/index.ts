@@ -158,6 +158,7 @@ export async function startEngine(
   if (typeof base_url !== "string") {
     base_url = `http://localhost:${port}`;
   }
+  core.base_url = base_url;
 
   log.info(`Listening at ${base_url}`);
 
