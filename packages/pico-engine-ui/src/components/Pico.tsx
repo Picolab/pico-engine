@@ -1,15 +1,14 @@
 import * as React from "react";
 import { Link, NavLink } from "react-router-dom";
 import picoPageStore from "../stores/picoPageStore";
+import { titleColor } from "../themes";
 import { PicoBox } from "../types/PicoBox";
 import About from "./PicoTabs/About";
 import Channels from "./PicoTabs/Channels";
 import Logging from "./PicoTabs/Logging";
 import Rulesets from "./PicoTabs/Rulesets";
-import Testing from "./PicoTabs/Testing";
 import Subscriptions from "./PicoTabs/Subscriptions";
-
-import { titleColor } from '../Themes';
+import Testing from "./PicoTabs/Testing";
 
 function returnTabLink(pico: PicoBox, label: string, tab?: string) {
   let url = `/pico/${pico.eci}`;
@@ -54,7 +53,7 @@ interface Props {
   openTab?: string;
 }
 
-const Pico: React.FC<Props> = props => {
+const Pico: React.FC<Props> = (props) => {
   const { pico, openEci, openTab } = props;
   const isOpen = pico.eci === openEci;
 
@@ -71,7 +70,7 @@ const Pico: React.FC<Props> = props => {
       eci: pico.eci,
       action: "moving",
       relX: elm ? e.clientX - elm.offsetLeft : 0,
-      relY: elm ? e.clientY - elm.offsetTop : 0
+      relY: elm ? e.clientY - elm.offsetTop : 0,
     });
   }
 
@@ -82,7 +81,7 @@ const Pico: React.FC<Props> = props => {
       eci: pico.eci,
       action: "resizing",
       relX: elm ? e.clientX - elm.offsetLeft : 0,
-      relY: elm ? e.clientY - elm.offsetTop : 0
+      relY: elm ? e.clientY - elm.offsetTop : 0,
     });
   }
 
@@ -99,7 +98,7 @@ const Pico: React.FC<Props> = props => {
         top: pico.y,
         maxWidth: pico.width,
         maxHeight: pico.height,
-        backgroundColor: pico.backgroundColor
+        backgroundColor: pico.backgroundColor,
       }}
       onMouseDown={isOpen ? undefined : mouseDownMove}
     >
@@ -113,7 +112,12 @@ const Pico: React.FC<Props> = props => {
             Close
           </Link>
           <div className="card-header">
-            <div className="card-header-pico-name" style={{color: titleColor(pico.backgroundColor)}}>{pico.name}</div>
+            <div
+              className="card-header-pico-name"
+              style={{ color: titleColor(pico.backgroundColor) }}
+            >
+              {pico.name}
+            </div>
             <ul className="nav nav-tabs card-header-tabs">
               {returnTabLink(pico, "About")}
               {returnTabLink(pico, "Rulesets", "rulesets")}
@@ -134,8 +138,8 @@ const Pico: React.FC<Props> = props => {
             <Link
               to={"/pico/" + pico.eci}
               className="pico-name-open-btn"
-              onMouseDown={e => e.stopPropagation()}
-              style={{color: titleColor(pico.backgroundColor)}}
+              onMouseDown={(e) => e.stopPropagation()}
+              style={{ color: titleColor(pico.backgroundColor) }}
             >
               {pico.name}
             </Link>

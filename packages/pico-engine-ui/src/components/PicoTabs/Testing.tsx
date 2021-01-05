@@ -16,7 +16,7 @@ function serializeFormAttrsOrArgs(e: React.FormEvent<HTMLFormElement>) {
   const attrs: { [name: string]: any } = {};
   for (let i = 0; i < form.elements.length; i++) {
     const elm = form.elements[i] as any;
-    if (elm && elm.name && elm.value) {
+    if (elm && elm.name) {
       let val = elm.value;
       try {
         val = JSON.parse(val);
@@ -132,8 +132,11 @@ const Testing: React.FC<Props> = ({ pico }) => {
     : [];
 
   const channels: Channel[] =
-    (picoDetails.data && picoDetails.data.channels.filter((channel) => {
-      return channel.familyChannelPicoID === null})) || [];
+    (picoDetails.data &&
+      picoDetails.data.channels.filter((channel) => {
+        return channel.familyChannelPicoID === null;
+      })) ||
+    [];
 
   return (
     <div>
@@ -231,7 +234,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
 
                           return (
                             <form
-                              key={doname+i}
+                              key={doname + i}
                               onSubmit={sendTestEvent(e.domain, e.name)}
                               className="border border-warning p-2"
                             >
