@@ -323,34 +323,34 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getResp": function (query, qid) {
+        "getResp": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getResp2($ctx, query.args);
+            return await getResp2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "getLastPostEvent": function (query, qid) {
+        "getLastPostEvent": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getLastPostEvent2($ctx, query.args);
+            return await getLastPostEvent2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "fnGet": function (query, qid) {
+        "fnGet": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return fnGet2($ctx, query.args);
+            return await fnGet2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "fnPost": function (query, qid) {
+        "fnPost": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return fnPost2($ctx, query.args);
+            return await fnPost2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

@@ -294,18 +294,18 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getLog": function (query, qid) {
+        "getLog": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getLog2($ctx, query.args);
+            return await getLog2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "listScheduled": function (query, qid) {
+        "listScheduled": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return listScheduled2($ctx, query.args);
+            return await listScheduled2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

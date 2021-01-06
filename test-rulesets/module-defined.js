@@ -136,10 +136,10 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getInfo": function (query, qid) {
+        "getInfo": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getInfo2($ctx, query.args);
+            return await getInfo2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

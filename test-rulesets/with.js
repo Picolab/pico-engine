@@ -67,26 +67,26 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "add": function (query, qid) {
+        "add": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return add2($ctx, query.args);
+            return await add2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "inc": function (query, qid) {
+        "inc": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return inc2($ctx, query.args);
+            return await inc2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "foo": function (query, qid) {
+        "foo": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return foo2($ctx, query.args);
+            return await foo2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

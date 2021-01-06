@@ -1340,34 +1340,34 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getOnChooseFired": function (query, qid) {
+        "getOnChooseFired": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getOnChooseFired2($ctx, query.args);
+            return await getOnChooseFired2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "getNoActionFired": function (query, qid) {
+        "getNoActionFired": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getNoActionFired2($ctx, query.args);
+            return await getNoActionFired2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "getSentAttrs": function (query, qid) {
+        "getSentAttrs": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getSentAttrs2($ctx, query.args);
+            return await getSentAttrs2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "getSentName": function (query, qid) {
+        "getSentName": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getSentName2($ctx, query.args);
+            return await getSentName2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

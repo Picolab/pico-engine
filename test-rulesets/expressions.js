@@ -158,7 +158,7 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "obj": function (query, qid) {
+        "obj": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return obj2;
@@ -166,7 +166,7 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "path1": function (query, qid) {
+        "path1": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return path12;
@@ -174,7 +174,7 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "path2": function (query, qid) {
+        "path2": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return path22;
@@ -182,7 +182,7 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "index1": function (query, qid) {
+        "index1": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return index12;
@@ -190,7 +190,7 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "index2": function (query, qid) {
+        "index2": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return index22;
@@ -198,10 +198,10 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "paramFnTest": function (query, qid) {
+        "paramFnTest": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return paramFnTest2($ctx, query.args);
+            return await paramFnTest2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

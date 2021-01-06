@@ -163,7 +163,7 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "results": function (query, qid) {
+        "results": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return results2;
@@ -171,18 +171,18 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "returnMapAfterKlog": function (query, qid) {
+        "returnMapAfterKlog": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return returnMapAfterKlog2($ctx, query.args);
+            return await returnMapAfterKlog2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "returnArrayAfterKlog": function (query, qid) {
+        "returnArrayAfterKlog": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return returnArrayAfterKlog2($ctx, query.args);
+            return await returnArrayAfterKlog2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

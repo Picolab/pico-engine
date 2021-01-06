@@ -451,18 +451,18 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getSettingVal": function (query, qid) {
+        "getSettingVal": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getSettingVal2($ctx, query.args);
+            return await getSettingVal2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "add": function (query, qid) {
+        "add": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return add2($ctx, query.args);
+            return await add2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

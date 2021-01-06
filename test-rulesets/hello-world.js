@@ -70,18 +70,18 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "hello": function (query, qid) {
+        "hello": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return hello2($ctx, query.args);
+            return await hello2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "said": function (query, qid) {
+        "said": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return said2($ctx, query.args);
+            return await said2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

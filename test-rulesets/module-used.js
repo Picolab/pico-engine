@@ -246,23 +246,23 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "now": function (query, qid) {
+        "now": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return now2($ctx, query.args);
+            return await now2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "getEntVal": function (query, qid) {
+        "getEntVal": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getEntVal2($ctx, query.args);
+            return await getEntVal2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "dfltName": function (query, qid) {
+        "dfltName": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return dfltName2;

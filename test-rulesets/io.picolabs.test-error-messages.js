@@ -51,15 +51,15 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "hello": function (query, qid) {
+        "hello": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return hello2($ctx, query.args);
+            return await hello2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "null_val": function (query, qid) {
+        "null_val": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return null_val2;
@@ -67,10 +67,10 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "infiniteRecursion": function (query, qid) {
+        "infiniteRecursion": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return infiniteRecursion2($ctx, query.args);
+            return await infiniteRecursion2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

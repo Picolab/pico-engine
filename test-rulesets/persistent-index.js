@@ -234,34 +234,34 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getFoo": function (query, qid) {
+        "getFoo": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getFoo2($ctx, query.args);
+            return await getFoo2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "getFooKey": function (query, qid) {
+        "getFooKey": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getFooKey2($ctx, query.args);
+            return await getFooKey2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "getBaz": function (query, qid) {
+        "getBaz": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getBaz2($ctx, query.args);
+            return await getBaz2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "getMaplist": function (query, qid) {
+        "getMaplist": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getMaplist2($ctx, query.args);
+            return await getMaplist2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

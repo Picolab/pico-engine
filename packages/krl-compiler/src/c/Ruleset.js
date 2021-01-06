@@ -89,7 +89,7 @@ module.exports = function (ast, comp, e) {
     if (annotation && annotation.type === 'Action') {
       throw comp.error(annotation.loc, 'Actions cannot be used queries: ' + share.value)
     } else {
-      queries[share.value] = e('fn', ['query', 'qid'], [
+      queries[share.value] = e('asyncfn', ['query', 'qid'], [
         e(';', e('call', e('id', '$ctx.setQuery'), [e('call', e('id', 'Object.assign'), [
           e('obj', {}),
           e('id', 'query'),
@@ -99,7 +99,7 @@ module.exports = function (ast, comp, e) {
           type: 'TryStatement',
           block: e('block', [
             annotation && annotation.type === 'Function'
-              ? e('return', e('call', e('id', comp.jsId(share.value)), [e('id', '$ctx'), e('id', 'query.args')]))
+              ? e('return', e('acall', e('id', comp.jsId(share.value)), [e('id', '$ctx'), e('id', 'query.args')]))
               : e('return', e('id', comp.jsId(share.value)))
           ]),
           finalizer: e('block', [

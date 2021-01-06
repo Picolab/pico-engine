@@ -485,7 +485,7 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "g0": function (query, qid) {
+        "g0": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return g02;
@@ -493,7 +493,7 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "g1": function (query, qid) {
+        "g1": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return g12;
@@ -501,31 +501,31 @@ module.exports = {
             $ctx.setQuery(null);
           }
         },
-        "getVals": function (query, qid) {
+        "getVals": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getVals2($ctx, query.args);
+            return await getVals2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "add": function (query, qid) {
+        "add": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return add2($ctx, query.args);
+            return await add2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "sum": function (query, qid) {
+        "sum": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return sum2($ctx, query.args);
+            return await sum2($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
         },
-        "mapped": function (query, qid) {
+        "mapped": async function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
             return mapped2;
