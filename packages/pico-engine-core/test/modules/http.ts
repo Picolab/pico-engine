@@ -38,7 +38,7 @@ test("http module", async function (t) {
   });
   server.unref();
   await new Promise(function (resolve) {
-    server.listen(0, resolve);
+    server.listen(0, () => resolve(undefined));
   });
   const host = "localhost:" + (server.address() as any).port;
   const url = "http://" + host;
@@ -264,7 +264,7 @@ test("http autosend", async function (t) {
   });
   server.unref();
   await new Promise(function (resolve) {
-    server.listen(0, resolve);
+    server.listen(0, () => resolve(undefined));
   });
   const url = "http://localhost:" + (server.address() as any).port;
 
@@ -335,7 +335,7 @@ test("http redirects", async function (t) {
   });
   server.unref();
   await new Promise(function (resolve) {
-    server.listen(0, resolve);
+    server.listen(0, () => resolve(undefined));
   });
   const url = "http://localhost:" + (server.address() as any).port;
 
