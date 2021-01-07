@@ -8,8 +8,12 @@ An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/r
 ## Getting Started / Installing / Configuration
 
 See [packages/pico-engine](https://github.com/Picolab/pico-engine/tree/master/packages/pico-engine#readme)
+for detailed step-by-step instructions to get started.
 
 ## Contributing
+
+This section is for those who want to contribute to the `pico-engine` source code.
+KRL programmers would be better off following the link in the previous section.
 
 The `pico-engine` is made up of several smaller modules. Each with their own documentation and test suite.
 
