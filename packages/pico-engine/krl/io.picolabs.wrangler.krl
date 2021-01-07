@@ -275,6 +275,15 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+  rule flush_all_rulesets {
+    select when wrangler rulesets_need_flushing
+    foreach ctx:rulesets setting(rs)
+      ctx:flush(rs{"url"})
+      fired {
+        raise wrangler event "rulesets_flushed" on final
+      }
+  }
+
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
