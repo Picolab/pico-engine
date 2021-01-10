@@ -169,27 +169,48 @@ export function initScheduleModule(pf: PicoFramework) {
     return sEvent;
   }
 
+  function convertToPosixTimestamp(time: unknown): number | null {
+    if (krl.isNumber(time)) {
+      return time as number;
+    }
+    if (typeof time === "string") {
+      try {
+        const d = new Date(time);
+        time = d.getTime();
+        if (krl.isNumber(time)) {
+          return time as number;
+        }
+      } catch (err) {}
+    }
+    return null;
+  }
+
   const module: krl.Module = {
-    at: krl.Postlude(["time", "eci", "domain", "name", "attrs"], function (
-      time,
-      eci,
-      domain,
-      name,
-      attrs
-    ) {
-      return addToSchedule(this, {
-        id: cuid(),
-        type: "at",
-        time,
-        event: {
-          eci,
-          domain,
-          name,
-          data: { attrs },
-          time: 0,
-        },
-      });
-    }),
+    at: krl.Postlude(
+      ["time", "eci", "domain", "name", "attrs"],
+      function (time, eci, domain, name, attrs) {
+        const posixTime = convertToPosixTimestamp(time);
+
+        if (posixTime === null || !krl.isNumber(posixTime)) {
+          throw new TypeError(
+            "schedule .. at expected a timestamp but got " + krl.typeOf(time)
+          );
+        }
+
+        return addToSchedule(this, {
+          id: cuid(),
+          type: "at",
+          time: posixTime,
+          event: {
+            eci,
+            domain,
+            name,
+            data: { attrs },
+            time: 0,
+          },
+        });
+      }
+    ),
 
     repeat: krl.Postlude(
       ["timespec", "eci", "domain", "name", "attrs"],
