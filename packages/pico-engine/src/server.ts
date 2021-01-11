@@ -39,6 +39,27 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
     res.json({ version: engineVersion, eci: uiECI });
   });
 
+  app.all("/api/flush", function (req, res, next) {
+    const attrs = mergeGetPost(req);
+    const url = attrs["url"];
+    if (typeof url !== "string") {
+      next(new TypeError("Expected `url`"));
+    } else {
+      core.rsRegistry
+        .flush(url)
+        .then((rs) => {
+          res.json({
+            url: rs.url,
+            rid: rs.rid,
+            hash: rs.hash,
+            flushed: rs.flushed,
+            compiler: rs.compiler,
+          });
+        })
+        .catch(next);
+    }
+  });
+
   app.all("/c/:eci/event/:domain/:name", function (req, res, next) {
     core
       .event({
