@@ -80,6 +80,7 @@ ruleset io.picolabs.pico-engine-ui {
           { "rid": "io.picolabs.pico-engine-ui", "name": "pico" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "logs" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" },
+          { "rid": "io.picolabs.pico-engine-ui", "name": "name" },
           { "rid": "io.picolabs.subscription", "name": "established" },
           { "rid": "io.picolabs.subscription", "name": "inbound" },
           { "rid": "io.picolabs.subscription", "name": "outbound" },
