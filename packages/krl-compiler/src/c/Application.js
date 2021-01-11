@@ -19,7 +19,7 @@ module.exports = function (ast, comp, e) {
     // "foo".bar(baz)
     // bar("foo",baz)
 
-    callee = comp(ast.callee.property)
+    callee = comp(ast.callee.property, { isGoingToBeApplied: true })
     args = comp(_.assign({}, ast.args, {
       // inject left-hand of the dot as the first argument
       args: [ast.callee.object].concat(ast.args.args)

@@ -209,7 +209,7 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "sayHelloWithOperator" });
         var $fired = true;
         if ($fired) {
-          await send_directive1($ctx, [await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"]($ctx))($ctx, ["bob"])]);
+          await send_directive1($ctx, [await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"])($ctx, ["bob"])]);
         }
         if ($fired)
           $ctx.log.debug("fired");
