@@ -275,6 +275,15 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+  rule flush_all_rulesets {
+    select when wrangler rulesets_need_flushing
+    foreach ctx:rulesets setting(rs)
+      ctx:flush(rs{"url"})
+      fired {
+        raise wrangler event "rulesets_flushed" on final
+      }
+  }
+
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
@@ -311,8 +320,8 @@ ruleset io.picolabs.wrangler {
 
   rule createChild {
     select when wrangler new_child_request
-      name re#.+#
-      backgroundColor re#.*#
+      name re#.+#             // required
+      backgroundColor re#.*#  // optional
     pre {
       name = event:attrs{"name"}
       backgroundColor = event:attrs{"backgroundColor"} || "#87CEFA"
