@@ -41,7 +41,7 @@
   "dependencies": {
     "json-log": "^3.0.1",
     "lodash": "^4.17.11",
-    "pico-framework": "^0.5.2",
+    "pico-framework": "^0.6.0",
     "select-when": "^0.1.7"
   },
   "ava": {

@@ -250,6 +250,7 @@ test("http autosend", async function (t) {
   const khttp = core.modules["http"];
   core.picoFramework.event = async (event, fromPicoId) => {
     signaledEvents.push(event);
+    return signaledEvents.length + "";
   };
 
   // so we can wait for the server response

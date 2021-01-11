@@ -60,7 +60,7 @@
     "memdown": "^5.1.0",
     "minimist": "^1.2.5",
     "pico-engine-core": "^1.0.1",
-    "pico-framework": "^0.5.2",
+    "pico-framework": "^0.6.0",
     "rotating-file-stream": "^1.4.1",
     "split": "^1.0.1",
     "through2": "^3.0.1"
