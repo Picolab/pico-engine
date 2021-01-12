@@ -1,3 +1,14 @@
+# 1.0.2 - January 12, 2021
+
+* fix broken subscriptions
+* fixes for issues: 529, 509, 523, 509, 492, 508, 504, 479, 478, 515
+* new route /api/flush?url=
+* new wrangler event `wrangler:rulesets_need_flushing` for a pico
+* `schedule event ... at` now working
+* remove package for `pico-engine-browser` no longer used
+* improved look of parent/child lines in the developer UI
+* made `klog` operator work in a function context
+
 # 1.0.1 - January 5, 2021
 
 * functions can be queried requesting either HTML or plain text results (per [docs](https://picolabs.atlassian.net/wiki/spaces/docs/pages/358154241/Content+negotiation+with+HTTP))
