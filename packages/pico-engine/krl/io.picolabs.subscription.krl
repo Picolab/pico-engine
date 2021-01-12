@@ -147,7 +147,7 @@ ent:established [
     }
 
     pending_entry = function(){
-      host   = event:attr("Tx_host") == ctx:host => null | event:attr("Tx_host")
+      host   = event:attr("Tx_host") == meta:host => null | event:attr("Tx_host")
       roles  = event:attr("Rx_role") => { // add possible roles
                   "Rx_role"      : event:attr("Rx_role"),
                   "Tx_role"      : event:attr("Tx_role")
@@ -318,7 +318,7 @@ ent:established [
       pre {
         myHost = event:attr("Rx_host") == "localhost" => null                  |
                  event:attr("Rx_host")                => event:attr("Rx_host") |
-                                                         ctx:host
+                                                         meta:host
       }
       event:send({
           "eci"   : event:attr("wellKnown_Tx"),
