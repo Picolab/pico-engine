@@ -35,6 +35,14 @@ function logDetailsToHuman(entry: any): string {
         attrs
       )}`;
     }
+  } else if (entry.msg === "event added to schedule") {
+    return JSON.stringify(entry.event);
+  } else if (entry.msg === "rule selected") {
+    return `${entry.rid} : ${entry.rule_name}`;
+  } else if (entry.level === "klog") {
+    return `${entry.val || "null"}`;
+  } else if (/fired$/.test(entry.msg)) {
+    return "";
   }
   const other = Object.assign({}, entry);
   delete other.time;
@@ -49,11 +57,17 @@ async function getLogs(eci: string): Promise<LogEntryGroup[]> {
     `/c/${eci}/query/io.picolabs.pico-engine-ui/logs`
   );
   const groupBy: { [txn: string]: LogEntryGroup } = {};
+  let prevMsg = "";
   for (const result of results) {
     if (!result.txnId) {
       continue;
     }
 
+    if (result.msg === "event added to schedule" && result.msg === prevMsg) {
+      continue;
+    } else {
+      prevMsg = result.msg;
+    }
     const entry: LogEntry = {
       txnId: result.txnId,
       time: new Date(result.time),
