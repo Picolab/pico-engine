@@ -8,6 +8,7 @@ interface LogEntry {
   txnId: string;
   time: Date;
   msg: string;
+  collapsible: boolean;
 }
 
 interface LogEntryGroup {
@@ -57,21 +58,16 @@ async function getLogs(eci: string): Promise<LogEntryGroup[]> {
     `/c/${eci}/query/io.picolabs.pico-engine-ui/logs`
   );
   const groupBy: { [txn: string]: LogEntryGroup } = {};
-  let prevMsg = "";
   for (const result of results) {
     if (!result.txnId) {
       continue;
     }
 
-    if (result.msg === "event added to schedule" && result.msg === prevMsg) {
-      continue;
-    } else {
-      prevMsg = result.msg;
-    }
     const entry: LogEntry = {
       txnId: result.txnId,
       time: new Date(result.time),
       msg: "",
+      collapsible: result.msg === "event added to schedule",
     };
     entry.msg = `${entry.time.toISOString().split("T")[1]} [${result.level}] ${
       result.msg
@@ -88,7 +84,12 @@ async function getLogs(eci: string): Promise<LogEntryGroup[]> {
     if (groupBy[entry.txnId].time > entry.time) {
       groupBy[entry.txnId].time = entry.time;
     }
-    groupBy[entry.txnId].entries.push(entry);
+    let gel = groupBy[entry.txnId].entries.length;
+    if (gel && groupBy[entry.txnId].entries[gel-1].collapsible && entry.collapsible) {
+      // collapse
+    } else {
+      groupBy[entry.txnId].entries.push(entry);
+    }
   }
   const groups = Object.values(groupBy);
   groups.sort((a, b) => {
