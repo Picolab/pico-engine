@@ -1,5 +1,6 @@
 # 1.0.2 - January 12, 2021
 
+* streamline Logging tab entries
 * fix broken subscriptions
 * fixes for issues: 529, 509, 523, 509, 492, 508, 504, 479, 478, 515
 * new route /api/flush?url=
