@@ -4,7 +4,6 @@ A ruleset is the primary means of program organization in KRL. A ruleset is a co
 
 Each ruleset can have the following sections.
 
-- `version`
 - `meta`
 - `global`
 - `rule`(s)
@@ -28,17 +27,19 @@ ruleset <rid> {
 }
 ```
 
-## version
-
-Rulesets are versioned. Version strings follow [Semantic Versioning](https://semver.org/). i.e `1.2.3` where `<major>.<minor>.<patch>`.
-
-During development you can set the version to `"draft"` or omit it completely. This way you can make frequent changes and see them reflected immediately on the picos that use the "draft" version.
 
 ## meta
 
 The meta section stores information about a ruleset. Meta sections are optional and may be empty.
 
 The following are allowed in a meta section:
+
+### version
+
+Rulesets are versioned. Version strings follow [Semantic Versioning](https://semver.org/). i.e `1.2.3` where `<major>.<minor>.<patch>`.
+
+During development you can set the version to `"draft"` or omit it completely. This way you can make frequent changes and see them reflected immediately on the picos that use the "draft" version.
+
 
 TODO
 
