@@ -62,16 +62,13 @@ process.stdin.on("end", function(){
     try{
         out = compiler(src, opts);
     }catch(err){
+        console.error(err + ` [at line ${err.where.line} col ${err.where.col}]`);
         if(args.verify){
-            console.log(err + "");
             process.exit(1);
             return;
         }
-        const loc = err && err.krl_compiler && err.krl_compiler.loc
-        if(loc){
-            console.error(err + ` ${loc.start.line}:${loc.start.column}`)
-        }
-        throw err;
+        console.error(err.where.excerpt);
+        process.exit(1);
     }
     out.warnings.forEach(function(w){
         var l = w.loc && w.loc.start && w.loc.start.line;
