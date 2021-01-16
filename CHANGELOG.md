@@ -1,3 +1,8 @@
+# 1.0.3 - January 16, 2021
+
+* provide line/col numbers for krl-compiler errors
+* fixes for issues: 530, 527
+
 # 1.0.2 - January 12, 2021
 
 * streamline Logging tab entries
