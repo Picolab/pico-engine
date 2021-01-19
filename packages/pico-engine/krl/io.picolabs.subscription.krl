@@ -270,6 +270,8 @@ ent:established [
     }
   }
   
+/* NOT USED IN V1.0 */
+/*
   rule done_cleaning_up {
     select when wrangler subscription_removed
              or wrangler outbound_subscription_cancelled
@@ -283,6 +285,7 @@ ent:established [
       }
     }
   }
+*/
 
   //START OF A SUBSCRIPTION'S CREATION
   //For the following comments, consider picoA sending the request to picoB
