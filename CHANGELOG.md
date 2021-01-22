@@ -1,3 +1,7 @@
+# 1.0.4 - January 21, 2021
+
+* fix for issue: 532 add `meta:rid_config`
+
 # 1.0.3 - January 16, 2021
 
 * provide line/col numbers for krl-compiler errors
