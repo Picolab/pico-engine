@@ -1,6 +1,6 @@
-# 1.0.4 - January 21, 2021
+# 1.0.5 - January 22, 2021
 
-* fix for issue: 532 add `meta:rid_config`
+* fix for issue: 532 add `meta:rulesetConfig`
 
 # 1.0.3 - January 16, 2021
 
