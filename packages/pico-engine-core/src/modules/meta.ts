@@ -55,7 +55,7 @@ export default function initMetaModule(core: PicoEngineCore) {
       return event ? event.eid : query ? query.qid : null;
     }),
 
-    rid_config: krl.Property(function rid_config() {
+    rulesetConfig: krl.Property(function rid_config() {
       return this.rsCtx.ruleset.config["config"];
     }),
 
