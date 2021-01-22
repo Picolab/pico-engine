@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An implementation of the pico-engine targeting node.js",
   "repository": {
     "type": "git",
@@ -59,7 +59,7 @@
     "make-dir": "^3.0.0",
     "memdown": "^5.1.0",
     "minimist": "^1.2.5",
-    "pico-engine-core": "^1.0.3",
+    "pico-engine-core": "^1.0.4",
     "pico-framework": "^0.6.0",
     "rotating-file-stream": "^1.4.1",
     "split": "^1.0.1",
