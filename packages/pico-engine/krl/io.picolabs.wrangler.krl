@@ -391,7 +391,8 @@ ruleset io.picolabs.wrangler {
       ent:name := event:attr("name")
       ent:id := ctx:picoId
       ent:eci := event:eci
-      raise wrangler event "pico_initialized" attributes event:attrs
+      raise wrangler event "pico_initialized"
+        attributes event:attrs.put("eci",event:eci)
     }
   }
 
