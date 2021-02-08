@@ -23,7 +23,7 @@ export interface Directive {
 
 export interface PicoLogEntry {
   level: string;
-  time: Date;
+  time: string;
   txnId?: string;
 }
 

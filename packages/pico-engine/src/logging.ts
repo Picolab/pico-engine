@@ -75,7 +75,7 @@ export async function getPicoLogs(
           const out: PicoLogEntry = {
             ...entry,
             level: krlLogLevelCodeToHuman[entry.level] || `${entry.level}`,
-            time: time,
+            time: entry.time,
             txnId: entry.txnId,
           };
           delete (out as any).picoId;
