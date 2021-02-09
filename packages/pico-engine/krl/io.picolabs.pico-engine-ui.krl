@@ -44,7 +44,74 @@ ruleset io.picolabs.pico-engine-ui {
       }
     }
     logs = function(){
-      return ctx:logs()
+      logOther = function(entry){
+        entry.delete("time")
+          .delete("level")
+          .delete("msg")
+          .delete("txnId")
+          .encode()
+      }
+      logQuery = function(query){
+        args = query.get("args").delete("_headers") || {}
+        <<QUERY #{query.get("eci")} #{query.get("rid")}/#{query.get("name")} #{args.encode()}>>
+      }
+      logEvent = function(event){
+        attrs = event.get(["data","attrs"]).delete("_headers") || {}
+        <<EVENT #{event.get("eci")} #{event.get("domain")}:#{event.get("name")} #{attrs.encode()}>>
+      }
+      logFirst = function(entry){
+        txn = entry.get("txn")
+        kind = txn.get("kind")
+        kind == "query" => logQuery(txn.get("query")) |
+        kind == "event" => logEvent(txn.get("event")) |
+        logOther(entry)
+      }
+      logDetails = function(entry){
+        msg = entry.get("msg")
+        msg == "txnQueued" => logFirst(entry) |
+        msg == "event added to schedule" => entry.get("event").encode() |
+        msg == "rule selected" => <<#{entry.get("rid")} : #{entry.get("rule_name")}>> |
+        msg == "klog" => entry.get("val") || "null" |
+        msg.match(re#fired$#) => "" |
+        logOther(entry)
+      }
+      episode_line = function(x,i){
+        level = x{"level"}.uc();
+        x{"time"}.split("T")[1] +
+          " [" +
+          level +
+          "] "+
+          x{"msg"} +
+          " " +
+          logDetails(x)
+      };
+      entryMap = function(a,e){
+        // a.head() is array of entries; a[1] is whether last entry is eats
+        eats = e{"msg"} == "event added to schedule"
+        a[1] && eats
+          => [a.head(),true] // omit an eats
+           | [a.head().append(episode_line(e)),eats]
+      }
+      episodes = ctx:logs()
+        .collect(function(e){e.get("txnId")})
+      episodes.keys()
+        .map(function(k){
+          episode = episodes.get(k)
+          entries = episode
+            .reduce(entryMap,[[],false]).head()
+          return {
+            "txnId": k,
+            "time": episode.head().get("time"),
+            "header": entries.head().split(re# txnQueued #)[1],
+            "entries": entries,
+          }
+        })
+        .filter(function(g){
+          g.header.match(re#^QUERY .*io.picolabs.pico-engine-ui/#) => false |
+          g.header.match(re#^QUERY .*io.picolabs.subscription/established#) => false |
+          true
+        })
+        .reverse()
     }
   }
   rule setup {
