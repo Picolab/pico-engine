@@ -1,3 +1,8 @@
+# 1.0.6 - February 11, 2021
+
+* entries for the Logging tab are now prepared in KRL code
+* fixes for issues: 536 and 533
+
 # 1.0.5 - January 22, 2021
 
 * fix for issue: 532 add `meta:rulesetConfig`
