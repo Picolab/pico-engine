@@ -71,7 +71,7 @@ ruleset io.picolabs.pico-engine-ui {
         msg == "txnQueued" => logFirst(entry) |
         msg == "event added to schedule" => entry.get("event").encode() |
         msg == "rule selected" => <<#{entry.get("rid")} : #{entry.get("rule_name")}>> |
-        entry.get("level") == "klog" => entry.get("val") || "null" |
+        entry.get("level") == "klog" => entry.get("val").encode() || "null" |
         msg.match(re#fired$#) => "" |
         logOther(entry)
       }
