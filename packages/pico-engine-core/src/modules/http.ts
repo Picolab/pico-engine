@@ -163,7 +163,7 @@ function mkMethod(
     if (autosend) {
       httpPromise
         .then((resp) => {
-          core.picoFramework.event({
+          return core.picoFramework.event({
             ...autosend,
             data: {
               attrs: {
