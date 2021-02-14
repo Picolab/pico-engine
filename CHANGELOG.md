@@ -1,3 +1,7 @@
+# 1.0.7 - February 13, 2021
+
+* fix `klog` display in the Logging tab of the developer UI
+
 # 1.0.6 - February 11, 2021
 
 * entries for the Logging tab are now prepared in KRL code
