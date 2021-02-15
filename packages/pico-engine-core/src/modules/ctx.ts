@@ -183,6 +183,7 @@ export default function initCtxModule(core: PicoEngineCore) {
         url: url,
         config: config || {},
       });
+      return rs.rid;
     }),
 
     uninstall: krl.Action(["rid"], async function uninstall(rid: string) {
