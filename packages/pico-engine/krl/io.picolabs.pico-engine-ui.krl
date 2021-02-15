@@ -202,18 +202,8 @@ ruleset io.picolabs.pico-engine-ui {
   }
   rule install {
     select when engine_ui install
-    pre {
-      url = event:attrs{"url"}
-    }
-    every {
-      ctx:flush(url=url)
-      ctx:install(url=url, config=event:attrs{"config"})
-    }
     fired {
-      this_rs = ctx:rulesets.filter(function(r){r.get("url")==url})
-      raise wrangler event "ruleset_installed" attributes {
-        "rids": this_rs.map(function(r){r.get("rid")})
-      }
+      raise wrangler event "install_ruleset_request" attributes event:attrs
     }
   }
   rule uninstall {

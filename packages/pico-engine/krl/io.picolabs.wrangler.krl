@@ -257,12 +257,11 @@ ruleset io.picolabs.wrangler {
     }
     every {
       ctx:flush(url=url)
-      ctx:install(url=url, config=config)
+      ctx:install(url=url, config=config) setting(rid)
     }
     fired {
-      this_rs = ctx:rulesets.filter(function(r){r.get("url")==url})
       raise wrangler event "ruleset_installed" attributes
-        event:attrs.put({"rids": this_rs.map(function(r){r.get("rid")})})
+        event:attrs.put({"rids": [rid]})
     }
   }
 
