@@ -1,3 +1,8 @@
+# 1.0.8 - February 16, 2021
+
+* make ruleset installation more robust (e.x., the URL can contain a blank)
+* fixes issues: 539 and 540
+
 # 1.0.7 - February 13, 2021
 
 * fix `klog` display in the Logging tab of the developer UI
