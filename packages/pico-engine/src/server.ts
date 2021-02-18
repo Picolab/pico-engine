@@ -16,6 +16,11 @@ function mergeGetPost(req: Request) {
 export function server(core: PicoEngineCore, uiECI: string): Express {
   const app = express();
 
+  app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
   app.use(helmet());
   app.use(express.static(path.resolve(__dirname, "..", "public")));
   app.use(
