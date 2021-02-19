@@ -1,3 +1,7 @@
+# 1.0.9 - February 18, 2021
+
+* provide CORS headers; fixes issue 543
+
 # 1.0.8 - February 16, 2021
 
 * make ruleset installation more robust (e.x., the URL can contain a blank)
