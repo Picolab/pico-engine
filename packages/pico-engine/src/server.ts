@@ -21,6 +21,14 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
   });
+  app.use('*',(req,res,next) =>{
+    if (req.method == "OPTIONS") {
+      res.status(200);
+      res.send();
+    }else{
+      next();
+    }
+  });
   app.use(helmet());
   app.use(express.static(path.resolve(__dirname, "..", "public")));
   app.use(
