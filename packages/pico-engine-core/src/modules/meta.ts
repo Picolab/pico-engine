@@ -1,21 +1,13 @@
-import { CurrentPicoEvent, krl, KrlCtx } from "krl-stdlib";
+import { krl } from "krl-stdlib";
 import { PicoEngineCore } from "../PicoEngineCore";
-
-function eventProperty<T = any>(
-  fn: (event: CurrentPicoEvent) => T
-): (ctx: KrlCtx) => T | null {
-  return krl.Property(function () {
-    let event = this.getEvent();
-    if (event) {
-      return fn(event);
-    }
-    return null;
-  });
-}
 
 export default function initMetaModule(core: PicoEngineCore) {
   const meta: krl.Module = {
-    eci: eventProperty((event) => event.eci),
+    eci: krl.Property(function eci() {
+      const event = this.getEvent();
+      const query = this.getQuery();
+      return event ? event.eci : query ? query.eci : null;
+    }),
 
     host: krl.Property(function host() {
       return core.base_url;
