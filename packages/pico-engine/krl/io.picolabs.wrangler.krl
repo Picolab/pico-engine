@@ -14,12 +14,12 @@ ruleset io.picolabs.wrangler {
     >>
     author "BYU Pico Lab"
 
-    provides skyQuery,
+    provides skyQuery, picoQuery,
     channels, createChannel, deleteChannel, //channel
     rulesetConfig, rulesetMeta, installedRIDs, //ruleset
     children, parent_eci, name, myself //pico
 
-    shares skyQuery,
+    shares skyQuery, picoQuery,
     channels, //channel
     rulesetConfig, rulesetMeta,installedRIDs, //ruleset
     children, parent_eci, name, myself, id //pico
@@ -126,6 +126,32 @@ ruleset io.picolabs.wrangler {
        response = (not thisPico) => http:get(web_hook, {}.put(params)) | QUERY_SELF_INVALID_HTTP_MAP;
        processHTTPResponse(response)
      }
+
+/*
+  picoQuery() is an improved skyQuery() that automatically queries picos on the same engine using ctx:query() to avoid
+  unnecessary HTTP calls and channel policy issues (family channels can't be accessed over HTTP).
+
+  The parameters are the same.
+*/
+
+     // this does nothing now, but it may be that we need to return error codes. 
+     processQueryResponse = function(response) {
+       response
+     }
+     
+     picoQuery = function(eci, mod, func, params,_host,_path,_root_url) { 
+       thisPico = ctx:channels.any(function(c){c{"id"}==eci})
+       thisHost = _host.isnull() || _host == meta:host;
+       web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url)
+
+       response = (not thisPico) => ((not thisHost) => processHTTPResponse(http:get(web_hook, {}.put(params))) 
+                                                     | processQueryResponse(ctx:query(eci, mod, func, {}.put(params))))
+                                  | QUERY_SELF_INVALID_HTTP_MAP;
+
+       response
+     }
+
+
     
 // ********************************************************************************************
 // ***                                      Rulesets                                        ***

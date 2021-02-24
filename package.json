@@ -10,10 +10,11 @@
     "setup": "npm i --no-package-lock && npm run bootstrap",
     "publish": "npm run build && lerna publish",
     "start": "cd packages/pico-engine && npm start",
-    "test": "lerna run test",
+    "test": "lerna run test && ava",
     "build": "cd packages/krl-parser && npm run build && cd ../krl-stdlib && npm run build && cd ../pico-engine-core && npm run build && cd ../pico-engine && npm run build"
   },
   "devDependencies": {
+    "ava": "^3.15.0",
     "lerna": "^3.2.1"
   }
 }
