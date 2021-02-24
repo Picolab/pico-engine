@@ -1,3 +1,10 @@
+# 1.0.10 - February 24, 2021
+
+* new wrangler function `picoQuery` (deprecating `skyQuery`)
+* define `meta:eci` inside a query as well as an event
+* CORS preflight
+* fixes issues: 543 and 546
+
 # 1.0.9 - February 18, 2021
 
 * provide CORS headers; fixes issue 543
