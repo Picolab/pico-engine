@@ -23,6 +23,8 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
   });
   app.use('*',(req,res,next) =>{
     if (req.method == "OPTIONS") {
+      res.header("Allow", "POST, GET, OPTIONS");
+      res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
       res.status(200);
       res.send();
     }else{
