@@ -50,12 +50,16 @@ Raise an event to yourself. This event does not use a channel, only runs on the 
 
 ## ctx:query(eci, rid, name, args = {})
 
+Query a local pico.
+
 - `eci` - String - Which channel to send the query over.
 - `rid` - String - The rid you wish to query.
-- `name` - String - The name from the ruleset you wish to query.
+- `name` - String - The name of the function you wish to query.
 - `args` - Map - Any query function arguments where the map keys match the argument name.
 
 ## ctx:event(eci, domain, name, attrs = {})
+
+Send an event to a local pico. 
 
 - `eci` - String - Which channel to signal the event to.
 - `domain` - String - The event domain.
