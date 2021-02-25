@@ -31,7 +31,6 @@ ruleset io.picolabs.wrangler {
                                 { "name": "installedRIDs"},
                                 {"name":"skyQuery", "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
                                 {"name":"children", "args":[]}
-                                //{"name":"children", "args":["name", "allowRogue"]},
                                 ],
                   "events": [
                               { "domain": "wrangler", "name": "new_child_request",
@@ -210,7 +209,7 @@ ruleset io.picolabs.wrangler {
       }
     }
     
-    children = function(name, allowRogue = true) {
+    children = function() {
       convert = function(eci){
         pico = {}
           .put("eci",eci)
