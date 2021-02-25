@@ -439,6 +439,14 @@ ruleset io.picolabs.wrangler {
     }
   }
     
+  rule take_note_of_name_change {
+    select when wrangler name_changed
+      name re#(.+)# // required
+      setting(name)
+    fired {
+      ent:name := name
+    }
+  }
   
   //-------------------- PARENT PERSPECTIVE  ----------------------
   rule deleteOneChild {
