@@ -375,9 +375,7 @@ ruleset io.picolabs.wrangler {
         eci=newEci,
         domain="wrangler",
         name="pico_created",
-        attrs={
-          "name": name
-        }
+        attrs=event:attrs
       )
       ctx:event(
         eci=newUiECI,
