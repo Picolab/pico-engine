@@ -119,6 +119,24 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
         time: 0, // TODO remove this typescript requirement
       })
       .then((data) => {
+        if (data.directives) {
+          var _res = _.filter(data.directives, { name: "_cookie" });
+          if (_res) {
+            _.forEach(_res, function(v) {
+              if (v.options && v.options.cookie) {
+                res.append("Set-Cookie", v.options.cookie);
+              }
+            });
+          }
+          var _res = _.filter(data.directives, { name: "_redirect" });
+          if (_res) {
+            _.forEach(_res, function(v) {
+              if (v.options && v.options.url) {
+                return res.redirect(v.options.url);
+              }
+            });
+          }
+        }
         res.json(data);
       })
       .catch(next);
