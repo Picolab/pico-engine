@@ -1,7 +1,9 @@
 {
   "name": "pico-engine",
   "private": true,
-  "license": "MIT",
+    "license": "MIT",
+    "author": "picolabs.io",
+    "description": "Pico Engine supports the pico-based reactive programming environment. See http://picolabs.io for more information.",
   "scripts": {
     "out": "lerna clean --yes && lerna exec -- npm i && rm -rf packages/*/package-lock.json && lerna exec --bail=false -- npm out",
     "clean": "lerna clean --yes",
