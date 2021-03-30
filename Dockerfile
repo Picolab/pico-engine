@@ -17,7 +17,7 @@
 #
 # If you need to set the URL for your engine, you can add the PICO_ENGINE_BASE_URL env variable:
 #
-#    docker run -p 80:3000  -v ~/imaves/pico-image:/var/pico-image -d pjw/pico-engine -e PICO_ENGINE_BASE_URL=https://picos.picolabs.io
+#    docker run -p 80:3000  -v ~/images/pico-image:/var/pico-image -d pjw/pico-engine -e PICO_ENGINE_BASE_URL=https://picos.picolabs.io
 #
 # You can run the same container multiple times with different ports and mount points to have multiple engines
 # running at the same time.
