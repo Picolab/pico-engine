@@ -2,25 +2,22 @@
 # This Dockerfile creates a docker image for the pico engine with an external mount point for the image
 #
 # To build:
-#    docker build -t <usename>/<container-name> .
+#    docker build -t <username>/<container-name> github.com/picolab/pico-engine
 #
 # For example:
-#    docker build -t pjw/pico-engine .
-#
-# The build runs 'clean-setup' to ensure the image is clean.
-# The build is done with the files in the pico-engine directory, so be sure it's up to date. 
+#    docker build -t pjw/pico-engine github.com/picolab/pico-engine
 #
 # To run:
 #    docker run -p <port>:3000  -v <mount-point>:/var/pico-image -d <username>/container-name>
 #
 # For example:
-#    docker run -p 3001:3000  -v ~/tmp/pico-image:/var/pico-image -d pjw/pico-engine
+#    docker run -p 3001:3000  -v ~/images/pico-image:/var/pico-image -d pjw/pico-engine
 #
 # runs the docker with a port of 3001 and the image files located at ~/tmp/pico-image on the local machine.
 #
 # If you need to set the URL for your engine, you can add the PICO_ENGINE_BASE_URL env variable:
 #
-#    docker run -p 80:3000  -v ~/tmp/pico-image:/var/pico-image -d pjw/pico-engine -e PICO_ENGINE_BASE_URL=https://picos.picolabs.io
+#    docker run -p 80:3000  -v ~/imaves/pico-image:/var/pico-image -d pjw/pico-engine -e PICO_ENGINE_BASE_URL=https://picos.picolabs.io
 #
 # You can run the same container multiple times with different ports and mount points to have multiple engines
 # running at the same time.
