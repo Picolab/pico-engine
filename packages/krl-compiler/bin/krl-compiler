@@ -62,7 +62,9 @@ process.stdin.on("end", function(){
     try{
         out = compiler(src, opts);
     }catch(err){
-        console.error(err + ` [at line ${err.where.line} col ${err.where.col}]`);
+        if (err?.where?.line && err?.where?.col) {
+            console.error(err + ` [at line ${err.where.line} col ${err.where.col}]`);
+        }
         if(args.verify){
             process.exit(1);
             return;
