@@ -62,12 +62,17 @@ process.stdin.on("end", function(){
     try{
         out = compiler(src, opts);
     }catch(err){
-        console.error(err + ` [at line ${err.where.line} col ${err.where.col}]`);
+	console.error(err)
+        if (err?.where?.line && err?.where?.col) {
+            console.error(` [at line ${err.where.line} col ${err.where.col}]`);
+        }
         if(args.verify){
             process.exit(1);
             return;
         }
-        console.error(err.where.excerpt);
+         if (err?.where?.excerpt) {
+             console.error(err.where.excerpt);
+         }
         process.exit(1);
     }
     out.warnings.forEach(function(w){
