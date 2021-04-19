@@ -5,7 +5,7 @@
 #    docker build -t <usename>/<container-name> .
 #
 # For example:
-#    docker build -t pjw/pico-engine .
+#    docker build -t picolabs/pico-engine .
 #
 # The build runs 'clean-setup' to ensure the image is clean.
 # The build is done with the files in the pico-engine directory, so be sure it's up to date. 
@@ -20,7 +20,7 @@
 #
 # If you need to set the URL for your engine, you can add the PICO_ENGINE_BASE_URL env variable:
 #
-#    docker run -p 80:3000  -v ~/tmp/pico-image:/var/pico-image -d pjw/pico-engine -e PICO_ENGINE_BASE_URL=https://picos.picolabs.io
+#    docker run -p 443:3000  -v ~/tmp/pico-image:/var/pico-image -d pjw/pico-engine -e PICO_ENGINE_BASE_URL=https://picos.picolabs.io
 #
 # You can run the same container multiple times with different ports and mount points to have multiple engines
 # running at the same time.
