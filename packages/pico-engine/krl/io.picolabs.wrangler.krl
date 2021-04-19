@@ -57,7 +57,7 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 
   /*
-       skyQuery is used to programmatically call function inside of other picos from inside a rule.
+       picoQuery is used to programmatically call function inside of other picos from inside a rule.
        parameters;
           eci - The eci of the pico which contains the function to be called
           mod - The ruleset ID or alias of the module
@@ -72,13 +72,13 @@ ruleset io.picolabs.wrangler {
           _root_url - The entire url except eci, mod, func.
                   For example, dependent on _host and _path is
                   "http://localhost:8080/sky/cloud/", which also is the default.
-       skyQuery on success (if status code of request is 200) returns results of the called function.
-       skyQuery on failure (if status code of request is not 200) returns a Map of error information which contains;
+       picoQuery on success (if status code of request is 200) returns results of the called function.
+       picoQuery on failure (if status code of request is not 200) returns a Map of error information which contains;
                error - general error message.
                httpStatus - status code returned from http get command.
-               skyQueryError - The value of the "error key", if it exist, aof the function results.
-               skyQueryErrorMsg - The value of the "error_str", if it exist, of the function results.
-               skyQueryReturnValue - The function call results.
+               picoQueryError - The value of the "error key", if it exist, aof the function results.
+               picoQueryErrorMsg - The value of the "error_str", if it exist, of the function results.
+               picoQueryReturnValue - The function call results.
      */
      QUERY_SELF_INVALID_HTTP_MAP = {"status_code": 400, 
                                     "status_line":"HTTP/1.1 400 Pico should not query itself",
@@ -109,9 +109,9 @@ ruleset io.picolabs.wrangler {
        response_content = response{"content"}.decode();
        response_error = (response_content.typeof() == "Map" && (not response_content{"error"}.isnull())) => response_content{"error"} | 0;
        response_error_str = (response_content.typeof() == "Map" && (not response_content{"error_str"}.isnull())) => response_content{"error_str"} | 0;
-       error = error_info.put({"skyQueryError": response_error,
-                               "skyQueryErrorMsg": response_error_str,
-                               "skyQueryReturnValue": response_content});
+       error = error_info.put({"picoQueryError": response_error,
+                               "picoQueryErrorMsg": response_error_str,
+                               "picoQueryReturnValue": response_content});
        is_bad_response = (response_content.isnull() || (response_content == "null") || response_error || response_error_str);
        // if HTTP status was OK & the response was not null and there were no errors...
        (status == 200 && not is_bad_response) => response_content | error.klog("error: ")

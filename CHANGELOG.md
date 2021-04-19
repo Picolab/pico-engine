@@ -1,3 +1,12 @@
+# 1.1.0 - March 31, 2021
+
+* add wrangler:name_changed for pico name change
+* pass thru developer-supplied attributes when creating a child pico
+* allow query to return HTML
+* support for setting cookies and redirecting from send_directive
+* UI fix to make box rule behave better for Testing tab
+* Dockerfile
+
 # 1.0.10 - February 24, 2021
 
 * new wrangler function `picoQuery` (deprecating `skyQuery`)
