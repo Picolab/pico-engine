@@ -48,7 +48,8 @@ ruleset io.picolabs.visual_params {
                                { "name": "style" },
                                { "name": "__testing" } ],
                   "events": [ { "domain": "visual", "type": "config",
-                                "attrs": [ "width", "height" ] } ] }
+                                "attrs": [ "width", "height" ] },
+                              { "domain": "visual", "type": "restore_default_position"}] }
   }
 
   rule visual_update {
@@ -101,5 +102,13 @@ ruleset io.picolabs.visual_params {
   rule info_directive {
     select when visual config
     send_directive("visual_config", {"visual_info": visualInfo()})
+  }
+
+  rule restore_default_position {
+    select when visual restore_default_position
+    fired {
+      clear ent:left
+      clear ent:top
+    }
   }
 }
