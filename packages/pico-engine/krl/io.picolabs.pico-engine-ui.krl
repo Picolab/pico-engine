@@ -13,7 +13,8 @@ ruleset io.picolabs.pico-engine-ui {
         .head()
     }
     getOtherUiECI = function(eci){
-      return eci => ctx:query(eci, ctx:rid, "uiECI") | null
+      thisPico = ctx:channels.any(function(c){c{"id"}==eci})
+      return (eci && not thisPico) => ctx:query(eci, ctx:rid, "uiECI") | null
     }
     testingECI = function(){
       return ent:testingECI
