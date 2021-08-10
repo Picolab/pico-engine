@@ -1,3 +1,8 @@
+# 1.1.1 - July 31, 2021
+
+* Updated Docker instructions
+* make krl-compiler more robust in the presences of compile-time errors
+
 # 1.1.0 - March 31, 2021
 
 * add wrangler:name_changed for pico name change
