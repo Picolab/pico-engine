@@ -127,7 +127,10 @@ export function initScheduleModule(pf: PicoFramework) {
   function addScheduledEvent(rid: string, sEvent: ScheduledEvent) {
     if (sEvent.type === "at") {
       scheduler.addFuture(sEvent.id, sEvent.time, async () => {
-        const pico = pf.getPico(sEvent.event.eci);
+        let pico;
+        try {
+          pico = pf.getPico(sEvent.event.eci);
+        } catch (err) {}
         if (pico) {
           // TODO wrap in pico transaction
           const schedule = (await pico.getEnt(rid, "_schedule")) || {};
@@ -141,7 +144,10 @@ export function initScheduleModule(pf: PicoFramework) {
     } else if (sEvent.type === "repeat") {
       scheduler.addCron(sEvent.id, sEvent.timespec, async () => {
         let found = false;
-        const pico = pf.getPico(sEvent.event.eci);
+        let pico;
+        try {
+          pico = pf.getPico(sEvent.event.eci);
+        } catch (err) {}
         if (pico) {
           // TODO wrap in pico transaction
           const schedule = (await pico.getEnt(rid, "_schedule")) || {};
