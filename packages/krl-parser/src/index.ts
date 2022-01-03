@@ -8,7 +8,7 @@ function parseKRL(src: string, opts?: { filename?: string }) {
     const tokens = tokenizer(src);
     const tree = parse(tokens);
     return tree;
-  } catch (e) {
+  } catch (e: any) {
     if (e && e.setupWhere) {
       e.setupWhere(src, opts.filename || "");
     }

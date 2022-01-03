@@ -4,8 +4,8 @@ const tokenizer_1 = require("../src/tokenizer");
 function parseKRL(src, opts) {
     opts = opts || {};
     try {
-        const tokens = tokenizer_1.default(src);
-        const tree = krl_1.parse(tokens);
+        const tokens = (0, tokenizer_1.default)(src);
+        const tree = (0, krl_1.parse)(tokens);
         return tree;
     }
     catch (e) {

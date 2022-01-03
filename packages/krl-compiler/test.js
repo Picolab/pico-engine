@@ -3,14 +3,15 @@ var λ = require('contra')
 var fs = require('fs')
 var diff = require('diff-lines')
 var path = require('path')
+var util = require('util')
 var test = require('ava')
 var compiler = require('./')
 
 var filesDir = path.resolve(__dirname, '../../test-rulesets')
 
-test.cb('compiler', function (t) {
+test('compiler', util.promisify(function (t, cb) {
   fs.readdir(filesDir, function (err, files) {
-    if (err) return t.end(err)
+    if (err) return cb(err)
 
     var basenames = _.uniq(_.map(files, function (file) {
       return path.basename(path.basename(file, '.krl'), '.js')
@@ -23,7 +24,7 @@ test.cb('compiler', function (t) {
         js: λ.curry(fs.readFile, jsFile, 'utf8'),
         krl: λ.curry(fs.readFile, krlFile, 'utf8')
       }, function (err, srcs) {
-        if (err) return t.end(err)
+        if (err) return cb(err)
 
         var compiled
         try {
@@ -53,9 +54,9 @@ test.cb('compiler', function (t) {
 
         next()
       })
-    }, t.end)
+    }, cb)
   })
-})
+}))
 
 test('compiler errors', function (t) {
   var tstFail = function (src, errorMsg) {

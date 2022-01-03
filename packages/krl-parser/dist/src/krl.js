@@ -10,7 +10,7 @@ function defRule(id, rule) {
     rules[id] = Object.assign(Object.assign({}, base), rule);
 }
 function advance(state) {
-    state.curr = tdop_1.advanceBase(rules, state.tokens, state.curr.token_i + 1);
+    state.curr = (0, tdop_1.advanceBase)(rules, state.tokens, state.curr.token_i + 1);
     return state;
 }
 function chomp(state, type, src) {
@@ -118,7 +118,7 @@ function declarationList(state) {
             ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)) {
             break;
         }
-        const next = tdop_1.lookahead(state, 2)[1];
+        const next = (0, tdop_1.lookahead)(state, 2)[1];
         if (!next || next.type !== "RAW" || next.src !== "=") {
             break;
         }
@@ -791,7 +791,7 @@ function withExprBody(state) {
                 ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)) {
                 break;
             }
-            const next = tdop_1.lookahead(state, 2)[1];
+            const next = (0, tdop_1.lookahead)(state, 2)[1];
             if (!next || next.type !== "RAW" || next.src !== "=") {
                 break;
             }
@@ -1078,7 +1078,7 @@ function postludeStatements(state) {
 }
 function postludeStatement(state) {
     const stmt = postludeStatementCore(state);
-    const [on, final] = tdop_1.lookahead(state, 2);
+    const [on, final] = (0, tdop_1.lookahead)(state, 2);
     if (on.type === "SYMBOL" &&
         on.src === "on" &&
         final.type === "SYMBOL" &&
@@ -1248,7 +1248,7 @@ function postludeStatementCore(state) {
             }
         }
     }
-    if (tdop_1.easyLookahead(state, 3) === "SYMBOL:SYMBOL") {
+    if ((0, tdop_1.easyLookahead)(state, 3) === "SYMBOL:SYMBOL") {
         const left = chompDomainIdentifier(state);
         const path_expression = pathExpression(state);
         const loc = state.curr.token.loc;
@@ -1309,7 +1309,7 @@ function attributeMatches(state) {
     return matches;
 }
 function attributeMatch(state) {
-    const ahead = tdop_1.lookahead(state, 2);
+    const ahead = (0, tdop_1.lookahead)(state, 2);
     if (ahead[0].type !== "SYMBOL" || ahead[1].type !== "REGEXP") {
         return null;
     }
@@ -1516,7 +1516,7 @@ defRule("(end)", {});
 function parseCore(tokens, entryParse) {
     let state = {
         tokens: tokens,
-        curr: tdop_1.advanceBase(rules, tokens, 0)
+        curr: (0, tdop_1.advanceBase)(rules, tokens, 0)
     };
     const tree = entryParse(state);
     if (!state.curr) {
@@ -1539,7 +1539,7 @@ function parse(tokens) {
             if (state.curr.rule.id === "(end)") {
                 break;
             }
-            if (tdop_1.easyLookahead(state, 2) === "SYMBOL=") {
+            if ((0, tdop_1.easyLookahead)(state, 2) === "SYMBOL=") {
                 statements.push(declaration(state));
             }
             else {
