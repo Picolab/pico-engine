@@ -1,7 +1,5 @@
 # krl-parser
 
-[![Build Status](https://travis-ci.org/Picolab/pico-engine.svg?branch=master)](https://travis-ci.org/Picolab/pico-engine)
-
 Parse KRL source code into an AST
 
 ## Usage

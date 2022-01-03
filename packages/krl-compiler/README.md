@@ -1,7 +1,5 @@
 # krl-compiler
 
-[![Build Status](https://travis-ci.org/Picolab/pico-engine.svg?branch=master)](https://travis-ci.org/Picolab/pico-engine)
-
 [KRL](http://picolabs.io/) to javascript compiler.
 
 ## API
