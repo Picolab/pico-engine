@@ -129,7 +129,7 @@ export function initScheduleModule(pf: PicoFramework) {
       scheduler.addFuture(sEvent.id, sEvent.time, async () => {
         let pico;
         try {
-          pico = pf.getPico(sEvent.event.aci);
+          pico = pf.getPico(sEvent.event.eci);
         } catch (err) {}
         if (pico) {
           // TODO wrap in pico transaction
@@ -146,7 +146,7 @@ export function initScheduleModule(pf: PicoFramework) {
         let found = false;
         let pico;
         try {
-          pico = pf.getPico(sEvent.event.aci);
+          pico = pf.getPico(sEvent.event.eci);
         } catch (err) {}
         if (pico) {
           // TODO wrap in pico transaction
