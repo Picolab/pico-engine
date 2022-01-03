@@ -108,7 +108,7 @@ export function RulesetRegistryLoaderFs(
       let fromDb: DbUrlRuleset;
       try {
         fromDb = (await db.get(["url", url])) as DbUrlRuleset;
-      } catch (err) {
+      } catch (err: any) {
         if (err.notFound) {
           return null;
         }

@@ -9,7 +9,7 @@ function parseRulesetBody(src: string, map?: (node: ast.Ruleset) => any) {
   try {
     const node = parseRuleset(tokenizer(`ruleset a{${src}}`));
     return rmLoc(map ? map(node) : node);
-  } catch (err) {
+  } catch (err: any) {
     return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
   }
 }
@@ -84,7 +84,7 @@ test("rulesetID", t => {
         return true;
       }
       return node;
-    } catch (err) {
+    } catch (err: any) {
       return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
     }
   }
@@ -135,7 +135,7 @@ test("Ruleset meta", t => {
         return node.properties.map(rmLoc);
       }
       return node;
-    } catch (err) {
+    } catch (err: any) {
       return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
     }
   }
