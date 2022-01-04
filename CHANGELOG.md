@@ -1,3 +1,10 @@
+# 1.2.0 - Jan 4, 2022
+
+* Update line colors in engine-UI to deemphasize parent-child relationships. Fixes issue #576
+* Fixes the typescript errors. Errors types are now treated as unknown rather than any. (PR #581)
+* Switched node-sass to sass b/c node-sass is deprecated and is a native module
+* Updated some other dependencies 
+
 # 1.1.1 - July 31, 2021
 
 * Updated Docker instructions
