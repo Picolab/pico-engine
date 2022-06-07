@@ -23,7 +23,7 @@ USAGE
 
 Environment Variables:
 
-    PORT - The port the http server should listen on. By default it's 8080
+    PORT - The port the http server should listen on. By default it's 3000
     PICO_ENGINE_HOME - Where the database and other files should be stored. By default it's ~/.pico-engine/
     PICO_ENGINE_BASE_URL - The public url prefix to reach this engine. By default it's http://localhost:$PORT
 `);
