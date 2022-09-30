@@ -40,6 +40,8 @@ pico-engine uses [leveldb](http://leveldb.org) to store data. It's a C++ library
 
 Open command prompt as Administrator then run `npm install --global --production windows-build-tools` That will configure python and c++ compiler for npm.
 
+We have had reports that the `pico-engine` command stops working with earlier versions of `node.js`, so update to the latest version.
+
 **Mac / Linux**
 
 Be sure you have python 2.7 installed. If python 3 is the system default, all you need to do is configure npm to use python 2.7 like so `npm config set python /path/to/executable/python2.7`
