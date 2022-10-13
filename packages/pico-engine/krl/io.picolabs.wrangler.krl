@@ -273,6 +273,7 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+  //installs io.picolabs.susbcription in every 
   rule install_ruleset_absolutely {
     select when wrangler install_ruleset_request
       url re#(.+)#           // required
@@ -413,11 +414,13 @@ ruleset io.picolabs.wrangler {
       ent:name := event:attr("name")
       ent:id := ctx:picoId
       ent:eci := event:eci
+      //sends the parent pico the wrangler:child_initialized event
       raise wrangler event "pico_initialized"
         attributes event:attrs.put("eci",event:eci)
     }
   }
 
+  
   rule finish_child_initialization {
     select when wrangler pico_initialized
       event:send({ "eci"   : ent:parent_eci,

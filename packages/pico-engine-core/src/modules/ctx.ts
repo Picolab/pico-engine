@@ -51,6 +51,7 @@ export default function initCtxModule(core: PicoEngineCore) {
       return this.rsCtx.ruleset.rid;
     }),
 
+    //used in newPico to install rulesets
     rid_url: krl.Property(function rid_url() {
       return this.rsCtx.ruleset.config["url"];
     }),
@@ -72,32 +73,33 @@ export default function initCtxModule(core: PicoEngineCore) {
       return this.rsCtx.pico().children;
     }),
 
+    //installs io.picolabs.pico-engine-ui, io.picolabs.wrangler from ctx:rid_url,
     newPico: krl.Action(["rulesets"], async function newPico(
-      rulesets
-    ): Promise<string> {
-      if (!Array.isArray(rulesets)) {
-        throw new TypeError("ctx:newPico expects an array of {url, config}");
-      }
-      const toInstall: NewPicoRuleset[] = [];
-      for (const rs of rulesets) {
-        const result = await core.rsRegistry.load(rs.url);
-        toInstall.push({
-          rs: result.ruleset,
-          config: {
-            url: rs.url,
-            config: rs.config || {},
-          },
+        rulesets
+      ): Promise<string> {
+        if (!Array.isArray(rulesets)) {
+          throw new TypeError("ctx:newPico expects an array of {url, config}");
+        }
+        const toInstall: NewPicoRuleset[] = [];
+        for (const rs of rulesets) {
+          const result = await core.rsRegistry.load(rs.url);
+          toInstall.push({
+            rs: result.ruleset,
+            config: {
+              url: rs.url,
+              config: rs.config || {},
+            },
+          });
+        }
+        const newEci = await this.rsCtx.newPico({
+          rulesets: toInstall,
         });
-      }
-      const newEci = await this.rsCtx.newPico({
-        rulesets: toInstall,
-      });
-      return newEci;
-    }),
+        return newEci;
+      }),
 
-    delPico: krl.Action(["eci"], async function delPico(eci) {
-      await this.rsCtx.delPico(eci);
-    }),
+      delPico: krl.Action(["eci"], async function delPico(eci) {
+        await this.rsCtx.delPico(eci);
+      }),
 
     channels: krl.Property(function channels() {
       return this.rsCtx.pico().channels;
