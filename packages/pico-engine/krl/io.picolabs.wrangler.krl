@@ -406,10 +406,19 @@ ruleset io.picolabs.wrangler {
         parts.splice(parts.length()-1,1,subscription_rid+".krl").join("/")
       }
       subs_url = subscription_ruleset_url()
+
+      did_o_ruleset_url = function(){
+        did_o_rid = "io.picolabs.did-o"
+        parts = ctx:rid_url.split("/")
+        parts.splice(parts.length()-1,1,did_o_rid+".krl").join("/")
+      }
+      did_o_url = did_o_ruleset_url()
     }
     fired {
       raise wrangler event "install_ruleset_request"
         attributes {"url":subs_url}
+      raise wrangler event "install_ruleset_request"
+        attributes {"url":did_o_url}
       ent:parent_eci := ctx:parent
       ent:name := event:attr("name")
       ent:id := ctx:picoId
