@@ -1,3 +1,0 @@
-# KRL Standard Library
-
-TODO
