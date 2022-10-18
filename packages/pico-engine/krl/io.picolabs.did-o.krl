@@ -26,8 +26,8 @@ ruleset io.picolabs.did-o {
     shares DID, pico, testingDID, name
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
-    provides channels, createChannel, deleteChannel, //channel
-    name, myself //did
+    //provides channels, createChannel, deleteChannel, //channel
+    //name, myself //did
 
 
     use module io.picolabs.wrangler alias wrangler
