@@ -31,7 +31,7 @@ ruleset io.picolabs.did-o {
 
 
     use module io.picolabs.wrangler alias wrangler
-    use module io.picolabs.pico-engine-ui.krl alias engine_ui
+    use module io.picolabs.pico-engine-ui alias engine_ui
   }
 
   global {
