@@ -27,7 +27,6 @@ ruleset io.picolabs.did-o {
     provides create_peer_DID, create_peer_DIDDOc
 
     //shares DID, pico, testingDID
-
     //use module io.picolabs.wrangler alias wrangler
   }
 
