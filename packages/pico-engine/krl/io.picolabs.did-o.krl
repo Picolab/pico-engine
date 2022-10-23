@@ -24,21 +24,17 @@ ruleset io.picolabs.did-o {
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
     
-    provides create_peer_DID, create_peer_DIDDOc
+    //provides create_peer_DID, create_peer_DIDDOc
 
-    //shares DID, pico, testingDID
+    shares __testing, get_explicit_invitation, create_peer_DID, create_peer_DIDDoc
     //use module io.picolabs.wrangler alias wrangler
   }
 
   
 
   global {
-    /* THESE ARE DUMMY FUCNTIONS, DATA, AND TESTS, */
-
     __testing = { 
-      /*
-      FIX ME: add tests for this ruleset
-      */ 
+      //FIX ME: add tests for this ruleset 
     }
 
     //we might get both methods combined 
@@ -46,16 +42,30 @@ ruleset io.picolabs.did-o {
       peer_DID = ursa:generateDID(){"ariesPublicKey"};//we might create a DID in a different way
       peer_DID //we return the peer did we created
     }
+
     create_peer_DIDDoc = function(peer_DID) {
       peer_DIDDoc = peer_DID + "we will create or regerate did based on the DID passed in";//FIX ME
       peer_DIDDoc //we return the did doc we created
     }
 
 
-    //map for the different peerDIDs we will receive
-    //my dids -> their dids or their dids -> their diddocs
+    //map for the different peerDIDs we will receive?? 
+    //or map of my dids -> their dids or map of their dids -> their diddocs
+    //this might also be stored in the engine...
     peerDIDs_dic = function(){
       ent:peerDIDs_dic.defaultsTo({})
+    }
+
+
+    get_explicit_invitation = function(){
+      ent:explicit_invitation || "Explicit invitation is not created"
+    }
+
+
+    //Is this how you assign a value to an entity or := in a fired part of a rule???
+    assign_explicit_inviation = function(ex_inv) {
+      explicit_invitation = ex_inv
+      ent:explicit_invitation
     }
 
   }
@@ -73,7 +83,7 @@ ruleset io.picolabs.did-o {
   /** REQUESTERS STATES FOR DID EXCHANGE PROTOCOL
     start
     invitation-received
-    request-sent
+    request-sent (This starts the exchange protocol)
     response-received
     abandoned
     completed
@@ -109,7 +119,7 @@ ruleset io.picolabs.did-o {
     select when dido receiveInvite
     pre {
       invite = event:attr("invite").klog("Invite passed in: ")
-      newdid = GenerateNewDID("seed")
+      //newdid = GenerateNewDID("seed")
     }
 
     // We have the invite stored in INVITE now we send a request to the INVITER
@@ -215,12 +225,123 @@ ruleset io.picolabs.did-o {
   
   }
 
+  /////////////////////////////////////// RESPONDER (SENDER) ////////////////////////////////////////////////////////////////
 
+   /**
+   There are two types of invitation:
+      Implicit: invitation in a DID the responder publishes
+      Explicit: invitation message from out-of-band protocol
+      FIX ME: We should create the out of band and find out how to "publish" the DID
+
+
+      IMPLICIT:
+        * Example:
+            {
+              "@id": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
+              "@type": "https://didcomm.org/didexchange/1.0/request",
+              "~thread": { 
+                  "thid": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
+                  "pthid": "did:example:21tDAKCERh95uGgKbJNHYp#didcomm" 
+              },
+              "label": "Bob",
+              "goal_code": "aries.rel.build",
+              "goal": "To create a relationship",
+              "did": "B.did@B:A",
+              "did_doc~attach": {
+                  "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
+                  "mime-type": "application/json",
+                  "data": {
+                    "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
+                    "jws": {
+                        "header": {
+                          "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+                        },
+                        "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
+                        "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
+                        }
+                  }
+              }
+            }
+        * Invitation in a DID Document's service attribute conforms to the DIDComm conventions
+            { ...
+                "service": [{
+                "id": "did:example:123456789abcdefghi#did-communication",
+                "type": "did-communication",
+                "priority" : 0,
+                "recipientKeys" : [ "did:example:123456789abcdefghi#1" ],
+                "routingKeys" : [ "did:example:123456789abcdefghi#1" ],
+                "accept": [
+                  "didcomm/aip2;env=rfc587",
+                  "didcomm/aip2;env=rfc19"
+                ],
+                "serviceEndpoint": "https://agent.example.com/"
+              }]
+            ...} 
+
+      EXPLICIT:
+          *Example:
+              {
+              "@id": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
+              "@type": "https://didcomm.org/didexchange/1.0/request",
+              "~thread": { 
+                  "thid": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
+                  "pthid": "032fbd19-f6fd-48c5-9197-ba9a47040470" 
+              },
+              "label": "Bob",
+              "goal_code": "aries.rel.build",
+              "goal": "To create a relationship",
+              "did": "B.did@B:A",
+              "did_doc~attach": {
+                  "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
+                  "mime-type": "application/json",
+                  "data": {
+                    "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
+                    "jws": {
+                        "header": {
+                          "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+                        },
+                        "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
+                        "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
+                        }
+                  }
+              }
+            }
+
+
+          *Example out-of-band invitation https://didcomm.org/out-of-band/%VER/invitation:
+              {
+                "@type": "https://didcomm.org/out-of-band/%VER/invitation",
+                "@id": "<id used for context as pthid>",
+                "label": "Faber College",
+                "goal_code": "issue-vc",
+                "goal": "To issue a Faber College Graduate credential",
+                "accept": [
+                  "didcomm/aip2;env=rfc587",
+                  "didcomm/aip2;env=rfc19"
+                ],
+                "handshake_protocols": [
+                  "https://didcomm.org/didexchange/1.0",
+                  "https://didcomm.org/connections/1.0"
+                ],
+                "requests~attach": [
+                  {
+                    "@id": "request-0",
+                    "mime-type": "application/json",
+                    "data": {
+                      "json": "<json of protocol message>"
+                    }
+                  }
+                ],
+                "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
+              }
+
+
+   */
   //print out invitation
   //invitation message using RFC 0434 Out of Band
   //https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md
-  rule create_invite {
-    select when dido new_invitation //if it is not engine-ui or wrangler that call this what would call it??
+  rule create_explicit_invite {
+    select when dido new_explicit_invitation //if it is not engine-ui or wrangler that call this what would call it??
 
     pre {
       peer_DID = create_peer_DID()
@@ -234,101 +355,112 @@ ruleset io.picolabs.did-o {
       raise dido event "send_invite" attributes event:attrs.put({//??
 
         //invitation
-        "peer_DID":peer_DID,
-        "peer_DIDDoc":peer_DIDDoc,
+        "inviation" : {
+          "@type": "https://didcomm.org/out-of-band/%VER/invitation",
+          "@id": peer_DID,
+          "label": "Printing Invitation",
+          "goal_code": "issue-vc",
+          "goal": "Testing if invitation is correct can be printed",
+          "accept": [
+            "didcomm/aip2;env=rfc587",
+            "didcomm/aip2;env=rfc19"
+          ],
+          "handshake_protocols": [
+            "https://didcomm.org/didexchange/1.0",
+            "https://didcomm.org/connections/1.0"
+          ],
+          "requests~attach": [
+            {
+              "@id": "request-0",
+              "mime-type": "application/json",
+              "data": {
+                "json": "<json of protocol message>"
+              }
+            }
+          ],
+          "services": ["did:sov:" + peer_DID]
+        },
       })
     } else {
       //we might not need to send peer_DID and peer_DIDDoc but we will have multiple did and did docs??
-      raise dido event "failed_to_createInvite" attributes event:attrs.put({
-        "failed_peer_DID":peer_DID,
-        "failed_peer_DIDDoc":peer_DIDDoc,
-      })
+      // raise dido event "failed_to_createInvite" attributes event:attrs.put({
+      //   "failed_peer_DID":peer_DID,
+      //   "failed_peer_DIDDoc":peer_DIDDoc,
+      // })
     }
   }
   
 
-  //print invite 
-  rule send_invite {
-    select when dido send_invite
-
-    pre {
-      peer_DID = event:attr("peer_DID");
-      peer_DIDDoc = event:attr("peer_DIDDoc");
-    }
-
-    if !peer_DID.isnull() && !peer_DIDDoc.isnull() then //Is this the right way to check those two are not empty??
-    noop()
-    fired {
-      event:send({
-        "@type": "https://didcomm.org/out-of-band/%VER/invitation",
-        "@id": "<id used for context as pthid>",
-        "label": "Invitation",
-        "goal_code": "",
-        "goal": "To establish a peep connection",
-        "accept": [
-          "didcomm/aip2;env=rfc587",
-          "didcomm/aip2;env=rfc19"
-        ],
-        "handshake_protocols": [
-          "https://didcomm.org/didexchange/1.0",
-          "https://didcomm.org/connections/1.0"
-        ],
-        "requests~attach": [
-          {
-            "@id": "request-0",
-            "mime-type": "application/json",
-            "data": {
-              "json": "<json of protocol message>"
-            }
-          }
-        ],
-        "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
-      })
-    } else {
-      raise did-o event "failed_to_createInvite" attributes event:attrs.put({
-        "failed_peer_DID":peer_DID,
-        "failed_peer_DIDDoc":peer_DIDDoc,
-      })
-    }
-
-    /*
-    {
-      "@type": "https://didcomm.org/out-of-band/%VER/invitation",
-      "@id": "<id used for context as pthid>",
-      "label": "Invitation",
-      "goal_code": "",
-      "goal": "To establish a peep connection",
-      "accept": [
-        "didcomm/aip2;env=rfc587",
-        "didcomm/aip2;env=rfc19"
-      ],
-      "handshake_protocols": [
-        "https://didcomm.org/didexchange/1.0",
-        "https://didcomm.org/connections/1.0"
-      ],
-      "requests~attach": [
-        {
-          "@id": "request-0",
-          "mime-type": "application/json",
-          "data": {
-            "json": "<json of protocol message>"
-          }
-        }
-      ],
-      "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
-    }
-    */
+  rule create_implicit_invitation {
+    select when dido new_implicit_invitation
   }
 
+
+
+  rule send_invite {
+    select when dido send_invite
+    
+    pre {
+      invitation = event:attr("invitation")
+    }
+
+    fired {
+      ent:explicit_invitation := invitation
+    }
+
+  }
+  //print invite 
+  // rule send_invite {
+  //   select when dido send_invite
+
+  //   pre {
+  //     peer_DID = event:attr("peer_DID");
+  //     peer_DIDDoc = event:attr("peer_DIDDoc");
+  //   }
+
+  //   if !peer_DID.isnull() && !peer_DIDDoc.isnull() then //Is this the right way to check those two are not empty??
+  //   noop()
+  //   fired {
+  //     event:send({
+  //       "@type": "https://didcomm.org/out-of-band/%VER/invitation",
+  //       "@id": "<id used for context as pthid>",
+  //       "label": "Invitation",
+  //       "goal_code": "",
+  //       "goal": "To establish a peep connection",
+  //       "accept": [
+  //         "didcomm/aip2;env=rfc587",
+  //         "didcomm/aip2;env=rfc19"
+  //       ],
+  //       "handshake_protocols": [
+  //         "https://didcomm.org/didexchange/1.0",
+  //         "https://didcomm.org/connections/1.0"
+  //       ],
+  //       "requests~attach": [
+  //         {
+  //           "@id": "request-0",
+  //           "mime-type": "application/json",
+  //           "data": {
+  //             "json": "<json of protocol message>"
+  //           }
+  //         }
+  //       ],
+  //       "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
+  //     })
+  //   } else {
+  //     raise did-o event "failed_to_createInvite" attributes event:attrs.put({
+  //       "failed_peer_DID":peer_DID,
+  //       "failed_peer_DIDDoc":peer_DIDDoc,
+  //     })
+  //   }
+  // }
+
   rule failed_create_invite {
-    select when did-o failed_to_createInvite
+    select when dido failed_to_createInvite
 
     pre {
       peer_DID = event:attr("failed_peer_DID");
       peer_DIDDoc = event:attr("failed_peer_DIDDoc");
     }
-
-    select when dido failed_to_createInvite
   }
 }
 
