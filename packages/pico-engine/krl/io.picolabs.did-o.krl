@@ -19,27 +19,27 @@ ruleset io.picolabs.did-o {
     name "did-o"
     description 
     <<
-    Ruleset for DID, DIDComm, DIDDoc, ...
+    Ruleset for DID Exchange Protocol
+    https://github.com/hyperledger/aries-rfcs/blob/main/features/0023-did-exchange/README.md
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
-    
-    //provides create_peer_DID, create_peer_DIDDOc
-
-    shares __testing, get_explicit_invitation, create_peer_DID, create_peer_DIDDoc
-    //use module io.picolabs.wrangler alias wrangler
+    use module io.picolabs.wrangler alias wrangler
   }
 
   
 
+
   global {
     __testing = { 
-      //FIX ME: add tests for this ruleset 
+      //FIX ME: add tests for this ruleset
+      "events" : [{"name": "create_peer_DID"}],
+      "queries" : []
     }
 
     //we might get both methods combined 
     create_peer_DID = function() {
-      peer_DID = ursa:generateDID(){"ariesPublicKey"};//we might create a DID in a different way
+      peer_DID = ursa:generateDID(){"ariesPublicKey"};//we will create a DID in a different way
       peer_DID //we return the peer did we created
     }
 
@@ -52,8 +52,8 @@ ruleset io.picolabs.did-o {
     //map for the different peerDIDs we will receive?? 
     //or map of my dids -> their dids or map of their dids -> their diddocs
     //this might also be stored in the engine...
-    peerDIDs_dic = function(){
-      ent:peerDIDs_dic.defaultsTo({})
+    my_peer_DIDs = function(){
+      ent:my_peer_DIDs.defaultsTo({})
     }
 
 
@@ -68,22 +68,56 @@ ruleset io.picolabs.did-o {
       ent:explicit_invitation
     }
 
+    /** SAMPLE REQUEST MESSAGE
+      {
+        "@id": "5678876542345",
+        "@type": "https://didcomm.org/didexchange/1.0/request",
+        "~thread": { 
+            "thid": "5678876542345",
+            "pthid": "<id of invitation>"
+        },
+        "label": "Bob", // Suggested Label
+        "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
+        "goal": "To create a relationship",
+        "did": "B.did@B:A",
+        "did_doc~attach": {
+            "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
+            "mime-type": "application/json",
+            "data": {
+              "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
+              "jws": {
+                  "header": {
+                    "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+                  },
+                  "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
+                  "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
+                  }
+            }
+        }
+      }
+    */
+    generate_request_message = function(invite, new_did, label) {
+      "{JSON OBJECT}"
+    }
+
+    /**
+      If the routingKeys attribute was present and non-empty in the invitation, 
+      each key must be used to wrap the message in a forward request, then 
+      encoded in an Encryption Envelope. This processing is in order of the keys 
+      in the list, with the last key in the list being the one for which the 
+      serviceEndpoint possesses the private key.
+
+      The message is then transmitted to the serviceEndpoint.
+    */
+    get_invite_end_point = function(invite) {
+      "localhost:3000/endpoint"
+    }
   }
-
-  /** RESPONDERS STATES FOR DID EXCHANGE PROTOCOL
-    start
-    invitation-sent
-    request-received
-    response-sent
-    abandoned
-    completed
-  */
-
 
   /** REQUESTERS STATES FOR DID EXCHANGE PROTOCOL
     start
     invitation-received
-    request-sent (This starts the exchange protocol)
+    request-sent (This starts the exchange protocol)(Don't think so pretty sure the start is the start)
     response-received
     abandoned
     completed
@@ -95,7 +129,7 @@ ruleset io.picolabs.did-o {
       "@id": "30801fd7-ad0e-4a67-8d96-514d9154ae02",
       "label": "Invitation to Barry",
       "accept": [
-        "didcomm/aip1",
+        "didcomm/aip1", // What do these mean?
         "didcomm/aip2;env=rfc19"
       ],
       "services": [
@@ -115,55 +149,28 @@ ruleset io.picolabs.did-o {
   */
 
   // IF WE ARE RECEIVING AN INVITE THEN WE ARE THE REQUESTER
-  rule receiveInvite {
-    select when dido receiveInvite
+  // Send Request
+  rule receive_invite {
+    select when dido receive_invite
     pre {
-      invite = event:attr("invite").klog("Invite passed in: ")
-      //newdid = GenerateNewDID("seed")
+      // We have the invite stored in INVITE now we send a request to the INVITER
+      invite = event:attr{"invite"}
+      label = event:attr{"label"}
+
+      // To send the request we need to generate a new did&doc
+        // Side note the did needs to be stored on the pico, but the engine will store the doc
+        // The did should resolve to the doc through the engine
+      new_did = create_peer_DID()
+
+      request_message = generate_request_message(invite, new_did, label)
+      end_point = get_invite_end_point(invite)
     }
+    
+    // SEND INVITE to end_point with the request_message which contains new_did
 
-    // We have the invite stored in INVITE now we send a request to the INVITER
-    // Send Request
-    // To send the request we need to generate a new did&doc
-      // Side not the did needs to be stored on the pico, but the engine will store the doc
-      // The did should resolve to the doc through the engine
-    /**
-      If the routingKeys attribute was present and non-empty in the invitation, 
-      each key must be used to wrap the message in a forward request, then 
-      encoded in an Encryption Envelope. This processing is in order of the keys 
-      in the list, with the last key in the list being the one for which the 
-      serviceEndpoint possesses the private key.
-
-      The message is then transmitted to the serviceEndpoint.
-    */
-    /** SAMPLE REQUEST MESSAGE
-      {
-        "@id": "5678876542345",
-        "@type": "https://didcomm.org/didexchange/1.0/request",
-        "~thread": { 
-            "thid": "5678876542345",
-            "pthid": "<id of invitation>"
-        },
-        "label": "Bob",
-        "goal_code": "aries.rel.build",
-        "goal": "To create a relationship",
-        "did": "B.did@B:A",
-        "did_doc~attach": {
-            "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
-            "mime-type": "application/json",
-            "data": {
-              "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-              "jws": {
-                  "header": {
-                    "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                  },
-                  "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-                  "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-                  }
-            }
-        }
-      }
-    */
+    fired {
+      // Store new_did_id for pico to use later?
+    }
   }
 
   // Receive response
@@ -193,10 +200,13 @@ ruleset io.picolabs.did-o {
     }
   */
   // Receive response 
-  rule receiveResponse {
+  rule receive_response {
     select when dido receiveResponse
     pre {
+      error = false
 
+
+      
     }
     // Send Complete
     /** SAMPLE COMPLETE MESSAGE
@@ -209,7 +219,13 @@ ruleset io.picolabs.did-o {
         }
       }
     */
+    if not error then 
+      noop()
+    // else send error message
+    
+    fired {
 
+    }
     // OR Send Problem-Report
     /** SAMPLE ERROR MESSAGE
       {
@@ -221,9 +237,18 @@ ruleset io.picolabs.did-o {
         "explain": "Unsupported DID method for provided DID."
       }
     */
-
   
   }
+
+
+  /** RESPONDERS STATES FOR DID EXCHANGE PROTOCOL
+    start
+    invitation-sent
+    request-received
+    response-sent
+    abandoned
+    completed
+  */
 
   /////////////////////////////////////// RESPONDER (SENDER) ////////////////////////////////////////////////////////////////
 
@@ -334,8 +359,6 @@ ruleset io.picolabs.did-o {
                 ],
                 "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
               }
-
-
    */
   //print out invitation
   //invitation message using RFC 0434 Out of Band
