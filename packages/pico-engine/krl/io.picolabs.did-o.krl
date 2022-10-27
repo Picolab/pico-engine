@@ -14,6 +14,7 @@ DID-O V 0.1.0
 ⠀⠿⣇⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⣀⣀⠀⠀⠀⠀⢀⣀⣸⠿
 ⠀⠀⠙⢳⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⡞⠛⠛⠛⠛⠛⠛⣶⣶⣶⣶⡞⠛⠃⠀
 */
+
 ruleset io.picolabs.did-o {
   meta {
     name "did-o"
@@ -24,19 +25,12 @@ ruleset io.picolabs.did-o {
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
+    shares create_peer_DID, create_peer_DIDDoc, my_peer_DIDs, get_explicit_invitation, assign_explicit_inviation
+
     use module io.picolabs.wrangler alias wrangler
   }
 
-  
-
-
-  global {
-    __testing = { 
-      //FIX ME: add tests for this ruleset
-      "events" : [{"name": "create_peer_DID"}],
-      "queries" : []
-    }
-
+  global {   
     //we might get both methods combined 
     create_peer_DID = function() {
       peer_DID = ursa:generateDID(){"ariesPublicKey"};//we will create a DID in a different way
@@ -97,7 +91,32 @@ ruleset io.picolabs.did-o {
       }
     */
     generate_request_message = function(invite, new_did, label) {
-      "{JSON OBJECT}"
+      {
+        "@id": "5678876542345",
+        "@type": "https://didcomm.org/didexchange/1.0/request",
+        "~thread": { 
+            "thid": "5678876542345",
+            "pthid": invite{"@id"}
+        },
+        "label": label, // Suggested Label
+        "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
+        "goal": "To create a relationship",
+        "did": "B.did@B:A",
+        "did_doc~attach": {
+            "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
+            "mime-type": "application/json",
+            "data": {
+              "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
+              "jws": {
+                  "header": {
+                    "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+                  },
+                  "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
+                  "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
+                  }
+            }
+        }
+      }
     }
 
     /**
@@ -110,8 +129,45 @@ ruleset io.picolabs.did-o {
       The message is then transmitted to the serviceEndpoint.
     */
     get_invite_end_point = function(invite) {
-      "localhost:3000/endpoint"
+      "localhost:8000"
     }
+
+    get_invite_keys = function(invite) {
+      "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+    }
+
+    wrap_request = function(recipientKeys, request_message) {
+      {
+        "@id": "5678876542345",
+        "@type": "https://didcomm.org/didexchange/1.0/request",
+        "~thread": { 
+            "thid": "5678876542345",
+            "pthid": invite{"@id"}
+        },
+        "label": label, // Suggested Label
+        "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
+        "goal": "To create a relationship",
+        "did": "B.did@B:A",
+        "did_doc~attach": {
+            "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
+            "mime-type": "application/json",
+            "data": {
+              "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
+              "jws": {
+                  "header": {
+                    "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+                  },
+                  "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
+                  "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
+                  }
+            }
+        }
+      }
+    }
+  }
+
+  rule intialize {
+    select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
   }
 
   /** REQUESTERS STATES FOR DID EXCHANGE PROTOCOL
@@ -157,20 +213,30 @@ ruleset io.picolabs.did-o {
       invite = event:attr{"invite"}
       label = event:attr{"label"}
 
-      // To send the request we need to generate a new did&doc
+      // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
         // The did should resolve to the doc through the engine
       new_did = create_peer_DID()
 
       request_message = generate_request_message(invite, new_did, label)
       end_point = get_invite_end_point(invite)
+      recipientKeys = get_invite_keys(invite)
+
+      wrapped_request = wrap_request(recipientKeys, request_message)
     }
     
     // SEND INVITE to end_point with the request_message which contains new_did
+    // if no errors (test url, did, invite)
+      // event send
+    http:put(end_point, body = wrapped_request)
 
-    fired {
+    fired { // When condition is true
       // Store new_did_id for pico to use later?
-    }
+      // Should this be a raise event 
+        // Request sent
+    } else { // When condition is false from action
+      // Error Message Event ?? Ent variables to hold messages // Log // 
+    } // Finally runs after both or always
   }
 
   // Receive response
@@ -199,15 +265,18 @@ ruleset io.picolabs.did-o {
       }
     }
   */
+
+  rule send_request {
+    select when dido send_request
+  }
+
   // Receive response 
   rule receive_response {
-    select when dido receiveResponse
+    select when dido receive_response
     pre {
       error = false
-
-
-      
     }
+
     // Send Complete
     /** SAMPLE COMPLETE MESSAGE
       {
@@ -218,14 +287,13 @@ ruleset io.picolabs.did-o {
           "pthid": "<pthid used in request message>"
         }
       }
-    */
+     */
+
     if not error then 
       noop()
     // else send error message
     
-    fired {
-
-    }
+    fired {}
     // OR Send Problem-Report
     /** SAMPLE ERROR MESSAGE
       {
@@ -237,7 +305,14 @@ ruleset io.picolabs.did-o {
         "explain": "Unsupported DID method for provided DID."
       }
     */
-  
+  }
+
+  rule complete {
+    select when dido complete
+  }
+
+  rule abandon {
+    select when dido abandon
   }
 
 
@@ -257,51 +332,7 @@ ruleset io.picolabs.did-o {
       Implicit: invitation in a DID the responder publishes
       Explicit: invitation message from out-of-band protocol
       FIX ME: We should create the out of band and find out how to "publish" the DID
-
-
-      IMPLICIT:
-        * Example:
-            {
-              "@id": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
-              "@type": "https://didcomm.org/didexchange/1.0/request",
-              "~thread": { 
-                  "thid": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
-                  "pthid": "did:example:21tDAKCERh95uGgKbJNHYp#didcomm" 
-              },
-              "label": "Bob",
-              "goal_code": "aries.rel.build",
-              "goal": "To create a relationship",
-              "did": "B.did@B:A",
-              "did_doc~attach": {
-                  "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
-                  "mime-type": "application/json",
-                  "data": {
-                    "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-                    "jws": {
-                        "header": {
-                          "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                        },
-                        "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-                        "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-                        }
-                  }
-              }
-            }
-        * Invitation in a DID Document's service attribute conforms to the DIDComm conventions
-            { ...
-                "service": [{
-                "id": "did:example:123456789abcdefghi#did-communication",
-                "type": "did-communication",
-                "priority" : 0,
-                "recipientKeys" : [ "did:example:123456789abcdefghi#1" ],
-                "routingKeys" : [ "did:example:123456789abcdefghi#1" ],
-                "accept": [
-                  "didcomm/aip2;env=rfc587",
-                  "didcomm/aip2;env=rfc19"
-                ],
-                "serviceEndpoint": "https://agent.example.com/"
-              }]
-            ...} 
+        For now we can forget about Implicit invites and focus on our Explicit invite - Kekoa
 
       EXPLICIT:
           *Example:
@@ -364,7 +395,7 @@ ruleset io.picolabs.did-o {
   //invitation message using RFC 0434 Out of Band
   //https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md
   rule create_explicit_invite {
-    select when dido new_explicit_invitation //if it is not engine-ui or wrangler that call this what would call it??
+    select when dido new_explicit_invitation // if it is not engine-ui or wrangler that call this what would call it??
 
     pre {
       peer_DID = create_peer_DID()
@@ -375,7 +406,7 @@ ruleset io.picolabs.did-o {
     if true then //Is this the right way to check those two are not empty??
     noop()
     fired {
-      raise dido event "send_invite" attributes event:attrs.put({//??
+      raise dido event "send_invite" attributes event:attrs.put({ 
 
         //invitation
         "inviation" : {
@@ -486,21 +517,6 @@ ruleset io.picolabs.did-o {
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
  DID-O - V 1.0.0
