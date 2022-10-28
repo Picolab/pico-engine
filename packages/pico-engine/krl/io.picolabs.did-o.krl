@@ -24,40 +24,89 @@ ruleset io.picolabs.did-o {
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
     
-    //provides create_peer_DID, create_peer_DIDDOc
+    provides get_explicit_invitation, create_peer_DID, create_peer_DIDDoc
 
     shares __testing, get_explicit_invitation, create_peer_DID, create_peer_DIDDoc
-    //use module io.picolabs.wrangler alias wrangler
+    
+    use module io.picolabs.wrangler alias wrangler
   }
 
   
 
   global {
-    __testing = { 
-      //FIX ME: add tests for this ruleset 
-    }
-
     //we might get both methods combined 
     create_peer_DID = function() {
-      peer_DID = ursa:generateDID(){"ariesPublicKey"};//we might create a DID in a different way
+      peer_DID = ursa:generateDID(){"did"};//we might create a DID in a different way
       peer_DID //we return the peer did we created
     }
 
+    generate_invite_id = function(){
+      id = random:uui()
+      id
+    }
+
+    //recipientKeys
+    get_aries_public_key = function() {
+      public_key = ursa:generateDID(){"ariesPublicKey"}
+      public_key
+    }
+
+    create_channel = function () {
+      eci = wrangler:createChannel("did_o_invite", "allow dido:*", "did-o/*")
+      eci
+
+      //http://localhost:3000/sky/event/eci/did_o_invite/receive_request
+    }
+
+    create_end_point = function(eci) {
+      end_point = "http://localhost:3000/sky/event/" + eci + "/did_o_invite/receive_request"
+      end_point
+    }
+    
+    create_explicit_inviation = function(new_id, public_key, end_point) {
+      invitation = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
+        "@id": new_id,
+        "label": "Explicit Invitation",
+        "accept": [
+          "didcomm/aip1",
+          "didcomm/aip2;env=rfc19"
+        ],
+        "services": [
+          {
+            "id": "#inline", //???
+            "type": "did-communication",
+            "recipientKeys": [
+              "did:key:" + public_key
+            ],
+            "serviceEndpoint": end_point
+          }
+        ],
+        "handshake_protocols": [
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+        ]
+      }
+
+      invitation
+    }
+
+
     create_peer_DIDDoc = function(peer_DID) {
-      peer_DIDDoc = peer_DID + "we will create or regerate did based on the DID passed in";//FIX ME
+      peer_DIDDoc = peer_DID + " we will create or regerate did based on the DID passed in";//FIX ME
       peer_DIDDoc //we return the did doc we created
     }
 
 
-    //map for the different peerDIDs we will receive?? 
-    //or map of my dids -> their dids or map of their dids -> their diddocs
-    //this might also be stored in the engine...
-    peerDIDs_dic = function(){
-      ent:peerDIDs_dic.defaultsTo({})
+    //map from invite ids to invitations
+    get_invitations_dic = function() {
+      invitations_dic.defaultsTo({})
     }
 
+  
 
-    get_explicit_invitation = function(){
+    
+
+    get_explicit_invitation = function() {
       ent:explicit_invitation || "Explicit invitation is not created"
     }
 
@@ -118,7 +167,7 @@ ruleset io.picolabs.did-o {
   rule receiveInvite {
     select when dido receiveInvite
     pre {
-      invite = event:attr("invite").klog("Invite passed in: ")
+      invite = events:attr{"invite"}.klog("Invite passed in: ")
       //newdid = GenerateNewDID("seed")
     }
 
@@ -343,44 +392,84 @@ ruleset io.picolabs.did-o {
   rule create_explicit_invite {
     select when dido new_explicit_invitation //if it is not engine-ui or wrangler that call this what would call it??
 
+    /*
+    FIX ME
+      Explicit out-of-band with its own @id which is the created DID
+      This invitation contains recipeintKeys so the request message is encoded 
+      routingKey attribute is present in the invitation and is non-empty
+
+      This means that function create_peer_DID must be able to get peerDID and public encrypting key
+      
+    */ 
     pre {
-      peer_DID = create_peer_DID()
-      //peer_DIDDoc = create_peer_DIDDoc(peer_DID)
+      new_id = generate_invite_id()
+      public_key = get_aries_public_key()
+      //get method to get URL
+
+      explicit_inviation = generate_explicit_invitation(new_id, public_key, )
+
+      explicit_inviation =  {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
+        "@id": new_id,
+        "label": "Explicit Invitation",
+        "accept": [
+          "didcomm/aip1",
+          "didcomm/aip2;env=rfc19"
+        ],
+        "services": [
+          {
+            "id": "#inline", //I guess the same as new_id
+            "type": "did-communication",
+            "recipientKeys": [
+              "did:key:" + ent:public_key + "", //or we call a method like the one above
+              "did:key:z6MktEH5QA7bWpCe9eoa2DKaZ9JX2ZXJmxuGYR1sapQdmsCZ" //When 
+            ],
+            "serviceEndpoint": "localhost:8000"
+          }
+        ],
+        "handshake_protocols": [
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+        ]
+      }
     }
 
-    //create the json here 
-    if true then //Is this the right way to check those two are not empty??
+    
+    if true then
     noop()
     fired {
-      raise dido event "send_invite" attributes event:attrs.put({//??
-
+      raise dido event "send_invite" attributes event:attrs.put("inviation", explicit_invitation)
         //invitation
-        "inviation" : {
-          "@type": "https://didcomm.org/out-of-band/%VER/invitation",
-          "@id": peer_DID,
-          "label": "Printing Invitation",
-          "goal_code": "issue-vc",
-          "goal": "Testing if invitation is correct can be printed",
+        "inviation", explicit_invitation} 
+
+
+
+
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
+          "@id": new_id,
+          "label": "Explicit Invitation",
           "accept": [
-            "didcomm/aip2;env=rfc587",
+            "didcomm/aip1",
             "didcomm/aip2;env=rfc19"
           ],
-          "handshake_protocols": [
-            "https://didcomm.org/didexchange/1.0",
-            "https://didcomm.org/connections/1.0"
-          ],
-          "requests~attach": [
+          "services": [
             {
-              "@id": "request-0",
-              "mime-type": "application/json",
-              "data": {
-                "json": "<json of protocol message>"
-              }
+              "id": "#inline", //I guess the same as new_id
+              "type": "did-communication",
+              "recipientKeys": [
+                "did:key:z6MktEH5QA7bWpCe9eoa2DKaZ9JX2ZXJmxuGYR1sapQdmsCZ"
+              ],
+              "serviceEndpoint": "localhost:8000"
             }
           ],
-          "services": ["did:sov:" + peer_DID]
+          "handshake_protocols": [
+            "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+          ]
         },
       })
+
+
+      ent:explicit_invitation := {}.put(new_id, explicit_invitation)
+
     } else {
       //we might not need to send peer_DID and peer_DIDDoc but we will have multiple did and did docs??
       // raise dido event "failed_to_createInvite" attributes event:attrs.put({
@@ -401,14 +490,16 @@ ruleset io.picolabs.did-o {
     select when dido send_invite
     
     pre {
-      invitation = event:attr("invitation")
+      invitation = event:attrs{"invitation"}
     }
 
     fired {
-      ent:explicit_invitation := invitation
+      ent:explicit_invitation := invitation //FIX ME put in the map
     }
 
   }
+
+
   //print invite 
   // rule send_invite {
   //   select when dido send_invite
@@ -458,8 +549,8 @@ ruleset io.picolabs.did-o {
     select when dido failed_to_createInvite
 
     pre {
-      peer_DID = event:attr("failed_peer_DID");
-      peer_DIDDoc = event:attr("failed_peer_DIDDoc");
+      peer_DID = event:attrs{"failed_peer_DID"};
+      peer_DIDDoc = event:attrs{"failed_peer_DIDDoc"};
     }
   }
 }
