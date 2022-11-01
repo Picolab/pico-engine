@@ -25,9 +25,9 @@ ruleset io.picolabs.did-o {
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
-    provides get_explicit_invitation, create_peer_DID, create_peer_DIDDoc
+    provides create_DID, create_peer_DIDDoc, print_invite
 
-    shares get_explicit_invitation, create_peer_DID, create_peer_DIDDoc
+    shares create_DID, create_peer_DIDDoc, print_invite
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -41,28 +41,25 @@ ruleset io.picolabs.did-o {
     }
 
     generate_invite_id = function(){
-      id = random:uui()
+      id = random:uuid()
       id
     }
 
-    //recipientKeys
-    get_aries_public_key = function(invitation_id) {
-      DID = ursa:generateDID() //We need to story DID ???
-      public_key = DID{"ariesPublicKey"}
-      public_key
+    
+    getECI = function(tag){
+      wrangler:channels(tag)
+        .reverse() // most recently created channel
+        .head()
+        .get("id")
     }
 
-    create_channel = function() {
-      eci = wrangler:createChannel("did_o_invite", "allow dido:*", "did-o/*")
-      eci
-    }
-
+    //create channel
     create_end_point = function(eci) {
       end_point = "http://localhost:3000/sky/event/" + eci + "/did_o_invite/receive_request"
       end_point
     }
     
-    create_explicit_inviation = function(new_id, public_key, end_point) {
+    create_explicit_invitation = function(new_id, public_key, end_point) {
       //http://localhost:3000/sky/event/eci/did_o_invite/receive_request
       invitation = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
@@ -96,8 +93,8 @@ ruleset io.picolabs.did-o {
     }
 
     //function to check invitationID_to_DID map for a specific key. (key, value) = (invitation unique id, DID created when invitation was being created)
-    inviation_did_exists = function(invitation_id) {
-      ent:inviationID_to_DID.defaultsTo({}) >< invitation_id
+    invitation_did_exists = function(invitation_id) {
+      ent:invitationID_to_DID.defaultsTo({}) >< invitation_id
     }
 
     //FIX ME: We need to figure out who to create the DIDDoc from a DID
@@ -108,6 +105,10 @@ ruleset io.picolabs.did-o {
 
 
 
+    print_invite = function() {
+      msg = ent:expl_invite
+      msg
+    }
 
 
 
@@ -195,9 +196,9 @@ ruleset io.picolabs.did-o {
         "@type": "https://didcomm.org/didexchange/1.0/request",
         "~thread": { 
             "thid": "5678876542345",
-            "pthid": invite{"@id"}
+        //    "pthid": invite{"@id"}
         },
-        "label": label, // Suggested Label
+        //"label": label, // Suggested Label
         "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
         "goal": "To create a relationship",
         "did": "B.did@B:A",
@@ -221,13 +222,13 @@ ruleset io.picolabs.did-o {
 
   rule intialize {
     select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
-    /*
-    if ent:invitation_map.isnull() && ent:inviationID_to_DID.isNull then noop()
+    
+    if ent:invitation_map.isnull() && my_DID_to_TheirDID.isnull() && their_DID_to_my_did then noop()
     fired {
       ent:invitation_map := {}
-      ent:inviationID_to_DID := {}
+      ent:invitationID_to_DID := {}
     }
-    */
+    
   }
 
 
@@ -278,7 +279,7 @@ ruleset io.picolabs.did-o {
       // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
         // The did should resolve to the doc through the engine
-      new_did = create_peer_DID()
+      new_did = create_DID()
 
       request_message = generate_request_message(invite, new_did, label)
       end_point = get_invite_end_point(invite)
@@ -456,9 +457,9 @@ ruleset io.picolabs.did-o {
             }
   */
 
-  
 
-  //FIX ME: this might not be necessary since we might not implement implicit inviations
+
+  //FIX ME: this might not be necessary since we might not implement implicit invitations
   rule create_implicit_invitation {
     select when dido new_implicit_invitation
   }
@@ -468,27 +469,29 @@ ruleset io.picolabs.did-o {
     select when dido new_explicit_invitation
 
     pre {
-      new_id = generate_invite_id()
-      DID = create_peer_DID()
-      public_key = DID{"ariesPublicKey"} //or we could use get_aries_public_key but how do we save this DID
-      eci = create_channel()
-      end_point = create_end_point(eci)
-      explicit_inviation = generate_explicit_invitation(new_id, public_key, end_point)
+      DID = create_DID()
+      public_key = DID{"ariesPublicKey"}
+      new_id = DID{"did"}
+      tag = ["did_o_invite"]
+      eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
+      queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
     }
 
-    if true then
-    noop()
+    wrangler:createChannel(tag, eventPolicy, queryPolicy)
+
+     //explicit_invitation = create_explicit_invitation(new_id, public_key, eci)
     fired {
-      raise dido event "send_invite" attributes event:attrs.put("inviation", explicit_invitation)
+      end_point = create_end_point(getECI(tag[0]))
+      explicit_invitation = create_explicit_invitation(new_id, public_key, end_point)
+      
+      raise dido event "send_invite" attributes event:attrs.put("invitation", explicit_invitation)
       //we store a new value in the map invitationID_to_DID which contains an 
       //entry keyed by invitation id with the value DID created to retrieve the aries public key
-      ent:inviationID_to_DID := ent:inviationID_to_DID.defaultsTo({}).put(new_did, DID)
+      ent:invitationID_to_DID{DID} := explicit_invitation
+      //ent:invitationID_to_DID.put(DID, explicit_invitation)
       
-
+      ent:expl_invite := explicit_invitation
       //ent:explicit_invitation := {}.put(new_id, explicit_invitation)
-    } else {
-      //FIX ME: this might not be necessary since we do not check anything in the action block yet
-      raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", explicit_inviation)
     }
   }
 
@@ -502,10 +505,10 @@ ruleset io.picolabs.did-o {
     if invitation_exists(id) then noop()
     fired {
       //we store a new value in the entity map which contains an entry keyed by invitation id with the value invitation
-      ent:invitaition_map := ent:invitations_map.defaultsTo({}).put(id, inviation)
+      ent:invitation_map := ent:invitations_map.defaultsTo({}).put(id, invitation)
     }
     else {
-      raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", explicit_inviation)
+      raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation)
     }
   }
 
