@@ -521,6 +521,15 @@ ruleset io.picolabs.did-o {
     }
   }
 
+
+  rule received_error {
+    select when dido received_error
+    pre {
+      error_message = event:atts{"error"}
+    }
+    send_directive("say", {"error_message" : error_message})
+  }
+
 }
 
 /*
