@@ -103,6 +103,10 @@ ruleset io.picolabs.did-o {
       msg
     }
 
+    unpack = function(message, channel) {
+      unpacked_msg = ursa:unpack(message, channel)
+      unpacked_msg
+    }
 
 
 
@@ -217,7 +221,7 @@ ruleset io.picolabs.did-o {
   rule intialize {
     select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
     
-    if ent:DID_to_invitation.isnull() && myDID_to_theirDID.isnull() && theirDID_to_myDID.isnull() then noop()
+    if ent:DID_to_invitation.isnull() && ent:myDID_to_theirDID.isnull() && ent:theirDID_to_myDID.isnull() then noop()
     fired {
       ent:DID_to_invitation := {}
       ent:invitationID_to_DID := {}
@@ -496,6 +500,7 @@ ruleset io.picolabs.did-o {
     }
     if invitation_exists(id) then noop()
     fired {
+
     }
     else {
       raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation)
@@ -522,19 +527,31 @@ ruleset io.picolabs.did-o {
   */
 
 
-  rule request_received {
+  rule receive_request {
     select when dido receive_request
 
     pre {
+      //????
+      request_message = event:atts{"message"}.klog("request message")
+      explicit_invitation = get_explicit_invite()
+      DID = explicit_invitation{"@id"}
+      end_point = getECI("did_o_invite")
+
+      unpacked_message = unpack(request_message, end_point)
+
+      new_DID = create_DID()
 
     }
+
+
+
   }
 
 
   rule received_error {
     select when dido received_error
     pre {
-      error_message = event:atts{"error"}.klog("Error establishing did connection: ")
+      error_message = event:attrs{"error"}.klog("Error establishing did connection: ")
     }
     send_directive("say", {"error_message" : error_message})
   }
