@@ -198,7 +198,7 @@ ruleset io.picolabs.did-o {
   }
 
   rule intialize {
-    select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+    select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
     
     if ent:DID_to_invitation.isnull() && ent:myDID_to_theirDID.isnull() && ent:theirDID_to_myDID.isnull() then noop()
 
