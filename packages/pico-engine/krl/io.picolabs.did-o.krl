@@ -85,7 +85,7 @@ ruleset io.picolabs.did-o {
                   },
                   "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
                   "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-                  }
+              }
             }
         }
       }
@@ -128,46 +128,26 @@ ruleset io.picolabs.did-o {
 
       The message is then transmitted to the serviceEndpoint.
     */
+
     get_invite_end_point = function(invite) {
-      "localhost:8000"
+      invite{"services"}[0]{"serviceEndpoint"}
     }
 
     get_invite_keys = function(invite) {
-      "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+      invite{"services"}[0]{"recipientKeys"}
     }
 
-    wrap_request = function(recipientKeys, request_message) {
-      {
-        "@id": "5678876542345",
-        "@type": "https://didcomm.org/didexchange/1.0/request",
-        "~thread": { 
-            "thid": "5678876542345",
-            "pthid": invite{"@id"}
-        },
-        "label": label, // Suggested Label
-        "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
-        "goal": "To create a relationship",
-        "did": "B.did@B:A",
-        "did_doc~attach": {
-            "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
-            "mime-type": "application/json",
-            "data": {
-              "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-              "jws": {
-                  "header": {
-                    "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                  },
-                  "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-                  "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-                  }
-            }
-        }
-      }
-    }
+    // wrap_request = function(recipientKeys, request_message) {
+    //   {
+    //     "recipientKeys" : recipientKeys,
+    //     "request_message" : request_message
+    //   }
+    // }
   }
 
   rule intialize {
-    select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+    select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
+    // Specify Endpoint
   }
 
   /** REQUESTERS STATES FOR DID EXCHANGE PROTOCOL
@@ -210,8 +190,8 @@ ruleset io.picolabs.did-o {
     select when dido receive_invite
     pre {
       // We have the invite stored in INVITE now we send a request to the INVITER
-      invite = event:attr{"invite"}
-      label = event:attr{"label"}
+      invite = event:attrs{"invite"}
+      label = event:attrs{"label"}
 
       // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
@@ -222,18 +202,20 @@ ruleset io.picolabs.did-o {
       end_point = get_invite_end_point(invite)
       recipientKeys = get_invite_keys(invite)
 
-      wrapped_request = wrap_request(recipientKeys, request_message)
+      //wrapped_request = wrap_request(recipientKeys, request_message)
     }
     
     // SEND INVITE to end_point with the request_message which contains new_did
     // if no errors (test url, did, invite)
-      // event send
-    http:put(end_point, body = wrapped_request)
+      // event sendß
+    http:post(end_point, body = request_message)
 
     fired { // When condition is true
-      // Store new_did_id for pico to use later?
+        // Store new_did_id for pico to use later?
       // Should this be a raise event 
         // Request sent
+      raise dido event "request_sent"
+
     } else { // When condition is false from action
       // Error Message Event ?? Ent variables to hold messages // Log // 
     } // Finally runs after both or always
@@ -266,8 +248,8 @@ ruleset io.picolabs.did-o {
     }
   */
 
-  rule send_request {
-    select when dido send_request
+  rule request_sent {
+    select when dido request_sent
   }
 
   // Receive response 
@@ -455,7 +437,7 @@ ruleset io.picolabs.did-o {
     select when dido send_invite
     
     pre {
-      invitation = event:attr("invitation")
+      invitation = event:attrs{"invitation"};
     }
 
     fired {
@@ -512,8 +494,8 @@ ruleset io.picolabs.did-o {
     select when dido failed_to_createInvite
 
     pre {
-      peer_DID = event:attr("failed_peer_DID");
-      peer_DIDDoc = event:attr("failed_peer_DIDDoc");
+      peer_DID = event:attrs{"failed_peer_DID"};
+      peer_DIDDoc = event:attrs{"failed_peer_DIDDoc"};
     }
   }
 }
