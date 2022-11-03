@@ -522,10 +522,10 @@ ruleset io.picolabs.did-o {
 
       end_point = theirDoc{"end_point"}//this is not right
       myDID = create_DID()
-      myDoc = 
+      //myDoc = 
 
 
-      response_message = create_response ();
+      //response_message = create_response ();
     }
 
 
