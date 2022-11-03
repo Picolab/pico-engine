@@ -221,12 +221,14 @@ ruleset io.picolabs.did-o {
   }
 
   rule intialize {
-    select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+    select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
     
-    if ent:invitation_map.isnull() && my_DID_to_TheirDID.isnull() && their_DID_to_my_did then noop()
+    if ent:invitation_map.isnull() && ent:my_DID_to_TheirDID.isnull() && ent:their_DID_to_my_did.isnull() then noop()
     fired {
       ent:invitation_map := {}
       ent:invitationID_to_DID := {}
+      ent:my_DID_to_TheirDID := {}
+      ent:their_DID_to_my_did := {}
     }
     
   }
@@ -273,8 +275,8 @@ ruleset io.picolabs.did-o {
     select when dido receive_invite
     pre {
       // We have the invite stored in INVITE now we send a request to the INVITER
-      invite = event:attr{"invite"}
-      label = event:attr{"label"}
+      invite = event:attrs{"invite"}
+      label = event:attrs{"label"}
 
       // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
@@ -525,7 +527,7 @@ ruleset io.picolabs.did-o {
   rule received_error {
     select when dido received_error
     pre {
-      error_message = event:atts{"error"}.klog("Error establishing did connection: ")
+      error_message = event:attrs{"error"}.klog("Error establishing did connection: ")
     }
     send_directive("say", {"error_message" : error_message})
   }
