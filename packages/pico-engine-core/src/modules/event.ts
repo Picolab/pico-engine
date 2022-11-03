@@ -1,12 +1,11 @@
 import fetch from "cross-fetch";
 import { CurrentPicoEvent, krl, KrlCtx } from "krl-stdlib";
-import { DIDDoc } from "didcomm"
 
 function eventProperty<T = any>(
   fn: (event: CurrentPicoEvent) => T
 ): (ctx: KrlCtx) => T | null {
   return krl.Property(function () {
-    let event: CurrentPicoEvent | null = this.getEvent();
+    let event = this.getEvent();
     if (event) {
       return fn(event);
     }
@@ -34,20 +33,12 @@ const event: krl.Module = {
   send: krl.Action(
     ["options", "host"],
     async function event(options, host) {
-      let eci = options.eci || null;
-      let did = options.did || null;
-      if (did) {
-        let dids = (await this.rsCtx.getEnt("dids"));
-        console.log(dids);
-        let diddoc = dids[did];
-        eci = diddoc?.services.length > 0 ? diddoc?.services[0].id : null;
-        console.log("eci: " + eci);
-      }
+      let eci = options.eci;
       if (!krl.isString(eci)) {
         throw new TypeError(
           "eci was " +
-          krl.toString(eci) +
-          " instead of a string"
+            krl.toString(eci) +
+            " instead of a string"
         );
       }
       let domain = options.domain;

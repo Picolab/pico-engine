@@ -25,42 +25,89 @@ ruleset io.picolabs.did-o {
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
-    shares create_peer_DID, create_peer_DIDDoc, my_peer_DIDs, get_explicit_invitation, assign_explicit_inviation
+    provides create_DID, create_peer_DIDDoc, get_explicit_invite
 
+    shares create_DID, create_peer_DIDDoc, get_explicit_invite
+    
     use module io.picolabs.wrangler alias wrangler
   }
 
+
   global {   
-    //we might get both methods combined 
-    create_peer_DID = function() {
-      peer_DID = ursa:generateDID(){"ariesPublicKey"};//we will create a DID in a different way
-      peer_DID //we return the peer did we created
+    //function creates a DID using ursa 
+    create_DID = function() {
+      DID = ursa:generateDID()
+      DID
     }
 
+    generate_invite_id = function(){
+      id = random:uuid()
+      id
+    }
+    
+    getECI = function(tag){
+      wrangler:channels(tag)
+        .reverse() //most recently created channel
+        .head()
+        .get("id")
+    }
+
+    //create channel
+    create_end_point = function(eci) {
+      end_point = "http://localhost:3000/sky/event/" + eci + "/did_o_invite/receive_request"
+      end_point
+    }
+    
+    create_explicit_invitation = function(new_id, public_key, end_point) {
+      //http://localhost:3000/sky/event/eci/did_o_invite/receive_request
+      invitation = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
+        "@id": new_id,
+        "label": "Explicit Invitation",
+        "accept": [
+          "didcomm/aip1",
+          "didcomm/aip2;env=rfc19"
+        ],
+        "services": [
+          {
+            "id": "#inline",
+            "type": "did-communication",
+            "recipientKeys": [
+              "did:key:" + public_key
+            ],
+            "serviceEndpoint": end_point
+          }
+        ],
+        "handshake_protocols": [
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+        ]
+      }
+
+      invitation
+    }
+
+    //function to check DID_to_invitation map for a specific key. (key, value) = (DID, explicit invitation)
+    invitation_exists = function(invitation_id) {
+      ent:DID_to_invitation.defaultsTo({}) >< invitation_id
+    }
+
+    //FIX ME: We need to figure out who to create the DIDDoc from a DID
     create_peer_DIDDoc = function(peer_DID) {
-      peer_DIDDoc = peer_DID + "we will create or regerate did based on the DID passed in";//FIX ME
-      peer_DIDDoc //we return the did doc we created
+      peer_DIDDoc = peer_DID + " we will create or regerate did based on the DID passed in";
+      peer_DIDDoc
     }
 
 
-    //map for the different peerDIDs we will receive?? 
-    //or map of my dids -> their dids or map of their dids -> their diddocs
-    //this might also be stored in the engine...
-    my_peer_DIDs = function(){
-      ent:my_peer_DIDs.defaultsTo({})
+    get_explicit_invite = function() {
+      msg = ent:explicit_invite
+      msg
     }
 
 
-    get_explicit_invitation = function(){
-      ent:explicit_invitation || "Explicit invitation is not created"
-    }
 
 
-    //Is this how you assign a value to an entity or := in a fired part of a rule???
-    assign_explicit_inviation = function(ex_inv) {
-      explicit_invitation = ex_inv
-      ent:explicit_invitation
-    }
+
+
 
     /** SAMPLE REQUEST MESSAGE
       {
@@ -119,6 +166,7 @@ ruleset io.picolabs.did-o {
       }
     }
 
+
     /**
       If the routingKeys attribute was present and non-empty in the invitation, 
       each key must be used to wrap the message in a forward request, then 
@@ -148,7 +196,16 @@ ruleset io.picolabs.did-o {
   rule intialize {
     select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
     // Specify Endpoint
+    if ent:DID_to_invitation.isnull() && myDID_to_theirDID.isnull() && theirDID_to_myDID.isnull() then noop()
+    fired {
+      ent:DID_to_invitation := {}
+      ent:invitationID_to_DID := {}
+      ent:myDID_to_theirDID := {}
+      ent:theirDID_to_myDID := {}
+    }
   }
+
+
 
   /** REQUESTERS STATES FOR DID EXCHANGE PROTOCOL
     start
@@ -196,7 +253,7 @@ ruleset io.picolabs.did-o {
       // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
         // The did should resolve to the doc through the engine
-      new_did = create_peer_DID()
+      new_did = create_DID()
 
       request_message = generate_request_message(invite, new_did, label)
       end_point = get_invite_end_point(invite)
@@ -298,6 +355,10 @@ ruleset io.picolabs.did-o {
   }
 
 
+  
+
+  /////////////////////////////////////// RESPONDER (SENDER) ////////////////////////////////////////////////////////////////
+
   /** RESPONDERS STATES FOR DID EXCHANGE PROTOCOL
     start
     invitation-sent
@@ -307,190 +368,122 @@ ruleset io.picolabs.did-o {
     completed
   */
 
-  /////////////////////////////////////// RESPONDER (SENDER) ////////////////////////////////////////////////////////////////
+  /**
+  There are two types of invitation:
+    Implicit: invitation in a DID the responder publishes
+    Explicit: invitation message from out-of-band protocol
+    FIX ME: We should create the out of band and find out how to "publish" the DID
+      For now we can forget about Implicit invites and focus on our Explicit invite - Kekoa
 
-   /**
-   There are two types of invitation:
-      Implicit: invitation in a DID the responder publishes
-      Explicit: invitation message from out-of-band protocol
-      FIX ME: We should create the out of band and find out how to "publish" the DID
-        For now we can forget about Implicit invites and focus on our Explicit invite - Kekoa
+    EXPLICIT:
+        *Example:
+            {
+            "@id": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
+            "@type": "https://didcomm.org/didexchange/1.0/request",
+            "~thread": { 
+                "thid": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
+                "pthid": "032fbd19-f6fd-48c5-9197-ba9a47040470" 
+            },
+            "label": "Bob",
+            "goal_code": "aries.rel.build",
+            "goal": "To create a relationship",
+            "did": "B.did@B:A",
+            "did_doc~attach": {
+                "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
+                "mime-type": "application/json",
+                "data": {
+                  "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
+                  "jws": {
+                      "header": {
+                        "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+                      },
+                      "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
+                      "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
+                      }
+                }
+            }
+          }
 
-      EXPLICIT:
-          *Example:
-              {
-              "@id": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
-              "@type": "https://didcomm.org/didexchange/1.0/request",
-              "~thread": { 
-                  "thid": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
-                  "pthid": "032fbd19-f6fd-48c5-9197-ba9a47040470" 
-              },
-              "label": "Bob",
-              "goal_code": "aries.rel.build",
-              "goal": "To create a relationship",
-              "did": "B.did@B:A",
-              "did_doc~attach": {
-                  "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
+
+        *Example out-of-band invitation https://didcomm.org/out-of-band/%VER/invitation:
+            {
+              "@type": "https://didcomm.org/out-of-band/%VER/invitation",
+              "@id": "<id used for context as pthid>",
+              "label": "Faber College",
+              "goal_code": "issue-vc",
+              "goal": "To issue a Faber College Graduate credential",
+              "accept": [
+                "didcomm/aip2;env=rfc587",
+                "didcomm/aip2;env=rfc19"
+              ],
+              "handshake_protocols": [
+                "https://didcomm.org/didexchange/1.0",
+                "https://didcomm.org/connections/1.0"
+              ],
+              "requests~attach": [
+                {
+                  "@id": "request-0",
                   "mime-type": "application/json",
                   "data": {
-                    "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-                    "jws": {
-                        "header": {
-                          "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                        },
-                        "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-                        "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-                        }
+                    "json": "<json of protocol message>"
                   }
-              }
+                }
+              ],
+              "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
             }
+  */
 
 
-          *Example out-of-band invitation https://didcomm.org/out-of-band/%VER/invitation:
-              {
-                "@type": "https://didcomm.org/out-of-band/%VER/invitation",
-                "@id": "<id used for context as pthid>",
-                "label": "Faber College",
-                "goal_code": "issue-vc",
-                "goal": "To issue a Faber College Graduate credential",
-                "accept": [
-                  "didcomm/aip2;env=rfc587",
-                  "didcomm/aip2;env=rfc19"
-                ],
-                "handshake_protocols": [
-                  "https://didcomm.org/didexchange/1.0",
-                  "https://didcomm.org/connections/1.0"
-                ],
-                "requests~attach": [
-                  {
-                    "@id": "request-0",
-                    "mime-type": "application/json",
-                    "data": {
-                      "json": "<json of protocol message>"
-                    }
-                  }
-                ],
-                "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
-              }
-   */
-  //print out invitation
-  //invitation message using RFC 0434 Out of Band
-  //https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md
-  rule create_explicit_invite {
-    select when dido new_explicit_invitation // if it is not engine-ui or wrangler that call this what would call it??
 
-    pre {
-      peer_DID = create_peer_DID()
-      //peer_DIDDoc = create_peer_DIDDoc(peer_DID)
-    }
-
-    //create the json here 
-    if true then //Is this the right way to check those two are not empty??
-    noop()
-    fired {
-      raise dido event "send_invite" attributes event:attrs.put({ 
-
-        //invitation
-        "inviation" : {
-          "@type": "https://didcomm.org/out-of-band/%VER/invitation",
-          "@id": peer_DID,
-          "label": "Printing Invitation",
-          "goal_code": "issue-vc",
-          "goal": "Testing if invitation is correct can be printed",
-          "accept": [
-            "didcomm/aip2;env=rfc587",
-            "didcomm/aip2;env=rfc19"
-          ],
-          "handshake_protocols": [
-            "https://didcomm.org/didexchange/1.0",
-            "https://didcomm.org/connections/1.0"
-          ],
-          "requests~attach": [
-            {
-              "@id": "request-0",
-              "mime-type": "application/json",
-              "data": {
-                "json": "<json of protocol message>"
-              }
-            }
-          ],
-          "services": ["did:sov:" + peer_DID]
-        },
-      })
-    } else {
-      //we might not need to send peer_DID and peer_DIDDoc but we will have multiple did and did docs??
-      // raise dido event "failed_to_createInvite" attributes event:attrs.put({
-      //   "failed_peer_DID":peer_DID,
-      //   "failed_peer_DIDDoc":peer_DIDDoc,
-      // })
-    }
-  }
-  
-
+  //FIX ME: this might not be necessary since we might not implement implicit invitations
   rule create_implicit_invitation {
     select when dido new_implicit_invitation
   }
 
+  //invitation message using RFC 0434 Out of Band: https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md
+  rule create_explicit_invite {
+    select when dido new_explicit_invitation
 
+    pre {
+      DID = create_DID()
+      public_key = DID{"ariesPublicKey"}
+      new_id = DID{"did"}
+      tag = ["did_o_invite"]
+      eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
+      queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
+    }
+
+    wrangler:createChannel(tag, eventPolicy, queryPolicy)
+    fired {
+      end_point = create_end_point(getECI(tag[0]))
+      explicit_invitation = create_explicit_invitation(new_id, public_key, end_point)
+      
+      raise dido event "send_invite" attributes event:attrs.put("invitation", explicit_invitation)
+      //we store a new value in the map DID_to_invitation which contains an 
+      //entry keyed by DID with explicit invitation as value
+      ent:DID_to_invitation{DID} := explicit_invitation
+      
+      ent:explicit_invite := explicit_invitation
+    }
+  }
 
   rule send_invite {
     select when dido send_invite
     
     pre {
       invitation = event:attrs{"invitation"};
+      id = invitation{"@id"}
     }
-
+    if invitation_exists(id) then noop()
     fired {
-      ent:explicit_invitation := invitation
     }
-
+    else {
+      raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation)
+    }
   }
-  //print invite 
-  // rule send_invite {
-  //   select when dido send_invite
 
-  //   pre {
-  //     peer_DID = event:attr("peer_DID");
-  //     peer_DIDDoc = event:attr("peer_DIDDoc");
-  //   }
 
-  //   if !peer_DID.isnull() && !peer_DIDDoc.isnull() then //Is this the right way to check those two are not empty??
-  //   noop()
-  //   fired {
-  //     event:send({
-  //       "@type": "https://didcomm.org/out-of-band/%VER/invitation",
-  //       "@id": "<id used for context as pthid>",
-  //       "label": "Invitation",
-  //       "goal_code": "",
-  //       "goal": "To establish a peep connection",
-  //       "accept": [
-  //         "didcomm/aip2;env=rfc587",
-  //         "didcomm/aip2;env=rfc19"
-  //       ],
-  //       "handshake_protocols": [
-  //         "https://didcomm.org/didexchange/1.0",
-  //         "https://didcomm.org/connections/1.0"
-  //       ],
-  //       "requests~attach": [
-  //         {
-  //           "@id": "request-0",
-  //           "mime-type": "application/json",
-  //           "data": {
-  //             "json": "<json of protocol message>"
-  //           }
-  //         }
-  //       ],
-  //       "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
-  //     })
-  //   } else {
-  //     raise did-o event "failed_to_createInvite" attributes event:attrs.put({
-  //       "failed_peer_DID":peer_DID,
-  //       "failed_peer_DIDDoc":peer_DIDDoc,
-  //     })
-  //   }
-  // }
-
-  rule failed_create_invite {
+  rule failed_invite {
     select when dido failed_to_createInvite
 
     pre {
@@ -498,6 +491,16 @@ ruleset io.picolabs.did-o {
       peer_DIDDoc = event:attrs{"failed_peer_DIDDoc"};
     }
   }
+
+
+  rule received_error {
+    select when dido received_error
+    pre {
+      error_message = event:atts{"error"}.klog("Error establishing did connection: ")
+    }
+    send_directive("say", {"error_message" : error_message})
+  }
+
 }
 
 /*
