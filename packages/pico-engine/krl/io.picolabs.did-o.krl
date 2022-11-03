@@ -493,7 +493,7 @@ ruleset io.picolabs.did-o {
   rule failed_invite {
     select when dido failed_to_createInvite
 
-    pre %
+    pre {
       invitation = event:attrs{"invitation"}
     }
   }
@@ -513,15 +513,19 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
-      //????
       request_message = event:atts{"message"}.klog("request message")
-      explicit_invitation = get_explicit_invite()
-      DID = explicit_invitation{"@id"}
-      end_point = getECI("did_o_invite")
 
-      unpacked_message = unpack(request_message, end_point)
+      //no unpacking yet
+      theirDID = request_message{"@id"}
+      theirDoc = request_message{"did_doc~attach"}
 
-      new_DID = create_DID()
+
+      end_point = theirDoc{"end_point"}//this is not right
+      myDID = create_DID()
+      myDoc = 
+
+
+      response_message = create_response ();
     }
 
 
