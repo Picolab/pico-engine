@@ -25,9 +25,9 @@ ruleset io.picolabs.did-o {
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
-    provides create_DID, create_peer_DIDDoc, print_invite
+    provides create_DID, create_peer_DIDDoc, get_explicit_invite
 
-    shares create_DID, create_peer_DIDDoc, print_invite
+    shares create_DID, create_peer_DIDDoc, get_explicit_invite
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -44,11 +44,10 @@ ruleset io.picolabs.did-o {
       id = random:uuid()
       id
     }
-
     
     getECI = function(tag){
       wrangler:channels(tag)
-        .reverse() // most recently created channel
+        .reverse() //most recently created channel
         .head()
         .get("id")
     }
@@ -87,14 +86,9 @@ ruleset io.picolabs.did-o {
       invitation
     }
 
-    //function to check invitation map for a specific key. (key, value) = (invitation unique id, whole invitation)
+    //function to check DID_to_invitation map for a specific key. (key, value) = (DID, explicit invitation)
     invitation_exists = function(invitation_id) {
-      ent:invitations_map.defaultsTo({}) >< invitation_id
-    }
-
-    //function to check invitationID_to_DID map for a specific key. (key, value) = (invitation unique id, DID created when invitation was being created)
-    invitation_did_exists = function(invitation_id) {
-      ent:invitationID_to_DID.defaultsTo({}) >< invitation_id
+      ent:DID_to_invitation.defaultsTo({}) >< invitation_id
     }
 
     //FIX ME: We need to figure out who to create the DIDDoc from a DID
@@ -104,9 +98,8 @@ ruleset io.picolabs.did-o {
     }
 
 
-
-    print_invite = function() {
-      msg = ent:expl_invite
+    get_explicit_invite = function() {
+      msg = ent:explicit_invite
       msg
     }
 
@@ -173,6 +166,7 @@ ruleset io.picolabs.did-o {
       }
     }
 
+
     /**
       If the routingKeys attribute was present and non-empty in the invitation, 
       each key must be used to wrap the message in a forward request, then 
@@ -223,10 +217,12 @@ ruleset io.picolabs.did-o {
   rule intialize {
     select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
     
-    if ent:invitation_map.isnull() && my_DID_to_TheirDID.isnull() && their_DID_to_my_did then noop()
+    if ent:DID_to_invitation.isnull() && myDID_to_theirDID.isnull() && theirDID_to_myDID.isnull() then noop()
     fired {
-      ent:invitation_map := {}
+      ent:DID_to_invitation := {}
       ent:invitationID_to_DID := {}
+      ent:myDID_to_theirDID := {}
+      ent:theirDID_to_myDID := {}
     }
     
   }
@@ -478,20 +474,16 @@ ruleset io.picolabs.did-o {
     }
 
     wrangler:createChannel(tag, eventPolicy, queryPolicy)
-
-     //explicit_invitation = create_explicit_invitation(new_id, public_key, eci)
     fired {
       end_point = create_end_point(getECI(tag[0]))
       explicit_invitation = create_explicit_invitation(new_id, public_key, end_point)
       
       raise dido event "send_invite" attributes event:attrs.put("invitation", explicit_invitation)
-      //we store a new value in the map invitationID_to_DID which contains an 
-      //entry keyed by invitation id with the value DID created to retrieve the aries public key
-      ent:invitationID_to_DID{DID} := explicit_invitation
-      //ent:invitationID_to_DID.put(DID, explicit_invitation)
+      //we store a new value in the map DID_to_invitation which contains an 
+      //entry keyed by DID with explicit invitation as value
+      ent:DID_to_invitation{DID} := explicit_invitation
       
-      ent:expl_invite := explicit_invitation
-      //ent:explicit_invitation := {}.put(new_id, explicit_invitation)
+      ent:explicit_invite := explicit_invitation
     }
   }
 
@@ -504,8 +496,6 @@ ruleset io.picolabs.did-o {
     }
     if invitation_exists(id) then noop()
     fired {
-      //we store a new value in the entity map which contains an entry keyed by invitation id with the value invitation
-      ent:invitation_map := ent:invitations_map.defaultsTo({}).put(id, invitation)
     }
     else {
       raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation)
@@ -521,6 +511,23 @@ ruleset io.picolabs.did-o {
     }
   }
 
+  /** RESPONDERS STATES FOR DID EXCHANGE PROTOCOL
+    start *
+    invitation-sent *
+    request-received
+    response-sent
+    abandoned
+    completed
+  */
+
+
+  rule request_received {
+    select when dido receive_request
+
+    pre {
+
+    }
+  }
 }
 
 /*
