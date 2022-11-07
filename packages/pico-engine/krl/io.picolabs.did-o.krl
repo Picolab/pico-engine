@@ -201,8 +201,7 @@ ruleset io.picolabs.did-o {
     select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
     
     if ent:DID_to_invitation.isnull() && ent:myDID_to_theirDID.isnull() && ent:theirDID_to_myDID.isnull() then noop()
-
- 
+    
     fired {
       ent:DID_to_invitation := {}
       ent:invitationID_to_DID := {}
@@ -493,7 +492,7 @@ ruleset io.picolabs.did-o {
   rule failed_invite {
     select when dido failed_to_createInvite
 
-    pre %
+    pre {
       invitation = event:attrs{"invitation"}
     }
   }
