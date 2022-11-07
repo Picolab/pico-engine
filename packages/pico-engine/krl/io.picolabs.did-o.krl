@@ -40,7 +40,7 @@ ruleset io.picolabs.did-o {
       DID
     }
 
-    generate_invite_id = function(){
+    generate_id = function(){
       id = random:uuid()
       id
     }
@@ -91,26 +91,55 @@ ruleset io.picolabs.did-o {
       ent:DID_to_invitation.defaultsTo({}) >< invitation_id
     }
 
-    //FIX ME: We need to figure out who to create the DIDDoc from a DID
-    create_peer_DIDDoc = function(peer_DID) {
-      peer_DIDDoc = peer_DID + " we will create or regerate did based on the DID passed in";
-      peer_DIDDoc
+    create_response_message = function(thid, myDID, myDoc) {
+      //random:uuid()
+      id = generate_id()
+      response_message = {
+        "@type": "https://didcomm.org/didexchange/1.0/response",
+        "@id": id,
+        "~thread": {
+          //The Thread ID is the Message ID (@id) of the first message in the thread
+          "thid": thid
+        },
+        "did": myDID,
+        "did_doc~attach": myDoc
+      }
+      response_message
+    }
+    //FIX ME: This is probably not the best way to create our did and we might not need
+    //this methid if our DIDs are resolvable
+    create_DID_Doc = function() {
+      //random:uuid()
+      id = generate_id()
+      DID_Doc = {
+        "@id": id,
+        "mime-type": "application/json",
+        "data": {
+          "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
+          "jws": {
+            "header": {
+              "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
+            },
+            "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
+            "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
+          }
+        }
+      }
+      DID_Doc
     }
 
+    //FIX ME: This might need to be removed to the engine but we need to figure out how to uncpack/pack messages
+    unpack = function(message, channel) {
+      unpacked_msg = ursa:unpack(message, channel)
+      unpacked_msg
+    }
 
     get_explicit_invite = function() {
       msg = ent:explicit_invite
       msg
     }
 
-    unpack = function(message, channel) {
-      unpacked_msg = ursa:unpack(message, channel)
-      unpacked_msg
-    }
-
-
-
-
+  
 
 
     /** SAMPLE REQUEST MESSAGE
@@ -198,7 +227,7 @@ ruleset io.picolabs.did-o {
   }
 
   rule intialize {
-    select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+    select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
     
     if ent:DID_to_invitation.isnull() && ent:myDID_to_theirDID.isnull() && ent:theirDID_to_myDID.isnull() then noop()
     
@@ -362,7 +391,7 @@ ruleset io.picolabs.did-o {
 
   
 
-  /////////////////////////////////////// RESPONDER (SENDER) ////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////// RESPONDER (SENDER) /////////////////////////////////////////////////////////////
 
   /** RESPONDERS STATES FOR DID EXCHANGE PROTOCOL
     start
@@ -438,8 +467,6 @@ ruleset io.picolabs.did-o {
             }
   */
 
-
-
   //FIX ME: this might not be necessary since we might not implement implicit invitations
   rule create_implicit_invitation {
     select when dido new_implicit_invitation
@@ -481,7 +508,7 @@ ruleset io.picolabs.did-o {
     }
     if invitation_exists(id) then noop()
     fired {
-
+      //We could alternatively save stuff in the map here instead of in the create_explicit_invite rule
     }
     else {
       raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation)
@@ -489,6 +516,7 @@ ruleset io.picolabs.did-o {
   }
 
 
+  //FIX ME
   rule failed_invite {
     select when dido failed_to_createInvite
 
@@ -512,21 +540,51 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
-      //????
-      request_message = event:atts{"message"}.klog("request message")
-      explicit_invitation = get_explicit_invite()
-      DID = explicit_invitation{"@id"}
-      end_point = getECI("did_o_invite")
+      request_message = event:attrs{"message"}.klog("request message received!")
 
-      unpacked_message = unpack(request_message, end_point)
+      //FIX ME: no unpacking yet???
+      thid = request_message{"@id"}
+      theirDID = request_message{"did"}
+      theirDoc = request_message{"did_doc~attach"}
+  
+      end_point = theirDoc{"end_point"}//this is not right
+      myDID = create_DID() //if our did is resolvable the did_doc~attach attribute should not be included
 
-      new_DID = create_DID()
+      myDoc = create_DID_Doc()
+
+      response_message = create_response_message(thid, myDID, myDoc)
     }
 
+    //FIX ME: how to check if there was a problem with this post. Fired can't be without a action block
+    http:post(end_point, body = response_message)
 
-
+    fired { 
+      raise dido event "response_sent" attributes event:attrs.put("response_message", request_message)
+    } 
+    else {
+      //FIX ME: we simply raise the event and send the message or we have to handle problem get the error and send that??? 
+      raise dido event "received_error" attributes event:attrs.put("error", request_message)
+    }
   }
+  rule response_sent {
+    select when dido response_sent
 
+    pre {
+      response_message = evet:attrs{"response_message"}.klog("response message sent!")
+
+      myDID = response_message{"did"}
+
+      theirDID = response_message{"~thread"}{"thid"}
+    }
+
+    if true then noop()
+    fired {
+      //we store DID we created for reponse message and the DID we received from request message 
+      ent:myDID_to_theirDID{myDID} := theirDID
+      //we store DID we received from request message to the DID we created for response message
+      ent:theirDID_to_myDID{theirDID} := myDID
+    }
+  }
 
   rule received_error {
     select when dido received_error
