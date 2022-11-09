@@ -5,14 +5,14 @@ import * as _ from "lodash";
 const hashAlgorithms = Object.freeze(crypto.getHashes());
 
 const math: krl.Module = {
-  base64encode: krl.Function(["str"], function (str) {
+    base64encode: krl.Function(["str", "str"], function (str, encoding="utf8") {
     str = krl.toString(str);
-    return Buffer.from(str, "utf8").toString("base64");
+    return Buffer.from(str, encoding).toString("base64");
   }),
 
-  base64decode: krl.Function(["str"], function (str) {
+    base64decode: krl.Function(["str", "str"], function (str, encoding="utf8") {
     str = krl.toString(str);
-    return Buffer.from(str, "base64").toString("utf8");
+    return Buffer.from(str, "base64").toString(encoding);
   }),
 
   hashAlgorithms: krl.Property(() => {
