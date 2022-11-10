@@ -36,7 +36,7 @@ ruleset io.picolabs.did-o {
   global {   
     //function creates a DID using ursa 
     create_DID = function() {
-      DID = ursa:generateDID()
+      DID = dido:generateDID()
       DID
     }
 
@@ -54,7 +54,7 @@ ruleset io.picolabs.did-o {
 
     //create channel
     create_end_point = function(eci) {
-      end_point = "http://localhost:3000/sky/event/" + eci + "/did_o_invite/receive_request"
+      end_point = "http://172.17.0.2:3000/sky/event/" + eci + "/none/dido/receive_request"
       end_point
     }
     
@@ -73,7 +73,7 @@ ruleset io.picolabs.did-o {
             "id": "#inline",
             "type": "did-communication",
             "recipientKeys": [
-              "did:key:" + public_key
+              "did:key:z" + public_key
             ],
             "serviceEndpoint": end_point
           }
@@ -497,7 +497,7 @@ ruleset io.picolabs.did-o {
 
     pre {
       DID = create_DID()
-      public_key = DID{"ariesPublicKey"}
+      public_key = DID{"ariesPublicKeyMultiCodec"}
       new_id = DID{"did"}
       tag = ["did_o_invite"]
       eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
@@ -551,15 +551,22 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
-      request_message = event:attrs{"message"}.klog("request message received")
+      //request_message = event:attrs{"message"}.klog("request message received!")
+      //????
+      packed_message = event:attrs{""}.klog("request message: ")
+      request_message = dido:unpack(packed_message).klog("Unpacked: ")
+
+      explicit_invitation = get_explicit_invite()
+      DID = explicit_invitation{"@id"}
+      end_point = getECI("did_o_invite")
 
       //FIX ME: no unpacking yet???
       thid = request_message{"@id"}
       theirDID = request_message{"did"}
       theirDoc = request_message{"did_doc~attach"}
   
-      end_point = theirDoc{"end_point"}//this is not right
-      myDID = create_DID()//if our did is resolvable the did_doc~attach attribute should not be included
+      //end_point = theirDoc{"end_point"}//this is not right
+      myDID = create_DID() //if our did is resolvable the did_doc~attach attribute should not be included
 
       myDoc = create_DID_Doc()
 
