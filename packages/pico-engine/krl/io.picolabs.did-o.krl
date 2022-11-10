@@ -88,7 +88,7 @@ ruleset io.picolabs.did-o {
 
     //function to retrieve DID from DID_to_invitation
     retrieve_DID = function(invitation) {
-      myDID = DID_to_invitation.filter(function(v) {v == invitation}).keys().head()
+      myDID = ent:DID_to_invitation.filter(function(v) {v == invitation}).keys().head()
       myDID
     }
 
