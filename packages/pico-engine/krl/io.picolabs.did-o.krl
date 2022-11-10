@@ -86,10 +86,18 @@ ruleset io.picolabs.did-o {
       invitation
     }
 
-    //function to check DID_to_invitation map for a specific key. (key, value) = (DID, explicit invitation)
-    invitation_exists = function(invitation_id) {
-      ent:DID_to_invitation.defaultsTo({}) >< invitation_id
+    //function to retrieve DID from DID_to_invitation
+    retrieve_DID = function(invitation) {
+      myDID = DID_to_invitation.filter(function(v) {v == invitation}).keys().head()
+      myDID
     }
+
+    //function to check DID_to_invitation map for a specific key. (key, value) = (DID, explicit invitation)
+    invitation_exists = function(DID) {
+      ent:DID_to_invitation.defaultsTo({}) >< DID
+    }
+
+    
 
     create_response_message = function(thid, myDID, myDoc) {
       //random:uuid()
@@ -514,26 +522,28 @@ ruleset io.picolabs.did-o {
     select when dido send_invite
     
     pre {
-      invitation = event:attrs{"invitation"};
-      id = invitation{"@id"}
+      invitation = event:attrs{"invitation"}
+      DID = retrieve_DID(invitation)
     }
-    if invitation_exists(id) then noop()
+    if invitation_exists(DID) then noop()
     fired {
-      //We could alternatively save stuff in the map here instead of in the create_explicit_invite rule
+      invitation = event:attrs{"message"}.klog("invitation sent")
     }
     else {
-      raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation)
+      raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation, "error_message", "DID used for invitation not found in system")
     }
   }
 
 
-  //FIX ME
   rule failed_invite {
     select when dido failed_to_createInvite
 
     pre {
       invitation = event:attrs{"invitation"}
+      DID = retrieve_DID(invitation)
+      error_message = event:attrs{"error_message"}.klog("Failed to create invitation. This DID was not created by us. " + DID)
     }
+
   }
 
 
@@ -541,7 +551,7 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
-      request_message = event:attrs{"message"}.klog("request message received!")
+      request_message = event:attrs{"message"}.klog("request message received")
 
       //FIX ME: no unpacking yet???
       thid = request_message{"@id"}
@@ -549,7 +559,7 @@ ruleset io.picolabs.did-o {
       theirDoc = request_message{"did_doc~attach"}
   
       end_point = theirDoc{"end_point"}//this is not right
-      myDID = create_DID() //if our did is resolvable the did_doc~attach attribute should not be included
+      myDID = create_DID()//if our did is resolvable the did_doc~attach attribute should not be included
 
       myDoc = create_DID_Doc()
 
