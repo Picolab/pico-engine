@@ -582,7 +582,7 @@ ruleset io.picolabs.did-o {
     }
     else {
       //FIX ME: we simply raise the event and send the message or we have to handle problem get the error and send that??? 
-      raise dido event "received_error" attributes event:attrs.put("error", request_message)
+      raise dido event "received_error" attributes event:attrs.put("error", response_message)
     }
   }
 
