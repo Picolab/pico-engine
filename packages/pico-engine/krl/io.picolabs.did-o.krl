@@ -527,16 +527,6 @@ ruleset io.picolabs.did-o {
   }
 
 
-  /** RESPONDERS STATES FOR DID EXCHANGE PROTOCOL
-    start *
-    invitation-sent *
-    request-received
-    response-sent
-    abandoned
-    completed
-  */
-
-
   rule receive_request {
     select when dido receive_request
 
@@ -555,35 +545,34 @@ ruleset io.picolabs.did-o {
 
       response_message = create_response_message(thid, myDID, myDoc)
     }
-
-    //FIX ME: how to check if there was a problem with this post. Fired can't be without a action block
-    http:post(end_point, body = response_message)
-
+    http:post(end_point, body = response_message) setting(http_reponse)
     fired { 
-      raise dido event "response_sent" attributes event:attrs.put("response_message", request_message)
-    } 
-    else {
-      //FIX ME: we simply raise the event and send the message or we have to handle problem get the error and send that??? 
-      raise dido event "received_error" attributes event:attrs.put("error", request_message)
+      raise dido event "response_sent" attributes event:attrs.put("response_message", response_message, "http_reponse", http_reponse)
     }
   }
   rule response_sent {
     select when dido response_sent
 
     pre {
-      response_message = evet:attrs{"response_message"}.klog("response message sent!")
+      response_message = evet:attrs{"response_message"}.klog("response message sent")
+      http_reponse = evet:attrs{"http_response"}
 
       myDID = response_message{"did"}
 
       theirDID = response_message{"~thread"}{"thid"}
     }
 
-    if true then noop()
+    if (http_reponse{"status_code"} == 200) then 
+      send_directive("say", {"HTTP Response Code" : http_reponse{"status_code"}})
     fired {
       //we store DID we created for reponse message and the DID we received from request message 
       ent:myDID_to_theirDID{myDID} := theirDID
       //we store DID we received from request message to the DID we created for response message
       ent:theirDID_to_myDID{theirDID} := myDID
+    }
+    else {
+      //FIX ME: we simply raise the event and send the message or we have to handle problem get the error and send that??? 
+      raise dido event "received_error" attributes event:attrs.put("error", request_message)
     }
   }
 
