@@ -1,6 +1,6 @@
 ruleset io.picolabs.pico-engine-ui {
   meta {
-    vers vion "0.0.0"
+    version "0.0.0"
     name "pico-engine-ui"
     description "This is the only ruleset the pico-engine-ui.js needs to operate"
     shares box, uiECI, pico, logs, testingECI, name

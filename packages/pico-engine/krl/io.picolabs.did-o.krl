@@ -25,9 +25,9 @@ ruleset io.picolabs.did-o {
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
-    provides create_DID, create_peer_DIDDoc, get_explicit_invite
+    provides create_DID, create_DID_Doc, get_explicit_invite
 
-    shares create_DID, create_peer_DIDDoc, get_explicit_invite
+    shares create_DID, create_DID_Doc, get_explicit_invite
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -211,7 +211,7 @@ ruleset io.picolabs.did-o {
     */
 
     get_invite_end_point = function(invite) {
-      invite{"services"}[0]{"serviceEndpoint"}
+      "https://didcomm.org/didexchange/1.0/request"
     }
 
     get_invite_keys = function(invite) {
@@ -230,8 +230,7 @@ ruleset io.picolabs.did-o {
     select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
     
     if ent:DID_to_invitation.isnull() && ent:myDID_to_theirDID.isnull() && ent:theirDID_to_myDID.isnull() then noop()
-
- 
+    
     fired {
       ent:DID_to_invitation := {}
       ent:invitationID_to_DID := {}
@@ -267,7 +266,7 @@ ruleset io.picolabs.did-o {
           "recipientKeys": [
             "did:key:z6MktEH5QA7bWpCe9eoa2DKaZ9JX2ZXJmxuGYR1sapQdmsCZ"
           ],
-          "serviceEndpoint": "localhost:8000"
+          "serviceEndpoint": "http://www.example.com"
         }
       ],
       "handshake_protocols": [
@@ -299,18 +298,31 @@ ruleset io.picolabs.did-o {
     
     // SEND INVITE to end_point with the request_message which contains new_did
     // if no errors (test url, did, invite)
-      // event sendß
-    http:post(end_point, body = request_message)
+      // TODO: The request message needs to be packed
+    //send_directive("say", {"end_point" : end_point})
+    http:post(url = end_point, body = request_message) setting(http_response)
 
     fired { // When condition is true
-        // Store new_did_id for pico to use later?
+      // Store new_did_id for pico to use later?
       // Should this be a raise event 
-        // Request sent
-      raise dido event "request_sent"
+      // Request sent
+      raise dido event "request_sent" attributes event:attrs.put("http_response", http_response)
 
     } else { // When condition is false from action
-      // Error Message Event ?? Ent variables to hold messages // Log // 
+      // Error Message Event ?? Ent variables to hold messages // Log //
+
     } // Finally runs after both or always
+  }
+
+  rule request_sent {
+    select when dido request_sent 
+
+    if(event:attrs{"http_response"}{"status_code"} != 200) then
+      send_directive("say", {"HTTP Response Code" : event:attrs{"http_response"}{"status_code"}})
+    
+    fired {
+      // Create error message || Just go to the abandoned state
+    }
   }
 
   // Receive response
@@ -340,15 +352,12 @@ ruleset io.picolabs.did-o {
     }
   */
 
-  rule request_sent {
-    select when dido request_sent
-  }
-
   // Receive response 
   rule receive_response {
     select when dido receive_response
     pre {
-      error = false
+      response = event:attrs{"response"}
+      //end_point = 
     }
 
     // Send Complete
@@ -363,11 +372,12 @@ ruleset io.picolabs.did-o {
       }
      */
 
-    if not error then 
-      noop()
+    //http:post(end_point, body = request_message)
     // else send error message
     
-    fired {}
+    fired {
+      raise event "complete"
+    }
     // OR Send Problem-Report
     /** SAMPLE ERROR MESSAGE
       {
