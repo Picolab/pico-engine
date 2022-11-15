@@ -115,7 +115,7 @@ ruleset io.picolabs.did-o {
       response_message
     }
     //FIX ME: This is probably not the best way to create our did and we might not need
-    //this methid if our DIDs are resolvable
+    //this meth0d if our DIDs are resolvable
     create_DID_Doc = function() {
       //random:uuid()
       id = generate_id()
@@ -527,7 +527,7 @@ ruleset io.picolabs.did-o {
     }
     if invitation_exists(DID) then noop()
     fired {
-      invitation = event:attrs{"message"}.klog("invitation sent")
+      invitation = event:attrs{"invitation"}.klog("invitation sent: ")
     }
     else {
       raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation, "error_message", "DID used for invitation not found in system")
@@ -539,9 +539,9 @@ ruleset io.picolabs.did-o {
     select when dido failed_to_createInvite
 
     pre {
-      invitation = event:attrs{"invitation"}
+      invitation = event:attrs{"invitation"}.klog("Failed invitation:")
       DID = retrieve_DID(invitation)
-      error_message = event:attrs{"error_message"}.klog("Failed to create invitation. This DID was not created by us. " + DID)
+      error_message = event:attrs{"error_message"}.klog("Failed to create invitation. This DID was not created by us. " + DID + " ")
     }
 
   }
