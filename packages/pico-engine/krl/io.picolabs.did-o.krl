@@ -189,21 +189,8 @@ ruleset io.picolabs.did-o {
         "label": label, // Suggested Label
         "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
         "goal": "To create a relationship",
-        "did": "B.did@B:A",
-        "did_doc~attach": {
-            "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
-            "mime-type": "application/json",
-            "data": {
-              "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-              "jws": {
-                  "header": {
-                    "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                  },
-                  "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-                  "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-                  }
-            }
-        }
+        "did": new_did{did},
+        "did_doc~attach": new_did
       }
     }
 
@@ -223,15 +210,14 @@ ruleset io.picolabs.did-o {
     }
 
     get_invite_keys = function(invite) {
-      invite{"services"}[0]{"recipientKeys"}
+      invite{"services"}{"recipientKeys"}
     }
 
-    // wrap_request = function(recipientKeys, request_message) {
-    //   {
-    //     "recipientKeys" : recipientKeys,
-    //     "request_message" : request_message
-    //   }
-    // }
+    wrap_request = function(recipientKeys, request_message) {
+      {
+        //dido:pack();
+      }
+    }
   }
 
   rule intialize {
@@ -385,6 +371,9 @@ ruleset io.picolabs.did-o {
     
     fired {
       raise event "complete"
+    } else {
+      raise event "send_error"
+      raise event "abandon"
     }
     // OR Send Problem-Report
     /** SAMPLE ERROR MESSAGE
@@ -401,10 +390,12 @@ ruleset io.picolabs.did-o {
 
   rule complete {
     select when dido complete
+    send_directive("say", {"Completed" : "Completed"})
   }
 
   rule abandon {
     select when dido abandon
+    send_directive("say", {"Abandoned" : "Abondoned"})
   }
 
 
