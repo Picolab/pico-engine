@@ -174,7 +174,7 @@ ruleset io.picolabs.did-o {
       }
     */
     generate_request_message = function(invite_id, new_did, label) {
-      {
+      request = {
         "@id": new_did{"did"},
         "@type": "https://didcomm.org/didexchange/1.0/request",
         "~thread": { 
@@ -187,6 +187,8 @@ ruleset io.picolabs.did-o {
         "did": new_did{"did"},
         "did_doc~attach": new_did
       }
+
+      request
     }
 
 
@@ -268,6 +270,7 @@ ruleset io.picolabs.did-o {
       request_message = generate_request_message(invite_id, new_did, label)
         .klog("End point: " + end_point)
         .klog("Keys: " + recipientKeys)
+        .klog("Request_message")
       
       //wrapped_request = wrap_request(recipientKeys, request_message)
     }
@@ -276,7 +279,7 @@ ruleset io.picolabs.did-o {
     // if no errors (test url, did, invite)
       // TODO: The request message needs to be packed
     //send_directive("say", {"end_point" : end_point})
-    http:post(url = end_point, body = request_message) setting(http_response)
+    http:post(url = end_point, json = request_message) setting(http_response)
 
     fired { // When condition is true
       // Store new_did_id for pico to use later?
@@ -528,7 +531,7 @@ ruleset io.picolabs.did-o {
     pre {
       //request_message = event:attrs{"message"}.klog("request message received!")
       //????
-      packed_message = event:attrs.klog("request message: " + event:attrs{"body"})
+      packed_message = event:attrs.klog("request message: " + event:attrs{"data"})
       request_message = dido:unpack(packed_message).klog("Unpacked: ")
 
       explicit_invitation = get_explicit_invite()
