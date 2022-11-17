@@ -1,0 +1,93 @@
+{
+  "name": "pico-engine",
+  "version": "1.2.0",
+  "description": "An implementation of the pico-engine targeting node.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picolab/pico-engine.git"
+  },
+  "author": "Picolab",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Picolab/pico-engine/issues"
+  },
+  "homepage": "https://github.com/Picolab/pico-engine#readme",
+  "keywords": [
+    "pico-engine",
+    "krl",
+    "KRE",
+    "IoT"
+  ],
+  "files": [
+    "bin",
+    "public",
+    "src",
+    "krl",
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "bin": {
+    "pico-engine": "bin/pico-engine"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "rm -rf dist && tsc",
+    "start": "npm run dev -s",
+    "dev": "scriptsp -r dev:tsc dev:api",
+    "dev:tsc": "tsc -w --preserveWatchOutput",
+    "dev:api": "onchange -i -k dist/ -- node dist/cli.js",
+    "test": "ava"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "charwise": "^3.0.1",
+    "cross-fetch": "^3.0.5",
+    "cuid": "^2.1.8",
+    "encoding-down": "^6.0.2",
+    "express": "^4.16.4",
+    "helmet": "^3.16.0",
+    "home-dir": "^1.0.0",
+    "krl-compiler": "^1.2.0",
+    "krl-stdlib": "^1.2.0",
+    "level-json-coerce-null": "^1.0.1",
+    "leveldown": "^5.0.2",
+    "levelup": "^4.0.1",
+    "lodash": "^4.17.11",
+    "make-dir": "^3.0.0",
+    "memdown": "^5.1.0",
+    "minimist": "^1.2.5",
+    "pico-engine-core": "^1.2.0",
+    "pico-framework": "^0.6.0",
+    "rotating-file-stream": "^1.4.1",
+    "split": "^1.0.1",
+    "through2": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.17.0",
+    "@types/express": "^4.16.1",
+    "@types/helmet": "0.0.43",
+    "@types/leveldown": "^4.0.0",
+    "@types/levelup": "^3.1.0",
+    "@types/lodash": "^4.14.123",
+    "@types/node": "^14.14.10",
+    "ava": "^1.4.1",
+    "onchange": "^6.0.0",
+    "scriptsp": "^1.1.1",
+    "temp-dir": "^2.0.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.1.2"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "gitHead": "26aee8aeb73a2450f9224f2d8d81f3a3d49b33f2"
+}

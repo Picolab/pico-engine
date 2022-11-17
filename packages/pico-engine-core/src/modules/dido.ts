@@ -134,6 +134,19 @@ const pack = krl.Function(['message', 'to'], async function (message: Message, t
     return await message.pack_encrypted(to, from, from, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {});
 });
 
+// const build = krl.Function(['id',
+//     'type_',
+//     'body',
+//     'from: None',
+//     'to: None',
+//     'thid: None',
+//     'pthid: None',
+//     'extra_headers: HashMap::new()',
+//     'created_time: None',
+//     'expires_time: None',
+//     'from_prior: None',
+//     'attachments: None'], async function ())
+
 
 const dido: krl.Module = {
     generateDID: generateDID,

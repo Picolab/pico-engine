@@ -97,8 +97,6 @@ ruleset io.picolabs.did-o {
       ent:DID_to_invitation.defaultsTo({}) >< DID
     }
 
-    
-
     create_response_message = function(thid, myDID, myDoc) {
       //random:uuid()
       id = generate_id()
@@ -115,7 +113,7 @@ ruleset io.picolabs.did-o {
       response_message
     }
     //FIX ME: This is probably not the best way to create our did and we might not need
-    //this meth0d if our DIDs are resolvable
+    //this methid if our DIDs are resolvable
     create_DID_Doc = function() {
       //random:uuid()
       id = generate_id()
@@ -147,9 +145,6 @@ ruleset io.picolabs.did-o {
       msg
     }
 
-  
-
-
     /** SAMPLE REQUEST MESSAGE
       {
         "@id": "5678876542345",
@@ -178,18 +173,18 @@ ruleset io.picolabs.did-o {
         }
       }
     */
-    generate_request_message = function(invite, new_did, label) {
+    generate_request_message = function(invite_id, new_did, label) {
       {
-        "@id": "5678876542345",
+        "@id": new_did{"did"},
         "@type": "https://didcomm.org/didexchange/1.0/request",
         "~thread": { 
-            "thid": "5678876542345",
-            "pthid": invite{"@id"}
+            "thid": new_did{"did"},
+            "pthid": invite_id
         },
         "label": label, // Suggested Label
         "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
-        "goal": "To create a relationship",
-        "did": new_did{did},
+        "goal": "To establish a peer did connection",
+        "did": new_did{"did"},
         "did_doc~attach": new_did
       }
     }
@@ -204,20 +199,6 @@ ruleset io.picolabs.did-o {
 
       The message is then transmitted to the serviceEndpoint.
     */
-
-    get_invite_end_point = function(invite) {
-      "https://didcomm.org/didexchange/1.0/request"
-    }
-
-    get_invite_keys = function(invite) {
-      invite{"services"}{"recipientKeys"}
-    }
-
-    wrap_request = function(recipientKeys, request_message) {
-      {
-        //dido:pack();
-      }
-    }
   }
 
   rule intialize {
@@ -250,7 +231,7 @@ ruleset io.picolabs.did-o {
       "@id": "30801fd7-ad0e-4a67-8d96-514d9154ae02",
       "label": "Invitation to Barry",
       "accept": [
-        "didcomm/aip1", // What do these mean?
+        "didcomm/aip1",
         "didcomm/aip2;env=rfc19"
       ],
       "services": [
@@ -275,18 +256,19 @@ ruleset io.picolabs.did-o {
     select when dido receive_invite
     pre {
       // We have the invite stored in INVITE now we send a request to the INVITER
-      invite = event:attrs{"invite"}
       label = event:attrs{"label"}
-
+      invite_id = event:attrs{"inviteID"}
+      end_point = event:attrs{"End point"}
+      recipientKeys = event:attrs{"Keys"}
       // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
         // The did should resolve to the doc through the engine
       new_did = create_DID()
 
-      request_message = generate_request_message(invite, new_did, label)
-      end_point = get_invite_end_point(invite)
-      recipientKeys = get_invite_keys(invite)
-
+      request_message = generate_request_message(invite_id, new_did, label)
+        .klog("End point: " + end_point)
+        .klog("Keys: " + recipientKeys)
+      
       //wrapped_request = wrap_request(recipientKeys, request_message)
     }
     
@@ -316,6 +298,8 @@ ruleset io.picolabs.did-o {
     
     fired {
       // Create error message || Just go to the abandoned state
+    } else {
+
     }
   }
 
@@ -518,7 +502,7 @@ ruleset io.picolabs.did-o {
     }
     if invitation_exists(DID) then noop()
     fired {
-      invitation = event:attrs{"invitation"}.klog("invitation sent: ")
+      invitation = event:attrs{"message"}.klog("invitation sent")
     }
     else {
       raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation, "error_message", "DID used for invitation not found in system")
@@ -530,9 +514,9 @@ ruleset io.picolabs.did-o {
     select when dido failed_to_createInvite
 
     pre {
-      invitation = event:attrs{"invitation"}.klog("Failed invitation:")
+      invitation = event:attrs{"invitation"}
       DID = retrieve_DID(invitation)
-      error_message = event:attrs{"error_message"}.klog("Failed to create invitation. This DID was not created by us. " + DID + " ")
+      error_message = event:attrs{"error_message"}.klog("Failed to create invitation. This DID was not created by us. " + DID)
     }
 
   }
@@ -544,7 +528,7 @@ ruleset io.picolabs.did-o {
     pre {
       //request_message = event:attrs{"message"}.klog("request message received!")
       //????
-      packed_message = event:attrs{""}.klog("request message: ")
+      packed_message = event:attrs.klog("request message: " + event:attrs{"body"})
       request_message = dido:unpack(packed_message).klog("Unpacked: ")
 
       explicit_invitation = get_explicit_invite()
