@@ -1,5 +1,9 @@
 import { krl } from "krl-stdlib";
 import { Message, DIDDoc, DIDResolver, Secret, SecretsResolver, VerificationMethod } from "didcomm-node";
+import { DIDComm } from "@veramo/did-comm"
+import { Agent, IAgentContext, IDIDManager, IKeyManager, IResolver, IMessageHandler, TAgent, DIDDocComponent, DIDResolutionResult, GetDIDComponentArgs, IAgentPluginSchema, IDIDManagerAddKeyArgs, IDIDManagerAddServiceArgs, IDIDManagerCreateArgs, IDIDManagerDeleteArgs, IDIDManagerFindArgs, IDIDManagerGetArgs, IDIDManagerGetByAliasArgs, IDIDManagerGetOrCreateArgs, IDIDManagerRemoveKeyArgs, IDIDManagerRemoveServiceArgs, IDIDManagerSetAliasArgs, IDIDManagerUpdateArgs, IHandleMessageArgs, IIdentifier, IKey, IKeyManagerCreateArgs, IKeyManagerDecryptJWEArgs, IKeyManagerDeleteArgs, IKeyManagerEncryptJWEArgs, IKeyManagerGetArgs, IKeyManagerSharedSecretArgs, IKeyManagerSignArgs, IKeyManagerSignEthTXArgs, IKeyManagerSignJWTArgs, IMessage, ManagedKeyInfo, MinimalImportableIdentifier, MinimalImportableKey, ResolveDidArgs } from "@veramo/core"
+import { DIDManager } from "@veramo/did-manager";
+import { MessageHandler } from "@veramo/message-handler"
 
 const nacl = require('tweetnacl');
 const bs58 = require('bs58');
@@ -18,34 +22,50 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
     const ariesPublicKeyMultiCodec = new Uint8Array(ariesPair.publicKey.length + 2);
     ariesPublicKeyMultiCodec.set([0xed, 0x01]);
     ariesPublicKeyMultiCodec.set(ariesPair.publicKey, 2);
-
+    // console.log("-------------------X-------------------\n" + JSON.stringify(x));
     if (type == "key") {
         const did = "did:key:z" + bs58.encode(Buffer.from(ariesPublicKeyMultiCodec))
         const id = did + "#key-Ed25519-1";
         const verification_method: VerificationMethod = {
             id: id,
-            type: "Ed25519VerificationKey2018",
+            type: "JsonWebKey2020",
             controller: did,
             verification_material: {
-                format: "Hex",
-                value: ariesPair.publicKey
+                format: "JWK",
+                value: {
+                    crv: "Ed25519",
+                    kty: "OKP",
+                    x: bs58.encode(Buffer.from(ariesPair.publicKey)) //x.publicKey
+                    //bs58.encode(Buffer.from(ariesPair.publicKey))
+                }
             }
         };
         const secret: Secret = {
             id: id,
-            type: "Ed25519VerificationKey2018",
+            type: "JsonWebKey2020",
             secret_material: {
-                format: "Hex",
-                value: ariesPair.privateKey
+                format: "JWK",
+                value: {
+                    crv: "Ed25519",
+                    kty: "OKP",
+                    x: bs58.encode(Buffer.from(ariesPair.privateKey)) //x.privateKey
+                    // bs58.encode(Buffer.from(ariesPair.privateKey))
+                }
             }
         }
         let secrets = await this.rsCtx.getEnt("didSecrets");
+        //let test =  await this.rsCtx.getEnt("test");
+        //console.log("-------test: " + JSON.stringify(test));
         if (secrets) {
-            secrets.set(id, secret);
+            secrets[id] = secret;
         } else {
-            secrets = new Map([[id, secret]]);
+            secrets = {};
+            secrets[id] = secret;
         }
-        this.rsCtx.putEnt("didSecrets", secrets);
+        // console.log("--ID: " + JSON.stringify(id));
+        // console.log("--Secret: " + JSON.stringify(secret));
+        // console.log("-------secrets: " + JSON.stringify(secrets));
+        await this.rsCtx.putEnt("didSecrets", secrets);
 
         const doc: DIDDoc = {
             did: did,
@@ -77,12 +97,13 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
         };
 
         let docs = await this.rsCtx.getEnt("didDocs");
-        if(docs) {
-            docs.set(did, doc);
+        if (docs) {
+            docs[did] = doc;
         } else {
-            docs = new Map([[did, doc]]);
+            docs = {};
+            docs[did] = doc;
         }
-        this.rsCtx.putEnt("didDocs", docs);
+        await this.rsCtx.putEnt("didDocs", docs);
         return doc;
     }
 
@@ -125,13 +146,40 @@ class PicoSecretsResolver implements SecretsResolver {
 
 }
 
-const unpack = krl.Function(['message'], async function (message: string) {
-    return await Message.unpack(message, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {});
+const unpack = krl.Function(['_protected', 'recipients', 'iv', 'ciphertext', 'tag', 'eci'], async function (_protected: string, recipients: any, iv: string, ciphertext: string, tag: string, eci: string) {
+    // if (!recipients) {
+    //     const docs: any = await this.rsCtx.getEnt("didDocs");
+    //     console.log(JSON.stringify(docs));
+    //     console.log("----ECI-----: " + eci);
+    //     const recipient_doc = Object.values(docs).filter((x: any) => {
+    //         console.log("--------------ENDPOINTS: ------------\n" + JSON.stringify(x.services[0].kind.Other.serviceEndpoint));
+    //         return x.services[0].kind.Other.serviceEndpoint.includes(eci);
+    //     })[0] as DIDDoc;
+    //     console.log("----RECIP_DOC------" + JSON.stringify(recipient_doc.verification_methods[0].verification_material.value));
+    //     const targetPK = sodium.crypto_sign_ed25519_pk_to_curve25519(bs58.decode(recipient_doc.verification_methods[0].verification_material.value));
+    //     const cek = sodium.crypto_secretstream_xchacha20poly1305_keygen();
+    //     const encCEK = sodium.crypto_box_seal(cek, targetPK);
+    //     recipients = [{
+    //         header: {
+    //             kid: recipient_doc.key_agreements[0]
+    //         },
+    //         encrypted_key: b64url(encCEK)
+    //     }];
+    // }
+    const message = {
+        protected: _protected,
+        recipients: recipients,
+        iv: iv,
+        ciphertext: ciphertext,
+        tag: tag
+    };
+    console.log("packed message: " + JSON.stringify(message));
+    return await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {});
 });
 
 const pack = krl.Function(['message', 'to'], async function (message: Message, to: string) {
-    const from = (await this.rsCtx.getEnt("dids")).filter((v: any) => v == to).keys().head();
-    return await message.pack_encrypted(to, from, from, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {});
+    const _from: string = (await this.rsCtx.getEnt("dids")).filter((v: any) => v == to).keys().head();
+    return await message.pack_encrypted(to, _from, _from, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {});
 });
 
 // const build = krl.Function(['id',

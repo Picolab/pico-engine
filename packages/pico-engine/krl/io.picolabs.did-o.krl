@@ -35,8 +35,8 @@ ruleset io.picolabs.did-o {
 
   global {   
     //function creates a DID using ursa 
-    create_DID = function() {
-      DID = dido:generateDID()
+    create_DID = function(type, endpoint) {
+      DID = dido:generateDID(type, endpoint)
       DID
     }
 
@@ -65,15 +65,15 @@ ruleset io.picolabs.did-o {
         "@id": new_id,
         "label": "Explicit Invitation",
         "accept": [
-          "didcomm/aip1",
-          "didcomm/aip2;env=rfc19"
+          "didcomm/v2",
+          "didcomm/aip2;env=rfc587"
         ],
         "services": [
           {
             "id": "#inline",
             "type": "did-communication",
             "recipientKeys": [
-              "did:key:z" + public_key
+              public_key
             ],
             "serviceEndpoint": end_point
           }
@@ -474,9 +474,7 @@ ruleset io.picolabs.did-o {
     select when dido new_explicit_invitation
 
     pre {
-      DID = create_DID()
-      public_key = DID{"ariesPublicKeyMultiCodec"}
-      new_id = DID{"did"}
+      
       tag = ["did_o_invite"]
       eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
       queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
@@ -485,6 +483,10 @@ ruleset io.picolabs.did-o {
     wrangler:createChannel(tag, eventPolicy, queryPolicy)
     fired {
       end_point = create_end_point(getECI(tag[0]))
+      DID = create_DID("key", end_point)
+      public_key = DID{"did"}
+      new_id = DID{"did"}
+      //ent:test := ent:test.defaultsTo({}).put("test", "test")
       explicit_invitation = create_explicit_invitation(new_id, public_key, end_point)
       
       raise dido event "send_invite" attributes event:attrs.put("invitation", explicit_invitation)
@@ -531,8 +533,13 @@ ruleset io.picolabs.did-o {
     pre {
       //request_message = event:attrs{"message"}.klog("request message received!")
       //????
-      packed_message = event:attrs.klog("request message: " + event:attrs{"data"})
-      request_message = dido:unpack(packed_message).klog("Unpacked: ")
+      protected = event:attrs{"protected"}.klog("protected: ")
+      recipients = event:attrs{"recipients"}.klog("recipients: ")
+      iv = event:attrs{"iv"}.klog("iv: ")
+      ciphertext = event:attrs{"ciphertext"}.klog("ciphertext: ")
+      tag = event:attrs{"tag"}.klog("tag: ")
+      eci = event:eci.klog("eci: ")
+      request_message = dido:unpack(protected, recipients, iv, ciphertext, tag, eci).klog("Unpacked: ")
 
       explicit_invitation = get_explicit_invite()
       DID = explicit_invitation{"@id"}
