@@ -1,9 +1,5 @@
 import { krl } from "krl-stdlib";
 import { Message, DIDDoc, DIDResolver, Secret, SecretsResolver, VerificationMethod } from "didcomm-node";
-import { DIDComm } from "@veramo/did-comm"
-import { Agent, IAgentContext, IDIDManager, IKeyManager, IResolver, IMessageHandler, TAgent, DIDDocComponent, DIDResolutionResult, GetDIDComponentArgs, IAgentPluginSchema, IDIDManagerAddKeyArgs, IDIDManagerAddServiceArgs, IDIDManagerCreateArgs, IDIDManagerDeleteArgs, IDIDManagerFindArgs, IDIDManagerGetArgs, IDIDManagerGetByAliasArgs, IDIDManagerGetOrCreateArgs, IDIDManagerRemoveKeyArgs, IDIDManagerRemoveServiceArgs, IDIDManagerSetAliasArgs, IDIDManagerUpdateArgs, IHandleMessageArgs, IIdentifier, IKey, IKeyManagerCreateArgs, IKeyManagerDecryptJWEArgs, IKeyManagerDeleteArgs, IKeyManagerEncryptJWEArgs, IKeyManagerGetArgs, IKeyManagerSharedSecretArgs, IKeyManagerSignArgs, IKeyManagerSignEthTXArgs, IKeyManagerSignJWTArgs, IMessage, ManagedKeyInfo, MinimalImportableIdentifier, MinimalImportableKey, ResolveDidArgs } from "@veramo/core"
-import { DIDManager } from "@veramo/did-manager";
-import { MessageHandler } from "@veramo/message-handler"
 
 const nacl = require('tweetnacl');
 const bs58 = require('bs58');
