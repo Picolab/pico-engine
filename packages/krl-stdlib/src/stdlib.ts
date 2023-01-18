@@ -193,6 +193,7 @@ const stdlib: krl.Module = {
     return left === right ? 0 : left > right ? 1 : -1;
   }),
 
+
   /////////////////////////////////////////////////////////////////////////////
 
   as: krl.Function(["val", "type"], function (val, type) {
@@ -211,6 +212,9 @@ const stdlib: krl.Module = {
         return val !== 0;
       }
       return !!val;
+    }
+    if (type === "Hex") {
+        return krl.toHexOrNull(val);
     }
     if (type === "String") {
       return krl.toString(val);
@@ -264,6 +268,7 @@ const stdlib: krl.Module = {
     return template;
   }),
 
+
   /////////////////////////////////////////////////////////////////////////////
   defaultsTo: krl.Function(["val", "defaultVal", "message"], function (
     val,
@@ -278,6 +283,79 @@ const stdlib: krl.Module = {
     }
     return defaultVal;
   }),
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Boolean operators
+  shiftRight: krl.Function(["left", "right"], function (left, right) {
+        const leftNumber = krl.toNumberOrNull(left);
+        const rightNumber = krl.toNumberOrNull(right);
+        if (leftNumber === null || rightNumber === null) {
+            throw new TypeError(
+                krl.toString(left) + " cannot be shifted by " + krl.toString(right)
+            );
+        }
+        return leftNumber >> rightNumber;
+  }),
+
+  shiftLeft: krl.Function(["left", "right"], function (left, right) {
+        const leftNumber = krl.toNumberOrNull(left);
+        const rightNumber = krl.toNumberOrNull(right);
+        if (leftNumber === null || rightNumber === null) {
+            throw new TypeError(
+                krl.toString(left) + " cannot be shifted by " + krl.toString(right)
+            );
+        }
+      return leftNumber << rightNumber;
+  }),
+
+    // 5.band(3) == 1
+    band : krl.Function(["left", "right"], function (left, right) {
+        const leftNumber = krl.toNumberOrNull(left);
+        const rightNumber = krl.toNumberOrNull(right);
+        if (leftNumber === null || rightNumber === null) {
+            throw new TypeError(
+                krl.toString(left) + " cannot be bitwise anded " + krl.toString(right)
+            );
+        }
+        return leftNumber & rightNumber;
+    }),
+
+    // 5.bor(3) == 7
+    bor : krl.Function(["left", "right"], function (left, right) {
+        const leftNumber = krl.toNumberOrNull(left);
+        const rightNumber = krl.toNumberOrNull(right);
+        if (leftNumber === null || rightNumber === null) {
+            throw new TypeError(
+                krl.toString(left) + " cannot be bitwise anded " + krl.toString(right)
+            );
+        }
+        return leftNumber | rightNumber;
+    }),
+
+    // 5.xor(3) == 6
+    bxor : krl.Function(["left", "right"], function (left, right) {
+        const leftNumber = krl.toNumberOrNull(left);
+        const rightNumber = krl.toNumberOrNull(right);
+        if (leftNumber === null || rightNumber === null) {
+            throw new TypeError(
+                krl.toString(left) + " cannot be bitwise anded " + krl.toString(right)
+            );
+        }
+        return leftNumber ^ rightNumber;
+    }),
+
+    // 5.bnot() == -6
+    // -3.bnot() == 2
+    bnot : krl.Function(["left"], function (left) {
+        const leftNumber = krl.toNumberOrNull(left);
+        if (leftNumber === null ) {
+            throw new TypeError(
+                krl.toString(left) + " cannot be inverted " 
+            );
+        }
+        return ~leftNumber ;
+    }),
 
   /////////////////////////////////////////////////////////////////////////////
   // Number operators
