@@ -53,8 +53,8 @@ ruleset io.picolabs.did-o {
     }
 
     //create channel
-    create_end_point = function(eci) {
-      end_point = "http://172.17.0.2:3000/sky/event/" + eci + "/none/dido/receive_request"
+    create_end_point = function(eci, name) {
+      end_point = "http://172.17.0.2:3000/sky/event/" + eci + "/none/dido/" + name
       end_point
     }
     
@@ -175,17 +175,20 @@ ruleset io.picolabs.did-o {
     */
     generate_request_message = function(invite_id, new_did, label) {
       request = {
-        "@id": new_did{"did"},
-        "@type": "https://didcomm.org/didexchange/1.0/request",
+        "id": new_did{"did"},
+        "type": "https://didcomm.org/didexchange/1.0/request",
+        "typ": "application/didcomm-plain+json",
         "~thread": { 
             "thid": new_did{"did"},
             "pthid": invite_id
         },
-        "label": label, // Suggested Label
-        "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
-        "goal": "To establish a peer did connection",
-        "did": new_did{"did"},
-        "did_doc~attach": new_did
+        "body": {
+          "label": label, // Suggested Label
+          "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
+          "goal": "To establish a peer did connection",
+          "did": new_did{"did"},
+          "did_doc~attach": new_did
+        }
       }
 
       request
@@ -262,24 +265,45 @@ ruleset io.picolabs.did-o {
       invite_id = event:attrs{"inviteID"}
       end_point = event:attrs{"End point"}
       recipientKeys = event:attrs{"Keys"}
+      
+      tag = [label]
+      eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
+      queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
+    }
+    
+    wrangler:createChannel(tag, eventPolicy, queryPolicy)
+    fired {
+      my_end_point = create_end_point(getECI(tag[0]), "receive_message")
+      something = dido:storeDidNoDoc(invite_id, recipientKeys, end_point)
+      raise dido event "send_request" attributes event:attrs.put("my_end_point", my_end_point)
+    }
+
+  }
+
+  rule send_request {
+    select when dido send_request
+    pre {
+      my_end_point = event:attrs{"my_end_point"}.klog("Endpoint: ")
+      end_point = event:attrs{"End point"}
+      invite_id = event:attrs{"inviteID"}.klog("Invite ID: ")
+      label = event:attrs{"label"}.klog("Label: ")
       // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
         // The did should resolve to the doc through the engine
-      new_did = create_DID()
-
+      new_did = create_DID("peer", my_end_point) 
       request_message = generate_request_message(invite_id, new_did, label)
-        .klog("End point: " + end_point)
-        .klog("Keys: " + recipientKeys)
-        .klog("Request_message")
+        //.klog("End point: " + end_point)
+        //.klog("Keys: " + recipientKeys)
+        .klog("Request_message: ")
       
+      packed_message = dido:pack(request_message, new_did["did"], invite_id).klog("Packed message: ")
       //wrapped_request = wrap_request(recipientKeys, request_message)
     }
-    
     // SEND INVITE to end_point with the request_message which contains new_did
     // if no errors (test url, did, invite)
       // TODO: The request message needs to be packed
     //send_directive("say", {"end_point" : end_point})
-    http:post(url = end_point, json = request_message) setting(http_response)
+    http:post(url = end_point, json = packed_message) setting(http_response)
 
     fired { // When condition is true
       // Store new_did_id for pico to use later?
@@ -482,7 +506,7 @@ ruleset io.picolabs.did-o {
 
     wrangler:createChannel(tag, eventPolicy, queryPolicy)
     fired {
-      end_point = create_end_point(getECI(tag[0]))
+      end_point = create_end_point(getECI(tag[0]), "receive_request")
       DID = create_DID("key", end_point)
       public_key = DID{"did"}
       new_id = DID{"did"}
