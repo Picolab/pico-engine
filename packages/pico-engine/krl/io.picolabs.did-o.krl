@@ -143,12 +143,6 @@ ruleset io.picolabs.did-o {
       dido:clearDidDocs()
     }
 
-    //FIX ME: This might need to be removed to the engine but we need to figure out how to uncpack/pack messages
-    unpack = function(message, channel) {
-      unpacked_msg = ursa:unpack(message, channel)
-      unpacked_msg
-    }
-
     get_explicit_invite = function() {
       msg = ent:explicit_invite
       msg
@@ -233,7 +227,7 @@ ruleset io.picolabs.did-o {
   /** REQUESTERS STATES FOR DID EXCHANGE PROTOCOL
     start
     invitation-received
-    request-sent (This starts the exchange protocol)(Don't think so pretty sure the start is the start)
+    request-sent 
     response-received
     abandoned
     completed
@@ -285,8 +279,9 @@ ruleset io.picolabs.did-o {
       my_end_point = create_end_point(getECI(tag[0]), "receive_message")
       something = dido:storeDidNoDoc(invite_id, recipientKeys, end_point)
       raise dido event "send_request" attributes event:attrs.put("my_end_point", my_end_point)
+    } else {
+      raise event "abandon"
     }
-
   }
 
   rule send_request {
@@ -299,7 +294,8 @@ ruleset io.picolabs.did-o {
       // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
         // The did should resolve to the doc through the engine
-      new_did = create_DID("peer", my_end_point) 
+      new_did = create_DID("peer", my_end_point)
+        .klog("new_did: ")
       request_message = generate_request_message(invite_id, new_did, label)
         //.klog("End point: " + end_point)
         //.klog("Keys: " + recipientKeys)
@@ -322,7 +318,6 @@ ruleset io.picolabs.did-o {
 
     } else { // When condition is false from action
       // Error Message Event ?? Ent variables to hold messages // Log //
-
     } // Finally runs after both or always
   }
 
@@ -334,8 +329,7 @@ ruleset io.picolabs.did-o {
     
     fired {
       // Create error message || Just go to the abandoned state
-    } else {
-
+      raise event "abandon"
     }
   }
 
@@ -371,7 +365,11 @@ ruleset io.picolabs.did-o {
     select when dido receive_response
     pre {
       response = event:attrs{"response"}
-      //end_point = 
+      // unpack response
+      unpacked_response = dido:unpack(response)
+      // store did_doc
+      did_doc = unpacked_response{"did_doc~attach"}
+      stored_doc = dido:storeDidDoc(did_doc)
     }
 
     // Send Complete
@@ -387,10 +385,9 @@ ruleset io.picolabs.did-o {
      */
 
     //http:post(end_point, body = request_message)
-    // else send error message
     
     fired {
-      raise event "complete"
+      raise dido event "send_complete" //attributes event:attrs//.put("my_end_point", my_end_point)
     } else {
       raise event "send_error"
       raise event "abandon"
@@ -407,6 +404,19 @@ ruleset io.picolabs.did-o {
       }
     */
   }
+
+  // Send complete
+  rule send_complete {
+    select when dido send_complete
+    pre {
+      // Construct message
+    }
+
+  }
+  // // create complete message 
+  // complete_message = generate_complete(thid, pthid)
+  // thid (invite id), pthid (myDid)
+  // packed_message = dido:pack()
 
   rule complete {
     select when dido complete

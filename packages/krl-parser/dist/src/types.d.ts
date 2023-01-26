@@ -2,7 +2,7 @@ export interface Loc {
     start: number;
     end: number;
 }
-export declare type TokenType = "WHITESPACE" | "LINE-COMMENT" | "BLOCK-COMMENT" | "SYMBOL" | "NUMBER" | "STRING" | "REGEXP" | "CHEVRON-OPEN" | "CHEVRON-STRING" | "CHEVRON-BEESTING-OPEN" | "CHEVRON-BEESTING-CLOSE" | "CHEVRON-CLOSE" | "RAW" | "ILLEGAL" | "MISSING-CLOSE";
+export type TokenType = "WHITESPACE" | "LINE-COMMENT" | "BLOCK-COMMENT" | "SYMBOL" | "NUMBER" | "STRING" | "REGEXP" | "CHEVRON-OPEN" | "CHEVRON-STRING" | "CHEVRON-BEESTING-OPEN" | "CHEVRON-BEESTING-CLOSE" | "CHEVRON-CLOSE" | "RAW" | "ILLEGAL" | "MISSING-CLOSE";
 export interface Token {
     type: TokenType;
     src: string;
@@ -179,8 +179,8 @@ export interface RuleSelect_where extends BaseNode {
     kind: "where";
     expression: Expression;
 }
-export declare type RuleSelect = RuleSelect_when | RuleSelect_where;
-export declare type EventExpression = EventExpressionBase | EventOperator | EventGroupOperator;
+export type RuleSelect = RuleSelect_when | RuleSelect_where;
+export type EventExpression = EventExpressionBase | EventOperator | EventGroupOperator;
 export interface EventExpressionBase extends BaseNode {
     type: "EventExpression";
     event_domain: Identifier;
@@ -312,7 +312,7 @@ export interface ErrorStatement extends BaseNode {
 export interface LastStatement extends BaseNode {
     type: "LastStatement";
 }
-export declare type PostludeStatement = GuardCondition | PersistentVariableAssignment | ClearPersistentVariable | RaiseEventStatement | ScheduleEventStatement | LogStatement | ErrorStatement | LastStatement | Declaration;
-export declare type Expression = Number | Boolean | Null | String | Chevron | KrlRegExp | Identifier | DomainIdentifier | InfixOperator | UnaryOperator | ConditionalExpression | MemberExpression | Function | DefAction | Application | Array | Map;
-export declare type Node = Number | Boolean | Null | String | Chevron | Keyword | KrlRegExp | Identifier | DomainIdentifier | Declaration | InfixOperator | UnaryOperator | ConditionalExpression | MemberExpression | Function | DefAction | Parameters | Parameter | Application | Array | Map | MapKeyValuePair | Arguments | NamedArgument | Ruleset | RulesetID | RulesetMeta | RulesetMetaProperty | Rule | RuleSelect | EventExpressionBase | AttributeMatch | EventOperator | EventGroupOperator | EventAggregator | EventWithin | RuleForEach | ActionBlock | Action | RulePostlude | GuardCondition | PersistentVariableAssignment | ClearPersistentVariable | RaiseEventStatement | ScheduleEventStatement | LogStatement | ErrorStatement | LastStatement;
+export type PostludeStatement = GuardCondition | PersistentVariableAssignment | ClearPersistentVariable | RaiseEventStatement | ScheduleEventStatement | LogStatement | ErrorStatement | LastStatement | Declaration;
+export type Expression = Number | Boolean | Null | String | Chevron | KrlRegExp | Identifier | DomainIdentifier | InfixOperator | UnaryOperator | ConditionalExpression | MemberExpression | Function | DefAction | Application | Array | Map;
+export type Node = Number | Boolean | Null | String | Chevron | Keyword | KrlRegExp | Identifier | DomainIdentifier | Declaration | InfixOperator | UnaryOperator | ConditionalExpression | MemberExpression | Function | DefAction | Parameters | Parameter | Application | Array | Map | MapKeyValuePair | Arguments | NamedArgument | Ruleset | RulesetID | RulesetMeta | RulesetMetaProperty | Rule | RuleSelect | EventExpressionBase | AttributeMatch | EventOperator | EventGroupOperator | EventAggregator | EventWithin | RuleForEach | ActionBlock | Action | RulePostlude | GuardCondition | PersistentVariableAssignment | ClearPersistentVariable | RaiseEventStatement | ScheduleEventStatement | LogStatement | ErrorStatement | LastStatement;
 export {};

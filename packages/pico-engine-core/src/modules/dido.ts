@@ -187,6 +187,20 @@ const storeDidNoDoc = krl.Function(['did', 'key', 'endpoint'], async function (d
     return doc;
 })
 
+const storeDidDoc = krl.Function(['diddoc'], async function (diddoc: DIDDoc) {
+    let docs = await this.rsCtx.getEnt("didDocs");
+
+    if (docs) {
+        docs[diddoc["did"]] = diddoc;
+    } else {
+        docs = {};
+        docs[diddoc["did"]] = diddoc;
+    }
+
+    await this.rsCtx.putEnt("didDocs", docs);
+    //return diddoc;
+})
+
 const unpack = krl.Function(['message'], async function (message: string) {
     var [unpack_msg, unpack_meta]: [Message, UnpackMetadata] = await Message.unpack(message, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
     return unpack_msg;
@@ -203,7 +217,8 @@ const dido: krl.Module = {
     unpack: unpack,
     pack: pack,
     storeDidNoDoc: storeDidNoDoc,
-    clearDidDocs: clearDidDocs
+    clearDidDocs: clearDidDocs,
+    storeDidDoc: storeDidDoc
 }
 
 export default dido;
