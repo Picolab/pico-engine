@@ -84,6 +84,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             docs[did] = doc;
         }
         await this.rsCtx.putEnt("didDocs", docs);
+        
         return doc;
     }
 
@@ -94,10 +95,17 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
     };
 });
 
+const clearDidDocs = krl.Function([], async function () {
+    await this.rsCtx.putEnt("didDocs", {});
+})
+
 class PicoDIDResolver implements DIDResolver {
     knownDids: any
     constructor(knownDids: any) {
         this.knownDids = knownDids;
+        console.log("-----------------------------DIDS-------------------------");
+        console.log(JSON.stringify(knownDids));
+        console.log("----------------------------------------------------------");
     }
     async resolve(did: string): Promise<DIDDoc | null> {
         return this.knownDids[did] || null;
@@ -122,12 +130,21 @@ class PicoSecretsResolver implements SecretsResolver {
 const JWKFromDIDKey = function (key: string) {
     const regex = /^did:([a-z]+):[0-2]?z([a-zA-z\d]+)/
     let res = regex.exec(key)
+    console.log("---------------------------JWKFromDIDKey----------------------------")
+    console.log("res: " + JSON.stringify(res));
     if (res) {
-        let mulitcodec = res[2]
-        let multi_decoded = bs58.decode(mulitcodec)
-        let key = bs58.encode(Buffer.from(multi_decoded.slice(2)))
+        let multicodec = res[2]
+        console.log("multicodec: " + multicodec);
+        console.log("multicodec 2 : " + JSON.stringify(Buffer.from(multicodec)));
+        let multi_decoded = bs58.decode(multicodec)
+        console.log("multi_decoded: " + JSON.stringify(Buffer.from(multi_decoded)));
+        console.log("multi_decoded2: " + JSON.stringify(Buffer.from(multi_decoded.slice(2))));
+        let key = sodium.to_base64(Buffer.from(multi_decoded.slice(2)), sodium.base64_variants.URLSAFE).replace("=", "");
+        console.log("key: " + key);
+        console.log("-----------------------------------------------------")
         return { crv: "X25519", x: key, kty: "OKP" }
     }
+    console.log("-----------------------------------------------------")
 }
 
 const storeDidNoDoc = krl.Function(['did', 'key', 'endpoint'], async function (did: string, key: string, endpoint: string) {
@@ -185,7 +202,8 @@ const dido: krl.Module = {
     generateDID: generateDID,
     unpack: unpack,
     pack: pack,
-    storeDidNoDoc: storeDidNoDoc
+    storeDidNoDoc: storeDidNoDoc,
+    clearDidDocs: clearDidDocs
 }
 
 export default dido;

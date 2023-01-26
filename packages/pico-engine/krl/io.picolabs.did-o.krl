@@ -25,9 +25,9 @@ ruleset io.picolabs.did-o {
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
-    provides create_DID, create_DID_Doc, get_explicit_invite
+    provides create_DID, create_DID_Doc, get_explicit_invite, didDocs
 
-    shares create_DID, create_DID_Doc, get_explicit_invite
+    shares create_DID, create_DID_Doc, get_explicit_invite, didDocs, clearDidDocs
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -132,6 +132,15 @@ ruleset io.picolabs.did-o {
         }
       }
       DID_Doc
+    }
+
+    didDocs = function() {
+      docs = ent:didDocs
+      docs
+    }
+
+    clearDidDocs = function() {
+      dido:clearDidDocs()
     }
 
     //FIX ME: This might need to be removed to the engine but we need to figure out how to uncpack/pack messages
@@ -555,15 +564,15 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
-      //request_message = event:attrs{"message"}.klog("request message received!")
+      packed_message = event:attrs{"message"}.klog("request message received!")
       //????
-      protected = event:attrs{"protected"}.klog("protected: ")
-      recipients = event:attrs{"recipients"}.klog("recipients: ")
-      iv = event:attrs{"iv"}.klog("iv: ")
-      ciphertext = event:attrs{"ciphertext"}.klog("ciphertext: ")
-      tag = event:attrs{"tag"}.klog("tag: ")
-      eci = event:eci.klog("eci: ")
-      request_message = dido:unpack(protected, recipients, iv, ciphertext, tag, eci).klog("Unpacked: ")
+      // protected = event:attrs{"protected"}.klog("protected: ")
+      // recipients = event:attrs{"recipients"}.klog("recipients: ")
+      // iv = event:attrs{"iv"}.klog("iv: ")
+      // ciphertext = event:attrs{"ciphertext"}.klog("ciphertext: ")
+      // tag = event:attrs{"tag"}.klog("tag: ")
+      // eci = event:eci.klog("eci: ")
+      request_message = dido:unpack(packed_message).klog("Unpacked: ")
 
       explicit_invitation = get_explicit_invite()
       DID = explicit_invitation{"@id"}
