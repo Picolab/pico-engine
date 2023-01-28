@@ -25,9 +25,9 @@ ruleset io.picolabs.did-o {
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
-    provides create_DID, create_DID_Doc, get_explicit_invite
+    provides create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc
 
-    shares create_DID, create_DID_Doc, get_explicit_invite
+    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -86,11 +86,14 @@ ruleset io.picolabs.did-o {
       invitation
     }
 
-    //function to retrieve DID from DID_to_invitation
+    /*
+    function to retrieve DID from DID_to_invitation
     retrieve_DID = function(invitation) {
-      myDID = ent:DID_to_invitation.filter(function(v) {v == invitation}).keys().head()
+      myDID = ent:DID_to_invitation
+      //myDID = ent:DID_to_invitation.filter(function(v) {v == invitation}).keys().head()
       myDID
     }
+    */
 
     //function to check DID_to_invitation map for a specific key. (key, value) = (DID, explicit invitation)
     invitation_exists = function(DID) {
@@ -112,8 +115,9 @@ ruleset io.picolabs.did-o {
       }
       response_message
     }
+    
     //FIX ME: This is probably not the best way to create our did and we might not need
-    //this methid if our DIDs are resolvable
+    //this method if our DIDs are resolvable
     create_DID_Doc = function() {
       //random:uuid()
       id = generate_id()
@@ -134,15 +138,14 @@ ruleset io.picolabs.did-o {
       DID_Doc
     }
 
-    //FIX ME: This might need to be removed to the engine but we need to figure out how to uncpack/pack messages
-    unpack = function(message, channel) {
-      unpacked_msg = ursa:unpack(message, channel)
-      unpacked_msg
-    }
-
     get_explicit_invite = function() {
       msg = ent:explicit_invite
       msg
+    }
+
+    get_invitation_did_doc = function() {
+      did_doc = ent:invitation_DID
+      did_doc
     }
 
     /** SAMPLE REQUEST MESSAGE
@@ -260,6 +263,11 @@ ruleset io.picolabs.did-o {
   rule receive_invite {
     select when dido receive_invite
     pre {
+
+      //packed_msg = event:attrs{"packed_msg"}.klog("This is the packed invitation: " + packed_msg)
+
+
+
       // We have the invite stored in INVITE now we send a request to the INVITER
       label = event:attrs{"label"}
       invite_id = event:attrs{"inviteID"}
@@ -326,7 +334,7 @@ ruleset io.picolabs.did-o {
     fired {
       // Create error message || Just go to the abandoned state
     } else {
-
+      
     }
   }
 
@@ -495,30 +503,33 @@ ruleset io.picolabs.did-o {
 
   //invitation message using RFC 0434 Out of Band: https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md
   rule create_explicit_invite {
-    select when dido new_explicit_invitation
+    select when dido create_explicit_invitation
 
     pre {
-      
       tag = ["did_o_invite"]
       eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
       queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
     }
-
     wrangler:createChannel(tag, eventPolicy, queryPolicy)
     fired {
       end_point = create_end_point(getECI(tag[0]), "receive_request")
-      DID = create_DID("key", end_point)
-      public_key = DID{"did"}
-      new_id = DID{"did"}
+      DIDdoc = create_DID("key", end_point)
+      new_id = DIDdoc{"did"}
+      public_key = DIDdoc{"did"}
       //ent:test := ent:test.defaultsTo({}).put("test", "test")
       explicit_invitation = create_explicit_invitation(new_id, public_key, end_point)
       
-      raise dido event "send_invite" attributes event:attrs.put("invitation", explicit_invitation)
       //we store a new value in the map DID_to_invitation which contains an 
       //entry keyed by DID with explicit invitation as value
-      ent:DID_to_invitation{DID} := explicit_invitation
-      
+      //ent:DID_to_invitation{explicit_invitation} := DID
+      ent:invitation_DID := DIDdoc["did"]
+
+      //FIX ME: STORE DIDdoc
+
+      //do we need to store the did
       ent:explicit_invite := explicit_invitation
+
+      raise dido event "send_invite" attributes event:attrs.put("invitation", explicit_invitation, "end_point", end_point)
     }
   }
 
@@ -526,12 +537,15 @@ ruleset io.picolabs.did-o {
     select when dido send_invite
     
     pre {
-      invitation = event:attrs{"invitation"}
-      DID = retrieve_DID(invitation)
+      invitation = event:attrs{"invitation"}.klog("Raw invitation received: ")
+      end_point = invitation["services"][0]["serviceEndpoint"].klog("end point received")
+      //DID = retrieve_DID(invitation).klog("We are in sed_invite rule. This is the created invite: ")
+      //did_ = DID["did"].klog("This is our did after using retrieve_DID function")
     }
-    if invitation_exists(DID) then noop()
+    //if ent:invitation_DID != null then noop()
+    
     fired {
-      invitation = event:attrs{"message"}.klog("invitation sent")
+      ent:current_invitation := invitation if ent:invitation_DID != null.klog("TESTING")
     }
     else {
       raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation, "error_message", "DID used for invitation not found in system")
@@ -544,10 +558,8 @@ ruleset io.picolabs.did-o {
 
     pre {
       invitation = event:attrs{"invitation"}
-      DID = retrieve_DID(invitation)
-      error_message = event:attrs{"error_message"}.klog("Failed to create invitation. This DID was not created by us. " + DID)
+      error_message = event:attrs{"error_message"}.klog("Failed to create invitation.")
     }
-
   }
 
 
@@ -555,15 +567,11 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
+
+      //pthid
       //request_message = event:attrs{"message"}.klog("request message received!")
-      //????
-      protected = event:attrs{"protected"}.klog("protected: ")
-      recipients = event:attrs{"recipients"}.klog("recipients: ")
-      iv = event:attrs{"iv"}.klog("iv: ")
-      ciphertext = event:attrs{"ciphertext"}.klog("ciphertext: ")
-      tag = event:attrs{"tag"}.klog("tag: ")
-      eci = event:eci.klog("eci: ")
-      request_message = dido:unpack(protected, recipients, iv, ciphertext, tag, eci).klog("Unpacked: ")
+      packed_msg = event:attrs{"message"}.klog("Packed Message: ")
+      request_message = dido:unpack(packed_msg).klog("Unpacked: ")
 
       explicit_invitation = get_explicit_invite()
       DID = explicit_invitation{"@id"}
