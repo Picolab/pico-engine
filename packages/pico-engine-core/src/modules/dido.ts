@@ -84,7 +84,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             docs[did] = doc;
         }
         await this.rsCtx.putEnt("didDocs", docs);
-        
+
         return doc;
     }
 
@@ -201,15 +201,15 @@ const storeDidDoc = krl.Function(['diddoc'], async function (diddoc: DIDDoc) {
     //return diddoc;
 })
 
-const unpack = krl.Function(['message'], async function (message: string) {
-    var [unpack_msg, unpack_meta]: [Message, UnpackMetadata] = await Message.unpack(message, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
+const unpack = krl.Function(['message'], async function (message: any) {
+    var [unpack_msg, unpack_meta]: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
     return unpack_msg;
 });
 
 const pack = krl.Function(['message', '_from', 'to'], async function (message: IMessage, _from: string, to: string) {
     let _message: Message = new Message(message)
     const [enc_msg, packed_meta]: [string, PackEncryptedMetadata] = await _message.pack_encrypted(to, null, null, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), { forward: false }) as [string, PackEncryptedMetadata];
-    return enc_msg;
+    return JSON.parse(enc_msg);
 });
 
 const dido: krl.Module = {

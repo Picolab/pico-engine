@@ -595,13 +595,7 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
-
-
-      //pthid
-      //request_message = event:attrs{"message"}.klog("request message received!")
-      packed_msg = event:attrs{"message"}.klog("Packed Message: ")
-      request_message = dido:unpack(packed_msg).klog("Unpacked: ")
-      packed_message = event:attrs{"message"}.klog("request message received!")
+      packed_message = event:attrs.delete("_headers").klog("request message received!")
       //????
       // protected = event:attrs{"protected"}.klog("protected: ")
       // recipients = event:attrs{"recipients"}.klog("recipients: ")
