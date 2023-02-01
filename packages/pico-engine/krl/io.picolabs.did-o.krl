@@ -198,7 +198,7 @@ ruleset io.picolabs.did-o {
         },
         "body": {
           "label": label, // Suggested Label
-          "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
+          //"goal_code": "aries.rel.build", // Telling the receiver what to use to process this
           "goal": "To establish a peer did connection",
           "did": new_did{"did"},
           "did_doc~attach": new_did
@@ -280,10 +280,18 @@ ruleset io.picolabs.did-o {
 
 
       // We have the invite stored in INVITE now we send a request to the INVITER
-      label = event:attrs{"label"}
-      invite_id = event:attrs{"inviteID"}
-      end_point = event:attrs{"End point"}
-      recipientKeys = event:attrs{"Keys"}
+      //event:attrs{""}
+      //invite_url = event:attrs{"Invite_URL"}
+      base64 = event:attrs{"Invite_Code"}
+
+      //base64 = invite_url.extract(re#oob=#).klog("after oob?")
+      
+      invite = math:base64decode(base64).decode().klog("Invite decoded")
+
+      label = invite{"label"}.klog("Label?")
+      invite_id = invite{"@id"}.klog("ID?")
+      end_point = invite{"services"}[0]{"serviceEndpoint"}.klog("End Point?")
+      recipientKeys = invite{"services"}[0]{"recipientKeys"}[0].klog("Keys?s")
       
       tag = [label]
       eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
@@ -304,9 +312,19 @@ ruleset io.picolabs.did-o {
     select when dido send_request
     pre {
       my_end_point = event:attrs{"my_end_point"}.klog("Endpoint: ")
-      end_point = event:attrs{"End point"}
-      invite_id = event:attrs{"inviteID"}.klog("Invite ID: ")
-      label = event:attrs{"label"}.klog("Label: ")
+      base64 = event:attrs{"Invite_Code"}
+
+      //base64 = invite_url.extract(re#oob=#).klog("after oob?")
+      
+      invite = math:base64decode(base64).decode().klog("Invite decoded")
+
+      label = invite{"label"}.klog("Label?")
+      invite_id = invite{"@id"}.klog("ID?")
+      end_point = invite{"services"}[0]{"serviceEndpoint"}.klog("End Point?")
+      recipientKeys = invite{"services"}[0]{"recipientKeys"}[0].klog("Keys?s")
+      // end_point = event:attrs{"End point"}
+      // invite_id = event:attrs{"inviteID"}.klog("Invite ID: ")
+      // label = event:attrs{"label"}.klog("Label: ")
       // To send the request we need to generate a new did & doc
         // Side note the did needs to be stored on the pico, but the engine will store the doc
         // The did should resolve to the doc through the engine
@@ -345,8 +363,6 @@ ruleset io.picolabs.did-o {
     
     fired {
       // Create error message || Just go to the abandoned state
-
-    } else {
       raise event "abandon"
     }
   }
@@ -402,7 +418,8 @@ ruleset io.picolabs.did-o {
       }
      */
 
-    //http:post(end_point, body = request_message)    
+    //http:post(end_point, body = request_message)
+    
     fired {
       raise dido event "send_complete" //attributes event:attrs//.put("my_end_point", my_end_point)
     } else {
@@ -524,11 +541,6 @@ ruleset io.picolabs.did-o {
             }
   */
 
-  //FIX ME: this might not be necessary since we might not implement implicit invitations
-  rule create_implicit_invitation {
-    select when dido new_implicit_invitation
-  }
-
   //invitation message using RFC 0434 Out of Band: https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md
   rule create_explicit_invite {
     select when dido create_explicit_invitation
@@ -565,19 +577,14 @@ ruleset io.picolabs.did-o {
     select when dido send_invite
     
     pre {
-      invitation = event:attrs{"invitation"}.klog("Raw invitation received: ")
-      end_point = invitation["services"][0]["serviceEndpoint"].klog("end point received")
-      //DID = retrieve_DID(invitation).klog("We are in sed_invite rule. This is the created invite: ")
-      //did_ = DID["did"].klog("This is our did after using retrieve_DID function")
+      invitation = event:attrs{"invitation"}.klog("Invite? ")
+      DID = retrieve_DID(invitation)
+      base64 = math:base64encode(invitation.encode()).klog("Base 64 Encoded? ")
+      //invite_url = "http://example.com/ssi?oob=" + base64
+      decoded = math:base64decode(base64).decode().klog("Invite Decoded? ")
     }
-    //if ent:invitation_DID != null then noop()
-    
-    fired {
-      ent:current_invitation := invitation if ent:invitation_DID != null.klog("TESTING")
-    }
-    else {
-      raise dido event "failed_to_createInvite" attributes event:attrs.put("invitation", invitation, "error_message", "DID used for invitation not found in system")
-    }
+
+    if invitation_exists(DID) then send_directive("say", {"Invite: ": base64})
   }
 
 
