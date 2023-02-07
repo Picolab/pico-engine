@@ -94,12 +94,13 @@ ruleset io.picolabs.did-o {
       //myDID = ent:DID_to_invitation.filter(function(v) {v == invitation}).keys().head()
       myDID
     }
-    */
+    
 
     //function to check DID_to_invitation map for a specific key. (key, value) = (DID, explicit invitation)
     invitation_exists = function(DID) {
       ent:DID_to_invitation.defaultsTo({}) >< DID
     }
+    */
 
     create_response_message = function(thid, myDID, myDoc) {
       //random:uuid()
@@ -578,13 +579,13 @@ ruleset io.picolabs.did-o {
     
     pre {
       invitation = event:attrs{"invitation"}.klog("Invite? ")
-      DID = retrieve_DID(invitation)
-      base64 = math:base64encode(invitation.encode()).klog("Base 64 Encoded? ")
+      //DID = retrieve_DID(invitation)
+      base64 = math:base64encode(invitation.encode()).klog("Base 64 Encoded: ")
       //invite_url = "http://example.com/ssi?oob=" + base64
-      decoded = math:base64decode(base64).decode().klog("Invite Decoded? ")
+      decoded = math:base64decode(base64).decode().klog("Invite Decoded: ")
     }
 
-    if invitation_exists(DID) then send_directive("say", {"Invite: ": base64})
+    if invitation != null then send_directive("say", {"Invite: ": base64})
   }
 
 
