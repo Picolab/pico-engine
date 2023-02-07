@@ -1,7 +1,6 @@
 import { krl } from "krl-stdlib";
 import { Message, DIDDoc, DIDResolver, Secret, SecretsResolver, VerificationMethod, IMessage, PackEncryptedMetadata, UnpackMetadata } from "didcomm-node";
 const bs58 = require('bs58');
-// Thanks to https://github.com/dbluhm/indy-pack-unpack-js
 const sodium = require('libsodium-wrappers')
 const crypto = require('crypto')
 
@@ -103,9 +102,6 @@ class PicoDIDResolver implements DIDResolver {
     knownDids: any
     constructor(knownDids: any) {
         this.knownDids = knownDids;
-        console.log("-----------------------------DIDS-------------------------");
-        console.log(JSON.stringify(knownDids));
-        console.log("----------------------------------------------------------");
     }
     async resolve(did: string): Promise<DIDDoc | null> {
         return this.knownDids[did] || null;
@@ -126,29 +122,19 @@ class PicoSecretsResolver implements SecretsResolver {
 
 }
 
-// May need these when I get to building Docs from invitaions
 const JWKFromDIDKey = function (key: string) {
     const regex = /^did:([a-z]+):[0-2]?z([a-zA-z\d]+)/
     let res = regex.exec(key)
-    console.log("---------------------------JWKFromDIDKey----------------------------")
-    console.log("res: " + JSON.stringify(res));
     if (res) {
         let multicodec = res[2]
-        console.log("multicodec: " + multicodec);
-        console.log("multicodec 2 : " + JSON.stringify(Buffer.from(multicodec)));
         let multi_decoded = bs58.decode(multicodec)
-        console.log("multi_decoded: " + JSON.stringify(Buffer.from(multi_decoded)));
-        console.log("multi_decoded2: " + JSON.stringify(Buffer.from(multi_decoded.slice(2))));
         let key = sodium.to_base64(Buffer.from(multi_decoded.slice(2)), sodium.base64_variants.URLSAFE).replace("=", "");
-        console.log("key: " + key);
-        console.log("-----------------------------------------------------")
         return { crv: "X25519", x: key, kty: "OKP" }
     }
-    console.log("-----------------------------------------------------")
 }
 
 const storeDidNoDoc = krl.Function(['did', 'key', 'endpoint'], async function (did: string, key: string, endpoint: string) {
-    const id = did + "#key-X25519-1";
+    const id = did + "#key-x25519-1";
     const verification_method: VerificationMethod = {
         id: id,
         type: "JsonWebKey2020",

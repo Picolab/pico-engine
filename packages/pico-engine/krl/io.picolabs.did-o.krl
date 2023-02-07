@@ -28,7 +28,7 @@ ruleset io.picolabs.did-o {
 
     provides create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc
 
-    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc
+    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs
     
     use module io.picolabs.wrangler alias wrangler
   }
