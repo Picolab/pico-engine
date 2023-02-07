@@ -189,7 +189,7 @@ const storeDidDoc = krl.Function(['diddoc'], async function (diddoc: DIDDoc) {
 
 const unpack = krl.Function(['message'], async function (message: any) {
     var [unpack_msg, unpack_meta]: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
-    return unpack_msg;
+    return unpack_msg.as_value();
 });
 
 const pack = krl.Function(['message', '_from', 'to'], async function (message: IMessage, _from: string, to: string) {
