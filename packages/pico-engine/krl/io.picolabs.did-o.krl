@@ -64,7 +64,7 @@ ruleset io.picolabs.did-o {
       invitation = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
         "@id": new_id,
-        "label": "Explicit Invitation",
+        "label": "explicitinvitation",
         "accept": [
           "didcomm/v2",
           "didcomm/aip2;env=rfc587"
@@ -102,20 +102,22 @@ ruleset io.picolabs.did-o {
     }
     */
 
-    create_response_message = function(thid, myDID, myDoc) {
-      //random:uuid()
-      id = generate_id()
-      response_message = {
-        "@type": "https://didcomm.org/didexchange/1.0/response",
-        "@id": id,
-        "~thread": {
-          //The Thread ID is the Message ID (@id) of the first message in the thread
-          "thid": thid
-        },
-        "did": myDID,
-        "did_doc~attach": myDoc
+
+    //FIX ME: Right format for response message??
+    generate_response_message = function(my_did_doc, my_did, thread) {
+      response = {
+        "id": "did:peer:0z6MkknrVttotXYfACGmosAKqTxEaw3pSh87Lm5vx16wKPCUv",//my new did
+        "typ": "application/didcomm-plain+json",//same
+        "type": "https://didcomm.org/didexchange/1.0/response",//...response
+        "body": {
+          "@type": "https://didcomm.org/didexchange/1.0/response",//same as the above
+          "@id": my_did,
+          "~thread": thread,
+          "did": my_did,
+          "did_doc~attach": my_did_doc
+        }
       }
-      response_message
+      response
     }
     
     //FIX ME: This is probably not the best way to create our did and we might not need
@@ -139,6 +141,7 @@ ruleset io.picolabs.did-o {
       }
       DID_Doc
     }
+  
 
 
     didDocs = function() {
@@ -301,7 +304,9 @@ ruleset io.picolabs.did-o {
     
     wrangler:createChannel(tag, eventPolicy, queryPolicy)
     fired {
-      my_end_point = create_end_point(getECI(tag[0]), "receive_message")
+      // tag2 = tag[0].lc().klog("lowercase: ")
+      // tag3 = tag2.replace(re#\u0020#g, "-").klog("no space: ")
+      my_end_point = create_end_point(getECI(tag[0]), "receive_response")
       something = dido:storeDidNoDoc(invite_id, recipientKeys, end_point)
       raise dido event "send_request" attributes event:attrs.put("my_end_point", my_end_point)
     } else {
@@ -399,12 +404,12 @@ ruleset io.picolabs.did-o {
   rule receive_response {
     select when dido receive_response
     pre {
-      response = event:attrs{"response"}
+      // response = event:attrs{"response"}
       // unpack response
-      unpacked_response = dido:unpack(response)
+      // unpacked_response = dido:unpack(response)
       // store did_doc
-      did_doc = unpacked_response{"did_doc~attach"}
-      stored_doc = dido:storeDidDoc(did_doc)
+      // did_doc = unpacked_response{"did_doc~attach"}
+      // stored_doc = dido:storeDidDoc(did_doc)
     }
 
     // Send Complete
@@ -604,55 +609,75 @@ ruleset io.picolabs.did-o {
 
     pre {
       packed_message = event:attrs.delete("_headers").klog("request message received!")
-      //????
-      // protected = event:attrs{"protected"}.klog("protected: ")
-      // recipients = event:attrs{"recipients"}.klog("recipients: ")
-      // iv = event:attrs{"iv"}.klog("iv: ")
-      // ciphertext = event:attrs{"ciphertext"}.klog("ciphertext: ")
-      // tag = event:attrs{"tag"}.klog("tag: ")
-      // eci = event:eci.klog("eci: ")
+      
       request_message = dido:unpack(packed_message).klog("Unpacked: ")
 
-      explicit_invitation = get_explicit_invite()
-      DID = explicit_invitation{"@id"}
-      end_point = getECI("did_o_invite")
-
-      //FIX ME: no unpacking yet???
-      thid = request_message{"@id"}
-      theirDID = request_message{"did"}
-      theirDoc = request_message{"did_doc~attach"}
-  
-      //end_point = theirDoc{"end_point"}//this is not right
-      myDID = create_DID() //if our did is resolvable the did_doc~attach attribute should not be included
-
-      myDoc = create_DID_Doc()
-
-      response_message = create_response_message(thid, myDID, myDoc)
+      their_did = request_message{"id"}.klog("Their did: ")
+      
+      //end_point = request_message{"~thread"}[0]{"serviceEndpoint"}.klog("The end Point: ")//
+      
+      tag = [their_did]
+      eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
+      queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
     }
-    http:post(end_point, body = response_message) setting(http_reponse)
+    wrangler:createChannel(tag, eventPolicy, queryPolicy)
+    fired {
+      // tag2 = tag[0].lc().klog("lowercase: ")
+      // tag3 = tag2.replace(re#\u0020#g, "-").klog("no space: ")
+      my_end_point = create_end_point(getECI(tag[0]), "didExchange")
+      // something = dido:storeDidNoDoc(invite_id, recipientKeys, end_point)
+      raise dido event "send_response" attributes event:attrs.put("my_end_point", my_end_point).put("request_message", request_message)
+    } else {
+      raise event "abandon"
+    }
+  }
+  
+  rule send_response {
+    select when dido send_response 
+    pre {
+      my_end_point = event:attrs{"my_end_point"}
+      request_message = event:attrs{"request_message"}.klog("request message in send_response")
+      type = request_message{"type"}.klog("type: ")
+      
+      //thid = request_message{"~thread"}[0]{"serviceEndpoint"}.klog("End P")
+      thread = request_message{"~thread"}
+      end_point = request_message{"body"}{"did_doc~attach"}{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}.klog("The end Point: ")//
+      their_did = request_message{"id"}.klog("Their did: ")
+      DID_doc = create_DID("peer", my_end_point).klog("new_doc: ")
+
+      my_did = DID_doc{"did"}.klog("My did: ")
+
+      response_message = generate_response_message(DID_doc, my_did, thread).klog("Response messaage: ")
+      
+      //response_message = generate_response_message(DID_doc, the, label).klog("Response messaage: ")
+      doc = dido:storeDidDoc(request_message{"body"}{"did_doc~attach"})
+      packed_response = dido:pack(response_message, my_did, their_did).klog("Packed response: ")
+
+    }
+    http:post(url = end_point, json = packed_response) setting(http_response)
     fired { 
-      raise dido event "response_sent" attributes event:attrs.put("response_message", response_message, "http_reponse", http_reponse)
+      raise dido event "response_sent" attributes event:attrs.put("response_message", response_message).put("http_reponse", http_response)
     }
   }
   rule response_sent {
     select when dido response_sent
 
     pre {
-      response_message = evet:attrs{"response_message"}.klog("response message sent")
-      http_reponse = evet:attrs{"http_response"}
+      response_message = event:attrs{"response_message"}.klog("response message sent")
+      http_response = event:attrs{"http_response"}
 
-      myDID = response_message{"did"}
+      //myDID = response_message{"did"}
 
-      theirDID = response_message{"~thread"}{"thid"}
+      //theirDID = response_message{"~thread"}{"thid"}
     }
 
-    if (http_reponse{"status_code"} == 200) then 
-      send_directive("say", {"HTTP Response Code" : http_reponse{"status_code"}})
+    if (http_response{"status_code"} == 200) then 
+      send_directive("say", {"HTTP Response Code" : http_response{"status_code"}})
     fired {
       //we store DID we created for reponse message and the DID we received from request message 
-      ent:myDID_to_theirDID{myDID} := theirDID
+      //ent:myDID_to_theirDID{myDID} := theirDID
       //we store DID we received from request message to the DID we created for response message
-      ent:theirDID_to_myDID{theirDID} := myDID
+      //ent:theirDID_to_myDID{theirDID} := myDID
     }
     else {
       //FIX ME: we simply raise the event and send the message or we have to handle problem get the error and send that??? 
