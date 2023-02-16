@@ -531,7 +531,7 @@ ruleset io.picolabs.did-o {
       request_message = event:attrs{"request_message"}.klog("request message in send_response")
       type = request_message{"type"}.klog("type: ")
       thread = request_message{"~thread"}
-      end_point = request_message{"body"}{"did_doc~attach"}{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}.klog("The end Point: ")//
+      end_point = request_message{"body"}{"did_doc~attach"}{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}.klog("The end Point: ")
       their_did = request_message{"id"}.klog("Their did: ")
       DID_doc = create_DID("peer", my_end_point).klog("new_doc: ")
 
@@ -541,7 +541,6 @@ ruleset io.picolabs.did-o {
 
       doc = dido:storeDidDoc(request_message{"body"}{"did_doc~attach"})
       packed_response = dido:pack(response_message, my_did, their_did).klog("Packed response: ")
-
     }
     http:post(url = end_point, json = packed_response) setting(http_response)
     fired { 
