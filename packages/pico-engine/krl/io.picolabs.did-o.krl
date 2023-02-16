@@ -194,6 +194,16 @@ ruleset io.picolabs.did-o {
     }
 
 
+
+
+    create_new_endpoint = defaction(label) {
+      tag = [label]
+      eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
+      queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
+      wrangler:createChannel(tag, eventPolicy, queryPolicy) setting(channel)
+      return create_end_point(channel.get("id"), "didExchange")
+    }
+
     /**
       If the routingKeys attribute was present and non-empty in the invitation, 
       each key must be used to wrap the message in a forward request, then 
@@ -291,7 +301,7 @@ ruleset io.picolabs.did-o {
       something = dido:storeDidNoDoc(invite_id, recipientKeys, end_point)
       raise dido event "send_request" attributes event:attrs.put("my_end_point", my_end_point)
     } else {
-      raise event "abandon"
+      raise dido event "abandon"
     }
   }
 
@@ -329,7 +339,7 @@ ruleset io.picolabs.did-o {
     // if no errors (test url, did, invite)
       // TODO: The request message needs to be packed
     //send_directive("say", {"end_point" : end_point})
-    http:post(url = end_point, json = packed_message) setting(http_response)
+    http:post(url = end_point, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "post_response", "name": "post_response"}) setting(http_response)
 
     fired { // When condition is true
       // Store new_did_id for pico to use later?
@@ -350,7 +360,7 @@ ruleset io.picolabs.did-o {
     
     fired {
       // Create error message || Just go to the abandoned state
-      raise event "abandon"
+      raise dido event "abandon"
     }
   }
 
@@ -410,8 +420,8 @@ ruleset io.picolabs.did-o {
     fired {
       raise dido event "send_complete" //attributes event:attrs//.put("my_end_point", my_end_point)
     } else {
-      raise event "send_error"
-      raise event "abandon"
+      raise dido event "send_error"
+      raise dido event "abandon"
     }
     // OR Send Problem-Report
     /** SAMPLE ERROR MESSAGE
@@ -511,16 +521,17 @@ ruleset io.picolabs.did-o {
 
       their_did = request_message{"id"}.klog("Their did: ")
       
-      tag = [their_did]
-      eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
-      queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
+      // tag = [their_did]
+      // eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
+      // queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
     }
-    wrangler:createChannel(tag, eventPolicy, queryPolicy)
+    // wrangler:createChannel(tag, eventPolicy, queryPolicy)
+    create_new_endpoint(their_did) setting(my_end_point)
     fired {
-      my_end_point = create_end_point(getECI(tag[0]), "didExchange")
+      // my_end_point = create_end_point(getECI(tag[0]), "didExchange")
       raise dido event "send_response" attributes event:attrs.put("my_end_point", my_end_point).put("request_message", request_message)
     } else {
-      raise event "abandon"
+      raise dido event "abandon"
     }
   }
   
@@ -542,7 +553,7 @@ ruleset io.picolabs.did-o {
       doc = dido:storeDidDoc(request_message{"body"}{"did_doc~attach"})
       packed_response = dido:pack(response_message, my_did, their_did).klog("Packed response: ")
     }
-    http:post(url = end_point, json = packed_response) setting(http_response)
+    http:post(url = end_point, json = packed_response, autosend = {"eci": meta:eci, "domain": "dido", "type": "post_response", "name": "post_response"}) setting(http_response)
     fired { 
       raise dido event "response_sent" attributes event:attrs.put("response_message", response_message).put("http_reponse", http_response)
     }
