@@ -520,15 +520,9 @@ ruleset io.picolabs.did-o {
       request_message = dido:unpack(packed_message).klog("Unpacked: ")
 
       their_did = request_message{"id"}.klog("Their did: ")
-      
-      // tag = [their_did]
-      // eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
-      // queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
     }
-    // wrangler:createChannel(tag, eventPolicy, queryPolicy)
     create_new_endpoint(their_did) setting(my_end_point)
     fired {
-      // my_end_point = create_end_point(getECI(tag[0]), "didExchange")
       raise dido event "send_response" attributes event:attrs.put("my_end_point", my_end_point).put("request_message", request_message)
     } else {
       raise dido event "abandon"
