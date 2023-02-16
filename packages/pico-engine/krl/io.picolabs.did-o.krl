@@ -35,7 +35,6 @@ ruleset io.picolabs.did-o {
 
 
   global {   
-    //function creates a DID using ursa 
     create_DID = function(type, endpoint) {
       DID = dido:generateDID(type, endpoint)
       DID
@@ -87,28 +86,11 @@ ruleset io.picolabs.did-o {
       invitation
     }
 
-    /*
-    function to retrieve DID from DID_to_invitation
-    retrieve_DID = function(invitation) {
-      myDID = ent:DID_to_invitation
-      //myDID = ent:DID_to_invitation.filter(function(v) {v == invitation}).keys().head()
-      myDID
-    }
-    
-
-    //function to check DID_to_invitation map for a specific key. (key, value) = (DID, explicit invitation)
-    invitation_exists = function(DID) {
-      ent:DID_to_invitation.defaultsTo({}) >< DID
-    }
-    */
-
-
-    //FIX ME: Right format for response message??
     generate_response_message = function(my_did_doc, my_did, thread) {
       response = {
         "id": "did:peer:0z6MkknrVttotXYfACGmosAKqTxEaw3pSh87Lm5vx16wKPCUv",//my new did
-        "typ": "application/didcomm-plain+json",//same
-        "type": "https://didcomm.org/didexchange/1.0/response",//...response
+        "typ": "application/didcomm-plain+json",//same as request message
+        "type": "https://didcomm.org/didexchange/1.0/response",
         "body": {
           "@type": "https://didcomm.org/didexchange/1.0/response",//same as the above
           "@id": my_did,
@@ -120,8 +102,7 @@ ruleset io.picolabs.did-o {
       response
     }
     
-    //FIX ME: This is probably not the best way to create our did and we might not need
-    //this method if our DIDs are resolvable
+    //
     create_DID_Doc = function() {
       //random:uuid()
       id = generate_id()
@@ -473,81 +454,6 @@ ruleset io.picolabs.did-o {
 
   /////////////////////////////////////////////////// RESPONDER (SENDER) /////////////////////////////////////////////////////////////
 
-  /** RESPONDERS STATES FOR DID EXCHANGE PROTOCOL
-    start
-    invitation-sent
-    request-received
-    response-sent
-    abandoned
-    completed
-  */
-
-  /**
-  There are two types of invitation:
-    Implicit: invitation in a DID the responder publishes
-    Explicit: invitation message from out-of-band protocol
-    FIX ME: We should create the out of band and find out how to "publish" the DID
-      For now we can forget about Implicit invites and focus on our Explicit invite - Kekoa
-
-    EXPLICIT:
-        *Example:
-            {
-            "@id": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
-            "@type": "https://didcomm.org/didexchange/1.0/request",
-            "~thread": { 
-                "thid": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
-                "pthid": "032fbd19-f6fd-48c5-9197-ba9a47040470" 
-            },
-            "label": "Bob",
-            "goal_code": "aries.rel.build",
-            "goal": "To create a relationship",
-            "did": "B.did@B:A",
-            "did_doc~attach": {
-                "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
-                "mime-type": "application/json",
-                "data": {
-                  "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-                  "jws": {
-                      "header": {
-                        "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                      },
-                      "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-                      "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-                      }
-                }
-            }
-          }
-
-
-        *Example out-of-band invitation https://didcomm.org/out-of-band/%VER/invitation:
-            {
-              "@type": "https://didcomm.org/out-of-band/%VER/invitation",
-              "@id": "<id used for context as pthid>",
-              "label": "Faber College",
-              "goal_code": "issue-vc",
-              "goal": "To issue a Faber College Graduate credential",
-              "accept": [
-                "didcomm/aip2;env=rfc587",
-                "didcomm/aip2;env=rfc19"
-              ],
-              "handshake_protocols": [
-                "https://didcomm.org/didexchange/1.0",
-                "https://didcomm.org/connections/1.0"
-              ],
-              "requests~attach": [
-                {
-                  "@id": "request-0",
-                  "mime-type": "application/json",
-                  "data": {
-                    "json": "<json of protocol message>"
-                  }
-                }
-              ],
-              "services": ["did:sov:LjgpST2rjsoxYegQDRm7EL"]
-            }
-  */
-
-  //invitation message using RFC 0434 Out of Band: https://github.com/hyperledger/aries-rfcs/blob/main/features/0434-outofband/README.md
   rule create_explicit_invite {
     select when dido create_explicit_invitation
 
@@ -562,17 +468,10 @@ ruleset io.picolabs.did-o {
       DIDdoc = create_DID("key", end_point)
       new_id = DIDdoc{"did"}
       public_key = DIDdoc{"did"}
-      //ent:test := ent:test.defaultsTo({}).put("test", "test")
       explicit_invitation = create_explicit_invitation(new_id, public_key, end_point)
       
-      //we store a new value in the map DID_to_invitation which contains an 
-      //entry keyed by DID with explicit invitation as value
-      //ent:DID_to_invitation{explicit_invitation} := DID
       ent:invitation_DID := DIDdoc["did"]
 
-      //FIX ME: STORE DIDdoc
-
-      //do we need to store the did
       ent:explicit_invite := explicit_invitation
 
       raise dido event "send_invite" attributes event:attrs.put("invitation", explicit_invitation, "end_point", end_point)
@@ -583,10 +482,8 @@ ruleset io.picolabs.did-o {
     select when dido send_invite
     
     pre {
-      invitation = event:attrs{"invitation"}.klog("Invite? ")
-      //DID = retrieve_DID(invitation)
+      invitation = event:attrs{"invitation"}.klog("Invite: ")
       base64 = math:base64encode(invitation.encode()).klog("Base 64 Encoded: ")
-      //invite_url = "http://example.com/ssi?oob=" + base64
       decoded = math:base64decode(base64).decode().klog("Invite Decoded: ")
     }
 
@@ -614,18 +511,13 @@ ruleset io.picolabs.did-o {
 
       their_did = request_message{"id"}.klog("Their did: ")
       
-      //end_point = request_message{"~thread"}[0]{"serviceEndpoint"}.klog("The end Point: ")//
-      
       tag = [their_did]
       eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
       queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
     }
     wrangler:createChannel(tag, eventPolicy, queryPolicy)
     fired {
-      // tag2 = tag[0].lc().klog("lowercase: ")
-      // tag3 = tag2.replace(re#\u0020#g, "-").klog("no space: ")
       my_end_point = create_end_point(getECI(tag[0]), "didExchange")
-      // something = dido:storeDidNoDoc(invite_id, recipientKeys, end_point)
       raise dido event "send_response" attributes event:attrs.put("my_end_point", my_end_point).put("request_message", request_message)
     } else {
       raise event "abandon"
@@ -638,8 +530,6 @@ ruleset io.picolabs.did-o {
       my_end_point = event:attrs{"my_end_point"}
       request_message = event:attrs{"request_message"}.klog("request message in send_response")
       type = request_message{"type"}.klog("type: ")
-      
-      //thid = request_message{"~thread"}[0]{"serviceEndpoint"}.klog("End P")
       thread = request_message{"~thread"}
       end_point = request_message{"body"}{"did_doc~attach"}{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}.klog("The end Point: ")//
       their_did = request_message{"id"}.klog("Their did: ")
@@ -648,8 +538,7 @@ ruleset io.picolabs.did-o {
       my_did = DID_doc{"did"}.klog("My did: ")
 
       response_message = generate_response_message(DID_doc, my_did, thread).klog("Response messaage: ")
-      
-      //response_message = generate_response_message(DID_doc, the, label).klog("Response messaage: ")
+
       doc = dido:storeDidDoc(request_message{"body"}{"did_doc~attach"})
       packed_response = dido:pack(response_message, my_did, their_did).klog("Packed response: ")
 
@@ -665,22 +554,13 @@ ruleset io.picolabs.did-o {
     pre {
       response_message = event:attrs{"response_message"}.klog("response message sent")
       http_response = event:attrs{"http_response"}
-
-      //myDID = response_message{"did"}
-
-      //theirDID = response_message{"~thread"}{"thid"}
     }
 
     if (http_response{"status_code"} == 200) then 
       send_directive("say", {"HTTP Response Code" : http_response{"status_code"}})
     fired {
-      //we store DID we created for reponse message and the DID we received from request message 
-      //ent:myDID_to_theirDID{myDID} := theirDID
-      //we store DID we received from request message to the DID we created for response message
-      //ent:theirDID_to_myDID{theirDID} := myDID
     }
     else {
-      //FIX ME: we simply raise the event and send the message or we have to handle problem get the error and send that??? 
       raise dido event "received_error" attributes event:attrs.put("error", response_message)
     }
   }
