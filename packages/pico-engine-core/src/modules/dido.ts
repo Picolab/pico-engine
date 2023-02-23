@@ -94,6 +94,27 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
     };
 });
 
+// const getDID = krl.Function([]);
+
+const deleteDID = krl.Function(["did"],async (did:string) => {
+    let docs = await this.rsCtx.getEnt("didDocs");
+    if(docs) {
+        docs.remove(did);
+        await this.rsCtx.putEnt("didDocs", docs);
+        return true;
+    }
+    return false;
+});
+
+const updateDID = krl.Function(["did", "newDoc"],async (did:string, newDoc:DIDDoc) => {
+    let docs = await this.rsCtx.getEnt("didDocs");
+    if(docs) {
+        docs[did] = newDoc;
+        return true;
+    }
+    return false;
+})
+
 const clearDidDocs = krl.Function([], async function () {
     await this.rsCtx.putEnt("didDocs", {});
 })
@@ -200,6 +221,8 @@ const pack = krl.Function(['message', '_from', 'to'], async function (message: I
 
 const dido: krl.Module = {
     generateDID: generateDID,
+    deleteDID: deleteDID,
+    updateDID: updateDID,
     unpack: unpack,
     pack: pack,
     storeDidNoDoc: storeDidNoDoc,
