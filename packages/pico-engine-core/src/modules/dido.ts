@@ -1,6 +1,5 @@
 import { krl } from "krl-stdlib";
 import { Message, DIDDoc, DIDResolver, Secret, SecretsResolver, VerificationMethod, IMessage, PackEncryptedMetadata, UnpackMetadata } from "didcomm-node";
-import { stringify } from "querystring";
 const bs58 = require('bs58');
 const sodium = require('libsodium-wrappers')
 const crypto = require('crypto')
@@ -220,8 +219,20 @@ const pack = krl.Function(['message', '_from', 'to'], async function (message: I
     return JSON.parse(enc_msg);
 });
 
+const addRoute = krl.Function(['type', 'domain', 'rule'], async function (type: string, domain: string, rule: string) {
+    var routes = await this.rsCtx.getEnt("routes");
+    if (!routes) {
+        routes = {};
+    }
+    routes[type] = { domain: domain, name: rule };
+    await this.rsCtx.putEnt("routes", routes);
+    return true;
+});
+
 const route = krl.Function(['message'], async function (message: string) {
-    return message;
+    var unpacked: IMessage = unpack(this, [message])
+    var routes = await this.rsCtx.getEnt("routes");
+    this.rsCtx.raiseEvent(routes[unpacked.type].domain, routes[unpacked.type].name, { "message": unpacked })
 });
 
 const dido: krl.Module = {
@@ -233,6 +244,7 @@ const dido: krl.Module = {
     storeDidNoDoc: storeDidNoDoc,
     clearDidDocs: clearDidDocs,
     storeDidDoc: storeDidDoc,
+    addRoute: addRoute,
     route: route
 }
 
