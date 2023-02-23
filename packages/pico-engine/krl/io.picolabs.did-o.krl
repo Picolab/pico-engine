@@ -82,8 +82,6 @@ ruleset io.picolabs.did-o {
       }
       DID_Doc
     }
-  
-
 
     didDocs = function() {
       docs = ent:didDocs
@@ -194,30 +192,16 @@ ruleset io.picolabs.did-o {
 
   rule intialize {
     select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
+    pre {
+      route0 = dido:addRoute("https://didcomm.org/didexchange/1.0/complete", "dido", "receive_complete")
+      route1 = dido:addRoute("https://didcomm.org/didexchange/1.0/request", "dido", "receive_request")
+      route2 = dido:addRoute("https://didcomm.org/didexchange/1.0/response", "dido", "receive_response")
+    }
     
     if ent:host.isnull() then noop()
     
     fired {
       ent:host := "http://172.17.0.2:3000"
-      // ent:mtype2rule := {
-      //   [
-      //         {
-      //           "type" : "https://didcomm.org/didexchange/1.0/complete",
-      //           "ruleset" : "dido",
-      //           "rule" : "complete"
-      //         },
-      //         {
-      //           "type" : "https://didcomm.org/didexchange/1.0/request",
-      //           "ruleset" : "dido",
-      //           "rule" : "request"
-      //         },
-      //         {
-      //           "type" : "https://didcomm.org/didexchange/1.0/response",
-      //           "ruleset" : "dido",
-      //           "rule" : "complete"
-      //         }
-      //       ]
-      //   }
     }
   }
 
@@ -232,7 +216,7 @@ ruleset io.picolabs.did-o {
   rule route_message {
     select when dido didcommv2_message
     pre {
-      // dido:route
+      route = dido:route(event:attrs{"response"})
     }
   }
 
@@ -248,7 +232,7 @@ ruleset io.picolabs.did-o {
 
       label = invite{"label"}
       invite_id = invite{"@id"}
-      end_point = invite{"services"}[0]{"serviceEndpoint"}
+      end_point = invite{"services"}[0]{"serviceEndpoint"}.klog("Endpoint ??")
       recipientKeys = invite{"services"}[0]{"recipientKeys"}[0]
     }
     
@@ -302,15 +286,15 @@ ruleset io.picolabs.did-o {
   rule receive_response {
     select when dido receive_response
     pre {
-      response = event:attrs{"response"}
-      unpacked_response = dido:unpack(response)
-      did_doc = unpacked_response{"did_doc~attach"}.klog("Attached DidDoc??")
+      message = event:attrs{"message"}
+      //unpacked_response = dido:unpack(response)
+      did_doc = message{"did_doc~attach"}.klog("Attached DidDoc??")
       stored_doc = dido:storeDidDoc(did_doc)
-      thread = unpacked_response{"body"}{"~thread"}
+      thread = message{"body"}{"~thread"}
 
-      my_did = "my_did" // thread thid -> 
-      their_did = "their_did" // did_doc -> 
-      their_end_point = "their_end_point" // get did_doc associated with my did
+      my_did = thread{"thid"}
+      their_did = did_doc{"did"}
+      their_end_point = dido:getDIDDoc(my_did){"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}
     }
     
     fired {

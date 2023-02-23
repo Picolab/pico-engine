@@ -192,7 +192,7 @@ const storeDidNoDoc = krl.Function(['did', 'key', 'endpoint'], async function (d
     }
     await this.rsCtx.putEnt("didDocs", docs);
     return doc;
-})
+});
 
 const storeDidDoc = krl.Function(['diddoc'], async function (diddoc: DIDDoc) {
     let docs = await this.rsCtx.getEnt("didDocs");
@@ -206,7 +206,7 @@ const storeDidDoc = krl.Function(['diddoc'], async function (diddoc: DIDDoc) {
 
     await this.rsCtx.putEnt("didDocs", docs);
     //return diddoc;
-})
+});
 
 const unpack = krl.Function(['message'], async function (message: any) {
     var [unpack_msg, unpack_meta]: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
@@ -229,6 +229,16 @@ const addRoute = krl.Function(['type', 'domain', 'rule'], async function (type: 
     return true;
 });
 
+const getDIDDoc = krl.Function(['did'], async function (did: string) {
+    let docs: any = await this.rsCtx.getEnt("didDocs");
+
+    if (docs) {
+        return docs[did]
+    }
+
+    return null
+});
+
 const route = krl.Function(['message'], async function (message: string) {
     var unpacked: IMessage = unpack(this, [message])
     var routes = await this.rsCtx.getEnt("routes");
@@ -245,7 +255,8 @@ const dido: krl.Module = {
     clearDidDocs: clearDidDocs,
     storeDidDoc: storeDidDoc,
     addRoute: addRoute,
-    route: route
+    route: route,
+    getDIDDoc: getDIDDoc
 }
 
 export default dido;
