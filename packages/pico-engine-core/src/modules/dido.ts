@@ -96,9 +96,9 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
 
 // const getDID = krl.Function([]);
 
-const deleteDID = krl.Function(["did"],async (did:string) => {
+const deleteDID = krl.Function(["did"], async function (did: string) {
     let docs = await this.rsCtx.getEnt("didDocs");
-    if(docs) {
+    if (docs) {
         docs.remove(did);
         await this.rsCtx.putEnt("didDocs", docs);
         return true;
@@ -106,9 +106,9 @@ const deleteDID = krl.Function(["did"],async (did:string) => {
     return false;
 });
 
-const updateDID = krl.Function(["did", "newDoc"],async (did:string, newDoc:DIDDoc) => {
+const updateDID = krl.Function(["did", "newDoc"], async function (did: string, newDoc: DIDDoc) {
     let docs = await this.rsCtx.getEnt("didDocs");
-    if(docs) {
+    if (docs) {
         docs[did] = newDoc;
         return true;
     }
