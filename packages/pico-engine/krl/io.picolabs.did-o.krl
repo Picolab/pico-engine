@@ -394,9 +394,9 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
-      packed_message = event:attrs.delete("_headers").klog("request message received!")
-      
-      request_message = dido:unpack(packed_message).klog("Unpacked: ")
+      // packed_message = event:attrs.delete("_headers").klog("request message received!")
+      request_message = event:attrs{"message"}
+      // request_message = dido:unpack(packed_message).klog("Unpacked: ")
 
       their_did = request_message{"id"}.klog("Their did: ")
     }
