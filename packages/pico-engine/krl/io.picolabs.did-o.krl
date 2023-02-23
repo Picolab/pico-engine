@@ -28,7 +28,7 @@ ruleset io.picolabs.did-o {
 
     provides create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc
 
-    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs
+    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -54,6 +54,10 @@ ruleset io.picolabs.did-o {
 
     getHost = function() {
       ent:host
+    }
+
+    getRoutes = function() {
+      ent:routes
     }
 
     //create channel
@@ -103,7 +107,6 @@ ruleset io.picolabs.did-o {
     }
 
     create_explicit_invitation = function(new_id, public_key, end_point) {
-      //http://localhost:3000/sky/event/eci/did_o_invite/receive_request
       invitation = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
         "@id": new_id,
@@ -130,15 +133,14 @@ ruleset io.picolabs.did-o {
       invitation
     }
 
-    generate_response_message = function(my_did_doc, my_did, thread) {
+    generate_response_message = function(my_did_doc, my_did, pthid) {
       response = {
-        "id": "did:peer:0z6MkknrVttotXYfACGmosAKqTxEaw3pSh87Lm5vx16wKPCUv",//my new did
-        "typ": "application/didcomm-plain+json",//same as request message
+        "id": my_did,
+        "typ": "application/didcomm-plain+json",
         "type": "https://didcomm.org/didexchange/1.0/response",
+        "thid": my_did,
+        "pthid": pthid,
         "body": {
-          "@type": "https://didcomm.org/didexchange/1.0/response",//same as the above
-          "@id": my_did,
-          "~thread": thread,
           "did": my_did,
           "did_doc~attach": my_did_doc
         }
@@ -146,21 +148,18 @@ ruleset io.picolabs.did-o {
       response
     }
 
-    generate_request_message = function(invite_id, new_did, label) {
+    generate_request_message = function(invite_id, my_did_doc, label) {
       request = {
-        "id": new_did{"did"},
+        "id": my_did_doc{"did"},
         "type": "https://didcomm.org/didexchange/1.0/request",
         "typ": "application/didcomm-plain+json",
-        "~thread": { 
-            "thid": new_did{"did"},
-            "pthid": invite_id
-        },
+        "thid": my_did_doc{"did"},
+        "pthid": invite_id,
         "body": {
-          "label": label, // Suggested Label
-          //"goal_code": "aries.rel.build", // Telling the receiver what to use to process this
+          "label": label,
           "goal": "To establish a peer did connection",
-          "did": new_did{"did"},
-          "did_doc~attach": new_did
+          "did": my_did_doc{"did"},
+          "did_doc~attach": my_did_doc
         }
       }
 
@@ -172,10 +171,9 @@ ruleset io.picolabs.did-o {
         "type": "https://didcomm.org/didexchange/1.0/complete",
         "typ": "application/didcomm-plain+json",
         "id": random:uuid(),
-        "~thread": {
-          "thid": thid,
-          "pthid": pthid
-        }
+        "thid": thid,
+        "pthid": pthid,
+        "body": {}
       }
       
       complete
@@ -268,33 +266,33 @@ ruleset io.picolabs.did-o {
     http:post(url = end_point, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "post_response", "name": "post_response"}) setting(http_response)
 
     fired {
-      raise dido event "request_sent" attributes event:attrs.put("http_response", http_response)
+      //raise dido event "request_sent" attributes event:attrs.put("http_response", http_response)
     }
   }
 
-  rule request_sent {
-    select when dido request_sent 
+  // rule request_sent {
+  //   select when dido request_sent 
 
-    if(event:attrs{"http_response"}{"status_code"} != 200) then
-      send_directive("say", {"HTTP Response Code" : event:attrs{"http_response"}{"status_code"}})
+  //   if(event:attrs{"http_response"}{"status_code"} != 200) then
+  //     send_directive("say", {"HTTP Response Code" : event:attrs{"http_response"}{"status_code"}})
     
-    fired {
-      raise dido event "abandon"
-    }
-  }
+  //   fired {
+  //     raise dido event "abandon"
+  //   }
+  // }
 
   rule receive_response {
     select when dido receive_response
     pre {
       message = event:attrs{"message"}
       //unpacked_response = dido:unpack(response)
-      did_doc = message{"did_doc~attach"}.klog("Attached DidDoc??")
+      did_doc = message{"body"}{"did_doc~attach"}.klog("Attatched DidDoc??")
       stored_doc = dido:storeDidDoc(did_doc)
       thread = message{"body"}{"~thread"}
 
       my_did = thread{"thid"}
       their_did = did_doc{"did"}
-      their_end_point = dido:getDIDDoc(my_did){"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}
+      their_end_point = did_doc{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}
     }
     
     fired {
@@ -319,10 +317,10 @@ ruleset io.picolabs.did-o {
       my_did = event:attrs{"my_did"}
       their_did = event:attrs{"their_did"}
 
-      packed_message = dido:pack(complete_message, my_did, their_did)
+      packed_message = dido:pack(complete_message, my_did, their_did).klog("Packed complete message: ")
     }
 
-    http:post(url = endpoint, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "post_response", "name": "post_response"}) setting(http_response)
+    http:post(url = endpoint, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"})
 
     fired {
       raise dido event "complete"
@@ -333,7 +331,7 @@ ruleset io.picolabs.did-o {
 
   rule complete {
     select when dido complete
-    send_directive("say", {"Completed" : "Completed"})
+    // send_directive("say", {"Completed" : "Completed"})
   }
 
   rule abandon {
@@ -421,30 +419,49 @@ ruleset io.picolabs.did-o {
 
       my_did = DID_doc{"did"}.klog("My did: ")
 
-      response_message = generate_response_message(DID_doc, my_did, thread).klog("Response messaage: ")
+      response_message = generate_response_message(DID_doc, my_did, thread{"pthid"}).klog("Response messaage: ")
 
       doc = dido:storeDidDoc(request_message{"body"}{"did_doc~attach"})
       packed_response = dido:pack(response_message, my_did, their_did).klog("Packed response: ")
     }
-    http:post(url = end_point, json = packed_response, autosend = {"eci": meta:eci, "domain": "dido", "type": "post_response", "name": "post_response"}) setting(http_response)
-    fired { 
-      raise dido event "response_sent" attributes event:attrs.put("response_message", response_message).put("http_reponse", http_response)
+    http:post(url = end_point, json = packed_response, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"}) //setting(http_response)
+    // fired { 
+      // raise dido event "response_sent" attributes event:attrs.put("response_message", response_message).put("http_reponse", http_response)
+    // }
+  }
+  
+  // rule response_sent {
+  //   select when dido response_sent
+    
+  //   pre {
+  //     response_message = event:attrs{"response_message"}.klog("response message sent")
+  //     http_response = event:attrs{"http_response"}
+  //   }
+    
+  //   if (http_response{"status_code"} == 200) then 
+  //     send_directive("say", {"HTTP Response Code" : http_response{"status_code"}})
+  //     fired {
+  //     }
+  //   else {
+  //     raise dido event "received_error" attributes event:attrs.put("error", response_message)
+  //   }
+  // }
+
+  rule receive_complete {
+    select when dido receive_complete
+    always {
+      raise dido event "complete"
     }
   }
-  rule response_sent {
-    select when dido response_sent
-
+  
+  rule exchange_post_response {
+    select when dido exchange_post_response
     pre {
-      response_message = event:attrs{"response_message"}.klog("response message sent")
-      http_response = event:attrs{"http_response"}
+      status_code = event:attrs{"status_code"}
     }
-
-    if (http_response{"status_code"} == 200) then 
-      send_directive("say", {"HTTP Response Code" : http_response{"status_code"}})
+    if(status_code != 200) then noop()
     fired {
-    }
-    else {
-      raise dido event "received_error" attributes event:attrs.put("error", response_message)
+      raise dido event "abandon"
     }
   }
 
@@ -459,7 +476,7 @@ ruleset io.picolabs.did-o {
 }
 
 /*
- DID-O - V 1.0.0
+DID-O - V 1.0.0
                                         ,--._
                                        |     `...
                               ,.-------"          `.

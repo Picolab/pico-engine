@@ -213,7 +213,7 @@ const unpack = krl.Function(['message'], async function (message: any) {
         var [unpack_msg, unpack_meta]: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
         return unpack_msg.as_value();
     } catch (error) {
-        this.log.error("There was an error unpacking a message: ", {message: message, error: error});
+        this.log.error("There was an error unpacking a message: ", { message: message, error: error });
         return null;
     }
 });
@@ -224,7 +224,7 @@ const pack = krl.Function(['message', '_from', 'to'], async function (message: I
         const [enc_msg, packed_meta]: [string, PackEncryptedMetadata] = await _message.pack_encrypted(to, null, null, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), { forward: false }) as [string, PackEncryptedMetadata];
         return JSON.parse(enc_msg);
     } catch (error) {
-        this.log.error("There was an error packing a message: ", {message: message, error: error});
+        this.log.error("There was an error packing a message: ", { message: message, error: error });
         return null;
     }
 });
@@ -250,9 +250,19 @@ const getDIDDoc = krl.Function(['did'], async function (did: string) {
 });
 
 const route = krl.Function(['message'], async function (message: string) {
-    var unpacked: IMessage = unpack(this, [message])
+    var unpacked: IMessage = await unpack(this, [message]);
     var routes = await this.rsCtx.getEnt("routes");
-    this.rsCtx.raiseEvent(routes[unpacked.type].domain, routes[unpacked.type].name, { "message": unpacked })
+    try {
+        if (unpacked.type != null) {
+            this.rsCtx.raiseEvent(routes[unpacked.type]["domain"], routes[unpacked.type]["name"], { "message": unpacked })
+        } else if (unpacked.body["type"] != null) {
+            this.rsCtx.raiseEvent(routes[unpacked.body["type"]]["domain"], routes[unpacked.body["type"]]["name"], { "message": unpacked })
+        } else {
+            this.log.error("Unknown route for message: ", { message: unpacked })
+        }
+    } catch (error) {
+        this.log.error("Error handling route for message: ", { message: unpacked, error: error })
+    }
 });
 
 const dido: krl.Module = {
