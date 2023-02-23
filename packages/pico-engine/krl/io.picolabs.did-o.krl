@@ -216,7 +216,7 @@ ruleset io.picolabs.did-o {
   rule route_message {
     select when dido didcommv2_message
     pre {
-      route = dido:route(event:attrs{"response"})
+      route = dido:route(event:attrs.delete("_headers"))
     }
   }
 
