@@ -1,5 +1,6 @@
 import { krl } from "krl-stdlib";
 import { Message, DIDDoc, DIDResolver, Secret, SecretsResolver, VerificationMethod, IMessage, PackEncryptedMetadata, UnpackMetadata } from "didcomm-node";
+import { stringify } from "querystring";
 const bs58 = require('bs58');
 const sodium = require('libsodium-wrappers')
 const crypto = require('crypto')
@@ -219,6 +220,10 @@ const pack = krl.Function(['message', '_from', 'to'], async function (message: I
     return JSON.parse(enc_msg);
 });
 
+const route = krl.Function(['message'], async function (message: string) {
+    return message;
+});
+
 const dido: krl.Module = {
     generateDID: generateDID,
     deleteDID: deleteDID,
@@ -227,7 +232,8 @@ const dido: krl.Module = {
     pack: pack,
     storeDidNoDoc: storeDidNoDoc,
     clearDidDocs: clearDidDocs,
-    storeDidDoc: storeDidDoc
+    storeDidDoc: storeDidDoc,
+    route: route
 }
 
 export default dido;

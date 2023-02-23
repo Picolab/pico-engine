@@ -52,54 +52,14 @@ ruleset io.picolabs.did-o {
         .get("id")
     }
 
+    getHost = function() {
+      ent:host
+    }
+
     //create channel
-    create_end_point = function(eci, name) {
-      end_point = "http://172.17.0.2:3000/sky/event/" + eci + "/none/dido/" + name
+    create_end_point = function(eci) {
+      end_point = getHost() + "/sky/event/" + eci + "/none/dido/" + "didcommv2_message"
       end_point
-    }
-    
-    create_explicit_invitation = function(new_id, public_key, end_point) {
-      //http://localhost:3000/sky/event/eci/did_o_invite/receive_request
-      invitation = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
-        "@id": new_id,
-        "label": "explicitinvitation",
-        "accept": [
-          "didcomm/v2",
-          "didcomm/aip2;env=rfc587"
-        ],
-        "services": [
-          {
-            "id": "#inline",
-            "type": "did-communication",
-            "recipientKeys": [
-              public_key
-            ],
-            "serviceEndpoint": end_point
-          }
-        ],
-        "handshake_protocols": [
-          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
-        ]
-      }
-
-      invitation
-    }
-
-    generate_response_message = function(my_did_doc, my_did, thread) {
-      response = {
-        "id": "did:peer:0z6MkknrVttotXYfACGmosAKqTxEaw3pSh87Lm5vx16wKPCUv",//my new did
-        "typ": "application/didcomm-plain+json",//same as request message
-        "type": "https://didcomm.org/didexchange/1.0/response",
-        "body": {
-          "@type": "https://didcomm.org/didexchange/1.0/response",//same as the above
-          "@id": my_did,
-          "~thread": thread,
-          "did": my_did,
-          "did_doc~attach": my_did_doc
-        }
-      }
-      response
     }
     
     //
@@ -144,34 +104,50 @@ ruleset io.picolabs.did-o {
       did_doc
     }
 
-    /** SAMPLE REQUEST MESSAGE
-      {
-        "@id": "5678876542345",
-        "@type": "https://didcomm.org/didexchange/1.0/request",
-        "~thread": { 
-            "thid": "5678876542345",
-            "pthid": "<id of invitation>"
-        },
-        "label": "Bob", // Suggested Label
-        "goal_code": "aries.rel.build", // Telling the receiver what to use to process this
-        "goal": "To create a relationship",
-        "did": "B.did@B:A",
-        "did_doc~attach": {
-            "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
-            "mime-type": "application/json",
-            "data": {
-              "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-              "jws": {
-                  "header": {
-                    "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                  },
-                  "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-                  "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-              }
-            }
+    create_explicit_invitation = function(new_id, public_key, end_point) {
+      //http://localhost:3000/sky/event/eci/did_o_invite/receive_request
+      invitation = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
+        "@id": new_id,
+        "label": "explicitinvitation",
+        "accept": [
+          "didcomm/v2",
+          "didcomm/aip2;env=rfc587"
+        ],
+        "services": [
+          {
+            "id": "#inline",
+            "type": "did-communication",
+            "recipientKeys": [
+              public_key
+            ],
+            "serviceEndpoint": end_point
+          }
+        ],
+        "handshake_protocols": [
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+        ]
+      }
+
+      invitation
+    }
+
+    generate_response_message = function(my_did_doc, my_did, thread) {
+      response = {
+        "id": "did:peer:0z6MkknrVttotXYfACGmosAKqTxEaw3pSh87Lm5vx16wKPCUv",//my new did
+        "typ": "application/didcomm-plain+json",//same as request message
+        "type": "https://didcomm.org/didexchange/1.0/response",
+        "body": {
+          "@type": "https://didcomm.org/didexchange/1.0/response",//same as the above
+          "@id": my_did,
+          "~thread": thread,
+          "did": my_did,
+          "did_doc~attach": my_did_doc
         }
       }
-    */
+      response
+    }
+
     generate_request_message = function(invite_id, new_did, label) {
       request = {
         "id": new_did{"did"},
@@ -193,113 +169,94 @@ ruleset io.picolabs.did-o {
       request
     }
 
-
-
+    generate_complete_message = function(thid, pthid) {
+      complete = {
+        "type": "https://didcomm.org/didexchange/1.0/complete",
+        "typ": "application/didcomm-plain+json",
+        "id": random:uuid(),
+        "~thread": {
+          "thid": thid,
+          "pthid": pthid
+        }
+      }
+      
+      complete
+    }
 
     create_new_endpoint = defaction(label) {
       tag = [label]
       eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
       queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
       wrangler:createChannel(tag, eventPolicy, queryPolicy) setting(channel)
-      return create_end_point(channel.get("id"), "didExchange")
+      return create_end_point(channel.get("id"))
     }
-
-    /**
-      If the routingKeys attribute was present and non-empty in the invitation, 
-      each key must be used to wrap the message in a forward request, then 
-      encoded in an Encryption Envelope. This processing is in order of the keys 
-      in the list, with the last key in the list being the one for which the 
-      serviceEndpoint possesses the private key.
-
-      The message is then transmitted to the serviceEndpoint.
-    */
   }
 
   rule intialize {
     select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
     
-    if ent:DID_to_invitation.isnull() && ent:myDID_to_theirDID.isnull() && ent:theirDID_to_myDID.isnull() then noop()
+    if ent:host.isnull() then noop()
     
     fired {
-      ent:DID_to_invitation := {}
-      ent:invitationID_to_DID := {}
-      ent:myDID_to_theirDID := {}
-      ent:theirDID_to_myDID := {}
+      ent:host := "http://172.17.0.2:3000"
+      // ent:mtype2rule := {
+      //   [
+      //         {
+      //           "type" : "https://didcomm.org/didexchange/1.0/complete",
+      //           "ruleset" : "dido",
+      //           "rule" : "complete"
+      //         },
+      //         {
+      //           "type" : "https://didcomm.org/didexchange/1.0/request",
+      //           "ruleset" : "dido",
+      //           "rule" : "request"
+      //         },
+      //         {
+      //           "type" : "https://didcomm.org/didexchange/1.0/response",
+      //           "ruleset" : "dido",
+      //           "rule" : "complete"
+      //         }
+      //       ]
+      //   }
     }
   }
 
-
-
-  /** REQUESTERS STATES FOR DID EXCHANGE PROTOCOL
-    start
-    invitation-received
-    request-sent 
-    response-received
-    abandoned
-    completed
-  */
-
-  /** SAMPLE DID INVITE
-    {
-      "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
-      "@id": "30801fd7-ad0e-4a67-8d96-514d9154ae02",
-      "label": "Invitation to Barry",
-      "accept": [
-        "didcomm/aip1",
-        "didcomm/aip2;env=rfc19"
-      ],
-      "services": [
-        {
-          "id": "#inline",
-          "type": "did-communication",
-          "recipientKeys": [
-            "did:key:z6MktEH5QA7bWpCe9eoa2DKaZ9JX2ZXJmxuGYR1sapQdmsCZ"
-          ],
-          "serviceEndpoint": "http://www.example.com"
-        }
-      ],
-      "handshake_protocols": [
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
-      ]
+  rule set_host {
+    select when dido set_host
+    fired {
+      new_host = event:attrs{"new_host"}
+      ent:host := new_host
     }
-  */
+  }
 
-  // IF WE ARE RECEIVING AN INVITE THEN WE ARE THE REQUESTER
-  // Send Request
+  rule route_message {
+    select when dido didcommv2_message
+    pre {
+      // dido:route
+    }
+  }
+
   rule receive_invite {
     select when dido receive_invite
     pre {
-
-      //packed_msg = event:attrs{"packed_msg"}.klog("This is the packed invitation: " + packed_msg)
-
-
-
-      // We have the invite stored in INVITE now we send a request to the INVITER
-      //event:attrs{""}
       //invite_url = event:attrs{"Invite_URL"}
       base64 = event:attrs{"Invite_Code"}
 
-      //base64 = invite_url.extract(re#oob=#).klog("after oob?")
+      //base64 = invite_url.extract(re#ssi?oob=(\w+)#).klog("after oob?")
       
-      invite = math:base64decode(base64).decode().klog("Invite decoded")
+      invite = math:base64decode(base64).decode()
 
-      label = invite{"label"}.klog("Label?")
-      invite_id = invite{"@id"}.klog("ID?")
-      end_point = invite{"services"}[0]{"serviceEndpoint"}.klog("End Point?")
-      recipientKeys = invite{"services"}[0]{"recipientKeys"}[0].klog("Keys?s")
-      
-      tag = [label]
-      eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
-      queryPolicy = {"allow": [{"rid" : meta:rid, "name": "*"}], "deny" :[]}
+      label = invite{"label"}
+      invite_id = invite{"@id"}
+      end_point = invite{"services"}[0]{"serviceEndpoint"}
+      recipientKeys = invite{"services"}[0]{"recipientKeys"}[0]
     }
     
-    wrangler:createChannel(tag, eventPolicy, queryPolicy)
+    create_new_endpoint(label) setting(my_end_point)
+
     fired {
-      // tag2 = tag[0].lc().klog("lowercase: ")
-      // tag3 = tag2.replace(re#\u0020#g, "-").klog("no space: ")
-      my_end_point = create_end_point(getECI(tag[0]), "receive_response")
       something = dido:storeDidNoDoc(invite_id, recipientKeys, end_point)
-      raise dido event "send_request" attributes event:attrs.put("my_end_point", my_end_point)
+      raise dido event "send_request" attributes event:attrs.put("my_end_point", my_end_point).put("decoded_invite", invite)
     } else {
       raise dido event "abandon"
     }
@@ -308,48 +265,27 @@ ruleset io.picolabs.did-o {
   rule send_request {
     select when dido send_request
     pre {
-      my_end_point = event:attrs{"my_end_point"}.klog("Endpoint: ")
-      base64 = event:attrs{"Invite_Code"}
+      my_end_point = event:attrs{"my_end_point"}
 
-      //base64 = invite_url.extract(re#oob=#).klog("after oob?")
-      
-      invite = math:base64decode(base64).decode().klog("Invite decoded")
+      invite = event:attrs{"decoded_invite"}
 
-      label = invite{"label"}.klog("Label?")
-      invite_id = invite{"@id"}.klog("ID?")
-      end_point = invite{"services"}[0]{"serviceEndpoint"}.klog("End Point?")
-      recipientKeys = invite{"services"}[0]{"recipientKeys"}[0].klog("Keys?s")
-      // end_point = event:attrs{"End point"}
-      // invite_id = event:attrs{"inviteID"}.klog("Invite ID: ")
-      // label = event:attrs{"label"}.klog("Label: ")
-      // To send the request we need to generate a new did & doc
-        // Side note the did needs to be stored on the pico, but the engine will store the doc
-        // The did should resolve to the doc through the engine
+      label = invite{"label"}
+      invite_id = invite{"@id"}
+      end_point = invite{"services"}[0]{"serviceEndpoint"}
+      recipientKeys = invite{"services"}[0]{"recipientKeys"}[0]
+
       new_did = create_DID("peer", my_end_point)
-        .klog("new_did: ")
+
       request_message = generate_request_message(invite_id, new_did, label)
-        //.klog("End point: " + end_point)
-        //.klog("Keys: " + recipientKeys)
-        .klog("Request_message: ")
       
-      packed_message = dido:pack(request_message, new_did["did"], invite_id).klog("Packed message: ")
-      //wrapped_request = wrap_request(recipientKeys, request_message)
+      packed_message = dido:pack(request_message, new_did["did"], invite_id)
     }
-    // SEND INVITE to end_point with the request_message which contains new_did
-    // if no errors (test url, did, invite)
-      // TODO: The request message needs to be packed
-    //send_directive("say", {"end_point" : end_point})
+
     http:post(url = end_point, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "post_response", "name": "post_response"}) setting(http_response)
 
-    fired { // When condition is true
-      // Store new_did_id for pico to use later?
-      // Should this be a raise event 
-      // Request sent
+    fired {
       raise dido event "request_sent" attributes event:attrs.put("http_response", http_response)
-
-    } else { // When condition is false from action
-      // Error Message Event ?? Ent variables to hold messages // Log //
-    } // Finally runs after both or always
+    }
   }
 
   rule request_sent {
@@ -359,95 +295,57 @@ ruleset io.picolabs.did-o {
       send_directive("say", {"HTTP Response Code" : event:attrs{"http_response"}{"status_code"}})
     
     fired {
-      // Create error message || Just go to the abandoned state
       raise dido event "abandon"
     }
   }
 
-  // Receive response
-    // OR Receive Problem Report
-  /** SAMPLE RESPONSE
-    {
-      "@type": "https://didcomm.org/didexchange/1.0/response",
-      "@id": "12345678900987654321",
-      "~thread": {
-        "thid": "<The Thread ID is the Message ID (@id) of the first message in the thread>"
-      },
-      "did": "B.did@B:A",
-      "did_doc~attach": {
-          "@id": "d2ab6f2b-5646-4de3-8c02-762f553ab804",
-          "mime-type": "application/json",
-          "data": {
-            "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-            "jws": {
-                "header": {
-                  "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                },
-                "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-                "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-                }
-          }
-      }
-    }
-  */
-
-  // Receive response 
   rule receive_response {
     select when dido receive_response
     pre {
-      // response = event:attrs{"response"}
-      // unpack response
-      // unpacked_response = dido:unpack(response)
-      // store did_doc
-      // did_doc = unpacked_response{"did_doc~attach"}
-      // stored_doc = dido:storeDidDoc(did_doc)
+      response = event:attrs{"response"}
+      unpacked_response = dido:unpack(response)
+      did_doc = unpacked_response{"did_doc~attach"}.klog("Attached DidDoc??")
+      stored_doc = dido:storeDidDoc(did_doc)
+      thread = unpacked_response{"body"}{"~thread"}
+
+      my_did = "my_did" // thread thid -> 
+      their_did = "their_did" // did_doc -> 
+      their_end_point = "their_end_point" // get did_doc associated with my did
     }
-
-    // Send Complete
-    /** SAMPLE COMPLETE MESSAGE
-      {
-        "@type": "https://didcomm.org/didexchange/1.0/complete",
-        "@id": "12345678900987654321",
-        "~thread": {
-          "thid": "<The Thread ID is the Message ID (@id) of the first message in the thread>",
-          "pthid": "<pthid used in request message>"
-        }
-      }
-     */
-
-    //http:post(end_point, body = request_message)
     
     fired {
-      raise dido event "send_complete" //attributes event:attrs//.put("my_end_point", my_end_point)
+      raise dido event "send_complete" attributes event:attrs.put("their_end_point", their_end_point)
+        .put("my_did", my_did)
+        .put("their_did", their_did)
     } else {
       raise dido event "send_error"
       raise dido event "abandon"
     }
-    // OR Send Problem-Report
-    /** SAMPLE ERROR MESSAGE
-      {
-        "@type": "https://didcomm.org/didexchange/1.0/problem_report",
-        "@id": "5678876542345",
-        "~thread": { "thid": "<@id of message related to problem>" },
-        "~l10n": { "locale": "en"},
-        "problem-code": "request_not_accepted", // matches codes listed above
-        "explain": "Unsupported DID method for provided DID."
-      }
-    */
   }
 
-  // Send complete
   rule send_complete {
     select when dido send_complete
     pre {
-      // Construct message
+      thid = event:attrs{"thid"}
+      pthid = event:attrs{"pthid"}
+      complete_message = generate_complete_message(thid, pthid)
+
+      endpoint = event:attrs{"their_end_point"}
+
+      my_did = event:attrs{"my_did"}
+      their_did = event:attrs{"their_did"}
+
+      packed_message = dido:pack(complete_message, my_did, their_did)
     }
 
+    http:post(url = endpoint, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "post_response", "name": "post_response"}) setting(http_response)
+
+    fired {
+      raise dido event "complete"
+    } else {
+      raise dido event "abandon"
+    }
   }
-  // // create complete message 
-  // complete_message = generate_complete(thid, pthid)
-  // thid (invite id), pthid (myDid)
-  // packed_message = dido:pack()
 
   rule complete {
     select when dido complete
@@ -458,9 +356,6 @@ ruleset io.picolabs.did-o {
     select when dido abandon
     send_directive("say", {"Abandoned" : "Abondoned"})
   }
-
-
-  
 
   /////////////////////////////////////////////////// RESPONDER (SENDER) /////////////////////////////////////////////////////////////
 
@@ -474,7 +369,7 @@ ruleset io.picolabs.did-o {
     }
     wrangler:createChannel(tag, eventPolicy, queryPolicy)
     fired {
-      end_point = create_end_point(getECI(tag[0]), "receive_request")
+      end_point = create_end_point(getECI(tag[0]))
       DIDdoc = create_DID("key", end_point)
       new_id = DIDdoc{"did"}
       public_key = DIDdoc{"did"}
