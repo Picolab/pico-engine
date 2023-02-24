@@ -263,7 +263,7 @@ ruleset io.picolabs.did-o {
       packed_message = dido:pack(request_message, new_did["did"], invite_id)
     }
 
-    http:post(url = end_point, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "post_response", "name": "post_response"}) setting(http_response)
+    http:post(url = end_point, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"}) //setting(http_response)
 
     fired {
       //raise dido event "request_sent" attributes event:attrs.put("http_response", http_response)
