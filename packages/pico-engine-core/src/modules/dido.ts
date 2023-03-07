@@ -15,6 +15,16 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             format: 'jwk',
         }
     });
+    const authKeyPair = await crypto.generateKeyPairSync("ed25519", {
+        publicKeyEncoding: {
+            type: 'spki',
+            format: 'jwk'
+        },
+        privateKeyEncoding: {
+            type: 'pkcs8',
+            format: 'jwk',
+        }
+    });
     const publicKeyMultiCodec = new Uint8Array(Buffer.from(sodium.from_base64(keyPair.publicKey.x)).length + 2);
     publicKeyMultiCodec.set([0xed, 0x01]);
     publicKeyMultiCodec.set(Buffer.from(sodium.from_base64(keyPair.publicKey.x)), 2);
@@ -36,6 +46,17 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
                 value: keyPair.publicKey
             },
         };
+        const authid = did + "#key-1"
+        const auth_ver_method: VerificationMethod =
+        {
+            id: authid,
+            type: "JsonWebKey2020",
+            controller: authid,
+            verification_material: {
+                format: "JWK",
+                value: authKeyPair.publicKey
+            },
+        };
 
         const secret: Secret =
         {
@@ -46,21 +67,29 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
                 value: keyPair.privateKey
             },
         };
+        const authSecret: Secret =
+        {
+            id: authid,
+            type: "JsonWebKey2020",
+            secret_material: {
+                format: "JWK",
+                value: authKeyPair.privateKey
+            },
+        };
 
         let secrets = await this.rsCtx.getEnt("didSecrets");
-        if (secrets) {
-            secrets[id] = secret;
-        } else {
+        if (!secrets) {
             secrets = {};
-            secrets[id] = secret;
         }
+        secrets[id] = secret;
+        secrets[authid] = authSecret;
         await this.rsCtx.putEnt("didSecrets", secrets);
 
         const doc: DIDDoc = {
             did: did,
             key_agreements: [id],
-            authentications: [],
-            verification_methods: [verification_method],
+            authentications: [authid],
+            verification_methods: [verification_method, auth_ver_method],
             services: [{
                 id: "#inline",
                 kind: {
@@ -210,8 +239,8 @@ const storeDidDoc = krl.Function(['diddoc'], async function (diddoc: DIDDoc) {
 
 const unpack = krl.Function(['message'], async function (message: any) {
     try {
-        var [unpack_msg, unpack_meta]: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
-        return unpack_msg.as_value();
+        var result: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
+        return result;
     } catch (error) {
         this.log.error("There was an error unpacking a message: ", { message: message, error: error });
         return null;
@@ -221,7 +250,7 @@ const unpack = krl.Function(['message'], async function (message: any) {
 const pack = krl.Function(['message', '_from', 'to'], async function (message: IMessage, _from: string, to: string) {
     try {
         let _message: Message = new Message(message)
-        const [enc_msg, packed_meta]: [string, PackEncryptedMetadata] = await _message.pack_encrypted(to, null, null, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), { forward: false }) as [string, PackEncryptedMetadata];
+        const [enc_msg, packed_meta]: [string, PackEncryptedMetadata] = await _message.pack_encrypted(to, _from, _from, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), { forward: false }) as [string, PackEncryptedMetadata];
         return JSON.parse(enc_msg);
     } catch (error) {
         this.log.error("There was an error packing a message: ", { message: message, error: error });
@@ -250,19 +279,53 @@ const getDIDDoc = krl.Function(['did'], async function (did: string) {
 });
 
 const route = krl.Function(['message'], async function (message: string) {
-    var unpacked: IMessage = await unpack(this, [message]);
+    var unpack_result: IMessage = await unpack(this, [message]);
+    var unpacked = unpack_result[0].as_value();
+    var unpack_meta = unpack_result[1];
     var routes = await this.rsCtx.getEnt("routes");
     try {
         if (unpacked.type != null) {
-            this.rsCtx.raiseEvent(routes[unpacked.type]["domain"], routes[unpacked.type]["name"], { "message": unpacked })
+            this.rsCtx.raiseEvent(routes[unpacked.type]["domain"], routes[unpacked.type]["name"], { "message": unpacked, "metadata": unpack_meta })
         } else if (unpacked.body["type"] != null) {
-            this.rsCtx.raiseEvent(routes[unpacked.body["type"]]["domain"], routes[unpacked.body["type"]]["name"], { "message": unpacked })
+            this.rsCtx.raiseEvent(routes[unpacked.body["type"]]["domain"], routes[unpacked.body["type"]]["name"], { "message": unpacked, "metadata": unpack_meta })
         } else {
-            this.log.error("Unknown route for message: ", { message: unpacked })
+            this.log.error("Unknown route for message: ", { message: unpacked, metadata: unpack_meta })
         }
     } catch (error) {
-        this.log.error("Error handling route for message: ", { message: unpacked, error: error })
+        this.log.error("Error handling route for message: ", { message: unpacked, metadata: unpack_meta, error: error })
     }
+});
+
+const mapDid = krl.Function(['their_did', 'my_did'], async function (their_did: string, my_did: string) {
+    var didMap = await this.rsCtx.getEnt("didMap");
+    if (!didMap) {
+        didMap = {};
+    }
+    didMap[their_did] = my_did;
+    await this.rsCtx.putEnt("didMap", didMap);
+});
+
+const clearDidMap = krl.Function([], async function() {
+    await this.rsCtx.putEnt("didMap", {});
+})
+
+const send = krl.Action(['did', 'message'], async function (did: string, message: string) {
+    var docs = await this.rsCtx.getEnt("didDocs");
+    var endpoint = docs[did]["services"][0]["kind"]["Other"]["serviceEndpoint"];
+    var didMap = await this.rsCtx.getEnt("didMap");
+    var my_did = didMap[did];
+    var packed_message = await pack(this, [message, my_did, did]);
+    this.log.debug("DIDO SEND", { packed_message: packed_message, my_did: my_did, their_did: did, endpoint: endpoint })
+    await this.krl.assertAction(this.module("http")!["post"])(this, {
+        "url": endpoint,
+        "json": packed_message,
+        "autosend": {
+            "eci": this.module("meta")!["eci"](this),
+            "domain": "dido",
+            "type": "dido_send_response",
+            "name": "dido_send_response"
+        }
+    });
 });
 
 const dido: krl.Module = {
@@ -276,7 +339,10 @@ const dido: krl.Module = {
     storeDidDoc: storeDidDoc,
     addRoute: addRoute,
     route: route,
-    getDIDDoc: getDIDDoc
+    getDIDDoc: getDIDDoc,
+    send: send,
+    mapDid: mapDid,
+    clearDidMap: clearDidMap
 }
 
 export default dido;

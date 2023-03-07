@@ -28,7 +28,7 @@ ruleset io.picolabs.did-o {
 
     provides create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc
 
-    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes
+    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes, getDidMap, clearDidMap
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -58,6 +58,14 @@ ruleset io.picolabs.did-o {
 
     getRoutes = function() {
       ent:routes
+    }
+
+    getDidMap = function() {
+      ent:didMap
+    }
+
+    clearDidMap = function() {
+      dido:clearDidMap()
     }
 
     //create channel
@@ -133,15 +141,15 @@ ruleset io.picolabs.did-o {
       invitation
     }
 
-    generate_response_message = function(my_did_doc, my_did, pthid) {
+    generate_response_message = function(my_did_doc, invite_id, their_did) {
       response = {
-        "id": my_did,
+        "id": my_did_doc{"did"},
         "typ": "application/didcomm-plain+json",
         "type": "https://didcomm.org/didexchange/1.0/response",
-        "thid": my_did,
-        "pthid": pthid,
+        "thid": their_did,
+        "pthid": invite_id,
         "body": {
-          "did": my_did,
+          "did": my_did_doc{"did"},
           "did_doc~attach": my_did_doc
         }
       }
@@ -153,7 +161,7 @@ ruleset io.picolabs.did-o {
         "id": my_did_doc{"did"},
         "type": "https://didcomm.org/didexchange/1.0/request",
         "typ": "application/didcomm-plain+json",
-        "thid": my_did_doc{"did"},
+        "thid": invite_id,
         "pthid": invite_id,
         "body": {
           "label": label,
@@ -179,6 +187,29 @@ ruleset io.picolabs.did-o {
       complete
     }
 
+    generate_trust_ping_message = function() {
+      message = {
+        "type": "https://didcomm.org/trust_ping/1.0/ping",
+        "typ": "application/didcomm-plain+json",
+        "id": random:uuid(),
+        "body": {
+          "response_requested": true
+        }
+      }
+      message
+    }
+
+    generate_trust_ping_response = function(thid) {
+      response = {
+        "type": "https://didcomm.org/trust_ping/1.0/ping_response",
+        "typ": "application/didcomm-plain+json",
+        "id": random:uuid(),
+        "thid": thid,
+        "body": {}
+      }
+      response
+    }
+
     create_new_endpoint = defaction(label) {
       tag = [label]
       eventPolicy = {"allow": [{"domain":"dido", "name":"*"}], "deny" : []}
@@ -194,6 +225,8 @@ ruleset io.picolabs.did-o {
       route0 = dido:addRoute("https://didcomm.org/didexchange/1.0/complete", "dido", "receive_complete")
       route1 = dido:addRoute("https://didcomm.org/didexchange/1.0/request", "dido", "receive_request")
       route2 = dido:addRoute("https://didcomm.org/didexchange/1.0/response", "dido", "receive_response")
+      route3 = dido:addRoute("https://didcomm.org/trust_ping/1.0/ping", "dido", "receive_trust_ping")
+      route4 = dido:addRoute("https://didcomm.org/trust_ping/1.0/ping_response", "dido", "receive_trust_ping_response")
     }
     
     if ent:host.isnull() then noop()
@@ -260,7 +293,7 @@ ruleset io.picolabs.did-o {
 
       request_message = generate_request_message(invite_id, new_did, label)
       
-      packed_message = dido:pack(request_message, new_did["did"], invite_id)
+      packed_message = dido:pack(request_message, null, invite_id)
     }
 
     http:post(url = end_point, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"}) //setting(http_response)
@@ -285,13 +318,12 @@ ruleset io.picolabs.did-o {
     select when dido receive_response
     pre {
       message = event:attrs{"message"}
-      //unpacked_response = dido:unpack(response)
       did_doc = message{"body"}{"did_doc~attach"}.klog("Attatched DidDoc??")
       stored_doc = dido:storeDidDoc(did_doc)
-      thread = message{"body"}{"~thread"}
-
-      my_did = thread{"thid"}
+      
       their_did = did_doc{"did"}
+      my_did = message{"thid"}
+      didMap = dido:mapDid(their_did, my_did)
       their_end_point = did_doc{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}
     }
     
@@ -418,11 +450,11 @@ ruleset io.picolabs.did-o {
       DID_doc = create_DID("peer", my_end_point).klog("new_doc: ")
 
       my_did = DID_doc{"did"}.klog("My did: ")
-
-      response_message = generate_response_message(DID_doc, my_did, thread{"pthid"}).klog("Response messaage: ")
+      didMap = dido:mapDid(their_did, my_did)
+      response_message = generate_response_message(DID_doc, thread{"pthid"}, their_did).klog("Response messaage: ")
 
       doc = dido:storeDidDoc(request_message{"body"}{"did_doc~attach"})
-      packed_response = dido:pack(response_message, my_did, their_did).klog("Packed response: ")
+      packed_response = dido:pack(response_message, null, their_did).klog("Packed response: ")
     }
     http:post(url = end_point, json = packed_response, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"}) //setting(http_response)
     // fired { 
@@ -473,7 +505,39 @@ ruleset io.picolabs.did-o {
     send_directive("say", {"error_message" : error_message})
   }
 
+
+
+
+  // ////////////////////////////////////////// TRUST PING /////////////////////////////////////////////
+  
+  rule send_trust_ping {
+    select when dido send_trust_ping
+    pre {
+      their_did = event:attrs{"did"}.klog("Their did: ")
+      message = generate_trust_ping_message()
+    }
+    dido:send(their_did, message)
+  }
+
+  rule receive_trust_ping {
+    select when dido receive_trust_ping
+    pre {
+      message = event:attrs{"message"}.klog("Trust ping message: ")
+      metadata = event:attrs{"metadata"}.klog("Unpack metadata: ")
+      their_did = metadata{"encrypted_from_kid"}.split("#")[0].klog("Their did: ")
+      response = generate_trust_ping_response(message{"id"})
+    }
+    dido:send(their_did, response)
+  }
+
+  rule receive_trust_ping_response {
+    select when dido receive_trust_ping_response
+
+  }
 }
+
+
+
 
 /*
 DID-O - V 1.0.0
