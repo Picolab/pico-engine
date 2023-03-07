@@ -256,8 +256,6 @@ ruleset io.picolabs.did-o {
     pre {
       //invite_url = event:attrs{"Invite_URL"}
       base64 = event:attrs{"Invite_Code"}
-
-      //base64 = invite_url.extract(re#ssi?oob=(\w+)#).klog("after oob?")
       
       invite = math:base64decode(base64).decode()
 
@@ -302,17 +300,6 @@ ruleset io.picolabs.did-o {
       //raise dido event "request_sent" attributes event:attrs.put("http_response", http_response)
     }
   }
-
-  // rule request_sent {
-  //   select when dido request_sent 
-
-  //   if(event:attrs{"http_response"}{"status_code"} != 200) then
-  //     send_directive("say", {"HTTP Response Code" : event:attrs{"http_response"}{"status_code"}})
-    
-  //   fired {
-  //     raise dido event "abandon"
-  //   }
-  // }
 
   rule receive_response {
     select when dido receive_response
@@ -424,9 +411,7 @@ ruleset io.picolabs.did-o {
     select when dido receive_request
 
     pre {
-      // packed_message = event:attrs.delete("_headers").klog("request message received!")
       request_message = event:attrs{"message"}
-      // request_message = dido:unpack(packed_message).klog("Unpacked: ")
 
       their_did = request_message{"id"}.klog("Their did: ")
     }
@@ -457,28 +442,9 @@ ruleset io.picolabs.did-o {
       packed_response = dido:pack(response_message, null, their_did).klog("Packed response: ")
     }
     http:post(url = end_point, json = packed_response, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"}) //setting(http_response)
-    // fired { 
-      // raise dido event "response_sent" attributes event:attrs.put("response_message", response_message).put("http_reponse", http_response)
-    // }
   }
   
-  // rule response_sent {
-  //   select when dido response_sent
-    
-  //   pre {
-  //     response_message = event:attrs{"response_message"}.klog("response message sent")
-  //     http_response = event:attrs{"http_response"}
-  //   }
-    
-  //   if (http_response{"status_code"} == 200) then 
-  //     send_directive("say", {"HTTP Response Code" : http_response{"status_code"}})
-  //     fired {
-  //     }
-  //   else {
-  //     raise dido event "received_error" attributes event:attrs.put("error", response_message)
-  //   }
-  // }
-
+  
   rule receive_complete {
     select when dido receive_complete
     always {
@@ -507,9 +473,7 @@ ruleset io.picolabs.did-o {
 
 
 
-
-  // ////////////////////////////////////////// TRUST PING /////////////////////////////////////////////
-  
+  ///////////////////////////////////////////// TRUST PING //////////////////////////////////////////////
   rule send_trust_ping {
     select when dido send_trust_ping
     pre {
