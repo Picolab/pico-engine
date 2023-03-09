@@ -14,7 +14,6 @@ DID-O V 0.1.0
 ⠀⠿⣇⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⣀⣀⠀⠀⠀⠀⢀⣀⣸⠿
 ⠀⠀⠙⢳⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⡞⠛⠛⠛⠛⠛⠛⣶⣶⣶⣶⡞⠛⠃⠀
 */
-
 ruleset io.picolabs.did-o {
   meta {
     name "did-o"
@@ -28,7 +27,7 @@ ruleset io.picolabs.did-o {
 
     provides create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc
 
-    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes, getDidMap, clearDidMap
+    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes, getDidMap, clearDidMap, get_PendingRequests
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -74,9 +73,7 @@ ruleset io.picolabs.did-o {
       end_point
     }
     
-    //
     create_DID_Doc = function() {
-      //random:uuid()
       id = generate_id()
       DID_Doc = {
         "@id": id,
@@ -103,6 +100,12 @@ ruleset io.picolabs.did-o {
     clearDidDocs = function() {
       dido:clearDidDocs()
     }
+
+    //
+    get_PendingRequests = function() {
+      ent:pendingRequests
+    }
+
 
     get_explicit_invite = function() {
       msg = ent:explicit_invite
@@ -230,9 +233,9 @@ ruleset io.picolabs.did-o {
     }
     
     if ent:host.isnull() then noop()
-    
     fired {
       ent:host := "http://172.17.0.2:3000"
+      ent:pendingRequests := {}
     }
   }
 
@@ -254,7 +257,6 @@ ruleset io.picolabs.did-o {
   rule receive_invite {
     select when dido receive_invite
     pre {
-      //invite_url = event:attrs{"Invite_URL"}
       base64 = event:attrs{"Invite_Code"}
       
       invite = math:base64decode(base64).decode()
@@ -350,7 +352,6 @@ ruleset io.picolabs.did-o {
 
   rule complete {
     select when dido complete
-    // send_directive("say", {"Completed" : "Completed"})
   }
 
   rule abandon {
@@ -406,14 +407,26 @@ ruleset io.picolabs.did-o {
     }
   }
 
-
   rule receive_request {
     select when dido receive_request
 
     pre {
       request_message = event:attrs{"message"}
 
-      their_did = request_message{"id"}.klog("Their did: ")
+      request_id = request_message{"id"}.klog("Their did: ")
+    }
+    fired {
+      ent:pendingRequest := ent:pendingRequest.defaultsTo({}).put(request_id, request_message)
+    } 
+  }
+
+  rule accept_request {
+    select when dido accept_request
+
+    pre {
+      their_did = event:attrs{"Request ID"}
+      request_message = ent:pendingRequest.get(their_did)
+      updated_PR = ent:pendingRequest.delete(their_did)
     }
     create_new_endpoint(their_did) setting(my_end_point)
     fired {
@@ -421,6 +434,21 @@ ruleset io.picolabs.did-o {
     } else {
       raise dido event "abandon"
     }
+  }
+
+  rule decline_request {
+    select when dido decline_request
+
+    pre {
+      request_id = event:attrs{"request_id"}
+
+      updated_pendingRequest = ent:pendingRequests.delete(request_id)
+    }
+    if(updated_pendingRequest != ent:pendingRequest) then noop()
+    fired {
+      raise dido event "rule_error" attributes event:attrs.put("error", "decline request rule")
+    }
+
   }
   
   rule send_response {
@@ -472,6 +500,13 @@ ruleset io.picolabs.did-o {
   }
 
 
+  rule rule_error {
+    select when dido rule_error
+    pre {
+      error_message = event:attrs{"error"}.klog("Error comes from: ")
+    }
+    send_directive("say", {"There is an error in " : error_message})
+  }
 
   ///////////////////////////////////////////// TRUST PING //////////////////////////////////////////////
   rule send_trust_ping {
