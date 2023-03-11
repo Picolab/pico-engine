@@ -305,27 +305,54 @@ const mapDid = krl.Function(['their_did', 'my_did'], async function (their_did: 
     await this.rsCtx.putEnt("didMap", didMap);
 });
 
-const clearDidMap = krl.Function([], async function() {
+const clearDidMap = krl.Function([], async function () {
     await this.rsCtx.putEnt("didMap", {});
 })
 
-const send = krl.Action(['did', 'message'], async function (did: string, message: string) {
-    var docs = await this.rsCtx.getEnt("didDocs");
-    var endpoint = docs[did]["services"][0]["kind"]["Other"]["serviceEndpoint"];
-    var didMap = await this.rsCtx.getEnt("didMap");
-    var my_did = didMap[did];
-    var packed_message = await pack(this, [message, my_did, did]);
-    this.log.debug("DIDO SEND", { packed_message: packed_message, my_did: my_did, their_did: did, endpoint: endpoint })
-    await this.krl.assertAction(this.module("http")!["post"])(this, {
-        "url": endpoint,
-        "json": packed_message,
-        "autosend": {
-            "eci": this.module("meta")!["eci"](this),
-            "domain": "dido",
-            "type": "dido_send_response",
-            "name": "dido_send_response"
-        }
-    });
+const send = krl.Function(['did', 'message'], async function (did: string, message: string) {
+    try {
+        var docs = await this.rsCtx.getEnt("didDocs");
+        this.log.debug("DOCS: ", docs);
+        var endpoint = docs[did]["services"][0]["kind"]["Other"]["serviceEndpoint"];
+        var didMap = await this.rsCtx.getEnt("didMap");
+        var my_did = didMap[did];
+        var packed_message = await pack(this, [message, my_did, did]);
+        this.log.debug("DIDO SEND", { packed_message: packed_message, my_did: my_did, their_did: did, endpoint: endpoint })
+        var formatted = did.replace(/:/g, "-").toLowerCase();
+        this.log.debug("FORMATTED DID: ", formatted)
+        var channels = this.rsCtx.pico().channels;
+        this.log.debug("CHANNELS: ", channels)
+        var filtered = channels.filter(c => c.tags.indexOf(formatted) >= 0);
+        this.log.debug("FILTERED: ", filtered);
+        var first = filtered[0];
+        this.log.debug("FIRST: ", first)
+        var eci = first["id"];
+        this.log.debug("ECI: ", eci);
+        await this.krl.assertAction(this.module("http")!["post"])(this, {
+            "url": endpoint,
+            "json": packed_message,
+            "autosend": {
+                "eci": eci,
+                "domain": "dido",
+                "type": "dido_send_response",
+                "name": "dido_send_response"
+            }
+        });
+    } catch (error) {
+        this.log.error("Error sending did message: ", { error: error, did: did, message: message })
+    }
+});
+
+const addLabelsToChannel = krl.Function(['eci', 'labels'], async function(eci: string, labels: any) {
+    this.log.debug("ECI: ", eci);
+    var channel = this.rsCtx.pico().channels.filter( c => c.id == eci );
+    this.log.debug("FILTERED: ", channel)
+    this.log.debug("CHANNELS: ", this.rsCtx.pico().channels);
+    var tags = channel[0].tags.concat(labels);
+    var eventPolicy = channel[0]["eventPolicy"]
+    var queryPolicy = channel[0]["queryPolicy"]
+    var conf = { tags, eventPolicy, queryPolicy };
+    await this.rsCtx.putChannel(eci, conf);
 });
 
 const dido: krl.Module = {
@@ -342,7 +369,8 @@ const dido: krl.Module = {
     getDIDDoc: getDIDDoc,
     send: send,
     mapDid: mapDid,
-    clearDidMap: clearDidMap
+    clearDidMap: clearDidMap,
+    addLabelsToChannel: addLabelsToChannel
 }
 
 export default dido;

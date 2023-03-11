@@ -25,15 +25,23 @@ ruleset io.picolabs.did-o {
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
 
 
-    provides create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc
+    provides addRoute, send
 
-    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes, getDidMap, clearDidMap, get_PendingRequests
+    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes, getDidMap, clearDidMap, get_PendingRequests, addRoute
     
     use module io.picolabs.wrangler alias wrangler
   }
 
 
-  global {   
+  global {
+    addRoute = function(type, _domain, name) {
+      dido:addRoute(type, _domain, name)
+    }
+
+    send = function(did, message) {
+      dido:send(did, message)
+    }
+
     create_DID = function(type, endpoint) {
       DID = dido:generateDID(type, endpoint)
       DID
@@ -313,6 +321,7 @@ ruleset io.picolabs.did-o {
       their_did = did_doc{"did"}
       my_did = message{"thid"}
       didMap = dido:mapDid(their_did, my_did)
+      addLabel = dido:addLabelsToChannel(meta:eci, their_did)
       their_end_point = did_doc{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}
     }
     
@@ -514,8 +523,8 @@ ruleset io.picolabs.did-o {
     pre {
       their_did = event:attrs{"did"}.klog("Their did: ")
       message = generate_trust_ping_message()
+      send = dido:send(their_did, message)
     }
-    dido:send(their_did, message)
   }
 
   rule receive_trust_ping {
@@ -525,8 +534,8 @@ ruleset io.picolabs.did-o {
       metadata = event:attrs{"metadata"}.klog("Unpack metadata: ")
       their_did = metadata{"encrypted_from_kid"}.split("#")[0].klog("Their did: ")
       response = generate_trust_ping_response(message{"id"})
+      send = dido:send(their_did, response)
     }
-    dido:send(their_did, response)
   }
 
   rule receive_trust_ping_response {
