@@ -101,8 +101,7 @@ ruleset io.picolabs.did-o {
     }
 
     didDocs = function() {
-      docs = ent:didDocs
-      docs
+      ent:didDocs
     }
 
     clearDidDocs = function() {
@@ -243,7 +242,7 @@ ruleset io.picolabs.did-o {
     if ent:host.isnull() then noop()
     fired {
       ent:host := "http://172.17.0.2:3000"
-      ent:pendingRequests := {}
+      // ent:pendingRequests := {}
     }
   }
 
@@ -424,8 +423,8 @@ ruleset io.picolabs.did-o {
 
       request_id = request_message{"id"}.klog("Their did: ")
     }
-    fired {
-      ent:pendingRequest := ent:pendingRequest.defaultsTo({}).put(request_id, request_message)
+    always {
+      ent:pendingRequests := ent:pendingRequests.defaultsTo({}).put(request_id, request_message)
     } 
   }
 
@@ -433,11 +432,11 @@ ruleset io.picolabs.did-o {
     select when dido accept_request
 
     pre {
-      their_did = event:attrs{"Request ID"}
-      request_message = ent:pendingRequest.get(their_did)
-      updated_PR = ent:pendingRequest.delete(their_did)
+      request_id = event:attrs{"id"}
+      request_message = ent:pendingRequests.defaultsTo({}){request_id}
+      updated_PR = ent:pendingRequests.defaultsTo({}).delete(request_id)
     }
-    create_new_endpoint(their_did) setting(my_end_point)
+    create_new_endpoint(request_id) setting(my_end_point)
     fired {
       raise dido event "send_response" attributes event:attrs.put("my_end_point", my_end_point).put("request_message", request_message)
     } else {
@@ -453,7 +452,7 @@ ruleset io.picolabs.did-o {
 
       updated_pendingRequest = ent:pendingRequests.delete(request_id)
     }
-    if(updated_pendingRequest != ent:pendingRequest) then noop()
+    if(updated_pendingRequest != ent:pendingRequests) then noop()
     fired {
       raise dido event "rule_error" attributes event:attrs.put("error", "decline request rule")
     }
