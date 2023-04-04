@@ -80,25 +80,6 @@ ruleset io.picolabs.did-o {
       end_point = getHost() + "/sky/event/" + eci + "/none/dido/" + "didcommv2_message"
       end_point
     }
-    
-    create_DID_Doc = function() {
-      id = generate_id()
-      DID_Doc = {
-        "@id": id,
-        "mime-type": "application/json",
-        "data": {
-          "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-          "jws": {
-            "header": {
-              "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-            },
-            "protected": "eyJhbGciOiJFZERTQSIsImlhdCI6MTU4Mzg4... (bytes omitted)",
-            "signature": "3dZWsuru7QAVFUCtTd0s7uc1peYEijx4eyt5... (bytes omitted)"
-          }
-        }
-      }
-      DID_Doc
-    }
 
     didDocs = function() {
       ent:didDocs
