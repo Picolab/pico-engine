@@ -3,9 +3,10 @@ import { Message, DIDDoc, DIDResolver, Secret, SecretsResolver, VerificationMeth
 const bs58 = require('bs58');
 const sodium = require('libsodium-wrappers')
 const crypto = require('crypto')
+const didregex = /^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\.(S)[0-9a-zA-Z=]*)?)))$/
 
 const generateDID = krl.Function(['type', 'endpoint'], async function (type: string | undefined, endpoint: string | undefined): Promise<any> {
-    const keyPair = await crypto.generateKeyPairSync("x25519", {
+    const encryptionKeyPair = await crypto.generateKeyPairSync("x25519", {
         publicKeyEncoding: {
             type: 'spki',
             format: 'jwk'
@@ -15,7 +16,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             format: 'jwk',
         }
     });
-    const authKeyPair = await crypto.generateKeyPairSync("ed25519", {
+    const signingKeyPair = await crypto.generateKeyPairSync("ed25519", {
         publicKeyEncoding: {
             type: 'spki',
             format: 'jwk'
@@ -25,17 +26,31 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             format: 'jwk',
         }
     });
-    const publicKeyMultiCodec = new Uint8Array(Buffer.from(sodium.from_base64(keyPair.publicKey.x)).length + 2);
-    publicKeyMultiCodec.set([0xed, 0x01]);
-    publicKeyMultiCodec.set(Buffer.from(sodium.from_base64(keyPair.publicKey.x)), 2);
+    const encryptionPublicKeyMultiCodec = new Uint8Array(Buffer.from(sodium.from_base64(encryptionKeyPair.publicKey.x)).length + 2);
+    encryptionPublicKeyMultiCodec.set([0xec, 0x01]);
+    encryptionPublicKeyMultiCodec.set(Buffer.from(sodium.from_base64(encryptionKeyPair.publicKey.x)), 2);
+    const base58EncryptionPublicKey = bs58.encode(Buffer.from(encryptionPublicKeyMultiCodec));
+    const signingPublicKeyMultiCodec = new Uint8Array(Buffer.from(sodium.from_base64(signingKeyPair.publicKey.x)).length + 2);
+    signingPublicKeyMultiCodec.set([0xed, 0x01]);
+    signingPublicKeyMultiCodec.set(Buffer.from(sodium.from_base64(signingKeyPair.publicKey.x)), 2);
+    const base58SigningPublicKey = bs58.encode(Buffer.from(signingPublicKeyMultiCodec));
+
+
     if (type == "key" || type == "peer") {
         let did
         if (type == "key") {
-            did = "did:key:z" + bs58.encode(Buffer.from(publicKeyMultiCodec))
+            did = "did:key:z" + base58EncryptionPublicKey;
         } else {
-            did = "did:peer:0z" + bs58.encode(Buffer.from(publicKeyMultiCodec))
+            const service = ".S" + sodium.to_base64(JSON.stringify({
+                "t": "dm",
+                "s": endpoint,
+                "a": ["didcomm/v2", "didcomm/aip2;env=rfc587"]
+            }), sodium.base64_variants.URLSAFE).replace("=", "");
+            const encryption = ".Ez" + base58EncryptionPublicKey;
+            const signing = ".Vz" + base58SigningPublicKey;
+            did = "did:peer:2" + encryption + signing + service;
         }
-        const id = did + "#key-x25519-1";
+        const id = did + "#" + base58EncryptionPublicKey;
         const verification_method: VerificationMethod =
         {
             id: id,
@@ -43,10 +58,10 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             controller: id,
             verification_material: {
                 format: "JWK",
-                value: keyPair.publicKey
+                value: encryptionKeyPair.publicKey
             },
         };
-        const authid = did + "#key-1"
+        const authid = did + "#" + base58SigningPublicKey
         const auth_ver_method: VerificationMethod =
         {
             id: authid,
@@ -54,7 +69,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             controller: authid,
             verification_material: {
                 format: "JWK",
-                value: authKeyPair.publicKey
+                value: signingKeyPair.publicKey
             },
         };
 
@@ -64,7 +79,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             type: "JsonWebKey2020",
             secret_material: {
                 format: "JWK",
-                value: keyPair.privateKey
+                value: encryptionKeyPair.privateKey
             },
         };
         const authSecret: Secret =
@@ -73,7 +88,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
             type: "JsonWebKey2020",
             secret_material: {
                 format: "JWK",
-                value: authKeyPair.privateKey
+                value: signingKeyPair.privateKey
             },
         };
 
@@ -117,9 +132,9 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
     }
 
     return {
-        did: bs58.encode(Buffer.from(publicKeyMultiCodec)),
-        publicKey: keyPair.publicKey,
-        secret: keyPair.privateKey
+        did: bs58.encode(Buffer.from(encryptionPublicKeyMultiCodec)),
+        publicKey: encryptionKeyPair.publicKey,
+        secret: encryptionKeyPair.privateKey
     };
 });
 
@@ -343,9 +358,9 @@ const send = krl.Function(['did', 'message'], async function (did: string, messa
     }
 });
 
-const addLabelsToChannel = krl.Function(['eci', 'labels'], async function(eci: string, labels: any) {
+const addLabelsToChannel = krl.Function(['eci', 'labels'], async function (eci: string, labels: any) {
     this.log.debug("ECI: ", eci);
-    var channel = this.rsCtx.pico().channels.filter( c => c.id == eci );
+    var channel = this.rsCtx.pico().channels.filter(c => c.id == eci);
     this.log.debug("FILTERED: ", channel)
     this.log.debug("CHANNELS: ", this.rsCtx.pico().channels);
     var tags = channel[0].tags.concat(labels);

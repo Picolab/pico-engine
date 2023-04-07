@@ -27,7 +27,7 @@ ruleset io.picolabs.did-o {
 
     provides addRoute, send
 
-    shares create_DID, create_DID_Doc, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes, getDidMap, clearDidMap, get_PendingRequests, addRoute
+    shares create_DID, get_explicit_invite, get_invitation_did_doc, didDocs, clearDidDocs, getHost, getRoutes, getDidMap, clearDidMap, get_PendingRequests, addRoute
     
     use module io.picolabs.wrangler alias wrangler
   }
