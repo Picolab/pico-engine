@@ -107,26 +107,35 @@ ruleset io.picolabs.did-o {
 
     create_explicit_invitation = function(new_id, public_key, end_point) {
       invitation = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.1/invitation",
-        "@id": new_id,
-        "label": "explicitinvitation",
-        "accept": [
-          "didcomm/v2",
-          "didcomm/aip2;env=rfc587"
-        ],
-        "services": [
-          {
-            "id": "#inline",
-            "type": "did-communication",
-            "recipientKeys": [
-              public_key
-            ],
-            "serviceEndpoint": end_point
-          }
-        ],
-        "handshake_protocols": [
-          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
-        ]
+        "type": "https://didcomm.org/out-of-band/2.0/invitation",
+        "id": new_id,
+        "from": new_id,
+        "body": {
+          "goal_code": "exchange-did",
+          "goal": "ExchangeDid",
+          "label": "PicoInvite",
+          "accept": [
+            "didcomm/v2"
+          ]
+        }
+        // "label": "explicitinvitation",
+        // "accept": [
+        //   "didcomm/v2",
+        //   "didcomm/aip2;env=rfc587"
+        // ],
+        // "services": [
+        //   {
+        //     "id": "#inline",
+        //     "type": "did-communication",
+        //     "recipientKeys": [
+        //       public_key
+        //     ],
+        //     "serviceEndpoint": end_point
+        //   }
+        // ],
+        // "handshake_protocols": [
+        //   "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+        // ]
       }
 
       invitation
@@ -145,7 +154,7 @@ ruleset io.picolabs.did-o {
         "pthid": invite_id,
         "body": {
           "did": my_did_doc{"did"},
-          "did_doc~attach": my_did_doc
+          //"did_doc~attach": my_did_doc
         }
       }
       response
@@ -162,7 +171,7 @@ ruleset io.picolabs.did-o {
           "label": label,
           "goal": "To establish a peer did connection",
           "did": my_did_doc{"did"},
-          "did_doc~attach": my_did_doc
+          //"did_doc~attach": my_did_doc
         }
       }
 
@@ -253,16 +262,17 @@ ruleset io.picolabs.did-o {
       base64 = url.split("_oob=")[1]
       invite = math:base64decode(base64).decode()
 
-      label = invite{"label"}
-      invite_id = invite{"@id"}
-      end_point = invite{"services"}[0]{"serviceEndpoint"}.klog("Endpoint ??")
-      recipientKeys = invite{"services"}[0]{"recipientKeys"}[0]
+      label = invite{"body"}{"label"}
+      invite_id = invite{"id"}
+      _from = invite{"from"}
+      //end_point = invite{"services"}[0]{"serviceEndpoint"}.klog("Endpoint ??")
+      //recipientKeys = invite{"services"}[0]{"recipientKeys"}[0]
     }
     
     create_new_endpoint(label) setting(my_end_point)
 
     fired {
-      something = dido:storeDidNoDoc(invite_id, recipientKeys, end_point)
+      something = dido:storeDidDoc(_from)
       raise dido event "send_request" attributes event:attrs.put("my_end_point", my_end_point).put("decoded_invite", invite)
     } else {
       raise dido event "abandon"
@@ -276,10 +286,10 @@ ruleset io.picolabs.did-o {
 
       invite = event:attrs{"decoded_invite"}
 
-      label = invite{"label"}
-      invite_id = invite{"@id"}
-      end_point = invite{"services"}[0]{"serviceEndpoint"}
-      recipientKeys = invite{"services"}[0]{"recipientKeys"}[0]
+      label = invite{"body"}{"label"}
+      invite_id = invite{"id"}
+      end_point = ent:didDocs{invite{"from"}}{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}
+      //recipientKeys = invite{"services"}[0]{"recipientKeys"}[0]
 
       new_did = create_DID("peer", my_end_point)
 
@@ -299,14 +309,14 @@ ruleset io.picolabs.did-o {
     select when dido receive_response
     pre {
       message = event:attrs{"message"}
-      did_doc = message{"body"}{"did_doc~attach"}.klog("Attatched DidDoc??")
-      stored_doc = dido:storeDidDoc(did_doc)
+      // did_doc = message{"body"}{"did_doc~attach"}.klog("Attatched DidDoc??")
+      stored_doc = dido:storeDidDoc(message{"body"}{"did"})
       
-      their_did = did_doc{"did"}
+      their_did = message{"body"}{"did"}
       my_did = message{"thid"}
       didMap = dido:mapDid(their_did, my_did)
       addLabel = dido:addLabelsToChannel(meta:eci, their_did)
-      their_end_point = did_doc{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}
+      their_end_point = ent:didDocs{their_did}{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}
     }
     
     fired {
@@ -365,7 +375,7 @@ ruleset io.picolabs.did-o {
     wrangler:createChannel(tag, eventPolicy, queryPolicy)
     fired {
       end_point = create_end_point(getECI(tag[0]))
-      DIDdoc = create_DID("key", end_point)
+      DIDdoc = create_DID("peer", end_point)
       new_id = DIDdoc{"did"}
       public_key = DIDdoc{"did"}
       explicit_invitation = create_explicit_invitation(new_id, public_key, end_point)
@@ -450,17 +460,17 @@ ruleset io.picolabs.did-o {
     pre {
       my_end_point = event:attrs{"my_end_point"}
       request_message = event:attrs{"request_message"}.klog("request message in send_response")
+      doc = dido:storeDidDoc(request_message{"body"}{"did"})
       type = request_message{"type"}.klog("type: ")
       thread = request_message{"~thread"}
-      end_point = request_message{"body"}{"did_doc~attach"}{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}.klog("The end Point: ")
-      their_did = request_message{"id"}.klog("Their did: ")
+      their_did = request_message{"body"}{"did"}.klog("Their did: ")
+      end_point = ent:didDocs{their_did}{"services"}[0]{"kind"}{"Other"}{"serviceEndpoint"}.klog("The end Point: ")
       DID_doc = create_DID("peer", my_end_point).klog("new_doc: ")
 
       my_did = DID_doc{"did"}.klog("My did: ")
       didMap = dido:mapDid(their_did, my_did)
       response_message = generate_response_message(DID_doc, thread{"pthid"}, their_did).klog("Response messaage: ")
 
-      doc = dido:storeDidDoc(request_message{"body"}{"did_doc~attach"})
       packed_response = dido:pack(response_message, null, their_did).klog("Packed response: ")
     }
     http:post(url = end_point, json = packed_response, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"}) //setting(http_response)

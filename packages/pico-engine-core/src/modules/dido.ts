@@ -45,7 +45,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
                 "t": "dm",
                 "s": endpoint,
                 "a": ["didcomm/v2", "didcomm/aip2;env=rfc587"]
-            }), sodium.base64_variants.URLSAFE).replace("=", "");
+            }), sodium.base64_variants.URLSAFE).replace(/=/g, "");
             const encryption = ".Ez" + base58EncryptionPublicKey;
             const signing = ".Vz" + base58SigningPublicKey;
             did = "did:peer:2" + encryption + signing + service;
@@ -55,7 +55,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
         {
             id: id,
             type: "JsonWebKey2020",
-            controller: id,
+            controller: did,
             verification_material: {
                 format: "JWK",
                 value: encryptionKeyPair.publicKey
@@ -66,7 +66,7 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
         {
             id: authid,
             type: "JsonWebKey2020",
-            controller: authid,
+            controller: did,
             verification_material: {
                 format: "JWK",
                 value: signingKeyPair.publicKey
@@ -109,11 +109,11 @@ const generateDID = krl.Function(['type', 'endpoint'], async function (type: str
                 id: "#inline",
                 kind: {
                     "Other": {
-                        "type": "did-communication",
-                        "recipientKeys": [
-                            did
-                        ],
-                        "serviceEndpoint": endpoint
+                        id: did + "#didcommmessaging-0",
+                        type: "DIDCommMessaging",
+                        serviceEndpoint: endpoint,
+                        accept: ["didcomm/v2", "didcomm/aip2;env=rfc587"],
+                        routingKeys: []
                     }
                 },
             }]
@@ -187,15 +187,15 @@ class PicoSecretsResolver implements SecretsResolver {
 
 }
 
-const JWKFromDIDKey = function (key: string) {
-    const regex = /^did:([a-z]+):[0-2]?z([a-zA-z\d]+)/
-    let res = regex.exec(key)
-    if (res) {
-        let multicodec = res[2]
-        let multi_decoded = bs58.decode(multicodec)
+const JWKFromMultibase = function (multibase: string, crv: string) {
+    // const regex = /^did:([a-z]+):[0-2]?z([a-zA-z\d]+)/
+    // let res = regex.exec(key)
+    // if (res) {
+        // let multicodec = res[2]
+        let multi_decoded = bs58.decode(multibase);
         let key = sodium.to_base64(Buffer.from(multi_decoded.slice(2)), sodium.base64_variants.URLSAFE).replace("=", "");
-        return { crv: "X25519", x: key, kty: "OKP" }
-    }
+        return { crv: crv, x: key, kty: "OKP" }
+    // }
 }
 
 const storeDidNoDoc = krl.Function(['did', 'key', 'endpoint'], async function (did: string, key: string, endpoint: string) {
@@ -206,7 +206,7 @@ const storeDidNoDoc = krl.Function(['did', 'key', 'endpoint'], async function (d
         controller: did,
         verification_material: {
             format: "JWK",
-            value: JWKFromDIDKey(key)
+            value: JWKFromMultibase(key, "X25519")
         }
     };
     const doc: DIDDoc = {
@@ -238,7 +238,69 @@ const storeDidNoDoc = krl.Function(['did', 'key', 'endpoint'], async function (d
     return doc;
 });
 
-const storeDidDoc = krl.Function(['diddoc'], async function (diddoc: DIDDoc) {
+const storeDidDoc = krl.Function(['input'], async function (input: any) {
+
+    let diddoc: DIDDoc;
+    if (typeof input === 'object' && typeof input !== 'string') {
+        diddoc = input;
+    } else if (didregex.test(input)) {
+        let parts = (input as string).split('.');
+        let keyAgs: string[] = [];
+        let auths: string[] = [];
+        let verMeths: VerificationMethod[] = [];
+        let services: any[] = [];
+        parts.forEach(part => {
+            if(part[0] === 'E') {
+                keyAgs.push(input + "#" + part.substring(2));
+                verMeths.push({
+                    id: input + "#" + part.substring(2),
+                    type: "JsonWebKey2020",
+                    controller: input,
+                    verification_material: {
+                        format: "JWK",
+                        value: JWKFromMultibase(part.substring(2), "X25519")
+                    }
+                });
+            } else if (part[0] === 'V') {
+                auths.push(input + "#" + part.substring(2));
+                verMeths.push({
+                    id: input + "#" + part.substring(2),
+                    type: "JsonWebKey2020",
+                    controller: input,
+                    verification_material: {
+                        format: "JWK",
+                        value: JWKFromMultibase(part.substring(2), "Ed25519")
+                    }
+                });
+            } else if (part[0] === 'S') {
+                let service = JSON.parse(Buffer.from(part.substring(1), "base64").toString("utf8"));
+                this.log.debug(JSON.stringify(service));
+                services.push({
+                    id: input,
+                    kind: {
+                        "Other": {
+                            id: input + "#didcommmessaging-0",
+                            type: "DIDCommMessaging",
+                            serviceEndpoint: service["s"],
+                            routingKeys: service["r"],
+                            accept: service["a"],
+                        }
+                    }
+                });
+            }
+        });
+        
+        diddoc = {
+            did: input,
+            key_agreements: keyAgs,
+            authentications: auths,
+            verification_methods: verMeths,
+            services: services
+        }
+    } else {
+        this.log.error("Unable to parse DIDDoc", input);
+        return "Unable to parse DIDDoc";
+    }
     let docs = await this.rsCtx.getEnt("didDocs");
 
     if (docs) {
@@ -268,7 +330,7 @@ const pack = krl.Function(['message', '_from', 'to'], async function (message: I
         const [enc_msg, packed_meta]: [string, PackEncryptedMetadata] = await _message.pack_encrypted(to, _from, _from, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), { forward: false }) as [string, PackEncryptedMetadata];
         return JSON.parse(enc_msg);
     } catch (error) {
-        this.log.error("There was an error packing a message: ", { message: message, error: error });
+        this.log.error("There was an error packing a message: ", { message: message, from: _from, to: to, error: error });
         return null;
     }
 });
