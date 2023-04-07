@@ -132,6 +132,10 @@ ruleset io.picolabs.did-o {
       invitation
     }
 
+    create_invite_url = function(base64) {
+      "http://example.com?_oob=" + base64
+    }
+
     generate_response_message = function(my_did_doc, invite_id, their_did) {
       response = {
         "id": my_did_doc{"did"},
@@ -245,8 +249,8 @@ ruleset io.picolabs.did-o {
   rule receive_invite {
     select when dido receive_invite
     pre {
-      base64 = event:attrs{"Invite_Code"}
-      
+      url = event:attrs{"Invite_URL"}
+      base64 = url.split("_oob=")[1]
       invite = math:base64decode(base64).decode()
 
       label = invite{"label"}
@@ -381,9 +385,10 @@ ruleset io.picolabs.did-o {
       invitation = event:attrs{"invitation"}.klog("Invite: ")
       base64 = math:base64encode(invitation.encode()).klog("Base 64 Encoded: ")
       decoded = math:base64decode(base64).decode().klog("Invite Decoded: ")
+      url = create_invite_url(base64)
     }
 
-    if invitation != null then send_directive("say", {"Invite: ": base64})
+    if invitation != null then send_directive("say", {"Invite: ": url})
   }
 
 
