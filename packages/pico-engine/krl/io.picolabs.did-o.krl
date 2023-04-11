@@ -446,11 +446,12 @@ ruleset io.picolabs.did-o {
     pre {
       request_id = event:attrs{"request_id"}
 
-      updated_pendingRequest = ent:pendingRequests.delete(request_id)
+      updated_pendingRequest = ent:pendingRequests.defaultsTo({}).delete(request_id)
     }
-    if(updated_pendingRequest != ent:pendingRequests) then noop()
+    noop()
     fired {
-      raise dido event "rule_error" attributes event:attrs.put("error", "decline request rule")
+      ent:pendingRequests := updated_pendingRequest
+      //raise dido event "rule_error" attributes event:attrs.put("error", "decline request rule")
     }
 
   }
