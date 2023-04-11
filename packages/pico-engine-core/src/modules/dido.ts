@@ -324,10 +324,10 @@ const unpack = krl.Function(['message'], async function (message: any) {
     }
 });
 
-const pack = krl.Function(['message', '_from', 'to'], async function (message: IMessage, _from: string, to: string) {
+const pack = krl.Function(['message', '_from', 'to', 'anon'], async function (message: IMessage, _from: string, to: string, anon: boolean = false) {
     try {
         let _message: Message = new Message(message)
-        const [enc_msg, packed_meta]: [string, PackEncryptedMetadata] = await _message.pack_encrypted(to, _from, _from, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), { forward: false }) as [string, PackEncryptedMetadata];
+        const [enc_msg, packed_meta]: [string, PackEncryptedMetadata] = await _message.pack_encrypted(to, anon ? null : _from, anon ? null : _from, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), { forward: false }) as [string, PackEncryptedMetadata];
         return JSON.parse(enc_msg);
     } catch (error) {
         this.log.error("There was an error packing a message: ", { message: message, from: _from, to: to, error: error });
@@ -386,16 +386,16 @@ const clearDidMap = krl.Function([], async function () {
     await this.rsCtx.putEnt("didMap", {});
 })
 
-const send = krl.Function(['did', 'message'], async function (did: string, message: string) {
+const send = krl.Function(['did', 'message', 'anon'], async function (did: string, message: string, anon: boolean = false) {
     try {
         var docs = await this.rsCtx.getEnt("didDocs");
         this.log.debug("DOCS: ", docs);
         var endpoint = docs[did]["services"][0]["kind"]["Other"]["serviceEndpoint"];
         var didMap = await this.rsCtx.getEnt("didMap");
         var my_did = didMap[did];
-        var packed_message = await pack(this, [message, my_did, did]);
+        var packed_message = await pack(this, [message, my_did, did, anon]);
         this.log.debug("DIDO SEND", { packed_message: packed_message, my_did: my_did, their_did: did, endpoint: endpoint })
-        var formatted = did.replace(/:/g, "-").toLowerCase();
+        var formatted = did.replace(/[:.]/g, "-").toLowerCase();
         this.log.debug("FORMATTED DID: ", formatted)
         var channels = this.rsCtx.pico().channels;
         this.log.debug("CHANNELS: ", channels)

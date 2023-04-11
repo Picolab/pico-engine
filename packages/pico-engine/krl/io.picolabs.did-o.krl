@@ -191,11 +191,12 @@ ruleset io.picolabs.did-o {
       complete
     }
 
-    generate_trust_ping_message = function() {
+    generate_trust_ping_message = function(did) {
       message = {
-        "type": "https://didcomm.org/trust_ping/1.0/ping",
+        "type": "https://didcomm.org/trust_ping/2.0/ping",
         "typ": "application/didcomm-plain+json",
         "id": random:uuid(),
+        "from": did,
         "body": {
           "response_requested": true
         }
@@ -205,11 +206,10 @@ ruleset io.picolabs.did-o {
 
     generate_trust_ping_response = function(thid) {
       response = {
-        "type": "https://didcomm.org/trust_ping/1.0/ping_response",
+        "type": "https://didcomm.org/trust_ping/2.0/ping_response",
         "typ": "application/didcomm-plain+json",
         "id": random:uuid(),
         "thid": thid,
-        "body": {}
       }
       response
     }
@@ -229,8 +229,8 @@ ruleset io.picolabs.did-o {
       route0 = dido:addRoute("https://didcomm.org/didexchange/1.0/complete", "dido", "receive_complete")
       route1 = dido:addRoute("https://didcomm.org/didexchange/1.0/request", "dido", "receive_request")
       route2 = dido:addRoute("https://didcomm.org/didexchange/1.0/response", "dido", "receive_response")
-      route3 = dido:addRoute("https://didcomm.org/trust_ping/1.0/ping", "dido", "receive_trust_ping")
-      route4 = dido:addRoute("https://didcomm.org/trust_ping/1.0/ping_response", "dido", "receive_trust_ping_response")
+      route3 = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping", "dido", "receive_trust_ping")
+      route4 = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping_response", "dido", "receive_trust_ping_response")
     }
     
     if ent:host.isnull() then noop()
@@ -262,7 +262,7 @@ ruleset io.picolabs.did-o {
       base64 = url.split("_oob=")[1]
       invite = math:base64decode(base64).decode()
 
-      label = invite{"body"}{"label"}
+      label = invite{"from"}
       invite_id = invite{"id"}
       _from = invite{"from"}
       //end_point = invite{"services"}[0]{"serviceEndpoint"}.klog("Endpoint ??")
@@ -292,15 +292,17 @@ ruleset io.picolabs.did-o {
       //recipientKeys = invite{"services"}[0]{"recipientKeys"}[0]
 
       new_did = create_DID("peer", my_end_point)
+      didMap = dido:mapDid(invite{"from"}, new_did{"did"})
+      stored_doc = dido:storeDidDoc(invite{"from"})
 
-      request_message = generate_request_message(invite_id, new_did, label)
-      
-      packed_message = dido:pack(request_message, null, invite_id)
+      // request_message = generate_request_message(invite_id, new_did, label)
+      // packed_message = dido:pack(request_message, null, invite{"from"})
     }
 
-    http:post(url = end_point, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"}) //setting(http_response)
+    // http:post(url = end_point, json = packed_message, autosend = {"eci": meta:eci, "domain": "dido", "type": "exchange_post_response", "name": "exchange_post_response"}) //setting(http_response)
 
     fired {
+      raise dido event "send_trust_ping" attributes event:attrs.put("did", invite{"from"})
       //raise dido event "request_sent" attributes event:attrs.put("http_response", http_response)
     }
   }
@@ -517,8 +519,8 @@ ruleset io.picolabs.did-o {
     select when dido send_trust_ping
     pre {
       their_did = event:attrs{"did"}.klog("Their did: ")
-      message = generate_trust_ping_message()
-      send = dido:send(their_did, message)
+      message = generate_trust_ping_message(ent:didMap{their_did})
+      send = dido:send(their_did, message, true)
     }
   }
 
@@ -526,8 +528,8 @@ ruleset io.picolabs.did-o {
     select when dido receive_trust_ping
     pre {
       message = event:attrs{"message"}.klog("Trust ping message: ")
-      metadata = event:attrs{"metadata"}.klog("Unpack metadata: ")
-      their_did = metadata{"encrypted_from_kid"}.split("#")[0].klog("Their did: ")
+      // metadata = event:attrs{"metadata"}.klog("Unpack metadata: ")
+      their_did = message{"from"} //metadata{"encrypted_from_kid"}.split("#")[0].klog("Their did: ")
       response = generate_trust_ping_response(message{"id"})
       send = dido:send(their_did, response)
     }
