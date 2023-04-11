@@ -395,7 +395,7 @@ const send = krl.Function(['did', 'message'], async function (did: string, messa
         var my_did = didMap[did];
         var packed_message = await pack(this, [message, my_did, did]);
         this.log.debug("DIDO SEND", { packed_message: packed_message, my_did: my_did, their_did: did, endpoint: endpoint })
-        var formatted = did.replace(/:/g, "-").toLowerCase();
+        var formatted = did.replace(/[:.]/g, "-").toLowerCase();
         this.log.debug("FORMATTED DID: ", formatted)
         var channels = this.rsCtx.pico().channels;
         this.log.debug("CHANNELS: ", channels)
