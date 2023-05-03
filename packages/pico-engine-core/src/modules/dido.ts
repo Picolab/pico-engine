@@ -1,7 +1,6 @@
-import { KrlCtx, krl } from "krl-stdlib";
+import { krl } from "krl-stdlib";
 import { Message, DIDDoc, DIDResolver, Secret, SecretsResolver, VerificationMethod, IMessage, PackEncryptedMetadata, UnpackMetadata, Attachment, IFromPrior, FromPrior } from "didcomm-node";
 import * as cuid from "cuid";
-import internal = require("stream");
 const bs58 = require('bs58');
 const sodium = require('libsodium-wrappers')
 const crypto = require('crypto')
@@ -172,12 +171,6 @@ const mapDid = krl.Function(['their_did', 'my_did'], async function (their_did: 
     }
     didMap[their_did] = my_did;
     await this.rsCtx.putEnt("didMap", didMap);
-});
-
-const deleteDidFromMap = krl.Function(['their_did'], async function (their_did: string) {
-    var map = await this.rsCtx.getEnt("didMap");
-    delete map[their_did];
-    await this.rsCtx.putEnt("didMap", map);
 });
 
 const updateDidMap = krl.Function(['old_did', 'new_did'], async function (old_did: string, new_did: string) {
@@ -495,7 +488,6 @@ const dido: krl.Module = {
     updateDID: updateDID,
     unpack: unpack,
     pack: pack,
-    // storeDidNoDoc: storeDidNoDoc,
     clearDidDocs: clearDidDocs,
     storeDidDoc: storeDidDoc,
     addRoute: addRoute,
