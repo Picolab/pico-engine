@@ -24,9 +24,9 @@ DID-O V 2.0.0
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
     
-    provides addRoute, send, createInvitation
+    provides addRoute, send, sendEvent, sendQuery
     
-    shares routes, addRoute, didDocs, clearDidDocs, didMap, clearDidMap, pendingRotations, clearPendingRotations, createInvitation
+    shares routes, addRoute, didDocs, clearDidDocs, didMap, clearDidMap, pendingRotations, clearPendingRotations
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -47,21 +47,23 @@ DID-O V 2.0.0
     }
 
     sendEvent = function(did, event) {
-      dido:generateMessage({
+      message = dido:generateMessage({
         "type": "https://picolabs.io/event/1.0/event",
         "from": ent:didMap{did},
-        "to": did,
+        "to": [did],
         "body": event
       })
+      dido:send(did, message)
     }
 
     sendQuery = function(did, _query) {
-      dido:generateMessage({
+      message = dido:generateMessage({
         "type": "https://picolabs.io/query/1.0/query",
         "from": ent:didMap{did},
-        "to": did,
+        "to": [did],
         "body": _query
       })
+      dido:sendQuery(did, message)
     }
     
     ///////////////////////////////////////////// DID MANAGEMENT //////////////////////////////////////////////
@@ -90,12 +92,10 @@ DID-O V 2.0.0
     }
 
     ///////////////////////////////////////////// MESSAGE CREATORS //////////////////////////////////////////////
-    createInvitation = function() {
-      DIDdoc = dido:generateDID(true)
-      new_did = DIDdoc{"id"}
+    generate_invitation = function(did) {
       invitation = dido:generateMessage({
         "type": "https://didcomm.org/out-of-band/2.0/invitation",
-        "from": new_did,
+        "from": did,
         "body": {
           "goal_code": "exchange-did",
           "goal": "ExchangeDid",
@@ -135,20 +135,40 @@ DID-O V 2.0.0
   rule intialize {
     select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
     pre {
-      route3 = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping", "dido", "receive_trust_ping")
-      route4 = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping_response", "dido", "receive_trust_ping_response")
+      ping = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping", "dido", "receive_trust_ping")
+      ping_response = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping_response", "dido", "receive_trust_ping_response")
     }
   }
-  
+
+  rule pico_root_created {
+    select when engine_ui setup
+    if ent:routes.isnull() then noop()
+    fired {
+      ping = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping", "dido", "receive_trust_ping")
+      ping_response = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping_response", "dido", "receive_trust_ping_response")
+    }
+  }
+
   ///////////////////////////////////////////// ROUTING //////////////////////////////////////////////
   rule route_message {
     select when dido didcommv2_message
     pre {
-      route = dido:route(event:attrs.delete("_headers"))
+      response = dido:route(event:attrs.delete("_headers"))
     }
+    if response then send_directive("response", {}.put(response))
   }
 
   ///////////////////////////////////////////// INVITATIONS //////////////////////////////////////////////
+  rule create_invitation {
+    select when dido create_invitation
+    pre {
+      DIDdoc = dido:generateDID(true)
+      new_did = DIDdoc{"id"}
+      invitation = generate_invitation(new_did)
+    }
+    send_directive("say", invitation)
+  }
+  
   rule receive_invite {
     select when dido receive_invite
     pre {

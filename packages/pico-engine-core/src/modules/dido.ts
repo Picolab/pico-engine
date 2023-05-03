@@ -10,9 +10,12 @@ const didregex = /^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID
 //#region DID Management
 const generateDID = krl.Function(['isInvite'], async function (isInvite = false): Promise<DIDDoc> {
     // Create channel for new did
-    const channel = await this.rsCtx.newChannel({
+    const conf = {
         eventPolicy: {
-            allow: [{ domain: "dido", name: "didcommv2_message" }, { domain: "dido", name: "dido_send_response" }],
+            allow: [
+                { domain: "dido", name: "didcommv2_message" },
+                { domain: "dido", name: "dido_send_response" }
+            ],
             deny: []
         },
         queryPolicy: {
@@ -20,7 +23,8 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite = false)
             deny: []
         },
         tags: isInvite ? ["did_invite"] : []
-    });
+    };
+    const channel = await this.rsCtx.newChannel(conf);
     const endpoint = `${this.module("meta")!["host"](this)}/sky/event/${channel.id}/none/dido/didcommv2_message`;
 
     // Create keypairs for new did
@@ -369,9 +373,20 @@ const route = krl.Function(['message'], async function (message: string) {
     const routes = await this.rsCtx.getEnt("routes");
     try {
         if (unpacked.type != null) {
-            this.rsCtx.raiseEvent(routes[unpacked.type]["domain"], routes[unpacked.type]["name"], { "message": unpacked, "metadata": unpack_meta })
-        } else if (unpacked.body["type"] != null) {
-            this.rsCtx.raiseEvent(routes[unpacked.body["type"]]["domain"], routes[unpacked.body["type"]]["name"], { "message": unpacked, "metadata": unpack_meta })
+            // Route Events and Queries
+            if (unpacked["type"] === "https://picolabs.io/event/1.0/event") {
+                this.rsCtx.raiseEvent(unpacked["body"]["domain"], unpacked["body"]["name"], unpacked["body"]["attrs"]);
+            } else if (unpacked["type"] === "https://picolabs.io/query/1.0/query") {
+                try {
+                    await this.useModule(unpacked["body"]["rid"]);
+                    return await this.krl.assertFunction(this.module(unpacked["body"]["rid"])![unpacked["body"]["name"]])(this, unpacked["body"]["args"]);
+                } catch (error) {
+                    return "Unable to query: " + error;
+                }
+                // Route DIDComm messages
+            } else {
+                this.rsCtx.raiseEvent(routes[unpacked.type]["domain"], routes[unpacked.type]["name"], { "message": unpacked, "metadata": unpack_meta })
+            }
         } else {
             this.log.error("Unknown route for message: ", { message: unpacked, metadata: unpack_meta })
         }
@@ -385,6 +400,7 @@ const send = krl.Function(['did', 'message'], async function (did: string, messa
         const docs = await this.rsCtx.getEnt("didDocs");
         const endpoint = docs[did]["service"][0]["serviceEndpoint"]["uri"];
         const _from: string = message["from"];
+        this.log.debug("MESSAGE: ", message);
         const packed_message = await pack(this, [message, _from, did]);
         const eci = this.rsCtx.pico().channels.filter(c => c.tags.indexOf(normalizeDID(_from)) >= 0)[0]["id"];
         await this.krl.assertAction(this.module("http")!["post"])(this, {
@@ -400,6 +416,34 @@ const send = krl.Function(['did', 'message'], async function (did: string, messa
     } catch (error) {
         this.log.error("Error sending did message: ", { error: error, did: did, message: message })
     }
+});
+
+const prepareQuery = krl.Function(['did', 'query'], async function (did: string, query: any) {
+    await this.useModule("io.picolabs.did-o", "didx");
+    return await this.krl.assertFunction(this.module("didx")!["sendQuery"])(this, [did, query]);
+})
+
+const sendQuery = krl.Function(['did', 'message'], async function (did: string, message: any) {
+    try {
+        const docs: any = await this.rsCtx.getEnt("didDocs");
+        const endpoint: string = docs[did]["service"][0]["serviceEndpoint"]["uri"];
+        const _from: string = message["from"];
+        const packed_message = await pack(this, [message, _from, did]);
+        var response = await Promise.race([this.krl.assertAction(this.module("http")!["post"])(this, {
+            "url": endpoint,
+            "json": packed_message,
+        }), new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+        ]).catch(function (err) {
+            return "Query timed out";
+        });
+        if (response.status_code === 200) {
+            return JSON.parse(response.content).directives[0].options
+        }
+        return response;
+    } catch (error) {
+        this.log.error("Error sending did query: ", { error: error, did: did, message: message })
+    }
+
 });
 
 const generateMessage = krl.Function(['messageOptions'], async function (messageOptions: { type: string, body: any, from?: string, to?: Array<string>, thid?: string, pthid?: string, expires_time?: number, attachments?: Array<Attachment> }): Promise<IMessage> {
@@ -475,7 +519,9 @@ const dido: krl.Module = {
     rotateDID: rotateDID,
     rotateInviteDID: rotateInviteDID,
     clearPendingRotations: clearPendingRotations,
-    createInviteUrl: createInviteUrl
+    createInviteUrl: createInviteUrl,
+    prepareQuery: prepareQuery,
+    sendQuery: sendQuery,
 }
 
 export default dido;
