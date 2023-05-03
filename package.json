@@ -20,5 +20,9 @@
     "@typescript-eslint/parser": "^5.42.0",
     "eslint": "^8.26.0",
     "lerna": "^3.2.1"
+  },
+  "dependencies": {
+    "node-gyp": "^9.0.0",
+    "node-gyp-build": "^4.4.0"
   }
 }

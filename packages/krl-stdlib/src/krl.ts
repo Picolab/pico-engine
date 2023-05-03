@@ -111,6 +111,11 @@ export function isString(val: any): boolean {
   return typeof val === "string";
 }
 
+export function isHex(val: any): boolean {
+    return  typeof val === "string" && /^[A-F0-9]+$/i.test(val)
+}
+
+
 export function isBoolean(val: any): boolean {
   return val === true || val === false;
 }
@@ -170,6 +175,8 @@ export function typeOf(val: any): string {
     return "Null";
   } else if (isBoolean(val)) {
     return "Boolean";
+  } else if (isHex(val)) {
+      return "Hex";
   } else if (isString(val)) {
     return "String";
   } else if (isNumber(val)) {
@@ -195,6 +202,8 @@ export function toString(val: any): string {
   switch (typeOf(val)) {
     case "String":
       return val;
+    case "Hex":
+      return val;
     case "Null":
       return "null";
     case "Boolean":
@@ -216,11 +225,13 @@ export function toString(val: any): string {
 }
 
 export function toNumberOrNull(val: any): number | null {
-  switch (typeOf(val)) {
+    switch (typeOf(val)) {
     case "Null":
       return 0;
     case "Boolean":
       return val ? 1 : 0;
+    case "Hex":
+      return parseInt(val, 16);
     case "String":
       var n = _.toNumber(val);
       return isNumber(n) ? n : null;
@@ -234,6 +245,23 @@ export function toNumberOrNull(val: any): number | null {
     case "Action":
   }
   return null;
+}
+
+export function toHexOrNull(val: any): string | null {
+    switch (typeOf(val)) {
+        case "Null":
+        case "Boolean":
+        case "Hex":
+        case "String":
+        case "Number":
+            return val.toString(16);
+        case "Array":
+        case "Map":
+        case "RegExp":
+        case "Function":
+        case "Action":
+    }
+    return null;
 }
 
 export function isEqual(left: any, right: any): boolean {
