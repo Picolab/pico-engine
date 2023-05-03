@@ -45,6 +45,24 @@ DID-O V 2.0.0
     send = function(did, message) {
       dido:send(did, message)
     }
+
+    sendEvent = function(did, event) {
+      dido:generateMessage({
+        "type": "https://picolabs.io/event/1.0/event",
+        "from": ent:didMap{did},
+        "to": did,
+        "body": event
+      })
+    }
+
+    sendQuery = function(did, _query) {
+      dido:generateMessage({
+        "type": "https://picolabs.io/query/1.0/query",
+        "from": ent:didMap{did},
+        "to": did,
+        "body": _query
+      })
+    }
     
     ///////////////////////////////////////////// DID MANAGEMENT //////////////////////////////////////////////
     didMap = function() {
@@ -74,7 +92,7 @@ DID-O V 2.0.0
     ///////////////////////////////////////////// MESSAGE CREATORS //////////////////////////////////////////////
     createInvitation = function() {
       DIDdoc = dido:generateDID(true)
-      new_did = DIDdoc{"did"}
+      new_did = DIDdoc{"id"}
       invitation = dido:generateMessage({
         "type": "https://didcomm.org/out-of-band/2.0/invitation",
         "from": new_did,
@@ -138,7 +156,7 @@ DID-O V 2.0.0
       base64 = url.split("_oob=")[1]
       invite = math:base64decode(base64).decode()
       new_did = dido:generateDID()
-      didMap = dido:mapDid(invite{"from"}, new_did{"did"})
+      didMap = dido:mapDid(invite{"from"}, new_did{"id"})
       stored_doc = dido:storeDidDoc(invite{"from"})
     }
     fired {

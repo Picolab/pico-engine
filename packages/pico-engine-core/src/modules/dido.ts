@@ -8,9 +8,9 @@ const didregex = /^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID
 
 // DID Functions
 //#region DID Management
-const generateDID = krl.Function(['isInvite'], async function (isInvite: boolean = false): Promise<any> {
+const generateDID = krl.Function(['isInvite'], async function (isInvite = false): Promise<DIDDoc> {
     // Create channel for new did
-    var channel = await this.rsCtx.newChannel({
+    const channel = await this.rsCtx.newChannel({
         eventPolicy: {
             allow: [{ domain: "dido", name: "didcommv2_message" }, { domain: "dido", name: "dido_send_response" }],
             deny: []
@@ -21,7 +21,7 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite: boolean
         },
         tags: isInvite ? ["did_invite"] : []
     });
-    var endpoint = `${this.module("meta")!["host"](this)}/sky/event/${channel.id}/none/dido/didcommv2_message`;
+    const endpoint = `${this.module("meta")!["host"](this)}/sky/event/${channel.id}/none/dido/didcommv2_message`;
 
     // Create keypairs for new did
     const encryptionKeyPair = await crypto.generateKeyPairSync("x25519", {
@@ -64,7 +64,7 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite: boolean
     const did = "did:peer:2" + encryption + signing + service;
 
     // Store DIDDoc
-    var doc = await storeDidDoc(this, [did]);
+    const doc = await storeDidDoc(this, [did]);
 
     // Construct Secrets
     const id = did + "#" + base58EncryptionPublicKey;
@@ -74,19 +74,13 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite: boolean
     {
         id: id,
         type: "JsonWebKey2020",
-        secret_material: {
-            format: "JWK",
-            value: encryptionKeyPair.privateKey
-        },
+        privateKeyJwk: encryptionKeyPair.privateKey
     };
     const authSecret: Secret =
     {
         id: authid,
         type: "JsonWebKey2020",
-        secret_material: {
-            format: "JWK",
-            value: signingKeyPair.privateKey
-        },
+        privateKeyJwk: signingKeyPair.privateKey
     };
 
     // Store Secrets
@@ -105,7 +99,7 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite: boolean
 });
 
 const deleteDID = krl.Function(["did"], async function (did: string) {
-    let docs = await this.rsCtx.getEnt("didDocs");
+    const docs = await this.rsCtx.getEnt("didDocs");
     if (docs) {
         delete docs[did];
         await this.rsCtx.putEnt("didDocs", docs);
@@ -115,7 +109,7 @@ const deleteDID = krl.Function(["did"], async function (did: string) {
 });
 
 const updateDID = krl.Function(["did", "newDoc"], async function (did: string, newDoc: DIDDoc) {
-    let docs = await this.rsCtx.getEnt("didDocs");
+    const docs = await this.rsCtx.getEnt("didDocs");
     if (docs) {
         docs[did] = newDoc;
         return true;
@@ -124,15 +118,15 @@ const updateDID = krl.Function(["did", "newDoc"], async function (did: string, n
 });
 
 const rotateDID = krl.Function(['old_did'], async function (old_did: string): Promise<DIDDoc> {
-    var new_doc: DIDDoc = await generateDID(this, []);
-    await updateDidMap(this, [old_did, new_doc["did"]]);
-    var pendingRotations = await this.rsCtx.getEnt("pendingRotations");
+    const new_doc: DIDDoc = await generateDID(this, []);
+    await updateDidMap(this, [old_did, new_doc["id"]]);
+    let pendingRotations = await this.rsCtx.getEnt("pendingRotations");
     if (!pendingRotations) {
         pendingRotations = {};
     }
-    pendingRotations[new_doc["did"]] = {
+    pendingRotations[new_doc["id"]] = {
         iss: old_did,
-        sub: new_doc["did"],
+        sub: new_doc["id"],
         iat: Math.floor(Date.now() / 1000)
     };
     await this.rsCtx.putEnt("pendingRotations", pendingRotations);
@@ -141,13 +135,13 @@ const rotateDID = krl.Function(['old_did'], async function (old_did: string): Pr
 
 const rotateInviteDID = krl.Function(['my_did', 'their_did'], async function (my_did: string, their_did: string) {
     if (this.getEvent() && this.getEvent()?.eci) {
-        var channels = this.rsCtx.pico().channels.filter(c => c.id === this.getEvent()?.eci);
+        const channels = this.rsCtx.pico().channels.filter(c => c.id === this.getEvent()?.eci);
         if (channels.length > 0) {
-            var channel = channels[0];
+            const channel = channels[0];
             if (channel.tags.includes("did_invite")) {
-                var pendingRotations = await this.rsCtx.getEnt("pendingRotations");
-                var rotationExists = false;
-                for (let r in pendingRotations) {
+                const pendingRotations = await this.rsCtx.getEnt("pendingRotations");
+                let rotationExists = false;
+                for (const r in pendingRotations) {
                     if (pendingRotations[r]) rotationExists = true;
                 }
                 if (!rotationExists) {
@@ -165,7 +159,7 @@ const clearPendingRotations = krl.Function([], function () {
 });
 
 const mapDid = krl.Function(['their_did', 'my_did'], async function (their_did: string, my_did: string) {
-    var didMap = await this.rsCtx.getEnt("didMap");
+    let didMap = await this.rsCtx.getEnt("didMap");
     if (!didMap) {
         didMap = {};
     }
@@ -174,8 +168,8 @@ const mapDid = krl.Function(['their_did', 'my_did'], async function (their_did: 
 });
 
 const updateDidMap = krl.Function(['old_did', 'new_did'], async function (old_did: string, new_did: string) {
-    var map = await this.rsCtx.getEnt("didMap");
-    for (let key in map) {
+    const map = await this.rsCtx.getEnt("didMap");
+    for (const key in map) {
         if (key === old_did) {
             map[new_did] = map[old_did];
             delete map[old_did];
@@ -196,18 +190,12 @@ const clearDidDocs = krl.Function([], async function () {
 })
 
 const JWKFromMultibase = function (multibase: string, crv: string) {
-    // const regex = /^did:([a-z]+):[0-2]?z([a-zA-z\d]+)/
-    // let res = regex.exec(key)
-    // if (res) {
-    // let multicodec = res[2]
-    let multi_decoded = bs58.decode(multibase);
-    let key = sodium.to_base64(Buffer.from(multi_decoded.slice(2)), sodium.base64_variants.URLSAFE).replace("=", "");
+    const multi_decoded = bs58.decode(multibase);
+    const key = sodium.to_base64(Buffer.from(multi_decoded.slice(2)), sodium.base64_variants.URLSAFE).replace("=", "");
     return { crv: crv, x: key, kty: "OKP" }
-    // }
 }
 
 const storeDidDoc = krl.Function(['input'], async function (input: any) {
-
     let diddoc: DIDDoc;
     if (typeof input === 'object' && typeof input !== 'string') {
         diddoc = input;
@@ -222,23 +210,23 @@ const storeDidDoc = krl.Function(['input'], async function (input: any) {
     let docs = await this.rsCtx.getEnt("didDocs");
 
     if (docs) {
-        docs[diddoc["did"]] = diddoc;
+        docs[diddoc["id"]] = diddoc;
     } else {
         docs = {};
-        docs[diddoc["did"]] = diddoc;
+        docs[diddoc["id"]] = diddoc;
     }
 
     await this.rsCtx.putEnt("didDocs", docs);
     return diddoc;
 });
 
-const resolvePeer2Did = function (did: string) {
+const resolvePeer2Did = function (did: string): DIDDoc {
     if (didregex.test(did)) {
-        let parts = (did as string).split('.');
-        let keyAgs: string[] = [];
-        let auths: string[] = [];
-        let verMeths: VerificationMethod[] = [];
-        let services: any[] = [];
+        const parts = (did as string).split('.');
+        const keyAgs: string[] = [];
+        const auths: string[] = [];
+        const verMeths: VerificationMethod[] = [];
+        const services: any[] = [];
         parts.forEach(part => {
             if (part[0] === 'E') {
                 keyAgs.push(did + "#" + part.substring(2));
@@ -246,10 +234,7 @@ const resolvePeer2Did = function (did: string) {
                     id: did + "#" + part.substring(2),
                     type: "JsonWebKey2020",
                     controller: did,
-                    verification_material: {
-                        format: "JWK",
-                        value: JWKFromMultibase(part.substring(2), "X25519")
-                    }
+                    publicKeyJwk: JWKFromMultibase(part.substring(2), "X25519")
                 });
             } else if (part[0] === 'V') {
                 auths.push(did + "#" + part.substring(2));
@@ -257,34 +242,28 @@ const resolvePeer2Did = function (did: string) {
                     id: did + "#" + part.substring(2),
                     type: "JsonWebKey2020",
                     controller: did,
-                    verification_material: {
-                        format: "JWK",
-                        value: JWKFromMultibase(part.substring(2), "Ed25519")
-                    }
+                    publicKeyJwk: JWKFromMultibase(part.substring(2), "Ed25519")
                 });
             } else if (part[0] === 'S') {
-                let service = JSON.parse(Buffer.from(part.substring(1), "base64").toString("utf8"));
+                const service = JSON.parse(Buffer.from(part.substring(1), "base64").toString("utf8"));
                 services.push({
-                    id: did,
-                    kind: {
-                        "Other": {
-                            id: did + "#didcommmessaging-0",
-                            type: "DIDCommMessaging",
-                            serviceEndpoint: service["s"],
-                            routingKeys: service["r"],
-                            accept: service["a"],
-                        }
+                    id: did + "#didcommmessaging-0",
+                    type: "DIDCommMessaging",
+                    serviceEndpoint: {
+                        uri: service["s"],
+                        routingKeys: service["r"],
+                        accept: service["a"]
                     }
                 });
             }
         });
 
         return {
-            did: did,
-            key_agreements: keyAgs,
-            authentications: auths,
-            verification_methods: verMeths,
-            services: services
+            id: did,
+            keyAgreement: keyAgs,
+            authentication: auths,
+            verificationMethod: verMeths,
+            service: services
         }
     } else {
         throw "Unable to parse DIDDoc";
@@ -300,7 +279,7 @@ class PicoDIDResolver implements DIDResolver {
         this.knownDids = knownDids;
     }
     async resolve(did: string): Promise<DIDDoc | null> {
-        var doc = this.knownDids[did] || null;
+        const doc = this.knownDids[did] || null;
         if (doc === null) {
             try {
                 return resolvePeer2Did(did);
@@ -329,7 +308,7 @@ class PicoSecretsResolver implements SecretsResolver {
 
 const unpack = krl.Function(['message'], async function (message: any) {
     try {
-        var result: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
+        const result: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
         return result;
     } catch (error) {
         this.log.error("There was an error unpacking a message: ", { message: message, error: error });
@@ -339,7 +318,7 @@ const unpack = krl.Function(['message'], async function (message: any) {
 
 const pack = krl.Function(['message', '_from', 'to'], async function (message: IMessage, _from: string, to: string) {
     try {
-        let _message: Message = new Message(message)
+        const _message: Message = new Message(message)
         const [enc_msg, packed_meta]: [string, PackEncryptedMetadata] = await _message.pack_encrypted(to, _from, _from, new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), { forward: false }) as [string, PackEncryptedMetadata];
         return JSON.parse(enc_msg);
     } catch (error) {
@@ -349,7 +328,7 @@ const pack = krl.Function(['message', '_from', 'to'], async function (message: I
 });
 
 const addRoute = krl.Function(['type', 'domain', 'rule'], async function (type: string, domain: string, rule: string) {
-    var routes = await this.rsCtx.getEnt("routes");
+    let routes = await this.rsCtx.getEnt("routes");
     if (!routes) {
         routes = {};
     }
@@ -359,24 +338,21 @@ const addRoute = krl.Function(['type', 'domain', 'rule'], async function (type: 
 });
 
 const route = krl.Function(['message'], async function (message: string) {
-    var unpack_result: IMessage = await unpack(this, [message]);
-    var unpacked = unpack_result[0].as_value();
-    var unpack_meta = unpack_result[1];
+    const unpack_result: IMessage = await unpack(this, [message]);
+    const unpacked = unpack_result[0].as_value();
+    const unpack_meta = unpack_result[1];
     // Rotate incoming DID if from_prior included
     if (unpack_meta.from_prior) {
-        var from_prior = unpack_meta.from_prior as IFromPrior;
+        const from_prior = unpack_meta.from_prior as IFromPrior;
         await deleteDID(this, [from_prior.iss]);
         await storeDidDoc(this, [from_prior.sub]);
         await updateDidMap(this, [from_prior.iss, from_prior.sub]);
-        // var my_did = (await this.rsCtx.getEnt("didMap"))[from_prior.sub]
-        // mapDid(this, [from_prior.iss, my_did]);
-        // deleteDidFromMap(this, [from_prior.sub]);
     }
     // Delete pending rotation if message received using new DID
     if (unpacked.to) {
-        var pendingRotations = await this.rsCtx.getEnt("pendingRotations");
+        const pendingRotations = await this.rsCtx.getEnt("pendingRotations");
         if (pendingRotations && Object.keys(pendingRotations).length > 0) {
-            var hasChanged = false;
+            let hasChanged = false;
             unpacked.to.forEach((to: string) => {
                 if (pendingRotations[to]) {
                     deleteDID(this, [pendingRotations[to]["iss"]]);
@@ -390,7 +366,7 @@ const route = krl.Function(['message'], async function (message: string) {
             }
         }
     }
-    var routes = await this.rsCtx.getEnt("routes");
+    const routes = await this.rsCtx.getEnt("routes");
     try {
         if (unpacked.type != null) {
             this.rsCtx.raiseEvent(routes[unpacked.type]["domain"], routes[unpacked.type]["name"], { "message": unpacked, "metadata": unpack_meta })
@@ -406,12 +382,11 @@ const route = krl.Function(['message'], async function (message: string) {
 
 const send = krl.Function(['did', 'message'], async function (did: string, message: any) {
     try {
-        var docs = await this.rsCtx.getEnt("didDocs");
-        var endpoint = docs[did]["services"][0]["kind"]["Other"]["serviceEndpoint"];
-        var didMap = await this.rsCtx.getEnt("didMap");
-        var _from: string = message["from"];
-        var packed_message = await pack(this, [message, _from, did]);
-        var eci = this.rsCtx.pico().channels.filter(c => c.tags.indexOf(normalizeDID(_from)) >= 0)[0]["id"];
+        const docs = await this.rsCtx.getEnt("didDocs");
+        const endpoint = docs[did]["service"][0]["serviceEndpoint"]["uri"];
+        const _from: string = message["from"];
+        const packed_message = await pack(this, [message, _from, did]);
+        const eci = this.rsCtx.pico().channels.filter(c => c.tags.indexOf(normalizeDID(_from)) >= 0)[0]["id"];
         await this.krl.assertAction(this.module("http")!["post"])(this, {
             "url": endpoint,
             "json": packed_message,
@@ -428,7 +403,7 @@ const send = krl.Function(['did', 'message'], async function (did: string, messa
 });
 
 const generateMessage = krl.Function(['messageOptions'], async function (messageOptions: { type: string, body: any, from?: string, to?: Array<string>, thid?: string, pthid?: string, expires_time?: number, attachments?: Array<Attachment> }): Promise<IMessage> {
-    var message: IMessage = {
+    const message: IMessage = {
         id: cuid(),
         typ: "application/didcomm-plain+json",
         type: messageOptions.type,
@@ -453,9 +428,9 @@ const generateMessage = krl.Function(['messageOptions'], async function (message
     return message;
 });
 
-const createInviteUrl = krl.Function(['base64'], function(base64: string) {
-    var host: string = this.module("meta")!["host"](this)
-    if(host.indexOf("localhost") >= 0) {
+const createInviteUrl = krl.Function(['base64'], function (base64: string) {
+    const host: string = this.module("meta")!["host"](this)
+    if (host.indexOf("localhost") >= 0) {
         return "http://example.com?_oob=" + base64;
     }
     return host + base64;
@@ -465,11 +440,11 @@ const createInviteUrl = krl.Function(['base64'], function(base64: string) {
 // Misc Functions for managing channels for DIDComm
 //#region Misc Functions
 const addLabelsToChannel = krl.Function(['eci', 'labels'], async function (eci: string, labels: any) {
-    var channel = this.rsCtx.pico().channels.filter(c => c.id == eci);
-    var tags = channel[0].tags.concat(labels);
-    var eventPolicy = channel[0]["eventPolicy"]
-    var queryPolicy = channel[0]["queryPolicy"]
-    var conf = { tags, eventPolicy, queryPolicy };
+    const channel = this.rsCtx.pico().channels.filter(c => c.id == eci);
+    const tags = channel[0].tags.concat(labels);
+    const eventPolicy = channel[0]["eventPolicy"]
+    const queryPolicy = channel[0]["queryPolicy"]
+    const conf = { tags, eventPolicy, queryPolicy };
     await this.rsCtx.putChannel(eci, conf);
 });
 
@@ -477,7 +452,7 @@ const deleteDIDChannel = krl.Function(['did'], async function (did: string) {
     await this.rsCtx.pico().channels.filter(c => c.tags.indexOf(normalizeDID(did)) >= 0).forEach(async c => await this.rsCtx.delChannel(c.id));
 });
 
-const normalizeDID = function(did: string) {
+const normalizeDID = function (did: string) {
     return did.replace(/[:.]/g, "-").toLowerCase();
 }
 //#endregion Misc Functions
