@@ -64,31 +64,12 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite: boolean
     const signing = ".Vz" + base58SigningPublicKey;
     const did = "did:peer:2" + encryption + signing + service;
 
+    // Store DIDDoc
     var doc = await storeDidDoc(this, [did]);
 
-    // Construct DIDDoc
+    // Construct Secrets
     const id = did + "#" + base58EncryptionPublicKey;
-    // const verification_method: VerificationMethod =
-    // {
-    //     id: id,
-    //     type: "JsonWebKey2020",
-    //     controller: did,
-    //     verification_material: {
-    //         format: "JWK",
-    //         value: encryptionKeyPair.publicKey
-    //     },
-    // };
     const authid = did + "#" + base58SigningPublicKey
-    // const auth_ver_method: VerificationMethod =
-    // {
-    //     id: authid,
-    //     type: "JsonWebKey2020",
-    //     controller: did,
-    //     verification_material: {
-    //         format: "JWK",
-    //         value: signingKeyPair.publicKey
-    //     },
-    // };
 
     const secret: Secret =
     {
@@ -109,6 +90,7 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite: boolean
         },
     };
 
+    // Store Secrets
     let secrets = await this.rsCtx.getEnt("didSecrets");
     if (!secrets) {
         secrets = {};
@@ -117,34 +99,7 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite: boolean
     secrets[authid] = authSecret;
     await this.rsCtx.putEnt("didSecrets", secrets);
 
-    // const doc: DIDDoc = {
-    //     did: did,
-    //     key_agreements: [id],
-    //     authentications: [authid],
-    //     verification_methods: [verification_method, auth_ver_method],
-    //     services: [{
-    //         id: "#inline",
-    //         kind: {
-    //             "Other": {
-    //                 id: did + "#didcommmessaging-0",
-    //                 type: "DIDCommMessaging",
-    //                 serviceEndpoint: endpoint,
-    //                 accept: ["didcomm/v2", "didcomm/aip2;env=rfc587"],
-    //                 routingKeys: []
-    //             }
-    //         },
-    //     }]
-    // };
-
-    // let docs = await this.rsCtx.getEnt("didDocs");
-    // if (docs) {
-    //     docs[did] = doc;
-    // } else {
-    //     docs = {};
-    //     docs[did] = doc;
-    // }
-    // await this.rsCtx.putEnt("didDocs", docs);
-
+    // Add DID to channel label
     await addLabelsToChannel(this, [channel.id, did]);
 
     return doc;
@@ -173,8 +128,6 @@ const rotateDID = krl.Function(['old_did'], async function (old_did: string): Pr
     var new_doc: DIDDoc = await generateDID(this, []);
     await updateDidMap(this, [old_did, new_doc["did"]]);
     var pendingRotations = await this.rsCtx.getEnt("pendingRotations");
-    this.log.debug("Old DID: ", old_did);
-    this.log.debug("New Rotated DID: ", new_doc);
     if (!pendingRotations) {
         pendingRotations = {};
     }
@@ -190,14 +143,12 @@ const rotateDID = krl.Function(['old_did'], async function (old_did: string): Pr
 const rotateInviteDID = krl.Function(['my_did', 'their_did'], async function (my_did: string, their_did: string) {
     if (this.getEvent() && this.getEvent()?.eci) {
         var channels = this.rsCtx.pico().channels.filter(c => c.id === this.getEvent()?.eci);
-        this.log.debug("Checking if rotation is needed: ", channels);
         if (channels.length > 0) {
             var channel = channels[0];
             if (channel.tags.includes("did_invite")) {
                 var pendingRotations = await this.rsCtx.getEnt("pendingRotations");
                 var rotationExists = false;
                 for (let r in pendingRotations) {
-                    this.log.debug(`${r} : ${pendingRotations[r]}`);
                     if (pendingRotations[r]) rotationExists = true;
                 }
                 if (!rotationExists) {
@@ -261,46 +212,6 @@ const JWKFromMultibase = function (multibase: string, crv: string) {
     return { crv: crv, x: key, kty: "OKP" }
     // }
 }
-
-// const storeDidNoDoc = krl.Function(['did', 'key', 'endpoint'], async function (did: string, key: string, endpoint: string) {
-//     const id = did + "#key-x25519-1";
-//     const verification_method: VerificationMethod = {
-//         id: id,
-//         type: "JsonWebKey2020",
-//         controller: did,
-//         verification_material: {
-//             format: "JWK",
-//             value: JWKFromMultibase(key, "X25519")
-//         }
-//     };
-//     const doc: DIDDoc = {
-//         did: did,
-//         key_agreements: [id],
-//         authentications: [],
-//         verification_methods: [verification_method],
-//         services: [{
-//             id: "#inline",
-//             kind: {
-//                 "Other": {
-//                     "type": "did-communication",
-//                     "recipientKeys": [
-//                         did
-//                     ],
-//                     "serviceEndpoint": endpoint
-//                 }
-//             },
-//         }]
-//     };
-//     let docs = await this.rsCtx.getEnt("didDocs");
-//     if (docs) {
-//         docs[did] = doc;
-//     } else {
-//         docs = {};
-//         docs[did] = doc;
-//     }
-//     await this.rsCtx.putEnt("didDocs", docs);
-//     return doc;
-// });
 
 const storeDidDoc = krl.Function(['input'], async function (input: any) {
 
@@ -461,7 +372,6 @@ const route = krl.Function(['message'], async function (message: string) {
     // Rotate incoming DID if from_prior included
     if (unpack_meta.from_prior) {
         var from_prior = unpack_meta.from_prior as IFromPrior;
-        this.log.debug("FROM_PRIOR FOUND: ", from_prior);
         await deleteDID(this, [from_prior.iss]);
         await storeDidDoc(this, [from_prior.sub]);
         await updateDidMap(this, [from_prior.iss, from_prior.sub]);
@@ -472,9 +382,7 @@ const route = krl.Function(['message'], async function (message: string) {
     // Delete pending rotation if message received using new DID
     if (unpacked.to) {
         var pendingRotations = await this.rsCtx.getEnt("pendingRotations");
-        this.log.debug("CHECKING PENDING ROTATIONS", pendingRotations);
         if (pendingRotations && Object.keys(pendingRotations).length > 0) {
-            this.log.debug("PENDING ROTATIONS ARE REAL")
             var hasChanged = false;
             unpacked.to.forEach((to: string) => {
                 if (pendingRotations[to]) {
