@@ -146,7 +146,7 @@ const rotateInviteDID = krl.Function(['my_did', 'their_did'], async function (my
                 const pendingRotations = await this.rsCtx.getEnt("pendingRotations");
                 let rotationExists = false;
                 for (const r in pendingRotations) {
-                    if (pendingRotations[r]) rotationExists = true;
+                    if (pendingRotations[r]["iss"] === my_did) rotationExists = true;
                 }
                 if (!rotationExists) {
                     await storeDidDoc(this, [their_did]);
@@ -429,7 +429,7 @@ const sendQuery = krl.Function(['did', 'message'], async function (did: string, 
         const endpoint: string = docs[did]["service"][0]["serviceEndpoint"]["uri"];
         const _from: string = message["from"];
         const packed_message = await pack(this, [message, _from, did]);
-        var response = await Promise.race([this.krl.assertAction(this.module("http")!["post"])(this, {
+        const response = await Promise.race([this.krl.assertAction(this.module("http")!["post"])(this, {
             "url": endpoint,
             "json": packed_message,
         }), new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
@@ -475,9 +475,9 @@ const generateMessage = krl.Function(['messageOptions'], async function (message
 const createInviteUrl = krl.Function(['base64'], function (base64: string) {
     const host: string = this.module("meta")!["host"](this)
     if (host.indexOf("localhost") >= 0) {
-        return "http://example.com?_oob=" + base64;
+        return "http://example.com/invite?_oob=" + base64;
     }
-    return host + base64;
+    return host + "/invite?_oob=" + base64;
 });
 //#endregion DIDComm
 

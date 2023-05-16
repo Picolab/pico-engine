@@ -24,9 +24,9 @@ DID-O V 2.0.0
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
     
-    provides addRoute, send, sendEvent, sendQuery
+    provides addRoute, routes, send, sendEvent, sendQuery, didMap, clearDidMap, didDocs, clearDidDocs, pendingRotations, clearPendingRotations, generate_invitation
     
-    shares routes, addRoute, didDocs, clearDidDocs, didMap, clearDidMap, pendingRotations, clearPendingRotations
+    shares routes, addRoute, didDocs, clearDidDocs, didMap, clearDidMap, pendingRotations, clearPendingRotations, generate_invitation
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -92,10 +92,12 @@ DID-O V 2.0.0
     }
 
     ///////////////////////////////////////////// MESSAGE CREATORS //////////////////////////////////////////////
-    generate_invitation = function(did) {
+    generate_invitation = function() {
+      DIDdoc = dido:generateDID(true)
+      new_did = DIDdoc{"id"}
       invitation = dido:generateMessage({
         "type": "https://didcomm.org/out-of-band/2.0/invitation",
-        "from": did,
+        "from": new_did,
         "body": {
           "goal_code": "exchange-did",
           "goal": "ExchangeDid",
@@ -109,23 +111,23 @@ DID-O V 2.0.0
       dido:createInviteUrl(base64)
     }
 
-    generate_trust_ping_message = function(_from, to) {
+    generate_trust_ping_message = function(to) {
       dido:generateMessage({
         "type": "https://didcomm.org/trust_ping/2.0/ping",
-        "from": _from,
-        "to": to,
+        "from": ent:didMap{to},
+        "to": [to],
         "body": {
           "response_requested": true
         }
       })
     }
 
-    generate_trust_ping_response = function(thid, _from, to) {
+    generate_trust_ping_response = function(thid, to) {
       dido:generateMessage({
         "type": "https://didcomm.org/trust_ping/2.0/ping_response",
         "thid": thid,
-        "from": _from,
-        "to": to,
+        "from": ent:didMap{to},
+        "to": [to],
         "body": {}
       })
     }
@@ -158,21 +160,11 @@ DID-O V 2.0.0
     if response then send_directive("response", {}.put(response))
   }
 
-  ///////////////////////////////////////////// INVITATIONS //////////////////////////////////////////////
-  rule create_invitation {
-    select when dido create_invitation
-    pre {
-      DIDdoc = dido:generateDID(true)
-      new_did = DIDdoc{"id"}
-      invitation = generate_invitation(new_did)
-    }
-    send_directive("say", invitation)
-  }
-  
+  ///////////////////////////////////////////// INVITATIONS //////////////////////////////////////////////  
   rule receive_invite {
     select when dido receive_invite
     pre {
-      url = event:attrs{"Invite_URL"}
+      url = event:attrs{"invite"}
       base64 = url.split("_oob=")[1]
       invite = math:base64decode(base64).decode()
       new_did = dido:generateDID()
@@ -189,7 +181,7 @@ DID-O V 2.0.0
     select when dido send_trust_ping
     pre {
       their_did = event:attrs{"did"}
-      message = generate_trust_ping_message(ent:didMap{their_did}, [their_did])
+      message = generate_trust_ping_message(their_did)
       send = dido:send(their_did, message)
     }
   }
@@ -200,7 +192,7 @@ DID-O V 2.0.0
       message = event:attrs{"message"}
       their_did = message{"from"}
       needsRotation = dido:rotateInviteDID(message{"to"}[0], message{"from"})
-      response = generate_trust_ping_response(message{"id"}, ent:didMap{their_did}, [their_did])
+      response = generate_trust_ping_response(message{"id"}, their_did)
       send = dido:send(their_did, response)
     }
   }
