@@ -1,3 +1,8 @@
+/**
+ * DIDO V 2.0.0
+ * Authored by Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann
+ */
+
 import { krl } from "krl-stdlib";
 import { Message, DIDDoc, DIDResolver, Secret, SecretsResolver, VerificationMethod, IMessage, PackEncryptedMetadata, UnpackMetadata, Attachment, IFromPrior, FromPrior } from "didcomm-node";
 import * as cuid from "cuid";
@@ -8,6 +13,11 @@ const didregex = /^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID
 
 // DID Functions
 //#region DID Management
+
+/**
+ * Generates a new peer method 2 DID and returns the associated DIDDoc object that contains information about the DID, 
+ * including its authentication keys, key agreements, and service endpoints.
+ */
 const generateDID = krl.Function(['isInvite'], async function (isInvite = false): Promise<DIDDoc> {
     // Create channel for new did
     const conf = {
@@ -102,6 +112,9 @@ const generateDID = krl.Function(['isInvite'], async function (isInvite = false)
     return doc;
 });
 
+/**
+ * Deletes the DIDDoc object associated with the specified DID from the didDocs entity.
+ */
 const deleteDID = krl.Function(["did"], async function (did: string) {
     const docs = await this.rsCtx.getEnt("didDocs");
     if (docs) {
@@ -112,6 +125,10 @@ const deleteDID = krl.Function(["did"], async function (did: string) {
     return false;
 });
 
+/**
+ * Updates the DIDDoc object associated with the specified DID in the didDocs entity. 
+ * The function takes two parameters: the DID to be updated and the new DIDDoc object.
+ */
 const updateDID = krl.Function(["did", "newDoc"], async function (did: string, newDoc: DIDDoc) {
     const docs = await this.rsCtx.getEnt("didDocs");
     if (docs) {
@@ -121,6 +138,10 @@ const updateDID = krl.Function(["did", "newDoc"], async function (did: string, n
     return false;
 });
 
+/**
+ * Creates a new DID to be rotated into use in place of old_did according to the DIDComm v2 spec. 
+ * Pending rotations in the pendingRotations entity are removed when a message is received using the new DID. 
+ */
 const rotateDID = krl.Function(['old_did'], async function (old_did: string): Promise<DIDDoc> {
     const new_doc: DIDDoc = await generateDID(this, []);
     await updateDidMap(this, [old_did, new_doc["id"]]);
@@ -137,6 +158,9 @@ const rotateDID = krl.Function(['old_did'], async function (old_did: string): Pr
     return new_doc;
 });
 
+/**
+ * Manages DID rotation and storage for accepting invitations via the Trust Ping Protocol and from_prior DID Rotation.
+ */
 const rotateInviteDID = krl.Function(['my_did', 'their_did'], async function (my_did: string, their_did: string) {
     if (this.getEvent() && this.getEvent()?.eci) {
         const channels = this.rsCtx.pico().channels.filter(c => c.id === this.getEvent()?.eci);
@@ -158,10 +182,17 @@ const rotateInviteDID = krl.Function(['my_did', 'their_did'], async function (my
     }
 });
 
+/**
+ * Deletes all entries from the pendingRotations entity. Pending rotations are created by rotating a DID.
+ */
 const clearPendingRotations = krl.Function([], function () {
     this.rsCtx.putEnt("pendingRotations", {});
 });
 
+/**
+ * Adds an entry to the didMap entity in the following form:
+ * { their_did: my_did } 
+ */
 const mapDid = krl.Function(['their_did', 'my_did'], async function (their_did: string, my_did: string) {
     let didMap = await this.rsCtx.getEnt("didMap");
     if (!didMap) {
@@ -171,6 +202,9 @@ const mapDid = krl.Function(['their_did', 'my_did'], async function (their_did: 
     await this.rsCtx.putEnt("didMap", didMap);
 });
 
+/**
+ * Replaces all occurrences of old_did with new_did in the didMap entity.
+ */
 const updateDidMap = krl.Function(['old_did', 'new_did'], async function (old_did: string, new_did: string) {
     const map = await this.rsCtx.getEnt("didMap");
     for (const key in map) {
@@ -185,20 +219,38 @@ const updateDidMap = krl.Function(['old_did', 'new_did'], async function (old_di
     await this.rsCtx.putEnt("didMap", map);
 });
 
+/**
+ * Deletes all entries from the didMap entity.
+ */
 const clearDidMap = krl.Function([], async function () {
     await this.rsCtx.putEnt("didMap", {});
 })
 
+/**
+ * Deletes all entries from the didDocs entity.
+ */
 const clearDidDocs = krl.Function([], async function () {
     await this.rsCtx.putEnt("didDocs", {});
 })
 
+/**
+ * Returns a JSON Web Key (JWK) from the given multibase encoded string and curve.
+ * @param multibase encoded string
+ * @param crv curve of encoded string
+ * @returns JWK of given multibase and curve
+ */
 const JWKFromMultibase = function (multibase: string, crv: string) {
     const multi_decoded = bs58.decode(multibase);
     const key = sodium.to_base64(Buffer.from(multi_decoded.slice(2)), sodium.base64_variants.URLSAFE).replace("=", "");
     return { crv: crv, x: key, kty: "OKP" }
 }
 
+/**
+ * If input is of type DIDDoc it is stored in the didDocs entity variable, 
+ * else the input is attempted to be parsed as a peer method 2 DID into a 
+ * DIDDoc and is stored the same way. If parsing fails, an error is logged. 
+ * On successful storage, the stored DIDDoc is returned.
+ */
 const storeDidDoc = krl.Function(['input'], async function (input: any) {
     let diddoc: DIDDoc;
     if (typeof input === 'object' && typeof input !== 'string') {
@@ -224,6 +276,11 @@ const storeDidDoc = krl.Function(['input'], async function (input: any) {
     return diddoc;
 });
 
+/**
+ * Attempts to resolve a peer method 2 DID into a DIDDoc object and returns that object.
+ * @param did peer method 2 did
+ * @returns DIDDoc representing provided did
+ */
 const resolvePeer2Did = function (did: string): DIDDoc {
     if (didregex.test(did)) {
         const parts = (did as string).split('.');
@@ -277,6 +334,10 @@ const resolvePeer2Did = function (did: string): DIDDoc {
 
 // DIDComm Functions
 //#region DIDComm
+
+/**
+ * This class implements the DIDResolver interface, provided by the didcomm-node package, used for resolving DIDs for packing and unpacking messages.
+ */
 class PicoDIDResolver implements DIDResolver {
     knownDids: any
     constructor(knownDids: any) {
@@ -296,6 +357,9 @@ class PicoDIDResolver implements DIDResolver {
     }
 }
 
+/**
+ * This class implements the SecretsResolver interface, provided by the didcomm-node package, used for retrieving secrets for packing and unpacking messages.
+ */
 class PicoSecretsResolver implements SecretsResolver {
     knownSecrets: any
     constructor(secrets: any) {
@@ -310,6 +374,10 @@ class PicoSecretsResolver implements SecretsResolver {
 
 }
 
+/**
+ * Attempts to unpack (decrypt) an encrypted JSON Web Message (JWM) using the stored secrets. 
+ * Returns a tuple of the unpacked message and metadata ([Message, UnpackMetadata]). Refer to didcomm-node package for details.
+ */
 const unpack = krl.Function(['message'], async function (message: any) {
     try {
         const result: [Message, UnpackMetadata] = await Message.unpack(JSON.stringify(message), new PicoDIDResolver(await this.rsCtx.getEnt("didDocs")), new PicoSecretsResolver(await this.rsCtx.getEnt("didSecrets")), {}) as [Message, UnpackMetadata];
@@ -320,6 +388,9 @@ const unpack = krl.Function(['message'], async function (message: any) {
     }
 });
 
+/**
+ * Attempts to pack (encrypt) a message from the sender’s DID to the receiver's DID and returns the encrypted message.
+ */
 const pack = krl.Function(['message', '_from', 'to'], async function (message: IMessage, _from: string, to: string) {
     try {
         const _message: Message = new Message(message)
@@ -331,6 +402,12 @@ const pack = krl.Function(['message', '_from', 'to'], async function (message: I
     }
 });
 
+/**
+ * Add a route to the routes entity that is used for routing incoming DIDComm v2 messages. 
+ * type is the type of the DIDComm v2 message. domain is the domain of the event that is 
+ * raised when a message of type type is received. rule is the rule name of the event that 
+ * is raised when a message of type type is received.
+ */
 const addRoute = krl.Function(['type', 'domain', 'rule'], async function (type: string, domain: string, rule: string) {
     let routes = await this.rsCtx.getEnt("routes");
     if (!routes) {
@@ -341,6 +418,10 @@ const addRoute = krl.Function(['type', 'domain', 'rule'], async function (type: 
     return true;
 });
 
+/**
+ * Unpacks the incoming message and raises the corresponding event according to the type of 
+ * the message as defined in the routes entity variable.
+ */
 const route = krl.Function(['message'], async function (message: string) {
     const unpack_result: IMessage = await unpack(this, [message]);
     const unpacked = unpack_result[0].as_value();
@@ -395,6 +476,11 @@ const route = krl.Function(['message'], async function (message: string) {
     }
 });
 
+/**
+ * Packs the given message and sends it to the endpoint of the given did. 
+ * This function utilizes the autosend feature of the http library. To subscribe 
+ * to these responses, create a rule that selects on dido dido_send_response.
+ */
 const send = krl.Function(['did', 'message'], async function (did: string, message: any) {
     try {
         const docs = await this.rsCtx.getEnt("didDocs");
@@ -418,11 +504,17 @@ const send = krl.Function(['did', 'message'], async function (did: string, messa
     }
 });
 
+/**
+ * This function is used by the wrangler:picoQuery function to send a query using a did.
+ */
 const prepareQuery = krl.Function(['did', 'query'], async function (did: string, query: any) {
     await this.useModule("io.picolabs.did-o", "didx");
     return await this.krl.assertFunction(this.module("didx")!["sendQuery"])(this, [did, query]);
 })
 
+/**
+ * Very similar to dido:send, except that it waits for and returns the http response.
+ */
 const sendQuery = krl.Function(['did', 'message'], async function (did: string, message: any) {
     try {
         const docs: any = await this.rsCtx.getEnt("didDocs");
@@ -446,6 +538,22 @@ const sendQuery = krl.Function(['did', 'message'], async function (did: string, 
 
 });
 
+/**
+ * Generates and returns a DIDComm v2 message with the given messageOptions.
+ * messageOptions is formatted as follows:
+ * {
+ *  type: string,
+ *  body: any,
+ *  from?: string,
+ *  to?: Array\<string\>,
+ *  thid?: string,
+ *  pthid?: string,
+ *  expires_time?: number,
+ *  attachments?: Array\<Attachment\>
+ * }
+ * 
+ * Refer to didcomm-node package for Attachment object specifics.
+ */
 const generateMessage = krl.Function(['messageOptions'], async function (messageOptions: { type: string, body: any, from?: string, to?: Array<string>, thid?: string, pthid?: string, expires_time?: number, attachments?: Array<Attachment> }): Promise<IMessage> {
     const message: IMessage = {
         id: cuid(),
@@ -472,6 +580,9 @@ const generateMessage = krl.Function(['messageOptions'], async function (message
     return message;
 });
 
+/**
+ * Creates and returns the invitation URL for the given base64 invite.
+ */
 const createInviteUrl = krl.Function(['base64'], function (base64: string) {
     const host: string = this.module("meta")!["host"](this)
     if (host.indexOf("localhost") >= 0) {
@@ -483,6 +594,10 @@ const createInviteUrl = krl.Function(['base64'], function (base64: string) {
 
 // Misc Functions for managing channels for DIDComm
 //#region Misc Functions
+
+/**
+ * Concatenates lables to the labels of the channel with the given eci.
+ */
 const addLabelsToChannel = krl.Function(['eci', 'labels'], async function (eci: string, labels: any) {
     const channel = this.rsCtx.pico().channels.filter(c => c.id == eci);
     const tags = channel[0].tags.concat(labels);
@@ -492,10 +607,18 @@ const addLabelsToChannel = krl.Function(['eci', 'labels'], async function (eci: 
     await this.rsCtx.putChannel(eci, conf);
 });
 
+/**
+ * Deletes any channel associated with the given did.
+ */
 const deleteDIDChannel = krl.Function(['did'], async function (did: string) {
     await this.rsCtx.pico().channels.filter(c => c.tags.indexOf(normalizeDID(did)) >= 0).forEach(async c => await this.rsCtx.delChannel(c.id));
 });
 
+/**
+ * Returns a channel label friendly version of the given did. (Replaces : and . with -)
+ * @param did did to normalize
+ * @returns normalized did
+ */
 const normalizeDID = function (did: string) {
     return did.replace(/[:.]/g, "-").toLowerCase();
 }
@@ -505,23 +628,32 @@ const dido: krl.Module = {
     generateDID: generateDID,
     deleteDID: deleteDID,
     updateDID: updateDID,
-    unpack: unpack,
-    pack: pack,
-    clearDidDocs: clearDidDocs,
-    storeDidDoc: storeDidDoc,
-    addRoute: addRoute,
-    route: route,
-    send: send,
-    mapDid: mapDid,
-    clearDidMap: clearDidMap,
-    addLabelsToChannel: addLabelsToChannel,
-    generateMessage: generateMessage,
     rotateDID: rotateDID,
     rotateInviteDID: rotateInviteDID,
     clearPendingRotations: clearPendingRotations,
-    createInviteUrl: createInviteUrl,
+    mapDid: mapDid,
+    // updateDidMap: updateDidMap, // Does not need to be exported
+    clearDidMap: clearDidMap,
+    clearDidDocs: clearDidDocs,
+    // JWKFromMultibase: JWKFromMultibase, // Private non-KRL function. Cannot be exported
+    storeDidDoc: storeDidDoc,
+    // resolvePeer2Did: resolvePeer2Did, // Private non-KRL function. Cannot be exported
+    unpack: unpack,
+    pack: pack,
+    addRoute: addRoute,
+    route: route,
+    send: send,
     prepareQuery: prepareQuery,
     sendQuery: sendQuery,
+    generateMessage: generateMessage,
+    createInviteUrl: createInviteUrl,
+    addLabelsToChannel: addLabelsToChannel,
+    // deleteDIDChannel: deleteDIDChannel, // Does not need to be exported
+    // nomalizeDID: normalizeDID, // Private non-KRL function. Cannot be exported
 }
 
 export default dido;
+
+/**
+ * DIDO V 2.0.0
+ */

@@ -1,19 +1,19 @@
-/*
+/* 
 DID-O V 2.0.0
-⠀⠀⠀⢠⡜⠛⠛⠿⣤⠀⠀⣤⡼⠿⠿⢧⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⣀⡶⠎⠁⠀⠀⠀⠉⠶⠶⠉⠁⠀⠀⠈⠹⢆⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⣀⡿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠶⠶⠶⠶⣆⡀⠀⠀⠀⠀
-⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢣⡄⠀⠀⠀
-⠛⣧⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀
-  ⠀⠛⣧⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠿⠀⠀⠀⠀⢠⡼⠃⠀⠀
-  ⠀⠀⠿⢇⡀⠀⠀⠀⠀⠀⠀⠀⠰⠶⠶⢆⣀⣀⣀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀
-  ⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀
-  ⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀
-  ⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢣⣤
-  ⠀⣶⡏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿
-  ⠀⠿⣇⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⣀⣀⠀⠀⠀⠀⢀⣀⣸⠿
-  ⠀⠀⠙⢳⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⡞⠛⠛⠛⠛⠛⠛⣶⣶⣶⣶⡞⠛⠃⠀
-  */
+  ⠀⠀⠀⢠⡜⠛⠛⠿⣤⠀⠀⣤⡼⠿⠿⢧⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⣀⡶⠎⠁⠀⠀⠀⠉⠶⠶⠉⠁⠀⠀⠈⠹⢆⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⣀⡿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠶⠶⠶⠶⣆⡀⠀⠀⠀⠀
+  ⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢣⡄⠀⠀⠀
+  ⠛⣧⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀
+    ⠀⠛⣧⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠿⠀⠀⠀⠀⢠⡼⠃⠀⠀
+    ⠀⠀⠿⢇⡀⠀⠀⠀⠀⠀⠀⠀⠰⠶⠶⢆⣀⣀⣀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀
+    ⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀
+    ⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀
+    ⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢣⣤
+    ⠀⣶⡏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿
+    ⠀⠿⣇⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⣀⣀⠀⠀⠀⠀⢀⣀⣸⠿
+    ⠀⠀⠙⢳⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⡞⠛⠛⠛⠛⠛⠛⣶⣶⣶⣶⡞⠛⠃⠀
+*/
   
   ruleset io.picolabs.did-o {
     meta {
@@ -34,18 +34,37 @@ DID-O V 2.0.0
   
   global {
     ///////////////////////////////////////////// ROUTING //////////////////////////////////////////////
+
+    /**
+    * Adds a route to the routes stored in the dido.ts library. The type should be a valid Protocol URI. 
+    * The domain and name are the domain and name of the event that will be raised when a message of the specified type is received.
+    */
     addRoute = function(type, _domain, name) {
       dido:addRoute(type, _domain, name)
     }
     
+    /**
+    * Queries the existing routes.
+    */
     routes = function() {
       ent:routes
     }
     
+    /**
+    * Send a message to the specified DID. did is the recipient DID and message is a valid DIDComm v2 message.
+    */
     send = function(did, message) {
       dido:send(did, message)
     }
 
+    /**
+    * Send an event to the specified DID. did is the recipient DID and the event is formatted as follows:
+    * event = {
+    *   "domain": domain: string,
+    *   "name": name: string,
+    *   "attrs": attrs: {[name: string]: any}
+    * }
+    */
     sendEvent = function(did, event) {
       message = dido:generateMessage({
         "type": "https://picolabs.io/event/1.0/event",
@@ -56,6 +75,14 @@ DID-O V 2.0.0
       dido:send(did, message)
     }
 
+    /**
+    * Send a query to the specified DID. did is the recipient DID and the query is formatted as follows:
+    * query = {
+    *   "rid": rid: string,
+    *   "name": name: string,
+    *   "args": args: {[name: string]: any}
+    * }
+    */
     sendQuery = function(did, _query) {
       message = dido:generateMessage({
         "type": "https://picolabs.io/query/1.0/query",
@@ -67,31 +94,55 @@ DID-O V 2.0.0
     }
     
     ///////////////////////////////////////////// DID MANAGEMENT //////////////////////////////////////////////
+
+    /**
+    * Return the map of DID relationships stored in the pattern [ thier_did : your_did ].
+    */
     didMap = function() {
       ent:didMap
     }
     
+    /**
+    * Clear the map of DID relationships.
+    */
     clearDidMap = function() {
       dido:clearDidMap()
     }
     
+    /**
+    * Return all the DIDs and DIDDocs stored in the pattern [ did : diddoc ].
+    */
     didDocs = function() {
       ent:didDocs
     }
     
+    /**
+    * Clear all the DIDs and DIDDocs.
+    */
     clearDidDocs = function() {
       dido:clearDidDocs()
     }
     
+    /**
+    * Return all the pending rotations stored in the pattern [ new_did : from_prior ].
+    */
     pendingRotations = function() {
       ent:pendingRotations
     }
     
+    /**
+    * Clear all the pending rotations.
+    */
     clearPendingRotations = function() {
       dido:clearPendingRotations()
     }
 
     ///////////////////////////////////////////// MESSAGE CREATORS //////////////////////////////////////////////
+
+    /**
+    * Creates an invitation OOB URL that can be used to establish DID based relationships. 
+    * This automates the DID, channel, and message creation and encodes it into a base64 Out-of-Band URL.
+    */
     generate_invitation = function() {
       DIDdoc = dido:generateDID(true)
       new_did = DIDdoc{"id"}
@@ -111,6 +162,9 @@ DID-O V 2.0.0
       dido:createInviteUrl(base64)
     }
 
+    /**
+    * Creates a trust ping message according to the DIDComm v2 protocol and returns it. The to parameter is the DID of the recipient.
+    */
     generate_trust_ping_message = function(to) {
       dido:generateMessage({
         "type": "https://didcomm.org/trust_ping/2.0/ping",
@@ -122,6 +176,10 @@ DID-O V 2.0.0
       })
     }
 
+    /**
+    * Creates a trust ping response message according to the DIDComm v2 protocol and returns it. 
+    * The thid parameter is the id of the ping that you are responding to, and the to parameter is the DID of the recipient. 
+    */
     generate_trust_ping_response = function(thid, to) {
       dido:generateMessage({
         "type": "https://didcomm.org/trust_ping/2.0/ping_response",
@@ -134,6 +192,10 @@ DID-O V 2.0.0
   }
   
   ///////////////////////////////////////////// INITIAILIZATION //////////////////////////////////////////////
+
+  /**
+  * The initialize rule subscribes to the wrangler:ruleset_installed event and is called when the ruleset is installed and initializes the routes.
+  */
   rule intialize {
     select when wrangler ruleset_installed where event:attrs{"rids"} >< meta:rid
     pre {
@@ -142,6 +204,10 @@ DID-O V 2.0.0
     }
   }
 
+  /**
+  * The pico_root_created rule subscribes to the engine_ui:setup event and is called when the engine starts and initializes the routes. 
+  * This is used in addition to the initialize rule to verify routes exist when a new engine is started.
+  */
   rule pico_root_created {
     select when engine_ui setup
     if ent:routes.isnull() then noop()
@@ -152,6 +218,12 @@ DID-O V 2.0.0
   }
 
   ///////////////////////////////////////////// ROUTING //////////////////////////////////////////////
+
+  /**
+  * The route_message rule subscribes to the dido:didcommv2_message event. It calls the dido library, 
+  * unpacks the message, and looks for the proper route based on the message type. It then raises the 
+  * appropriate event and passes along the unpacked message.
+  */
   rule route_message {
     select when dido didcommv2_message
     pre {
@@ -161,6 +233,12 @@ DID-O V 2.0.0
   }
 
   ///////////////////////////////////////////// INVITATIONS //////////////////////////////////////////////  
+
+  /**
+  * The receive_invite rule subscribes to the dido:receive_invite event and receives an invite URL (example.com/invite?_oob=abc...123) 
+  * from event:attrs{"invite"}. The invite URL is a base 64 encoded invite. The rule then creates a new DID and channel. 
+  * After that, it raises the dido:send_trust_ping event. 
+  */
   rule receive_invite {
     select when dido receive_invite
     pre {
@@ -177,6 +255,11 @@ DID-O V 2.0.0
   }
 
   ///////////////////////////////////////////// TRUST PING //////////////////////////////////////////////
+
+  /**
+  * The send_trust_ping rule subscribes to the dido:send_trust_ping event and requires the DID of the recipient 
+  * from event:attrs{"did"}. It then sends a generated trust ping message to the provided DID. 
+  */
   rule send_trust_ping {
     select when dido send_trust_ping
     pre {
@@ -186,6 +269,11 @@ DID-O V 2.0.0
     }
   }
 
+  /**
+  * The receive_trust_ping rule subscibes to the did:receive_trust_ping event and requires the ping message from 
+  * event:attrs{"message"}. It then checks if the message was received from an invite. If it was, it rotates the 
+  * invite DID. Then it generates the response and sends it back. 
+  */
   rule receive_trust_ping {
     select when dido receive_trust_ping
     pre {
