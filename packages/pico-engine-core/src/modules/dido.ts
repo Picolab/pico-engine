@@ -10,6 +10,7 @@ const bs58 = require('bs58');
 const sodium = require('libsodium-wrappers')
 const crypto = require('crypto')
 const didregex = /^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\.(S)[0-9a-zA-Z=]*)?)))$/
+const QUERY_TIMEOUT = 10000;
 
 // DID Functions
 //#region DID Management
@@ -524,7 +525,7 @@ const sendQuery = krl.Function(['did', 'message'], async function (did: string, 
         const response = await Promise.race([this.krl.assertAction(this.module("http")!["post"])(this, {
             "url": endpoint,
             "json": packed_message,
-        }), new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+        }), new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), QUERY_TIMEOUT))
         ]).catch(function (err) {
             return "Query timed out";
         });
