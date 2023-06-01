@@ -1,5 +1,5 @@
 /**
- * DIDO V 2.0.0
+ * DIDO V 1.0.0
  * Authored by Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann
  */
 
@@ -656,5 +656,5 @@ const dido: krl.Module = {
 export default dido;
 
 /**
- * DIDO V 2.0.0
+ * DIDO V 1.0.0
  */
