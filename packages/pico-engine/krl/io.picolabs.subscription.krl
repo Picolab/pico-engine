@@ -606,7 +606,7 @@ ent:established [
       
       configToAdd = event:attr("delete") => null | givenConfig//.put("password", hashedPassword);
       
-    }
+      }
     if (givenName.klog("configName")) then noop()// && configPassword.klog("configPassword") && passwordMatch.klog("passwordMatch")) then noop()
     fired {
       ent:autoAcceptConfig := autoAcceptConfig()

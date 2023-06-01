@@ -34,30 +34,23 @@ const event: krl.Module = {
     ["options", "host"],
     async function event(options, host) {
       let eci = options.eci;
-      let domain = options.domain;
-      let name = options.name || options.type;
-      let attrs = options.attrs;
-      if (!eci) {
-        if (options.sub) {
+      if (!eci)
+      {
+        if(options.sub) {
           eci = options.sub.Tx
           host = options.sub.Tx_host
-        } else if (options.did) {
-          await this.useModule("io.picolabs.did-o", "didx");
-          await this.krl.assertFunction(this.module("didx")!["sendEvent"])(this, [options.did, {
-            "domain": domain,
-            "name": name,
-            "attrs": attrs
-          }]);
-          return;
         }
       }
       if (!krl.isString(eci)) {
         throw new TypeError(
           "eci was " +
-          krl.toString(eci) +
-          " instead of a string"
+            krl.toString(eci) +
+            " instead of a string"
         );
       }
+      let domain = options.domain;
+      let name = options.name || options.type;
+      let attrs = options.attrs;
       if (host) {
         const url = `${host}/c/${eci}/event/${domain}/${name}`;
 
