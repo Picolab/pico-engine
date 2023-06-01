@@ -139,12 +139,14 @@ ruleset io.picolabs.wrangler {
      }
      
      picoQuery = function(eci, mod, func, params,_host,_path,_root_url) { 
+       isDid = eci.match(re#did:#)
        thisPico = ctx:channels.any(function(c){c{"id"}==eci})
        thisHost = _host.isnull() || _host == meta:host;
        web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url)
 
-       response = (not thisPico) => ((not thisHost) => processHTTPResponse(http:get(web_hook, {}.put(params))) 
-                                                     | processQueryResponse(ctx:query(eci, mod, func, {}.put(params))))
+       response = (not thisPico) => ((not isDid) => ((not thisHost) => processHTTPResponse(http:get(web_hook, {}.put(params))) 
+                                                                     | processQueryResponse(ctx:query(eci, mod, func, {}.put(params)))) 
+                                                  | dido:prepareQuery(eci, {"rid": mod, "name": func, "args": params}))
                                   | QUERY_SELF_INVALID_HTTP_MAP;
 
        response
@@ -404,11 +406,20 @@ ruleset io.picolabs.wrangler {
         parts = ctx:rid_url.split("/")
         parts.splice(parts.length()-1,1,subscription_rid+".krl").join("/")
       }
-      subs_url = subscription_ruleset_url()
+      subs_url = subscription_ruleset_url()      
+      
+      did_o_ruleset_url = function(){
+        did_o_rid = "io.picolabs.did-o"
+        parts = ctx:rid_url.split("/")
+        parts.splice(parts.length()-1,1,did_o_rid+".krl").join("/")
+      }
+      did_o_url = did_o_ruleset_url()
     }
     fired {
       raise wrangler event "install_ruleset_request"
         attributes {"url":subs_url}
+      raise wrangler event "install_ruleset_request"
+        attributes {"url":did_o_url}
       ent:parent_eci := ctx:parent
       ent:name := event:attr("name")
       ent:id := ctx:picoId
