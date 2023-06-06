@@ -139,17 +139,17 @@ ruleset io.picolabs.wrangler {
      }
      
      picoQuery = function(eci, mod, func, params,_host,_path,_root_url) { 
-       isDid = eci.match(re#did:#)
+       isDid = eci.match(re#^did:#)
        thisPico = ctx:channels.any(function(c){c{"id"}==eci})
        thisHost = _host.isnull() || _host == meta:host;
        web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url)
 
-       response = (not thisPico) => ((not isDid) => ((not thisHost) => processHTTPResponse(http:get(web_hook, {}.put(params))) 
-                                                                     | processQueryResponse(ctx:query(eci, mod, func, {}.put(params)))) 
-                                                  | dido:prepareQuery(eci, {"rid": mod, "name": func, "args": params}))
-                                  | QUERY_SELF_INVALID_HTTP_MAP;
+      response = thisPico => QUERY_SELF_INVALID_HTTP_MAP                                         |
+                 thisHost => processQueryResponse(ctx:query(eci, mod, func, {}.put(params)))     |
+                 isDid    => dido:prepareQuery(eci, {"rid": mod, "name": func, "args": params})  |
+                             processHTTPResponse(http:get(web_hook, {}.put(params)))
 
-       response
+      response
      }
 
 
