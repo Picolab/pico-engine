@@ -36,6 +36,7 @@
     "bs58": "^4.0.1",
     "cross-fetch": "^3.0.5",
     "cuid": "^2.1.8",
+    "didcomm-node": "^0.4.1",
     "krl-compiler": "^1.2.0",
     "krl-stdlib": "^1.2.0",
     "libsodium-wrappers": "^0.7.8",
