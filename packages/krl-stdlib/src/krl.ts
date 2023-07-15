@@ -112,7 +112,7 @@ export function isString(val: any): boolean {
 }
 
 export function isHex(val: any): boolean {
-    return  typeof val === "string" && /^[A-F0-9]+$/i.test(val)
+    return  typeof val === "string" && /^0x[A-F0-9]+$/i.test(val)
 }
 
 
