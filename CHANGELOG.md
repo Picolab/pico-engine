@@ -1,3 +1,11 @@
+# 1.3.0 - July 29, 2023
+
+* Fix arithmetic. (PR #637)
+* Add DIDComm. (PR #631)
+* Add sub as an option for event:send. (PR #623)
+* Add bit operations. (PR #621)
+* Every event raised is logged. (PR #607)
+
 # 1.2.0 - Jan 4, 2022
 
 * Update line colors in engine-UI to deemphasize parent-child relationships. Fixes issue #576
