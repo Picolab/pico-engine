@@ -16,7 +16,7 @@
     "build": "cd packages/krl-parser && npm run build && cd ../krl-stdlib && npm run build && cd ../pico-engine-core && npm run build && cd ../pico-engine && npm run build"
   },
   "devDependencies": {
-    "lerna": "^3.2.1"
+    "lerna": "^3.22.1"
   },
   "dependencies": {
     "node-gyp": "^9.0.0",
