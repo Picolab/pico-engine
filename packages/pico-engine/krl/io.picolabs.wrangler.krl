@@ -145,8 +145,8 @@ ruleset io.picolabs.wrangler {
        web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url)
 
       response = thisPico => QUERY_SELF_INVALID_HTTP_MAP                                         |
-                 thisHost => processQueryResponse(ctx:query(eci, mod, func, {}.put(params)))     |
                  isDid    => dido:prepareQuery(eci, {"rid": mod, "name": func, "args": params})  |
+                 thisHost => processQueryResponse(ctx:query(eci, mod, func, {}.put(params)))     |
                              processHTTPResponse(http:get(web_hook, {}.put(params)))
 
       response
