@@ -143,7 +143,7 @@ DID-O V 1.0.0
     * Creates an invitation OOB URL that can be used to establish DID based relationships. 
     * This automates the DID, channel, and message creation and encodes it into a base64 Out-of-Band URL.
     */
-    generate_invitation = function() {
+    generate_invitation = function(label) {
       DIDdoc = dido:generateDID(true)
       new_did = DIDdoc{"id"}
       invitation = dido:generateMessage({
@@ -152,7 +152,7 @@ DID-O V 1.0.0
         "body": {
           "goal_code": "exchange-did",
           "goal": "ExchangeDid",
-          "label": "PicoInvite",
+          "label": label || "PicoInvite",
           "accept": [
             "didcomm/v2"
           ]
