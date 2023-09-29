@@ -24,9 +24,9 @@ DID-O V 1.0.0
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
     
-    provides addRoute, routes, send, sendEvent, sendQuery, didMap, clearDidMap, didDocs, clearDidDocs, pendingRotations, clearPendingRotations, generate_invitation
+    provides addRoute, routes, send, sendEvent, sendQuery, didMap, clearDidMap, didDocs, clearDidDocs, pendingRotations, clearPendingRotations, generate_invitation, generate_message
     
-    shares routes, addRoute, didDocs, clearDidDocs, didMap, clearDidMap, pendingRotations, clearPendingRotations, generate_invitation
+    shares routes, addRoute, didDocs, clearDidDocs, didMap, clearDidMap, pendingRotations, clearPendingRotations, generate_invitation, generate_message
     
     use module io.picolabs.wrangler alias wrangler
   }
@@ -138,6 +138,26 @@ DID-O V 1.0.0
     }
 
     ///////////////////////////////////////////// MESSAGE CREATORS //////////////////////////////////////////////
+
+    /**
+    * Generates and returns a DIDComm v2 message with the given message.
+    * message is formatted as follows:
+    * {
+    *  type: string,
+    *  body: any,
+    *  from?: string,
+    *  to?: [string],
+    *  thid?: string,
+    *  pthid?: string,
+    *  expires_time?: number,
+    *  attachments?: [Attachment]
+    * }
+    * 
+    * Refer to didcomm-node package for Attachment object specifics.
+    */
+    generate_message = function(message) {
+      dido:generateMessage(message)
+    }
 
     /**
     * Creates an invitation OOB URL that can be used to establish DID based relationships. 
