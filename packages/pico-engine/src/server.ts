@@ -37,6 +37,7 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
     bodyParser.json({
       type: [
         "application/json",
+        "application/*+json",
         "application/octet-stream",
         "application/ssi-agent-wire",
       ],
