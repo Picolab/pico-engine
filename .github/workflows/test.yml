@@ -9,8 +9,8 @@ jobs:
       fail-fast: true
       matrix:
         node-version:
-          - lts/* # LTS version
-          - "17" # latest version
+          - lts/*
+          - latest
         os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:

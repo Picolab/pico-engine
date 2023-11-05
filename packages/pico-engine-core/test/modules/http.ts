@@ -4,7 +4,7 @@ import * as _ from "lodash";
 import makeCoreAndKrlCtx from "../helpers/makeCoreAndKrlCtx";
 
 test("http module", async function (t) {
-  var server = http.createServer(function (req, res) {
+  var server = http.createServer({ keepAliveTimeout: 0 }, function (req, res) {
     var body = "";
     req.on("data", function (buffer) {
       body += buffer.toString();
@@ -26,7 +26,7 @@ test("http module", async function (t) {
           body: body,
         },
         undefined,
-        2
+        2,
       );
       res.writeHead(200, {
         "Content-Type": "application/json",
@@ -65,7 +65,7 @@ test("http module", async function (t) {
       url: "/?a=1",
       headers: {
         host,
-        connection: "close",
+        connection: "keep-alive",
         "user-agent": "pico-engine-core-http",
         accept: "*/*",
         "accept-encoding": "gzip,deflate",
@@ -77,7 +77,7 @@ test("http module", async function (t) {
     status_line: "OK",
     headers: {
       "content-type": "application/json",
-      connection: "close",
+      connection: "keep-alive",
       "da-extra-header": "wat?",
     },
   });
@@ -105,7 +105,7 @@ test("http module", async function (t) {
         authorization: "Basic Ym9iOm5vcGFzcw==",
         "user-agent": "pico-engine-core-http",
         "content-length": "14",
-        connection: "close",
+        connection: "keep-alive",
         "content-type": "text/plain;charset=UTF-8",
         accept: "*/*",
         "accept-encoding": "gzip,deflate",
@@ -117,7 +117,7 @@ test("http module", async function (t) {
     status_line: "OK",
     headers: {
       "content-type": "application/json",
-      connection: "close",
+      connection: "keep-alive",
       "da-extra-header": "wat?",
     },
   });
@@ -138,7 +138,7 @@ test("http module", async function (t) {
         host,
         "content-type": "application/x-www-form-urlencoded",
         "content-length": "45",
-        connection: "close",
+        connection: "keep-alive",
         "user-agent": "pico-engine-core-http",
         accept: "*/*",
         "accept-encoding": "gzip,deflate",
@@ -150,7 +150,7 @@ test("http module", async function (t) {
     status_line: "OK",
     headers: {
       "content-type": "application/json",
-      connection: "close",
+      connection: "keep-alive",
       "da-extra-header": "wat?",
     },
   });
@@ -171,7 +171,7 @@ test("http module", async function (t) {
         host,
         "content-type": "application/json",
         "content-length": "41",
-        connection: "close",
+        connection: "keep-alive",
         "user-agent": "pico-engine-core-http",
         accept: "*/*",
         "accept-encoding": "gzip,deflate",
@@ -183,7 +183,7 @@ test("http module", async function (t) {
     status_line: "OK",
     headers: {
       "content-type": "application/json",
-      connection: "close",
+      connection: "keep-alive",
       "da-extra-header": "wat?",
     },
   });
@@ -199,7 +199,7 @@ test("http module", async function (t) {
       headers: {
         host,
         "content-length": "0",
-        connection: "close",
+        connection: "keep-alive",
         "user-agent": "pico-engine-core-http",
         accept: "*/*",
         "accept-encoding": "gzip,deflate",
@@ -211,7 +211,7 @@ test("http module", async function (t) {
     status_line: "OK",
     headers: {
       "content-type": "application/json",
-      connection: "close",
+      connection: "keep-alive",
       "da-extra-header": "wat?",
     },
   });
@@ -227,7 +227,7 @@ test("http module", async function (t) {
     status_code: 200,
     status_line: "OK",
     headers: {
-      connection: "close",
+      connection: "keep-alive",
     },
   });
 
@@ -238,7 +238,7 @@ test("http module", async function (t) {
     err = await t.throwsAsync(khttp[method](krlCtx, { url: { one: 1 } }));
     t.is(
       err + "",
-      `TypeError: http:${method} was given [Map] instead of a url string`
+      `TypeError: http:${method} was given [Map] instead of a url string`,
     );
   }
 });
@@ -259,10 +259,13 @@ test("http autosend", async function (t) {
     serverRespond = resolve;
   });
 
-  const server = http.createServer(function (req, res) {
-    res.end("some response");
-    serverRespond();
-  });
+  const server = http.createServer(
+    { keepAliveTimeout: 0 },
+    function (req, res) {
+      res.end("some response");
+      serverRespond();
+    },
+  );
   server.unref();
   await new Promise(function (resolve) {
     server.listen(0, () => resolve(undefined));
@@ -285,7 +288,7 @@ test("http autosend", async function (t) {
   t.deepEqual(
     signaledEvents,
     [],
-    "should be empty bc the server has not yet responded"
+    "should be empty bc the server has not yet responded",
   );
 
   await serverResponse;
@@ -311,7 +314,7 @@ test("http autosend", async function (t) {
           status_code: 200,
           status_line: "OK",
           headers: {
-            connection: "close",
+            connection: "keep-alive",
             "content-length": "13",
           },
         },
@@ -324,16 +327,19 @@ test("http redirects", async function (t) {
   const { core, krlCtx } = await makeCoreAndKrlCtx();
   const khttp = core.modules["http"];
 
-  const server = http.createServer(function (req, res) {
-    if (req.url === "/redir") {
-      res.writeHead(302, {
-        Location: "/other",
-      });
-      res.end();
-    } else {
-      res.end("some response");
-    }
-  });
+  const server = http.createServer(
+    { keepAliveTimeout: 0 },
+    function (req, res) {
+      if (req.url === "/redir") {
+        res.writeHead(302, {
+          Location: "/other",
+        });
+        res.end();
+      } else {
+        res.end("some response");
+      }
+    },
+  );
   server.unref();
   await new Promise(function (resolve) {
     server.listen(0, () => resolve(undefined));
@@ -351,7 +357,7 @@ test("http redirects", async function (t) {
     content_length: 13,
     content_type: null,
     headers: {
-      connection: "close",
+      connection: "keep-alive",
       "content-length": "13",
     },
     status_code: 200,
@@ -369,7 +375,7 @@ test("http redirects", async function (t) {
     content_length: 0,
     content_type: null,
     headers: {
-      connection: "close",
+      connection: "keep-alive",
       location: url + "/other",
       "transfer-encoding": "chunked",
     },
