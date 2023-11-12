@@ -33,13 +33,13 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "build": "rm -rf dist && tsc",
     "start": "npm run dev -s",
     "dev": "scriptsp -r dev:tsc dev:api",
     "dev:tsc": "tsc -w --preserveWatchOutput",
     "dev:api": "onchange -i -k dist/ -- node dist/cli.js",
-    "test": "ava"
+    "test": "ava reset-cache && ava"
   },
   "dependencies": {
     "body-parser": "^1.18.3",
@@ -73,7 +73,7 @@
     "@types/levelup": "^3.1.0",
     "@types/lodash": "^4.14.123",
     "@types/node": "^20.8.10",
-    "ava": "^1.4.1",
+    "ava": "^5.3.1",
     "onchange": "^6.0.0",
     "scriptsp": "^1.1.1",
     "temp-dir": "^2.0.0",
@@ -81,12 +81,15 @@
     "typescript": "^5.2.2"
   },
   "ava": {
-    "compileEnhancements": false,
     "extensions": [
       "ts"
     ],
     "require": [
       "ts-node/register"
+    ],
+    "files": [
+      "test/**/*",
+      "!test/helpers/**/*"
     ]
   },
   "gitHead": "26aee8aeb73a2450f9224f2d8d81f3a3d49b33f2"
