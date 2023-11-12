@@ -30,7 +30,7 @@
     "pico-engine": "bin/pico-engine"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "prepublish": "npm run build",
