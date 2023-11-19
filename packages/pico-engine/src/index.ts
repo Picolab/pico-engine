@@ -1,16 +1,16 @@
 import { krl, KrlLogger, makeKrlLogger } from "krl-stdlib";
-import leveldown from "leveldown";
+import { ClassicLevel } from "classic-level";
 import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import { PicoEngineCore, RulesetRegistry } from "pico-engine-core";
-import { PicoFramework } from "pico-framework";
+import { PicoDbKey, PicoFramework } from "pico-framework";
 import { getPicoLogs, makeRotatingFileLogWriter } from "./logging";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { server } from "./server";
 import { toFileUrl } from "./utils/toFileUrl";
-import * as fs from "fs";
-import { reject } from "lodash";
+const charwise = require("charwise");
+const safeJsonCodec = require("level-json-coerce-null");
 
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
@@ -85,7 +85,10 @@ export async function startEngine(
     : makeKrlLogger(makeRotatingFileLogWriter(logFilePath));
 
   const core = new PicoEngineCore({
-    leveldown: leveldown(path.resolve(home, "db")) as any,
+    db: new ClassicLevel<PicoDbKey, any>(path.resolve(home, "db"), {
+      keyEncoding: charwise,
+      valueEncoding: safeJsonCodec,
+    }),
     rsRegLoader: RulesetRegistryLoaderFs(home),
     log,
     modules: configuration.modules,

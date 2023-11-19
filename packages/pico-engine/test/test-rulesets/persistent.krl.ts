@@ -77,19 +77,16 @@ test("persistent.krl", async t => {
 
   /////////////////////////////////////////////////////////////////////////////
   // clear vars
-  function dumpEnts(picoId: string) {
-    return new Promise((resolve, reject) => {
-      const list: any = [];
-      const s = pe.pf.db.createReadStream({
-        gte: ["entvar", picoId, "io.picolabs.persistent"],
-        lte: ["entvar", picoId, "io.picolabs.persistent", undefined]
-      });
-      s.on("error", err => reject(err));
-      s.on("end", () => resolve(list));
-      s.on("data", function(data) {
-        list.push([data.key.slice(3), data.value]);
-      });
+  async function dumpEnts(picoId: string) {
+    const list: any = [];
+    const iter = pe.pf.db.iterator({
+      gte: ["entvar", picoId, "io.picolabs.persistent"],
+      lte: ["entvar", picoId, "io.picolabs.persistent", undefined]
     });
+    for await (const [key, value] of iter) {
+      list.push([key.slice(3), value]);
+    }
+    return list
   }
   t.deepEqual(await dumpEnts(picoIdA), [
     [["name"], "Alf"],
