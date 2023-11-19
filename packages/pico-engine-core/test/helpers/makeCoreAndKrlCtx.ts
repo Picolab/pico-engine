@@ -1,7 +1,7 @@
 import { KrlCtx, makeKrlLogger } from "krl-stdlib";
 import { PicoEngineCore } from "../../src/PicoEngineCore";
 import { RulesetRegistryLoaderTesting } from "./RulesetRegistryLoaderTesting";
-const memdown = require("memdown");
+import { mkdb } from "./mkdb";
 
 export default async function makeCoreAndKrlCtx(): Promise<{
   core: PicoEngineCore;
@@ -9,7 +9,7 @@ export default async function makeCoreAndKrlCtx(): Promise<{
 }> {
   let krlCtx: any;
   let core = new PicoEngineCore({
-    leveldown: memdown(),
+    db: mkdb(),
     rsRegLoader: RulesetRegistryLoaderTesting({
       getKrlCtx: {
         rid: "getKrlCtx",

@@ -45,7 +45,7 @@ export class PicoEngineCore {
     );
 
     this.picoFramework = new PicoFramework({
-      leveldown: conf.leveldown,
+      db: conf.db,
       genID: conf.genID,
       useEventInputTime: conf.useEventInputTime,
 

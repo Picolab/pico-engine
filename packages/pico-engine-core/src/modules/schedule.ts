@@ -25,7 +25,7 @@ export type ScheduledEvent = ScheduledEvent_at | ScheduledEvent_repeat;
 
 type ScheduleJob = (
   timespec: string,
-  handler: () => void
+  handler: () => void,
 ) => { handler: () => void; cancel: () => void };
 
 type SetTimeout = (handler: () => void, time: number) => void;
@@ -56,7 +56,7 @@ export class Scheduler {
     scheduleJob?: ScheduleJob,
     setTimeout?: SetTimeout,
     clearTimeout?: ClearTimeout,
-    now?: () => number
+    now?: () => number,
   ) {
     this.scheduleJob = scheduleJob || nodeSchedule.scheduleJob;
     this.setTimeout = setTimeout || longTimeout.setTimeout;
@@ -105,7 +105,7 @@ export class Scheduler {
     // If it's in the past it will happen on the next tick
     this.currTimeout = this.setTimeout(
       () => this.onTime(),
-      next.time - this.now()
+      next.time - this.now(),
     );
   }
 
@@ -166,7 +166,7 @@ export function initScheduleModule(pf: PicoFramework) {
 
   async function addToSchedule(
     ctx: KrlCtx,
-    sEvent: ScheduledEvent
+    sEvent: ScheduledEvent,
   ): Promise<ScheduledEvent> {
     const schedule = (await ctx.rsCtx.getEnt("_schedule")) || {};
     schedule[sEvent.id] = sEvent;
@@ -199,7 +199,7 @@ export function initScheduleModule(pf: PicoFramework) {
 
         if (posixTime === null || !krl.isNumber(posixTime)) {
           throw new TypeError(
-            "schedule .. at expected a timestamp but got " + krl.typeOf(time)
+            "schedule .. at expected a timestamp but got " + krl.typeOf(time),
           );
         }
 
@@ -215,7 +215,7 @@ export function initScheduleModule(pf: PicoFramework) {
             time: 0,
           },
         });
-      }
+      },
     ),
 
     repeat: krl.Postlude(
@@ -233,7 +233,7 @@ export function initScheduleModule(pf: PicoFramework) {
             time: 0,
           },
         });
-      }
+      },
     ),
 
     list: krl.Function([], async function () {
@@ -249,7 +249,7 @@ export function initScheduleModule(pf: PicoFramework) {
     remove: krl.Action(["id"], async function (id) {
       await this.rsCtx.putEnt(
         "_schedule",
-        _.omit(this.rsCtx.getEnt("_schedule") || {}, id)
+        _.omit(this.rsCtx.getEnt("_schedule") || {}, id),
       );
       scheduler.remove(id);
     }),
@@ -266,24 +266,20 @@ export function initScheduleModule(pf: PicoFramework) {
 
   return {
     module,
-    start() {
-      return new Promise((resolve, reject) => {
-        const s = pf.db.createReadStream({
-          gte: ["entvar"],
-          lte: ["entvar", undefined], // charwise sorts with null at the bottom and undefined at the top
-        });
-        s.on("error", reject);
-        s.on("end", () => resolve(undefined));
-        s.on("data", (data) => {
-          if (data.key[3] === "_schedule") {
-            const rid = data.key[2];
-            const value: { [id: string]: ScheduledEvent } = data.value;
-            for (const sEvent of Object.values(value)) {
-              addScheduledEvent(rid, sEvent);
-            }
-          }
-        });
+    async start() {
+      const iter = pf.db.iterator({
+        gte: ["entvar"],
+        lte: ["entvar", undefined], // charwise sorts with null at the bottom and undefined at the top
       });
+      for await (const [key, val] of iter) {
+        if (key[3] === "_schedule") {
+          const rid = key[2] + "";
+          const value: { [id: string]: ScheduledEvent } = val;
+          for (const sEvent of Object.values(value)) {
+            addScheduledEvent(rid, sEvent);
+          }
+        }
+      }
     },
   };
 }
