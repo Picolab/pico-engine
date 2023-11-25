@@ -70,6 +70,7 @@ const PicosPage: React.FC<Props> = (props) => {
         <div>
           {picoPage.uiContext ? `version: ${picoPage.uiContext.version}` : ""}
         </div>
+        {process.env.NODE_ENV === "development" && <div>Development Mode</div>}
       </footer>
 
       <div className="container-fluid">
@@ -108,7 +109,8 @@ const PicosPage: React.FC<Props> = (props) => {
       <svg id="subs-svg">
         {picoPage.subLines.map((line, i) => {
           return (
-            <line strokeDasharray="4"
+            <line
+              strokeDasharray="4"
               key={i}
               x1={line.from.x}
               y1={line.from.y}
