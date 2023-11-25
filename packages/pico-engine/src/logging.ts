@@ -1,8 +1,7 @@
 import * as fs from "fs";
+import * as readline from "readline";
 import { krlLogLevelCodeToHuman, PicoLogEntry } from "krl-stdlib";
 import * as path from "path";
-const split = require("split");
-const through2 = require("through2");
 
 const rfs = require("rotating-file-stream");
 
@@ -21,14 +20,14 @@ function getRotatingFileStream(filePath: string): NodeJS.WritableStream {
 
         size: "100M", // rotate every 10 MegaBytes written
         maxFiles: 12,
-      }
+      },
     ) as NodeJS.WritableStream;
   }
   return logStreams[filePath];
 }
 
 export function makeRotatingFileLogWriter(
-  filePath: string
+  filePath: string,
 ): (line: string) => void {
   const fileStream = getRotatingFileStream(filePath);
   const isTest = process.env.NODE_ENV === "test";
@@ -45,50 +44,40 @@ export function makeRotatingFileLogWriter(
 
 export async function getPicoLogs(
   filePath: string,
-  picoId: string
+  picoId: string,
 ): Promise<PicoLogEntry[]> {
-  return new Promise((resolve, reject) => {
-    const output: PicoLogEntry[] = [];
-    fs.createReadStream(filePath)
-      .pipe(split())
-      .pipe(
-        through2((chunk: any, enc: any, next: any) => {
-          const line = chunk.toString();
-          if (line.indexOf(picoId) < 0) {
-            // not my pico
-            return next();
-          }
-          let entry;
-          try {
-            entry = JSON.parse(line);
-          } catch (err) {}
-          if (!entry || entry.picoId !== picoId) {
-            // not my pico
-            return next();
-          }
-          const time = new Date(entry.time);
-          if (Date.now() - time.getTime() > 1000 * 60 * 60 * 12) {
-            // too old
-            return next();
-          }
+  const output: PicoLogEntry[] = [];
 
-          const out: PicoLogEntry = {
-            ...entry,
-            level: krlLogLevelCodeToHuman[entry.level] || `${entry.level}`,
-            time: entry.time,
-            txnId: entry.txnId,
-          };
-          delete (out as any).picoId;
-          output.push(out);
-
-          next();
-        })
-      )
-      .on("finish", () => {
-        resolve(output);
-      })
-      .on("error", (err: any) => {
-        reject(err);
-      });
+  const rl = readline.createInterface({
+    input: fs.createReadStream(filePath),
   });
+
+  for await (const line of rl) {
+    // Each line in the readline input will be successively available here as
+    // `line`.
+    if (line.indexOf(picoId) < 0) {
+      continue; // not my pico
+    }
+    let entry;
+    try {
+      entry = JSON.parse(line);
+    } catch (err) {}
+    if (!entry || entry.picoId !== picoId) {
+      continue; // not my pico
+    }
+    const time = new Date(entry.time);
+    if (Date.now() - time.getTime() > 1000 * 60 * 60 * 12) {
+      continue; // too old
+    }
+
+    const out: PicoLogEntry = {
+      ...entry,
+      level: krlLogLevelCodeToHuman[entry.level] || `${entry.level}`,
+      time: entry.time,
+      txnId: entry.txnId,
+    };
+    delete (out as any).picoId;
+    output.push(out);
+  }
+  return output;
 }
