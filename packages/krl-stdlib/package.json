@@ -39,7 +39,7 @@
     "json-log": "^3.0.1",
     "lodash": "^4.17.11",
     "pico-framework": "^0.7.0",
-    "select-when": "^0.1.7"
+    "select-when": "^0.1.9"
   },
   "ava": {
     "extensions": [

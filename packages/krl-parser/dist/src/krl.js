@@ -50,7 +50,7 @@ function chompWord(state, expectedWhat = "word") {
     }
     const id = {
         loc: state.curr.token.loc,
-        type: "Identifier",
+        type: "Identifier", // TODO update the compiler etc. to support Word instead of overloading Identifier
         value: state.curr.token.src
     };
     advance(state);
