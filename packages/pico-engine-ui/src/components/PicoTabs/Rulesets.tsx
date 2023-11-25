@@ -162,7 +162,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
                     <div>
                       <div>
                         <b className="text-muted">Last flushed:</b>{" "}
-                        {ruleset.meta.flushed}
+                        {ruleset.meta.flushed + ""}
                       </div>
                       <div>
                         <b className="text-muted">Hash:</b> {ruleset.meta.hash}

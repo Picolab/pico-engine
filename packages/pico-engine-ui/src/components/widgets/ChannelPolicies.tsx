@@ -98,7 +98,7 @@ export function parseQueryPolicy(src: string): QueryPolicy {
   return policy;
 }
 
-export const ParseError: React.SFC<{
+export const ParseError: React.FC<{
   error: any;
   line: string;
 }> = ({ error, line }) => {
@@ -112,7 +112,7 @@ export const ParseError: React.SFC<{
   );
 };
 
-export const ParseNViewEventPolicy: React.SFC<{
+export const ParseNViewEventPolicy: React.FC<{
   src: string;
 }> = ({ src }) => {
   return (
@@ -137,7 +137,7 @@ export const ParseNViewEventPolicy: React.SFC<{
   );
 };
 
-export const ParseNViewQueryPolicy: React.SFC<{
+export const ParseNViewQueryPolicy: React.FC<{
   src: string;
 }> = ({ src }) => {
   return (
@@ -162,7 +162,7 @@ export const ParseNViewQueryPolicy: React.SFC<{
   );
 };
 
-export const ViewEventPolicy: React.SFC<{
+export const ViewEventPolicy: React.FC<{
   policy: EventPolicy;
 }> = ({ policy }) => {
   return (
@@ -177,7 +177,7 @@ export const ViewEventPolicy: React.SFC<{
   );
 };
 
-export const ViewQueryPolicy: React.SFC<{
+export const ViewQueryPolicy: React.FC<{
   policy: QueryPolicy;
 }> = ({ policy }) => {
   return (
@@ -192,7 +192,7 @@ export const ViewQueryPolicy: React.SFC<{
   );
 };
 
-const ViewEventPolicyRule: React.SFC<{
+const ViewEventPolicyRule: React.FC<{
   rule: EventPolicyRule;
   isAllow?: boolean;
 }> = ({ isAllow, rule }) => {
@@ -210,7 +210,7 @@ const ViewEventPolicyRule: React.SFC<{
   );
 };
 
-const ViewQueryPolicyRule: React.SFC<{
+const ViewQueryPolicyRule: React.FC<{
   rule: QueryPolicyRule;
   isAllow?: boolean;
 }> = ({ isAllow, rule }) => {

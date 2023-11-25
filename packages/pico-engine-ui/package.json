@@ -22,16 +22,14 @@
     "build": "tsc && vite build && cp dist/pico-engine-ui.* ../pico-engine/public/"
   },
   "dependencies": {
-    "react": "^16.8.5",
-    "react-dom": "^16.8.5",
-    "react-router-dom": "^6.20.0",
-    "whatwg-fetch": "^3.0.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
     "@types/node": "^20.9.2",
-    "@types/react": "^16.8.8",
-    "@types/react-dom": "^16.8.3",
-    "@types/react-router-dom": "^5.3.3",
+    "@types/react": "^18.2.38",
+    "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "sass": "^1.45.2",
     "scriptsp": "^1.1.1",

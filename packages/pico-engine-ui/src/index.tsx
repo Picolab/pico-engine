@@ -1,14 +1,14 @@
-import * as ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { HashRouter, Route, Routes } from "react-router-dom";
-import "whatwg-fetch"; // polyfill for fetch
 import PicosPage from "./components/PicosPage";
 import "./bootstrap.4.6.2.min.css";
 import "./index.scss";
 
 const mountPoint = document.createElement("DIV");
 document.body.append(mountPoint);
+const root = createRoot(mountPoint);
 
-ReactDOM.render(
+root.render(
   <HashRouter>
     <Routes>
       {/* NOTE: Order matters, go from specific to general */}
@@ -17,5 +17,4 @@ ReactDOM.render(
       <Route path="*" element={<PicosPage />} />
     </Routes>
   </HashRouter>,
-  mountPoint,
 );
