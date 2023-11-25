@@ -17,7 +17,7 @@ function returnTabLink(pico: PicoBox, label: string, tab?: string) {
   }
   return (
     <li className="nav-item">
-      <NavLink className="nav-link" to={url} exact={true}>
+      <NavLink className="nav-link" to={url} end>
         {label}
       </NavLink>
     </li>

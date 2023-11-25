@@ -24,14 +24,14 @@
   "dependencies": {
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
-    "react-router-dom": "^5.0.0",
+    "react-router-dom": "^6.20.0",
     "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.9.2",
     "@types/react": "^16.8.8",
     "@types/react-dom": "^16.8.3",
-    "@types/react-router-dom": "^4.3.1",
+    "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "sass": "^1.45.2",
     "scriptsp": "^1.1.1",
