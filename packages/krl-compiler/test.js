@@ -141,7 +141,7 @@ test('compiler errors', function (t) {
 
   tstFail(
     'ruleset a{meta{shares hello}global {hello = defaction(){noop()}}}',
-    'Error: Actions cannot be used queries: hello'
+    'Error: Actions must not be shared: hello'
   )
 
   tstWarn(
