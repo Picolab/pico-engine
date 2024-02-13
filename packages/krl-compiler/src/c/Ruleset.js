@@ -87,7 +87,7 @@ module.exports = function (ast, comp, e) {
       throw comp.error(share.loc, 'Trying to share: ' + share.value + ' but it\'s not defined in global')
     }
     if (annotation && annotation.type === 'Action') {
-      throw comp.error(annotation.loc, 'Actions cannot be used queries: ' + share.value)
+      throw comp.error(annotation.loc, 'Actions must not be shared: ' + share.value)
     } else {
       queries[share.value] = e('asyncfn', ['query', 'qid'], [
         e(';', e('call', e('id', '$ctx.setQuery'), [e('call', e('id', 'Object.assign'), [
