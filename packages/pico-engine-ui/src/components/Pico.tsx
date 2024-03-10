@@ -138,7 +138,7 @@ const Pico: React.FC<Props> = (props) => {
             <Link
               to={"/pico/" + pico.eci}
               className="pico-name-open-btn"
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={(e: any) => e.stopPropagation()}
               style={{ color: titleColor(pico.backgroundColor) }}
             >
               {pico.name}
