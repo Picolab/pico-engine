@@ -1,6 +1,7 @@
 # pico-engine
 
 [![Node version](https://img.shields.io/node/v/pico-engine.svg)](https://nodejs.org/en/download/)
+[![Build Status](https://github.com/Picolab/pico-engine/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/Picolab/pico-engine/actions/workflows/test.yml)
 
 An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) hosted on node.js
 

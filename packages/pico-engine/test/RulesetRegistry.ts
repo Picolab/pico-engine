@@ -3,13 +3,13 @@ import * as cuid from "cuid";
 import * as fs from "fs";
 import * as makeDir from "make-dir";
 import * as path from "path";
-import * as tempDir from "temp-dir";
+import * as os from "os";
 import { RulesetRegistry } from "pico-engine-core";
 import { RulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
 import { toFileUrl } from "../src/utils/toFileUrl";
 
 test("RulesetRegistry", async (t) => {
-  const dir = path.resolve(tempDir, "pico-engine", cuid());
+  const dir = path.resolve(os.tmpdir(), "pico-engine", cuid());
   await makeDir(dir);
 
   await fs.promises.writeFile(

@@ -1,18 +1,16 @@
 import * as React from "react";
+import { useParams } from "react-router-dom";
 import { apiSavePicoBox } from "../api";
 import picoPageStore from "../stores/picoPageStore";
 import Pico from "./Pico";
 
-interface Props {
-  // react-router
-  match: { params: { [name: string]: string } };
-}
+interface Props {}
 
-const PicosPage: React.FC<Props> = (props) => {
-  const { match } = props;
+const PicosPage: React.FC<Props> = () => {
+  let params = useParams();
 
-  const openEci: string | undefined = match.params.eci;
-  const openTab: string | undefined = match.params.tab;
+  const openEci = params.eci;
+  const openTab = params.tab;
 
   const picoPage = picoPageStore.use();
 
@@ -70,6 +68,7 @@ const PicosPage: React.FC<Props> = (props) => {
         <div>
           {picoPage.uiContext ? `version: ${picoPage.uiContext.version}` : ""}
         </div>
+        {process.env.NODE_ENV === "development" && <div>Development Mode</div>}
       </footer>
 
       <div className="container-fluid">
@@ -108,7 +107,8 @@ const PicosPage: React.FC<Props> = (props) => {
       <svg id="subs-svg">
         {picoPage.subLines.map((line, i) => {
           return (
-            <line strokeDasharray="4"
+            <line
+              strokeDasharray="4"
               key={i}
               x1={line.from.x}
               y1={line.from.y}

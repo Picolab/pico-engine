@@ -1,7 +1,7 @@
 import * as bodyParser from "body-parser";
 import * as express from "express";
 import { Express, Request } from "express";
-import * as helmet from "helmet";
+import helmet from "helmet";
 import * as _ from "lodash";
 import * as path from "path";
 import { PicoEngineCore } from "pico-engine-core";

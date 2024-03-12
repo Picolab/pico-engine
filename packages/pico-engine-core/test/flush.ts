@@ -5,8 +5,7 @@ import { RulesetRegistryLoaderMem } from "../src/RulesetRegistryLoaderMem";
 import { allowAllChannelConf } from "./helpers/allowAllChannelConf";
 import { mkSignalBase } from "./helpers/mkSignalBase";
 import { sleep } from "./helpers/sleep";
-
-const memdown = require("memdown");
+import { mkdb } from "./helpers/mkdb";
 
 test("ruleset flush", async (t) => {
   function mkKrlVersion(v: string): string {
@@ -29,7 +28,7 @@ test("ruleset flush", async (t) => {
   };
 
   const core = new PicoEngineCore({
-    leveldown: memdown(),
+    db: mkdb(),
     rsRegLoader: RulesetRegistryLoaderMem(async (url) => krlUrls[url]),
     log: makeKrlLogger((line: string) => null),
     async getPicoLogs(picoId) {
@@ -38,9 +37,8 @@ test("ruleset flush", async (t) => {
   });
   await core.start();
 
-  const chann = await core.picoFramework.rootPico.newChannel(
-    allowAllChannelConf
-  );
+  const chann =
+    await core.picoFramework.rootPico.newChannel(allowAllChannelConf);
   const eci = chann.id;
   const mkSignal = mkSignalBase(core.picoFramework);
   const signal = mkSignal(eci);

@@ -8,9 +8,9 @@
     "dist/src"
   ],
   "scripts": {
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "start": "ava -w",
-    "test": "ava",
+    "test": "ava reset-cache && ava",
     "build": "npm run build:ts -s && npm run build:spec -s",
     "build:ts": "rm -rf dist && tsc",
     "build:spec": "node specBuilder.js > spec.md"
@@ -31,16 +31,15 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "ava": "^2.4.0",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.1.2"
+    "ava": "^5.3.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "excerpt-at-line-col": "^1.0.0",
     "line-column": "^1.0.2"
   },
   "ava": {
-    "compileEnhancements": false,
     "extensions": [
       "ts"
     ],
@@ -48,10 +47,8 @@
       "ts-node/register"
     ],
     "files": [
-      "test/**/*"
-    ],
-    "helpers": [
-      "test/helpers/**/*"
+      "test/**/*",
+      "!test/helpers/**/*"
     ]
   },
   "gitHead": "26aee8aeb73a2450f9224f2d8d81f3a3d49b33f2"

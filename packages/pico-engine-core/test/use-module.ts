@@ -7,8 +7,7 @@ import {
 } from "../src";
 import { allowAllChannelConf } from "./helpers/allowAllChannelConf";
 import { mkSignalBase } from "./helpers/mkSignalBase";
-
-const memdown = require("memdown");
+import { mkdb } from "./helpers/mkdb";
 
 test("use-module install order", async (t) => {
   const krlUrls: { [url: string]: string } = {
@@ -26,7 +25,7 @@ test("use-module install order", async (t) => {
     "mem://ccc": `ruleset ccc{meta{use module bbb}}`,
   };
   const conf: PicoEngineCoreConfiguration = {
-    leveldown: memdown(),
+    db: mkdb(),
     rsRegLoader: RulesetRegistryLoaderMem(async (url) => krlUrls[url]),
     log: makeKrlLogger((line: string) => null),
     async getPicoLogs(picoId) {
@@ -47,7 +46,7 @@ test("use-module install order", async (t) => {
   let signal = mkSignalBase(pe.picoFramework)(eci);
 
   let err = await t.throwsAsync(
-    signal("main", "install", { url: "mem://aaa" })
+    signal("main", "install", { url: "mem://aaa" }),
   );
   t.is("" + err, "Error: Module not found: bbb");
   err = await t.throwsAsync(signal("main", "install", { url: "mem://ccc" }));
@@ -83,7 +82,7 @@ test("use-module startup dependency", async (t) => {
     }`,
   };
   const conf: PicoEngineCoreConfiguration = {
-    leveldown: memdown(),
+    db: mkdb(),
     rsRegLoader: RulesetRegistryLoaderMem(async (url) => krlUrls[url]),
     log: makeKrlLogger((line: string) => null),
     async getPicoLogs(picoId) {
@@ -150,7 +149,7 @@ test("use-module get dependency updates", async (t) => {
   };
 
   const conf: PicoEngineCoreConfiguration = {
-    leveldown: memdown(),
+    db: mkdb(),
     rsRegLoader: RulesetRegistryLoaderMem(async (url) => krlUrls[url]),
     log: makeKrlLogger((line: string) => null),
     async getPicoLogs(picoId) {

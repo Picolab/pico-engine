@@ -4,7 +4,7 @@ interface Props {
   error?: string | null;
 }
 
-const ErrorStatus: React.SFC<Props> = props => {
+const ErrorStatus: React.FC<Props> = (props) => {
   return props.error ? (
     <span className="text-danger">{props.error}</span>
   ) : (

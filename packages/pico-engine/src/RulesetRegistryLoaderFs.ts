@@ -1,16 +1,14 @@
 import fetch from "cross-fetch";
 import * as fs from "fs";
-import leveldown from "leveldown";
-import { default as level } from "levelup";
+import { ClassicLevel } from "classic-level";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import { RulesetRegistryLoader } from "pico-engine-core";
-import { Ruleset } from "pico-framework";
+import { PicoDbKey, Ruleset } from "pico-framework";
 import * as urlLib from "url";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
 const charwise = require("charwise");
-const encode = require("encoding-down");
 const safeJsonCodec = require("level-json-coerce-null");
 
 function getUrlFilename(url: string): string | null {
@@ -40,12 +38,10 @@ export function RulesetRegistryLoaderFs(
 ): RulesetRegistryLoader {
   const rulesetDir = path.resolve(engineHomeDir, "rulesets");
 
-  const db = level(
-    encode(leveldown(path.resolve(engineHomeDir, "rulesets-db")), {
-      keyEncoding: charwise,
-      valueEncoding: safeJsonCodec,
-    })
-  );
+  const db = new ClassicLevel<PicoDbKey, any>(path.resolve(engineHomeDir, "rulesets-db"), {
+    keyEncoding: charwise,
+    valueEncoding: safeJsonCodec,
+  })
 
   async function compileAndLoad(
     url: string,

@@ -1,22 +1,20 @@
-import * as React from "react";
-import * as ReactDOM from "react-dom";
-import { HashRouter, Route, Switch as RouterSwitch } from "react-router-dom";
-import "whatwg-fetch"; // polyfill for fetch
+import { createRoot } from "react-dom/client";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import PicosPage from "./components/PicosPage";
+import "./bootstrap.4.6.2.min.css";
 import "./index.scss";
 
 const mountPoint = document.createElement("DIV");
 document.body.append(mountPoint);
+const root = createRoot(mountPoint);
 
-ReactDOM.render(
+root.render(
   <HashRouter>
-    <RouterSwitch>
+    <Routes>
       {/* NOTE: Order matters, go from specific to general */}
-
-      <Route path="/pico/:eci/:tab" component={PicosPage} />
-      <Route path="/pico/:eci" component={PicosPage} />
-      <Route component={PicosPage} />
-    </RouterSwitch>
+      <Route path="/pico/:eci/:tab" element={<PicosPage />} />
+      <Route path="/pico/:eci" element={<PicosPage />} />
+      <Route path="*" element={<PicosPage />} />
+    </Routes>
   </HashRouter>,
-  mountPoint
 );

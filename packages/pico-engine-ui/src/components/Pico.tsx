@@ -17,7 +17,7 @@ function returnTabLink(pico: PicoBox, label: string, tab?: string) {
   }
   return (
     <li className="nav-item">
-      <NavLink className="nav-link" to={url} exact={true}>
+      <NavLink className="nav-link" to={url} end>
         {label}
       </NavLink>
     </li>
@@ -138,7 +138,7 @@ const Pico: React.FC<Props> = (props) => {
             <Link
               to={"/pico/" + pico.eci}
               className="pico-name-open-btn"
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={(e: any) => e.stopPropagation()}
               style={{ color: titleColor(pico.backgroundColor) }}
             >
               {pico.name}

@@ -1,7 +1,7 @@
 import * as cuid from "cuid";
 import * as path from "path";
 import { ChannelConfig, Pico, PicoFramework } from "pico-framework";
-import * as tempDir from "temp-dir";
+import * as os from "os";
 import { PicoEngineConfiguration, startEngine } from "../../src/index";
 import { cleanDirectives } from "./cleanDirectives";
 import { toTestKrlURL } from "./toTestKrlURL";
@@ -44,7 +44,7 @@ export async function startTestEngine(
 ) {
   const pe = await startEngine({
     ...conf,
-    home: conf.home || path.resolve(tempDir, "pico-engine", cuid()),
+    home: conf.home || path.resolve(os.tmpdir(), "pico-engine", cuid()),
     port: 0,
   });
 
