@@ -261,32 +261,8 @@ const store = krl.Action(["originURL", "destinationURL", "doAutoAuth"],
 	
     let file : File = await getNonPodFile(this, [originURL, destinationURL, FUNCTION_NAME])
 
-    //(Rushed) code to keep it in line with overwrite() and have file names at the end of destination URLs.
-    let fS_filename : string | undefined = destinationURL.split("/").pop();
-    let bS_filename : string | undefined = destinationURL.split("\\").pop();
-    let newDestinationURL : string = destinationURL;
-    if (typeof fS_filename === "undefined" && typeof bS_filename === "undefined") {
-        newDestinationURL = destinationURL;
-    } else if (typeof fS_filename === "undefined" || fS_filename.length == 0) {
-        let destArray : Array<string> = destinationURL.split("\\");
-        destArray.pop();
-        newDestinationURL = <string>destArray.join("\\");
-    } else if (typeof bS_filename === "undefined" || bS_filename.length == 0) {
-        let destArray : Array<string> = destinationURL.split("/");
-        destArray.pop();
-        newDestinationURL = <string>destArray.join("/");
-    } else if (fS_filename.length > bS_filename.length) {
-        let destArray : Array<string> = destinationURL.split("\\");
-        destArray.pop();
-        newDestinationURL = <string>destArray.join("\\");
-    } else {
-        let destArray : Array<string> = destinationURL.split("/");
-        destArray.pop();
-        newDestinationURL = <string>destArray.join("/");
-    }
-    newDestinationURL = newDestinationURL + "/";
+    let newDestinationURL : string = getDestinationURLWithoutFileName(destinationURL);
     this.log.debug("Destination: " + newDestinationURL);
-    
     
     saveFileInContainer(
         newDestinationURL,
@@ -342,6 +318,33 @@ const getNonPodFile = krl.Action(["originURL", "destinationURL", "functionName"]
 
 	return file;
 });
+function getDestinationURLWithoutFileName(destinationURL : string) : string {
+    //(Rushed) code to keep functions consistent and have file names at the end of destination URLs.
+    let fS_filename : string | undefined = destinationURL.split("/").pop();
+    let bS_filename : string | undefined = destinationURL.split("\\").pop();
+    let newDestinationURL : string = destinationURL;
+    if (typeof fS_filename === "undefined" && typeof bS_filename === "undefined") {
+        newDestinationURL = destinationURL;
+    } else if (typeof fS_filename === "undefined" || fS_filename.length == 0) {
+        let destArray : Array<string> = destinationURL.split("\\");
+        destArray.pop();
+        newDestinationURL = <string>destArray.join("\\");
+    } else if (typeof bS_filename === "undefined" || bS_filename.length == 0) {
+        let destArray : Array<string> = destinationURL.split("/");
+        destArray.pop();
+        newDestinationURL = <string>destArray.join("/");
+    } else if (fS_filename.length > bS_filename.length) {
+        let destArray : Array<string> = destinationURL.split("\\");
+        destArray.pop();
+        newDestinationURL = <string>destArray.join("\\");
+    } else {
+        let destArray : Array<string> = destinationURL.split("/");
+        destArray.pop();
+        newDestinationURL = <string>destArray.join("/");
+    }
+    newDestinationURL = newDestinationURL + "/";
+    return newDestinationURL;
+}
 
 const removeFile = krl.Action(["fileURL", "doAutoAuth"], async function(fileURL : string,
                                                           doAutoAuth : Boolean = true) {
@@ -362,7 +365,7 @@ const copyFile = krl.Action(["originURL", "destinationURL", "doAutoAuth"],
         }
     }
     try {
-        const file = await getFile(
+        let file = await getFile(
         originURL,               // File in Pod to Read
         { fetch: authFetch }       // fetch from authenticated session
         );
@@ -370,14 +373,17 @@ const copyFile = krl.Action(["originURL", "destinationURL", "doAutoAuth"],
         this.log.debug(`The file is ${isRawData(file) ? "not " : ""}a dataset.`);
 
         if (destinationURL.startsWith('http://') || destinationURL.startsWith('https://')) {
-            let filename = originURL.split('/').pop();
+            let newDestinationURL = getDestinationURLWithoutFileName(destinationURL);
+            this.log.debug("Destination: " + newDestinationURL);
+
+            let newFile = await createFileObject(file, destinationURL, "copyFile");
             saveFileInContainer(
-                destinationURL,
-                new File([file], `${filename}`, { type : `${getContentType(file)}`}),
+                newDestinationURL,
+                newFile,
                 { fetch: authFetch }
             )
             .then(() => {
-                this.log.debug(`File copied to ${destinationURL} successfully!\n`);
+                this.log.debug(`File copied to ${newDestinationURL} successfully!\n`);
             })
             .catch(error => {
                 this.log.error("Error copying file:", error);
