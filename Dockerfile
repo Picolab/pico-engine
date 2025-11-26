@@ -2,10 +2,10 @@
 # This Dockerfile creates a docker image for the pico engine with an external mount point for the image
 #
 # To build:
-#    docker build -t <username>/<container-name> github.com/picolab/pico-engine
+#    docker build -t <username>/<container-name> https://github.com/picolab/pico-engine.git
 #
 # For example:
-#    docker build -t pjw/pico-engine github.com/picolab/pico-engine
+#    docker build -t pjw/pico-engine https://github.com/picolab/pico-engine.git
 #
 # To run:
 #    docker run -p <port>:3000  -v <mount-point>:/var/pico-image -d <username>/container-name>
