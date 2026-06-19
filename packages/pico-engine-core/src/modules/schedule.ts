@@ -47,6 +47,12 @@ export class Scheduler {
     };
   } = {};
 
+  /** job id -> owning pico id (for proactive cancel on picoDeleted) */
+  private jobPicoId: { [jobId: string]: string } = {};
+
+  /** pico id -> job ids */
+  private jobsByPicoId: { [picoId: string]: Set<string> } = {};
+
   private scheduleJob: ScheduleJob;
   private setTimeout: SetTimeout;
   private clearTimeout: ClearTimeout;
@@ -64,6 +70,31 @@ export class Scheduler {
     this.now = now || Date.now;
   }
 
+  registerJob(picoId: string | null, id: string) {
+    if (!picoId) {
+      return;
+    }
+    this.jobPicoId[id] = picoId;
+    if (!this.jobsByPicoId[picoId]) {
+      this.jobsByPicoId[picoId] = new Set();
+    }
+    this.jobsByPicoId[picoId].add(id);
+  }
+
+  cancelForPico(picoId: string) {
+    const ids = this.jobsByPicoId[picoId];
+    if (!ids) {
+      return;
+    }
+    for (const id of [...ids]) {
+      this.remove(id);
+    }
+  }
+
+  hasJob(id: string) {
+    return !!(this.crons[id] || this.futures.some((f) => f.id === id));
+  }
+
   addFuture(id: string, time: number, handler: () => void) {
     this.futures.push({ id, time, handler });
     this.futures.sort((a, b) => a.time - b.time);
@@ -75,6 +106,15 @@ export class Scheduler {
   }
 
   remove(id: string) {
+    const picoId = this.jobPicoId[id];
+    if (picoId) {
+      this.jobsByPicoId[picoId]?.delete(id);
+      if (this.jobsByPicoId[picoId]?.size === 0) {
+        delete this.jobsByPicoId[picoId];
+      }
+      delete this.jobPicoId[id];
+    }
+
     if (this.crons[id]) {
       this.crons[id].cancel();
       delete this.crons[id];
@@ -124,7 +164,17 @@ export class Scheduler {
 export function initScheduleModule(pf: PicoFramework) {
   const scheduler = new Scheduler();
 
+  function channelPicoId(eci: string): string | null {
+    try {
+      return pf.lookupChannel(eci).pico.id;
+    } catch (err) {
+      return null;
+    }
+  }
+
   function addScheduledEvent(rid: string, sEvent: ScheduledEvent) {
+    scheduler.registerJob(channelPicoId(sEvent.event.eci), sEvent.id);
+
     if (sEvent.type === "at") {
       scheduler.addFuture(sEvent.id, sEvent.time, async () => {
         let pico;
@@ -279,6 +329,11 @@ export function initScheduleModule(pf: PicoFramework) {
             addScheduledEvent(rid, sEvent);
           }
         }
+      }
+    },
+    onFrameworkEvent(ev: { type: string; picoId?: string }) {
+      if (ev.type === "picoDeleted" && ev.picoId) {
+        scheduler.cancelForPico(ev.picoId);
       }
     },
   };

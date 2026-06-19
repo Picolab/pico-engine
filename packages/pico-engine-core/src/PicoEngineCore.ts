@@ -44,6 +44,8 @@ export class PicoEngineCore {
       this.onRulesetLoaded(crs)
     );
 
+    let scheduleHooks: ReturnType<typeof initScheduleModule>;
+
     this.picoFramework = new PicoFramework({
       db: conf.db,
       genID: conf.genID,
@@ -54,6 +56,7 @@ export class PicoEngineCore {
       rulesetLoader: this.rsRegistry.loader,
 
       onFrameworkEvent(ev) {
+        scheduleHooks?.onFrameworkEvent(ev);
         switch (ev.type) {
           case "startup":
             break;
@@ -100,6 +103,9 @@ export class PicoEngineCore {
               txnId: ev.txn.id,
             });
             break;
+          case "picoDeleted":
+            log.debug("pico deleted", { picoId: ev.picoId });
+            break;
         }
       },
     });
@@ -111,9 +117,9 @@ export class PicoEngineCore {
     this.modules["math"] = module_math;
     this.modules["random"] = module_random;
 
-    const scheduler = initScheduleModule(this.picoFramework);
-    this.modules["schedule"] = scheduler.module;
-    this.startupModules.push(scheduler.start);
+    scheduleHooks = initScheduleModule(this.picoFramework);
+    this.modules["schedule"] = scheduleHooks.module;
+    this.startupModules.push(scheduleHooks.start);
 
     this.modules["stdlib"] = module_stdlib;
     this.modules["time"] = module_time;

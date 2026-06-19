@@ -90,3 +90,44 @@ test("Scheduler - cron", async t => {
 
   t.deepEqual(log, ["run three", "canceled two"]);
 });
+
+test("Scheduler - cancelForPico removes cron and future jobs", async t => {
+  let log: string[] = [];
+  let currentNow = 0;
+
+  const scheduler = new Scheduler(
+    (timespec, handler) => {
+      return {
+        handler,
+        cancel() {
+          log.push("canceled " + timespec);
+        },
+      };
+    },
+    (handler, time) => {
+      log.push("timeout set");
+      handler();
+    },
+    () => null,
+    () => currentNow
+  );
+
+  scheduler.registerJob("pico-a", "cron-1");
+  scheduler.addCron("cron-1", "every-minute", () => log.push("cron fired"));
+
+  scheduler.registerJob("pico-a", "future-1");
+  scheduler.addFuture("future-1", 100, () => log.push("future fired"));
+
+  scheduler.registerJob("pico-b", "cron-2");
+  scheduler.addCron("cron-2", "other", () => log.push("other fired"));
+
+  t.true(scheduler.hasJob("cron-1"));
+  t.true(scheduler.hasJob("future-1"));
+
+  scheduler.cancelForPico("pico-a");
+
+  t.false(scheduler.hasJob("cron-1"));
+  t.false(scheduler.hasJob("future-1"));
+  t.true(scheduler.hasJob("cron-2"));
+  t.deepEqual(log, ["timeout set", "canceled every-minute"]);
+});
