@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = tokenizer;
 const rawToks = [
     "<=>",
     "<=",
@@ -220,5 +221,4 @@ function tokenizer(src) {
     }
     return tokens;
 }
-exports.default = tokenizer;
 //# sourceMappingURL=tokenizer.js.map

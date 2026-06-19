@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseRuleset = exports.parseExpression = exports.parse = void 0;
+exports.parse = parse;
+exports.parseExpression = parseExpression;
+exports.parseRuleset = parseRuleset;
 const ParseError_1 = require("./ParseError");
 const tdop_1 = require("./tdop");
 const ast = require("./types");
@@ -1550,13 +1552,10 @@ function parse(tokens) {
         return statements;
     });
 }
-exports.parse = parse;
 function parseExpression(tokens) {
     return parseCore(tokens, expression);
 }
-exports.parseExpression = parseExpression;
 function parseRuleset(tokens) {
     return parseCore(tokens, ruleset);
 }
-exports.parseRuleset = parseRuleset;
 //# sourceMappingURL=krl.js.map

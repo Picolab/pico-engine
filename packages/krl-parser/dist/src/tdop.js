@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.easyLookahead = exports.lookahead = exports.advanceBase = void 0;
+exports.advanceBase = advanceBase;
+exports.lookahead = lookahead;
+exports.easyLookahead = easyLookahead;
 const ParseError_1 = require("./ParseError");
 function checkSignificantToken(token) {
     if (token.type === "MISSING-CLOSE") {
@@ -52,7 +54,6 @@ function advanceBase(rules = {}, tokens, token_i) {
     }
     return { token_i, token, rule };
 }
-exports.advanceBase = advanceBase;
 function lookahead(state, n) {
     let token = null;
     let found = [];
@@ -66,11 +67,9 @@ function lookahead(state, n) {
     }
     return found;
 }
-exports.lookahead = lookahead;
 function easyLookahead(state, n) {
     return lookahead(state, n)
         .map(tok => (tok.type === "RAW" ? tok.src : tok.type))
         .join("");
 }
-exports.easyLookahead = easyLookahead;
 //# sourceMappingURL=tdop.js.map
