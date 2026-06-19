@@ -7,14 +7,14 @@ jobs:
       fail-fast: true
       matrix:
         node:
-          - lts/*
-          - current
+          - 22
+          - 20
         os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Node ${{ matrix.node }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
       - run: npm run setup
