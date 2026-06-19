@@ -12,9 +12,16 @@ ruleset io.picolabs.pico-engine-ui {
         .map(function(c){c["id"]})
         .head()
     }
-    getOtherUiECI = function(eci){
-      thisPico = ctx:channels.any(function(c){c{"id"}==eci})
-      return (eci && not thisPico) => ctx:query(eci, ctx:rid, "uiECI") | null
+    // Cached UI channel ECIs for parent/child links. Populated at child creation
+    // and backfilled on engine started. box()/pico() read these maps only — no
+    // cross-pico ctx:query — to avoid deadlocks (#493).
+    uiEciForChild = function(familyEci){
+      ent:child_ui_ecis{familyEci}
+    }
+    childUiEcis = function(){
+      ctx:children
+        .map(uiEciForChild)
+        .filter(function(eci){eci})
     }
     testingECI = function(){
       return ent:testingECI
@@ -25,8 +32,8 @@ ruleset io.picolabs.pico-engine-ui {
     box = function(){
       return {
         "eci": uiECI(),
-        "parent": getOtherUiECI(ctx:parent),
-        "children": ctx:children.map(getOtherUiECI),
+        "parent": ent:parent_ui_eci,
+        "children": childUiEcis(),
         "name": name(),
         "backgroundColor": ent:backgroundColor || "#87cefa",
         "x": ent:x || 100,
@@ -38,8 +45,8 @@ ruleset io.picolabs.pico-engine-ui {
     pico = function(){
       return {
         "eci": uiECI(),
-        "parent": getOtherUiECI(ctx:parent),
-        "children": ctx:children.map(getOtherUiECI),
+        "parent": ent:parent_ui_eci,
+        "children": childUiEcis(),
         "channels": ctx:channels,
         "rulesets": ctx:rulesets
       }
@@ -176,6 +183,33 @@ ruleset io.picolabs.pico-engine-ui {
       ent:height := event:attrs{"height"}.as("Number") if event:attrs{"height"}
       ent:name := event:attrs{"name"}.as("String") if event:attrs{"name"}
       ent:backgroundColor := event:attrs{"backgroundColor"}.validateColor() if event:attrs{"backgroundColor"}
+      ent:parent_ui_eci := event:attrs{"parentUiEci"} if event:attrs{"parentUiEci"}
+    }
+  }
+  rule remember_child_ui_eci {
+    select when wrangler new_child_created
+    pre {
+      uiEci = event:attr("uiEci")
+      familyEci = event:attr("eci")
+    }
+    if uiEci && familyEci then noop()
+    always {
+      ent:child_ui_ecis{[familyEci]} := uiEci
+    }
+  }
+  rule backfill_child_ui_eci {
+    select when engine started
+      foreach ctx:children setting(familyEci)
+    if ent:child_ui_ecis{familyEci}.isnull() then noop()
+    always {
+      ent:child_ui_ecis{[familyEci]} := ctx:query(familyEci, ctx:rid, "uiECI")
+    }
+  }
+  rule backfill_parent_ui_eci {
+    select when engine started
+    if ctx:parent && ent:parent_ui_eci.isnull() then noop()
+    always {
+      ent:parent_ui_eci := ctx:query(ctx:parent, ctx:rid, "uiECI")
     }
   }
   rule new {
@@ -196,9 +230,8 @@ ruleset io.picolabs.pico-engine-ui {
     pre {
       delUiEci = event:attrs{"eci"}
       delEci = ctx:children
-        .filter(function(eci){
-          other = getOtherUiECI(eci)
-          return other == delUiEci
+        .filter(function(familyEci){
+          ent:child_ui_ecis{familyEci} == delUiEci
         })
         .head()
     }

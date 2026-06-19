@@ -31,7 +31,18 @@ export function server(core: PicoEngineCore, uiECI: string): Express {
       next();
     }
   });
-  app.use(helmet());
+  // Helmet 7+ CSP defaults include upgrade-insecure-requests, which breaks the
+  // UI on plain HTTP (browser upgrades /api/* to https and TLS fails).
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+          "upgrade-insecure-requests": null,
+        },
+      },
+    })
+  );
   app.use(express.static(path.resolve(__dirname, "..", "public")));
   app.use(
     bodyParser.json({

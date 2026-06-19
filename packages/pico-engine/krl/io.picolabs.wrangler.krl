@@ -360,6 +360,10 @@ ruleset io.picolabs.wrangler {
           "config":the_ruleset.get("config")
         }
       }
+      parentUiEci = ctx:channels
+        .filter(function(c){c["tags"].sort().join(",") == "engine,ui"})
+        .map(function(c){c["id"]})
+        .head()
     }
     every {
       ctx:newPico(rulesets=[
@@ -385,13 +389,14 @@ ruleset io.picolabs.wrangler {
         name="box",
         attrs={
           "name": name,
-          "backgroundColor": backgroundColor
+          "backgroundColor": backgroundColor,
+          "parentUiEci": parentUiEci
         }
       )
     }
     fired {
       raise wrangler event "new_child_created"
-        attributes event:attrs.put({"eci":newEci})
+        attributes event:attrs.put({"eci":newEci, "uiEci": newUiECI})
     }
   }
 
@@ -401,25 +406,21 @@ ruleset io.picolabs.wrangler {
   rule initialize_child_after_creation {
     select when wrangler pico_created
     pre {
-      subscription_ruleset_url = function(){
-        subscription_rid = "io.picolabs.subscription"
+      sibling_ruleset_url = function(rid){
         parts = ctx:rid_url.split("/")
-        parts.splice(parts.length()-1,1,subscription_rid+".krl").join("/")
+        parts.splice(parts.length()-1,1,rid+".krl").join("/")
       }
-      subs_url = subscription_ruleset_url()      
-      
-      did_o_ruleset_url = function(){
-        did_o_rid = "io.picolabs.did-o"
-        parts = ctx:rid_url.split("/")
-        parts.splice(parts.length()-1,1,did_o_rid+".krl").join("/")
-      }
-      did_o_url = did_o_ruleset_url()
+      subs_url = sibling_ruleset_url("io.picolabs.subscription")
+      did_o_url = sibling_ruleset_url("io.picolabs.did-o")
+      pds_url = sibling_ruleset_url("io.picolabs.pds")
     }
     fired {
       raise wrangler event "install_ruleset_request"
-        attributes {"url":subs_url}
+        attributes {"url": pds_url}
       raise wrangler event "install_ruleset_request"
-        attributes {"url":did_o_url}
+        attributes {"url": subs_url}
+      raise wrangler event "install_ruleset_request"
+        attributes {"url": did_o_url}
       ent:parent_eci := ctx:parent
       ent:name := event:attr("name")
       ent:id := ctx:picoId

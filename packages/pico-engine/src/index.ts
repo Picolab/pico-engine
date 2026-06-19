@@ -110,6 +110,7 @@ export async function startEngine(
       path.resolve(__dirname, "..", "krl", "io.picolabs.subscription.krl")
     ),
     toFileUrl(path.resolve(__dirname, "..", "krl", "io.picolabs.did-o.krl")),
+    toFileUrl(path.resolve(__dirname, "..", "krl", "io.picolabs.pds.krl")),
   ];
   for (const url of krl_urls) {
     const { ruleset } = await rsRegistry.flush(url);

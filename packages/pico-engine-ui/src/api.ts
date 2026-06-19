@@ -61,8 +61,8 @@ export async function getAllPicoBoxes(eci: string): Promise<PicoBox[]> {
   const pico = await apiGet(`/c/${eci}/query/io.picolabs.pico-engine-ui/box`);
   results.push(pico);
 
-  for (const eci of pico.children) {
-    results = results.concat(await getAllPicoBoxes(eci));
+  for (const childEci of pico.children) {
+    results = results.concat(await getAllPicoBoxes(childEci));
   }
 
   return results;

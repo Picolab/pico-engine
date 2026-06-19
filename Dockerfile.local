@@ -1,0 +1,24 @@
+# Build pico-engine from this checkout (includes bundled io.picolabs.pds).
+#
+#   docker build -f Dockerfile.local -t picolabs/pico-engine:local .
+#
+# Use with manifold-api / sensor-network harness:
+#   PICO_ENGINE_IMAGE=picolabs/pico-engine:local npm test
+
+FROM node:lts-alpine
+
+WORKDIR /usr/src/app
+
+COPY package.json lerna.json ./
+COPY packages ./packages
+
+RUN npm install --no-package-lock \
+ && npm run bootstrap \
+ && npm run build
+
+RUN npm install -g ./packages/pico-engine
+
+ENV PICO_ENGINE_HOME=/var/pico-image
+VOLUME ["/var/pico-image"]
+EXPOSE 3000
+CMD ["pico-engine"]
