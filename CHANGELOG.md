@@ -1,3 +1,12 @@
+# 1.4.0 - June 4, 2026
+
+* Default-install `io.picolabs.pds` on the root pico and on every child at creation.
+* Fix developer UI forest-loading deadlocks. Fixes issue [#493](https://github.com/Picolab/pico-engine/issues/493)
+* Cancel scheduled jobs when a pico is deleted. Fixes issue [#578](https://github.com/Picolab/pico-engine/issues/578)
+* Reject module dependency cycles at flush time instead of crashing the engine. Fixes issue [#577](https://github.com/Picolab/pico-engine/issues/577)
+* Disable Helmet `upgrade-insecure-requests` so the developer UI works over plain HTTP (e.g. local Docker).
+* Add `Dockerfile.local` for building a release image from source.
+
 # 1.3.0 - July 29, 2023
 
 * Fix arithmetic. (PR #637)
