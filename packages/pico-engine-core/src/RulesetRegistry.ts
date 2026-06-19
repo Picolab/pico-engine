@@ -1,6 +1,7 @@
 import * as crypto from "crypto";
 import * as pMemoize from "p-memoize";
 import { Ruleset, RulesetLoader } from "pico-framework";
+import { getModuleUses, validateModuleDependencies } from "./moduleDependencies";
 
 export interface CachedRuleset {
   url: string;
@@ -100,6 +101,12 @@ export class RulesetRegistry {
       krl,
       hash
     );
+
+    validateModuleDependencies(Object.values(this.rulesetCache), {
+      url,
+      rid: ruleset.rid,
+      deps: getModuleUses(ruleset),
+    });
 
     const toSave: CachedRuleset = {
       url,

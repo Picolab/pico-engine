@@ -48,9 +48,9 @@ test("use-module install order", async (t) => {
   let err = await t.throwsAsync(
     signal("main", "install", { url: "mem://aaa" }),
   );
-  t.is("" + err, "Error: Module not found: bbb");
+  t.is("" + err, "Error: Dependant module not loaded: bbb");
   err = await t.throwsAsync(signal("main", "install", { url: "mem://ccc" }));
-  t.is("" + err, "Error: Module not found: bbb");
+  t.is("" + err, "Error: Dependant module not loaded: bbb");
   t.deepEqual(await signal("main", "install", { url: "mem://bbb" }), []);
   t.deepEqual(await signal("main", "install", { url: "mem://aaa" }), []);
   t.deepEqual(await signal("main", "install", { url: "mem://ccc" }), []);

@@ -7,7 +7,10 @@ test("module-used.krl", async (t) => {
   let err = await t.throwsAsync(
     installTestFile(pe.pf.rootPico, "module-used.krl")
   );
-  t.is(err + "", "Error: Module not found: io.picolabs.module-defined");
+  t.is(
+    err + "",
+    "Error: Dependant module not loaded: io.picolabs.module-defined"
+  );
   await installTestFile(pe.pf.rootPico, "module-defined.krl");
   await installTestFile(pe.pf.rootPico, "module-used.krl");
 
