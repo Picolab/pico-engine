@@ -33,7 +33,7 @@ DID-O V 1.0.0
   
   
   global {
-    ///////////////////////////////////////////// ROUTING //////////////////////////////////////////////
+        ///////////////////////////////////////////// ROUTING //////////////////////////////////////////////
 
     /**
     * Adds a route to the routes stored in the dido.ts library. The type should be a valid Protocol URI. 
@@ -271,6 +271,13 @@ DID-O V 1.0.0
     }
     fired {
       raise dido event "send_trust_ping" attributes event:attrs.put("did", invite{"from"})
+      raise dido event "invitation_accepted" attributes {
+        "role": "invitee", 
+        "label": invite{"body"}{"label"}, 
+        "my_did": new_did{"id"},
+        "their_did": invite{"from"},
+        "created_time": invite{"created_time"}
+      }
     }
   }
 
