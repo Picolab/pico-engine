@@ -5,6 +5,8 @@
 * **HTTP surface split** — passkey session on **`/c/*`** (UI/internal); Bearer tokens on **`/sky/*`** when required; localhost bypass configurable via `PICO_ENGINE_ALLOW_LOCALHOST_C`.
 * **Developer UI** — Auth gate, Settings (passkeys, invites, OAuth apps), Channels webhook OAuth panel; rebuild UI bundle included.
 * **KRL** — `io.picolabs.oauth` ruleset for mesh OAuth queries and credential management (moved from wrangler).
+* **Breaking / migration** — engines boot with zero roots until passkey registration; legacy single-root databases use one-time "Claim with passkey"; **`/c/*`** requires a session for external callers (localhost bypass on by default).
+* **Configuration** — `PICO_ENGINE_BASE_URL` (passkeys and OAuth redirects), `PICO_ENGINE_ALLOW_SELF_SIGNUP` (default off), `PICO_ENGINE_ALLOW_LOCALHOST_C`; see `packages/pico-engine/README.md`.
 * Requires **pico-framework** `^0.8.0` (multi-root: `rootPicos()`, `createRootPico()`, `autoCreateRootPico`).
 
 # 1.4.0 - June 4, 2026
