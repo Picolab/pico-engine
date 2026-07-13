@@ -1,6 +1,6 @@
 {
   "name": "krl-stdlib",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Standard library for KRL",
   "main": "dist/index.js",
   "files": [
@@ -38,7 +38,7 @@
   "dependencies": {
     "json-log": "^3.0.1",
     "lodash": "^4.17.11",
-    "pico-framework": "^0.7.0",
+    "pico-framework": "^0.8.0",
     "select-when": "^0.1.9"
   },
   "ava": {

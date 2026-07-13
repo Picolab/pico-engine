@@ -22,13 +22,14 @@ function apiResponse(resp: Promise<Response>, checkErrors: boolean = true) {
 }
 
 export function apiGet(path: string) {
-  return apiResponse(fetch(path));
+  return apiResponse(fetch(path, { credentials: "include" }));
 }
 
 export function apiPost(path: string, body: any, checkErrors: boolean = true) {
   return apiResponse(
     fetch(path, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
       },

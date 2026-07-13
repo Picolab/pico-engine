@@ -37,6 +37,58 @@ body {
   position: fixed;
   bottom: 0;
   right: 0;
+  z-index: 1000;
+}
+
+.auth-gate-logo {
+  max-width: 220px;
+  width: 100%;
+  height: auto;
+}
+
+.settings-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.settings-modal {
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+
+.settings-section-toggle {
+  padding: 0.75rem 1rem;
+  text-decoration: none !important;
+
+  &:hover,
+  &:focus {
+    text-decoration: none !important;
+    background: #f8f9fa;
+  }
+}
+
+.settings-section-chevron {
+  font-size: 1.1rem;
+  line-height: 1;
+  margin-left: 0.75rem;
+  flex-shrink: 0;
+}
+
+.settings-section-body {
+  border-top: 1px solid #dee2e6;
+  padding-top: 1rem;
+}
+
+.settings-section-summary {
+  margin-top: -0.25rem;
 }
 
 .pico {

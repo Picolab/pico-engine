@@ -13,6 +13,7 @@ export default defineConfig({
     port: 8080,
     proxy: {
       "/api": picoEngineBaseUrl,
+      "/auth": picoEngineBaseUrl,
       "/c": picoEngineBaseUrl,
       "/sky": picoEngineBaseUrl,
     },

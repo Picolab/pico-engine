@@ -41,4 +41,10 @@ export interface PicoEngineCoreConfiguration {
    * Provide the base URL
    */
   base_url?: string;
+
+  /**
+   * When false (default for pico-engine 1b+), the framework boots with zero roots.
+   * Set true in tests that expect the historical auto-created root.
+   */
+  autoCreateRootPico?: boolean;
 }

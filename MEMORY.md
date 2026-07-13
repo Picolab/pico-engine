@@ -600,9 +600,31 @@ _inward_ authn stays passkey.** One mechanism per direction, each using best-ava
 - **Optional phone edge agent.** A user *may* additionally pair a phone wallet with their root-pico
   cloud agent over DIDComm for on-the-go signing — additive, not required.
 
-### Implementation phasing (layered rollout — plan 2026-07-10)
-Build in **three layers that match the architecture** (engine ← wrangler ← manifold) and the
-identity dependency order (human authn → agent, then agent↔world DID, then external OAuth).
+### Implementation phasing (layered rollout — plan 2026-07-10, **revised 2026-07-11**)
+
+Build in **three layers** that match the architecture (engine ← wrangler ← manifold) and the
+identity model (human authn → agent, then agent↔world DID, then external OAuth).
+
+**Release plan (2026-07-11):** defer **Layer 2** (DID/DIDComm interchange modernization) in favor of
+**Layer 3** (OAuth). Target **v1.5** = Layer 1 (complete) + Layer 3. Layer 2 remains important but
+is a large, cross-cutting migration (engine primitives, wrangler fold-in, retire did-o, route all
+interchange over DIDComm) — ship OAuth external access on the current HTTP/ECI + passkey foundation
+first.
+
+| Release | Scope |
+|---------|--------|
+| **v1.5** | Layer 1 ✅ + Layer 3 (OAuth AS on root-pico-as-agent; scoped tokens for **`/sky/*`**) |
+| **Later** | Layer 2 — did:webvh/did:peer + DIDComm as primary interchange |
+
+**Why skip Layer 2 for now:** OAuth delivers immediate value (third-party apps, Manifold integrations,
+machine clients) without blocking on DID state migration. ECI + channel policy remain the pico
+access model; passkeys gate the admin UI. Layer 2 can land when we're ready to unify transport.
+
+Build order (revised):
+
+1. **Layer 1** — passkeys + multi-root (done: 1a–1d)
+2. **Layer 3** — OAuth for external API access ← **next**
+3. **Layer 2** — DID/DIDComm interchange ← **deferred**
 
 #### Layer 1 — User/admin identity via passkeys + multi-root
 - **Passkey (WebAuthn) admin authn to the root pico** (§9); each root = its own relying party.
@@ -753,22 +775,387 @@ consumes the compiled copy under each package's `node_modules/pico-framework`.
 4. **No public API to create additional roots** — `Pico.newPico` only makes children (sets
    `child.parent`); `addPico(pico)` already exists and just registers a pico in the flat list.
 
-**Spike edits (in the sibling `pico-framework`):**
-- Startup: **don't auto-create** a root when `["root-pico"]` missing → allow zero picos.
-- Derive roots as **all picos with `parent === null`**; add `rootPicos(): Pico[]`; keep `rootPico`
-  as a deprecated "primary root" shim for migration.
-- Add `createRootPico(conf?)`: mint a parentless `Pico`, persist `toDbPut()`, `addPico()`, return it
-  (mirror `newPico` minus parent wiring). Consider a `["root-picos", picoId]` marker range (or just
-  rely on `parent === null`).
-- **Tests:** empty boot → `numberOfPicos() === 0`; `createRootPico()` ×2 → two independent
-  parentless picos, both routable, isolated event/query, delete-one-keeps-other.
+**SPIKE DONE ✅ (2026-07-10) — all edits in the sibling `pico-framework` (`src/PicoFramework.ts`,
+`src/index.ts`); all tests green.**
+- **Auto-create made a config option, NOT removed.** Added `PicoFrameworkConf.autoCreateRootPico`
+  (**default `true` = historical behavior**). Refinement over the original plan: rather than deleting
+  the startup auto-create (which would break the framework's own suite + other consumers), gate it —
+  startup only auto-creates a root when `["root-pico"]` is absent **and** the flag is on. **The engine
+  will pass `autoCreateRootPico: false`** to boot with zero roots.
+- `rootPicos(): Pico[]` returns all picos with `parent === null` (derivation, no extra marker key).
+- `rootPico` getter kept as **deprecated "primary root" shim** (throws with a clear message when
+  none); `createRootPico(conf?)` mints a parentless `Pico`, persists `toDbPut()`, `addPico()`,
+  installs optional rulesets, and records the **first** root as the back-compat `["root-pico"]`
+  primary. Startup's auto-create path now just calls `createRootPico()`.
+- `NewPicoConfig` exported from the package index for typed engine callers.
+- **Tests (`test/multiRoot.ts`, 6 new):** zero-root boot (`numberOfPicos()===0`, `rootPicos()===[]`,
+  `rootPico` throws); default auto-creates one (back-compat); `createRootPico()` ×2 → independent,
+  routable, **isolated** state; each root has its own child tree; roots persist across restart (first
+  stays primary); existing primary root loads even with `autoCreateRootPico:false` (**migration**).
+- **Results:** `pico-framework` **37 passed** (incl. 6 new). Back-compat verified by dropping the
+  built dist into the engine's 3 (non-hoisted) `pico-framework` copies: **`pico-engine-core` 19
+  passed, `pico-engine` 27 passed** — engine behavior unchanged (it doesn't set the flag → default
+  auto-create). (Dist-copy was a spike shortcut; real wiring needs proper link / published version.)
+- **Deferred (not needed for spike):** a **root-deletion API** — `Pico.delPico` only deletes
+  children; deleting a whole root/tenant tree is a separate future capability.
 
-**Then wire into the engine (`packages/pico-engine/src/index.ts`):** stop installing base rulesets
-at boot; install them at **root-creation** time (called by the registration flow); serve UI with
-zero roots; derive per-session `uiECI`. **Existing single-root engines migrate for free** — their
-current root already has `parent === null`, so it's picked up as root #1.
+**Then wire into the engine (`packages/pico-engine/src/index.ts`):** pass `autoCreateRootPico: false`;
+stop installing base rulesets at boot; install them at **root-creation** time (called by the
+registration flow); serve UI with zero roots; derive per-session `uiECI`. **Existing single-root
+engines migrate for free** — their current root already has `parent === null` + a `["root-pico"]`
+key, so it's picked up as root #1 (verified by the migration test).
 
-#### Layer 2 — did:webvh / did:peer + DIDComm as the interchange
+##### Phase 1a IMPLEMENTED ✅ (backend, 2026-07-10) — passkey auth + multi-root provisioning
+Backend landed and green **without** breaking existing boot/UI (zero-root flip + UI rewrite deferred
+to Phase 1b). Added `@simplewebauthn/server` v13.
+- **New files (`packages/pico-engine/src/`):** `provisionRoot.ts` (`provisionRoot(pf, core, {root?})`
+  + `uiECIForRoot`); `auth/webauthn.ts` (injectable `WebAuthnAdapter` over `@simplewebauthn/server`);
+  `auth/AuthService.ts` (stores + service + `AuthError`); `auth/index.ts`; `test/auth.ts` (7 cases).
+- **Modified:** `index.ts` (boot refactored to `provisionRoot`; constructs `AuthService`; new config
+  `rpID/rpName/origin/allowSelfSignup/webauthn`; exposes `auth` on the engine), `server.ts`
+  (`/auth/*` routes, cookie helpers, `/auth`-scoped credentialed CORS, session-aware `/api/ui-context`).
+- **Stores = engine primitives in the framework DB** (`core.picoFramework.db`) under prefixes
+  `["auth-credential", id]`, `["auth-account", id]`, `["auth-session", token]`; challenge store is an
+  in-memory Map (5-min TTL). **Only public keys persist.** Auth code lives in the `pico-engine`
+  package (keeps `@simplewebauthn/server` out of `pico-engine-core`) while state stays an engine
+  primitive (not RS `ent:`).
+- **account ↔ root:** WebAuthn `user.id` (user handle) **is** the `accountId`, shared across an
+  account's passkeys; new-account `register/verify` provisions a **new root** (1:1); add-passkey
+  reuses the handle with `excludeCredentials`, **no** new root (test-verified).
+- **Cookies/session:** `pico-session` httpOnly+SameSite=Lax+Secure(when https), revocable DB store
+  (30-day TTL); short-lived `pico-ceremony` cookie correlates options→verify. Discoverable creds
+  (`residentKey: required`, `userVerification: preferred`); usernameless login resolves credential →
+  account → root. rpID/origin derived lazily from `core.base_url` (overridable).
+- **Self-signup:** `allowSelfSignup` (default true); first registration always allowed (bootstrap).
+- **Tests:** `pico-engine` **34 passed** (7 new), `pico-engine-core` **19 passed**.
+
+**Open review items (carry into cleanup):**
+- ~~**Install shortcut:** `@simplewebauthn/server` copied into node_modules~~ **FIXED 2026-07-10:**
+  restored root `package.json` (a botched `lerna bootstrap --hoist` had hoisted all deps into it
+  and removed scripts); added `--nohoist=@simplewebauthn/*` to the bootstrap script (same pattern as
+  `pico-framework`); `npm run bootstrap` now installs `@simplewebauthn/server` v13.3.2 canonically
+  in `packages/pico-engine/node_modules`. Fresh setup: `npm run setup` (or `npm run bootstrap`).
+- **Local pico-framework co-dev:** added `npm run link-framework` — builds the sibling repo and
+  symlinks it into all three packages' `node_modules/pico-framework` (avoids `npm link` lifecycle
+  issues). Run after bootstrap when working on multi-root changes before publishing framework.
+- **Root-creation race:** no serialization/lock yet for two concurrent "first" registrations (MEMORY
+  §decisions flagged this) — add a lock.
+- **Confirm:** session persistence in the framework DB (chosen: revocable, survives restart) — OK.
+- **Minor:** `add-credential` sends `label` in the same JSON body as the WebAuthn response; consider a
+  nested shape.
+
+##### Phase 1b IMPLEMENTED ✅ (zero-root boot + auth UI, 2026-07-10)
+Fresh engines boot with **zero roots**; the browser auth gate is the only path to the mesh UI.
+No anonymous/`uiECI`-as-admin access.
+
+**Engine changes:**
+- `autoCreateRootPico` defaults to **false** (`PicoEngineCoreConfiguration` → `PicoFramework`);
+  boot does **not** call `provisionRoot` unless roots already exist (migration / tests opt in via
+  `autoCreateRootPico: true` in `startTestEngine`).
+- `uiECI` on the engine is `string | null`; `engine:started` fires only when a provisioned UI channel
+  exists.
+- `/api/ui-context` returns `{ version, hasRoots, allowSelfSignup, session, eci? }` — `eci` only when
+  authenticated.
+- Session middleware (`requireAuthSession`) on `/api/flush` and all **`/c/*`** (localhost exempt).
+  **`/sky/*`** open to external callers (channel policy; `oauth-webhook` requires Bearer).
+- `AuthService.allowSelfSignup()` exposed for the UI gate.
+
+**UI changes (`packages/pico-engine-ui`, rebuild → `packages/pico-engine/public/`):**
+- New: `App.tsx`, `AuthGate.tsx`, `authApi.ts`; `@simplewebauthn/browser` for ceremonies.
+- **Zero roots → register ONLY** (no login toggle).
+- **Has roots, not authenticated → login** (+ register when `allowSelfSignup`).
+- **Authenticated → PicosPage** scoped to session root; **Logout** button calls `POST /auth/logout`.
+- All API calls use `credentials: "include"`; Vite dev proxy forwards `/auth`.
+
+**Tests:** `pico-engine` **35 passed** (incl. "fresh engine boots with zero roots until registration"),
+`pico-engine-core` **19 passed**.
+
+**Success test:** fresh `~/.pico-engine` (or empty DB) → start engine → browser → register screen
+(no login) → passkey ceremony → see root pico → logout → back to login gate.
+
+**Known gap (migration):** ~~existing DB with a root but zero auth accounts~~ **FIXED (Phase 1c,
+2026-07-11):** `needsAuthMigration` + `/auth/claim/*` + UI "Claim with passkey" — links the primary
+root (`["root-pico"]`) to the first account without minting a new root. Normal register is blocked
+while migration is pending.
+
+##### Phase 1c IMPLEMENTED ✅ (legacy auth migration, 2026-07-11)
+Legacy single-root engines (root in DB, zero auth accounts) show a **claim** gate instead of login.
+First passkey links to the existing primary root; mesh data is preserved.
+
+- `AuthService.needsAuthMigration()`, `claimPrimaryRootOptions/Verify`
+- `POST /auth/claim/options`, `POST /auth/claim/verify`
+- `/api/ui-context.needsAuthMigration`
+- Register blocked while migration pending (403)
+- UI: "Claim with passkey" in `AuthGate`
+- Optional `onAccountClaimed` sets root display name via `engine_ui box`
+
+**Not in scope:** orphan second roots from mistaken pre-migration register; migration token hardening.
+
+##### Phase 1d IMPLEMENTED ✅ (registration invites, 2026-07-11)
+When `allowSelfSignup` is off (default), additional accounts require a **single-use invite link**
+from a signed-in user.
+
+- `AuthService.createInvite()`, `peekInvite()`; stored at `["auth-invite", token]` (7-day TTL default)
+- `POST /auth/invites` (session-gated) — create invite; `GET /auth/invites/:token` — public peek
+- Register accepts optional `{ invite: token }` when self-signup disabled and accounts exist
+- Invite consumed on successful `registerNewAccountVerify`
+- UI: `?invite=TOKEN` on auth gate shows register form; Settings → "Create invite link"
+- `allowSelfSignup` default **false**; bootstrap (zero accounts) and legacy claim still work
+
+#### Layer 3 — OAuth for external API access ← **v1.5 (next)**
+
+**Goal:** third-party and machine access to **`/sky/*`** without passkey sessions or bare-ECI
+capability URLs — while keeping ECI + channel policy as the authorization model.
+
+**HTTP surface split (decided 2026-07-12):**
+
+| Prefix | Role | External access |
+|--------|------|-----------------|
+| **`/sky/*`** | Public Sky interchange API (queries, events) | Yes — OAuth when mesh locked; channel policy |
+| **`/c/*`** | Engine-internal channel HTTP binding | **No** — not part of the external API contract |
+
+`/c/…` routes are engine primitives (same `core.event` / `core.query` as Sky, but the direct channel
+path). They exist for in-engine use: KRL `ctx:event`/`event` with `host`, same-process round trips,
+and the **session-authenticated UI** served by the engine. Third parties (HA, webhooks, Manifold apps)
+must use **`/sky/*` only** — never `/c/*`.
+
+**Today (gap — 3b.0 ✅ 2026-07-12):** `/c/*` requires passkey session (localhost exempt for in-engine
+loops). OAuth bearer enforcement is on **`/sky/*` only** (webhook channels). **Planned 3b.1:** mesh
+lock when root has OAuth ruleset.
+
+**Two use cases, two grants (both may coexist in the same mesh):**
+
+| Use case | Grant | Scope | Owner UI |
+|----------|-------|-------|----------|
+| **Webhooks** (M2M) | Client Credentials | **One channel / ECI** | Channels tab |
+| **Apps** (HA, Manifold, etc.) | Authorization Code (+ PKCE) | **Root pico + descendants** | Settings → Connected apps (later) |
+
+**Example — same sensor mesh, both grants:**
+
+- **Home Assistant** (ACG): user redirects to engine for passkey consent; HA gets a token to query
+  and control sensors across the whole mesh (`/sky/query/{any-eci}/…`, events on descendant channels).
+- **Temperature notifier** (Client Credentials): dedicated `oauth-webhook` channel on a sensor pico;
+  notifier mints a CC token and POSTs events to `/sky/event/{that-eci}/…` only. Channel policy can
+  be events-only while HA has broader read/control via ACG.
+
+**Not OAuth-eligible (engine hard block):** family channels (`familyChannelPicoID`), subscription
+channels (tags like `wellknown_rx`, `tx_rx`, etc.), `system` channels.
+
+##### Mesh-level OAuth gate (decided 2026-07-12)
+
+**Rejected:** engine-wide flag (“all roots under OAuth or none”). Multi-root engines need per-mesh
+policy.
+
+**Decided:** **presence of an optional OAuth ruleset on the root pico** is the mesh OAuth switch.
+Wrangler-adjacent KRL (**`io.picolabs.oauth`**), **not** installed by default — omitted from
+`provisionRoot` `BASE_KRL_FILES`. Owner installs when they want OAuth for that mesh.
+
+**Per-mesh configuration (decided 2026-07-12):** the OAuth ruleset is the **right place for mesh
+OAuth configuration** — not engine env vars, not engine-wide settings. Configuration is **per mesh**
+because it only applies when that ruleset is installed on the root (OAuth enablement and config
+are the same opt-in). Examples of what belongs on the ruleset side (policy / UX / defaults):
+
+- App registration metadata and consent policy (which apps, redirect URI rules, default scopes)
+- Grant-root / mesh identity hints for ACG (`meta.oauth` or ruleset `config`)
+- Mesh-local OAuth behavior toggles exposed via ruleset queries (wrangler shares)
+
+**Engine still owns** ceremony, token/code/secret **storage** (framework DB), HTTP routes
+(`/oauth/token`, `/oauth/authorize`), and bearer middleware — same split as passkeys (library +
+engine primitives, not ruleset `ent:` for secrets). The ruleset **configures**; the engine **enforces**.
+
+**When the OAuth ruleset is installed on a root:**
+
+- **External** requests to **`/sky/*`** for ECIs in that root’s tree require a valid Bearer
+  token — **no bare ECI access**.
+- **UI exception:** passkey session cookie + ECI in session’s root tree → allow on **`/c/*`**
+  (in-engine UI path; same `isEciInRootTree` pattern as `/api` routes).
+- **Multi-root:** Root A with OAuth ruleset → locked subtree on `/sky/*`; Root B without → open
+  (channel policy only), except per-channel `oauth-webhook` tags as today.
+
+**Routing (not hard):** on each request, `lookupChannel(eci)` → walk to root pico → check
+`root.rulesets[oauthRid]`. Same cost as existing session scoping. Optional cache
+`rootPicoId → oauthEnabled`.
+
+**Uninstall:** removing the OAuth ruleset re-opens the mesh to bare ECI (channel policy only);
+revoke outstanding ACG tokens for that root.
+
+##### Coexistence — ACG + webhooks in one OAuth mesh (decided 2026-07-12)
+
+Both grant types share one token store and one bearer middleware; validation **branches on grant
+type**:
+
+| Token grant | Validation |
+|-------------|------------|
+| `client_credentials` | Token **bound to ECI in URL** (`token.channelEci === eci`); then channel policy |
+| `authorization_code` | Token grant covers **pico subtree** under registered root; scopes + channel policy |
+
+Token store: `["oauth-token", tokenId]` → `{ grant, channelEci?, rootPicoId, appId?, scopes?, expiresAt, … }`.
+
+- Leaked webhook URL + CC token → one channel only; HA’s ACG token is a separate credential.
+- Revoking HA app credentials vs webhook channel credentials is independent.
+- Webhook senders that can call `/oauth/token` use CC; senders that cannot (Stripe-style) remain a
+  separate concern (HMAC, etc.).
+
+##### Node library choice (decided 2026-07-11)
+
+**Target:** `@node-oauth/oauth2-server` (+ `@node-oauth/express-oauth-server` for Express).
+
+Same architecture rule as passkeys (`@simplewebauthn/server`):
+
+- Library handles **OAuth ceremony only** — grant parsing/validation, Client Credentials,
+  Authorization Code, PKCE, standard error shapes.
+- **Engine owns all state** via a custom **model adapter** (`PicoOAuthModel`): clients, secrets,
+  tokens, codes, consent — stored in framework DB, not ruleset `ent:`.
+
+**Implemented (2026-07-11):** v1.5 webhook slice uses a hand-rolled Client Credentials handler in
+`OAuthService` (RFC-shaped `/oauth/token`); swap in `@node-oauth/oauth2-server` model adapter when
+deps are wired. Dependencies listed in `package.json` but optional until integrated.
+
+##### Layer 3a IMPLEMENTED ✅ (webhook Client Credentials, 2026-07-11)
+
+- `OAuthService` — channel secrets (hashed), opaque `oat_…` bearer tokens, ECI binding
+- `oauth:` KRL module (engine) + **`io.picolabs.oauth`** ruleset queries (`channelStatus`, `createChannelSecret`, …)
+- `POST /oauth/token` (client_credentials); session-gated `/oauth/channels/:eci/*`
+- Bearer middleware on **`/sky/*`** (external):
+  - **Today (3a/3b.0/3b.1):** when channel has `oauth-webhook` tag **or** root has `io.picolabs.oauth` ruleset.
+  - Validates CC token (ECI-bound) or ACG token (subtree).
+- **`/c/*`:** session gate ✅ (3b.0); not OAuth bearer surface for third parties.
+- Channels tab UI: create/rotate/revoke credentials; mint test tokens (secret → bearer)
+- Eligibility: `oauth-webhook` tag; excludes family, subscription, system channels
+- Tests: `npm run test:oauth`, `npm run test:http`
+
+**Not yet:** `@node-oauth/oauth2-server` adapter integration.
+
+##### Layer 3b.2 IMPLEMENTED ✅ (Authorization Code + PKCE, 2026-07-12)
+
+- **App registry** — opaque `app_…` client IDs in DB; register/list/revoke via session-gated
+  `GET/POST/DELETE /oauth/apps` (requires `io.picolabs.oauth` on root)
+- **`GET /oauth/authorize`** — PKCE auth-code flow; passkey session + consent HTML; unauthenticated
+  users redirect to `/?oauth_return=…` (UI resumes after login)
+- **`POST /oauth/approve`** — session-gated consent form handler; redirects with `code` or `error`
+- **`POST /oauth/token`** — dispatches `client_credentials`, `authorization_code`, `refresh_token`
+- **ACG tokens** — grant type `authorization_code`; `validateSkyBearerToken` accepts any channel ECI
+  under the app’s root mesh (subtree access for HA-style integrators)
+- **Refresh tokens** — `ort_…`, 90-day TTL; rotation on refresh
+- **Settings UI** — OAuth apps section (name, redirect URIs, public/confidential client)
+- Tests: `npm run test:acg`, `npm run test:http`
+
+##### Layer 3b.0 IMPLEMENTED ✅ (HTTP surface split, 2026-07-12)
+
+- **`/c/*`** — passkey session required (localhost bypass default; `PICO_ENGINE_ALLOW_LOCALHOST_C=0` to disable)
+- **`/sky/*`** — OAuth bearer when `oauth-webhook` tag or mesh OAuth ruleset (3b.1)
+- `meshRequiresOAuth(eci)` helper + `OAUTH_MESH_RULESET_RID`
+- Tests: `npm run test:http`
+
+##### Layer 3b.1 IMPLEMENTED ✅ (mesh OAuth gate, 2026-07-12)
+
+- **`io.picolabs.oauth.krl`** — optional ruleset (not in default provision); install on root to lock mesh; **home for per-mesh OAuth config** (app registry lives in engine DB; ruleset is the mesh lock marker)
+- **`skyRequiresBearer(eci)`** — true when `oauth-webhook` tag **or** root has `io.picolabs.oauth`
+- **`validateSkyBearerToken`** — CC tokens ECI-bound; ACG tokens validate subtree (3b.2 ✅)
+- **`io.picolabs.oauth`:** `meshEnabled()`, `meshRequiresOAuth(eci)`, webhook credential queries; engine `oauth:meshRequiresOAuth`
+- Token records include `grant` (`client_credentials` | `authorization_code`)
+
+**Not yet:** `@node-oauth/oauth2-server` adapter integration.
+
+##### Tokens (decided 2026-07-11 — real tokens, not ECI)
+
+**Do not** return the ECI as `access_token` (legacy `io.picolabs.oauth_server` did this).
+
+- **`access_token`:** opaque bearer, e.g. `oat_` + base64url; minted by engine on successful grant.
+- **ECI stays in the URL** (`/c/{eci}/…`, `/sky/query/{eci}/…`) — required for routing and fixed
+  webhook URLs.
+- **Bearer middleware (webhook channels today):** on **`/sky/*` only**, when a channel has the
+  `oauth-webhook` tag, require
+  `Authorization: Bearer <token>` on every request (locked even before credentials exist);
+  verify token is valid, unexpired, unrevoked, and **bound to the ECI in the URL**; then apply
+  channel policy as today.
+- **Bearer middleware (OAuth mesh, planned):** when root has OAuth ruleset, require Bearer on
+  **`/sky/*`** for external callers; accept CC (ECI-bound) or ACG (subtree) tokens.
+- Token store: `["oauth-token", tokenId]` → `{ channelEci?, rootPicoId, grant, appId?, scopes?, expiresAt, … }`.
+- TTL chosen at mint time (`expires_in` on `/oauth/token`, including `0` = never); revoke/rotate from
+  Channels tab or Connected apps.
+
+##### Webhooks — Client Credentials (per channel)
+
+**Programmer specifies** at channel creation (KRL):
+
+```krl
+wrangler:createChannel(
+  ["oauth-webhook", "stripe"],
+  { allow: [{domain: "stripe", name: "*"}], deny: [] },
+  { allow: [], deny: [{rid: "*", name: "*"}] }   // events only, typical for inbound webhooks
+)
+```
+
+**Credentials:**
+
+| Field | Source |
+|-------|--------|
+| `client_id` | **The channel ECI** (one OAuth client per webhook channel) |
+| `client_secret` | Owner clicks **Create credentials** in Channels tab; shown once; stored **hashed** |
+| `access_token` | Minted at `POST /oauth/token` (`grant_type=client_credentials`) |
+
+Channel credential store: `["oauth-channel", eci]` → `{ secretHash, rootPicoId, createdAt, … }`.
+
+Secrets are **not** auto-created when the channel is created — explicit owner action.
+
+**Management UI:** extend **Channels tab** (not Settings) for eligible channels: create credentials,
+copy client_id/secret, revoke secret, revoke active tokens.
+
+**Programmatic API:** engine **`oauth`** module + **`io.picolabs.oauth`** ruleset shared queries
+(ruleset on root; admin subtree check; engine enforces eligibility):
+
+- `channelStatus(eci)` — `{ eligible, enabled, clientId, hasSecret, … }`
+- `createChannelSecret(eci)` — returns `{ client_id, client_secret }` once
+- `revokeChannelSecret(eci)` / `revokeTokens(eci)`
+- `meshEnabled()` / `meshRequiresOAuth(eci)`
+
+Channels tab uses HTTP routes; rulesets use `io.picolabs.oauth`; external integrators call `POST /oauth/token` only.
+
+**Inbound webhook note:** many senders (GitHub, Stripe) POST to a fixed URL and won't call
+`/oauth/token`. OAuth Bearer protects against **URL/ECI leakage**; integrators that can send
+`Authorization` use the token flow. HMAC verification (Stripe-style) is a separate optional concern.
+
+##### Apps — Authorization Code (root pico + descendants)
+
+**Primary motivating app:** Home Assistant as front-end to a Manifold pico mesh — HA holds engine
+URL, redirects user to `/oauth/authorize`, passkey authn + consent, redirect back with code; HA
+exchanges at `POST /oauth/token` and uses Bearer on **`/sky/*`** across the mesh (not `/c/*`).
+
+**Design (decided 2026-07-12):**
+
+- App registration: `client_id` = opaque app id (`app_…`), not the ECI; stored per root mesh.
+- User consent (passkey session) scopes grant to **root pico + descendants**.
+- Optional OAuth ruleset on root enables mesh lock + **hosts mesh OAuth configuration** (wrangler-adjacent,
+  not in default provision).
+- `/oauth/authorize` routing: resolve mesh via **app registration** (`client_id` → `rootPicoId`), not
+  ECI in API calls.
+- Token binds to app grant metadata (subtree + scopes), not a single channel ECI.
+- Ruleset `meta.oauth.grantRoot: true` may mark alternate grant roots within a mesh (TBD; likely
+  ruleset config under `io.picolabs.oauth`).
+
+**Open channels (no OAuth ruleset on root):** bare ECI in URL works as today (channel policy only),
+except channels tagged `oauth-webhook` (always require Bearer).
+
+Details TBD when implementing; webhook Client Credentials shipped first (Layer 3a ✅).
+
+##### HTTP surface
+
+- `POST /oauth/token` — public; Client Credentials, Authorization Code, Refresh Token
+- `GET /oauth/authorize` — Auth Code + PKCE redirect flow ✅
+- `GET/POST/DELETE /oauth/apps` — session-gated app registry ✅
+- Bearer middleware on **`/sky/*`** — see mesh gate + coexistence sections above
+- **`/c/*`** — session-gated ✅ (3b.0); internal/UI only
+- `/api/flush` and mesh UI remain passkey-session-gated (Phase 1)
+- Legacy reference: `packages/pico-engine/legacy/oauth_server.js` + `io.picolabs.oauth_server.krl`
+  (single-root, ECI-as-token — do not copy verbatim)
+
+##### Sky path note (2026-07-11)
+
+Canonical Sky query path is **`/sky/query/`** (docs); **`/sky/cloud/`** kept as legacy alias.
+Wrangler `picoQuery`/`skyQuery` default path updated to `/sky/query/`.
+
+#### Layer 2 — did:webvh / did:peer + DIDComm as the interchange ← **deferred post-1.5**
 - **Build on the existing engine `dido` module** (did:peer:2 + DIDComm v2 already present — see
   "Existing engine support" in §5). **Update/modernize** it and **add did:webvh**.
 - **NO separate wrapper ruleset.** Fold `io.picolabs.did-o`'s capabilities (routing, send/query,
@@ -783,14 +1170,8 @@ current root already has `parent === null`, so it's picked up as root #1.
   endpoints and the DID path is only for DID-addressed queries; picoQuery also has a local
   `ctx:query` path for family channels — unify on DIDComm.)
 
-#### Layer 3 — OAuth for external API access
-- **The admin-identity layer (root-pico-as-agent) acts as the OAuth Authorization Server (AS).**
-- External apps get **OAuth** access to pico event/query APIs as clients; the agent
-  authorizes/consents, tokens scoped to what the agent controls.
-
-**Why this order:** Layer 1 gives you an authenticated human + agent (and multi-tenancy) to anchor
-everything; Layer 2 gives agents portable cryptographic identity + a uniform secure interchange;
-Layer 3 exposes it outward to third parties on top of the now-solid identity base.
+**Original dependency order (2026-07-10):** Layer 1 → Layer 2 → Layer 3. **Revised (2026-07-11):**
+Layer 1 → Layer 3 (v1.5) → Layer 2.
 
 ### Open questions raised by this framing
 - **Multi-root = multi-tenant:** multiple roots re-introduce the old engine's multi-tenancy (one
@@ -952,6 +1333,24 @@ wrangler (event sits on the schedule and never runs).
   FAMILY channels** (parent↔child).
 - `wrangler:picoQuery` (same params/order, drop-in) uses `ctx:query()` locally on the same host,
   so it works over family channels. Error-map key changed: `skyQueryError` → `picoQueryError`.
+
+---
+
+## Engine environment variables (doc registry)
+
+> **Purpose:** canonical list for future user-facing docs (`README`, operator guide). Update this
+> table when adding new `process.env` knobs. Also mirrored in `packages/pico-engine/src/cli.ts`
+> (`--help`) and `packages/pico-engine/README.md` (Configuration).
+
+| Variable | Default | Since | Purpose |
+|----------|---------|-------|---------|
+| `PORT` | `3000` | 1.x | HTTP listen port. |
+| `PICO_ENGINE_HOME` | `~/.pico-engine/` | 1.x | Database, logs, ruleset cache directory. |
+| `PICO_ENGINE_BASE_URL` | `http://localhost:$PORT` | 1.x | Public URL prefix (WebAuthn RP origin, links). |
+| `PICO_ENGINE_ALLOW_SELF_SIGNUP` | off (`false`) | Phase 1 | `"true"` / `"1"` = open registration after bootstrap; default invite-only. |
+| `PICO_ENGINE_ALLOW_LOCALHOST_C` | on (any value except `"0"`) | 3b.0 (2026-07-12) | Set to `"0"` to require passkey session on **`/c/*`** even from localhost. Default allows localhost without session so KRL `ctx:event` / `event` loops that POST to `host/c/…` keep working. Tests set `"0"` to simulate external callers. **Security note:** with default, any local process can hit `/c/*` without login; tighter internal token TBD. |
+
+**Not operator-facing:** `NODE_ENV=test` affects log formatting in tests only.
 
 ---
 

@@ -68,10 +68,10 @@ ruleset io.picolabs.wrangler {
                   Note this must include protocol (http:// or https://) being used and port number if not 80.
                   For example "http://localhost:8080", which also is the default.
           _path - The sub path of the url which does not include mod or func.
-                  For example "/sky/cloud/", which also is the default.
+                  For example "/sky/query/", which also is the default.
           _root_url - The entire url except eci, mod, func.
                   For example, dependent on _host and _path is
-                  "http://localhost:8080/sky/cloud/", which also is the default.
+                  "http://localhost:8080/sky/query/", which also is the default.
        picoQuery on success (if status code of request is 200) returns results of the called function.
        picoQuery on failure (if status code of request is not 200) returns a Map of error information which contains;
                error - general error message.
@@ -88,7 +88,7 @@ ruleset io.picolabs.wrangler {
      buildWebHook = function(eci, mod, func, _host, _path, _root_url) {
          createRootUrl = function (_host,_path){
          host = _host || meta:host;
-         path = _path || "/sky/cloud/";
+         path = _path || "/sky/query/";
          root_url = host+path;
          root_url
        };
@@ -118,7 +118,7 @@ ruleset io.picolabs.wrangler {
      }
      
      skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/"", _host must include protocol(http:// or https://)
-       //.../sky/cloud/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
+       //.../sky/query/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
        thisPico = ctx:channels.any(function(c){c{"id"}==eci})
        web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url)
 

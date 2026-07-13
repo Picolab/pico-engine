@@ -1,3 +1,12 @@
+# 1.5.0 - July 13, 2026
+
+* **Passkey authentication (WebAuthn)** — register, sign-in, sessions, and UI gate; one root pico per account; legacy mesh claim and invite-gated registration.
+* **OAuth external API** — Client Credentials for `oauth-webhook` channels; Authorization Code + PKCE for mesh-wide integrators; optional `io.picolabs.oauth` ruleset for mesh lock.
+* **HTTP surface split** — passkey session on **`/c/*`** (UI/internal); Bearer tokens on **`/sky/*`** when required; localhost bypass configurable via `PICO_ENGINE_ALLOW_LOCALHOST_C`.
+* **Developer UI** — Auth gate, Settings (passkeys, invites, OAuth apps), Channels webhook OAuth panel; rebuild UI bundle included.
+* **KRL** — `io.picolabs.oauth` ruleset for mesh OAuth queries and credential management (moved from wrangler).
+* Requires **pico-framework** `^0.8.0` (multi-root: `rootPicos()`, `createRootPico()`, `autoCreateRootPico`).
+
 # 1.4.0 - June 4, 2026
 
 * Default-install `io.picolabs.pds` on the root pico and on every child at creation.

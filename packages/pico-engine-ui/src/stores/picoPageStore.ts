@@ -1,22 +1,8 @@
 import * as React from "react";
 import { apiGet, getAllPicoBoxes } from "../api";
+import { authLogout, UiContext } from "../authApi";
 import { PicoBox } from "../types/PicoBox";
 import { fetchSubscriptions, computeSubscriptionLines } from "./subscriptions";
-
-interface UiContext {
-  version: string;
-  eci: string;
-}
-
-export interface PicoMoving {
-  eci: string;
-  action: "moving" | "resizing";
-  relX: number;
-  relY: number;
-}
-
-type XY = { x: number; y: number };
-type LineXYs = { from: XY; to: XY };
 
 interface State {
   loading: boolean;
@@ -29,6 +15,16 @@ interface State {
   subLines: LineXYs[];
   subs: { [id: string]: PicoBox[] };
 }
+
+export interface PicoMoving {
+  eci: string;
+  action: "moving" | "resizing";
+  relX: number;
+  relY: number;
+}
+
+type XY = { x: number; y: number };
+type LineXYs = { from: XY; to: XY };
 
 export default (function picoPageStore() {
   let state: State = {
@@ -72,7 +68,11 @@ export default (function picoPageStore() {
     notify();
     try {
       const context: UiContext = await apiGet("/api/ui-context");
-      const boxes = await getAllPicoBoxes(context.eci);
+      const rootEci = context.eci || context.session?.uiECI;
+      if (!rootEci) {
+        throw new Error("Not signed in");
+      }
+      const boxes = await getAllPicoBoxes(rootEci);
       state.uiContext = context;
       state.picoBoxes = {};
       for (const box of boxes) {
@@ -131,5 +131,10 @@ export default (function picoPageStore() {
     notify();
   }
 
-  return { use, fetchAll, updateBox, setPicoMoving };
+  async function logout() {
+    await authLogout();
+    window.location.reload();
+  }
+
+  return { use, fetchAll, updateBox, setPicoMoving, logout };
 })();

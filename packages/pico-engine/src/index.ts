@@ -5,10 +5,12 @@ import * as makeDir from "make-dir";
 import * as path from "path";
 import { PicoEngineCore, RulesetRegistry } from "pico-engine-core";
 import { PicoDbKey, PicoFramework } from "pico-framework";
+import { AuthService, WebAuthnAdapter, makeWebAuthnAdapter } from "./auth";
+import { OAuthService, initOAuthModule } from "./oauth";
 import { getPicoLogs, makeRotatingFileLogWriter } from "./logging";
+import { provisionRoot, uiECIForRoot } from "./provisionRoot";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { server } from "./server";
-import { toFileUrl } from "./utils/toFileUrl";
 const charwise = require("charwise");
 const safeJsonCodec = require("level-json-coerce-null");
 
@@ -53,6 +55,43 @@ export interface PicoEngineConfiguration {
   useEventInputTime?: boolean;
 
   log?: KrlLogger;
+
+  /**
+   * WebAuthn relying-party id (a registrable domain). Defaults to the hostname
+   * of `base_url` (e.g. "localhost").
+   */
+  rpID?: string;
+
+  /**
+   * Human-friendly relying-party name shown by the OS passkey UI.
+   */
+  rpName?: string;
+
+  /**
+   * Expected WebAuthn origin (scheme://host[:port]). Defaults to the origin of
+   * `base_url`.
+   */
+  origin?: string;
+
+  /**
+   * When true, anyone may register additional accounts/roots after bootstrap.
+   * When false (default), only bootstrap (zero accounts), legacy claim, or a valid
+   * invite may create a new account.
+   */
+  allowSelfSignup?: boolean;
+
+  /**
+   * Override the WebAuthn ceremony/verification implementation. Intended for
+   * testing with a deterministic authenticator.
+   */
+  webauthn?: WebAuthnAdapter;
+
+  /**
+   * When true, boot auto-creates a single root (historical behavior). Defaults
+   * to false — fresh engines start with zero roots until passkey registration.
+   * Tests may set this to true.
+   */
+  autoCreateRootPico?: boolean;
 }
 
 export interface PicoEngine {
@@ -63,8 +102,11 @@ export interface PicoEngine {
   base_url: string;
 
   pf: PicoFramework;
-  uiECI: string;
+  /** UI channel for the session root; null when no roots exist yet at boot. */
+  uiECI: string | null;
   rsRegistry: RulesetRegistry;
+  auth: AuthService;
+  oauth: OAuthService;
 }
 
 export async function startEngine(
@@ -75,7 +117,16 @@ export async function startEngine(
   let base_url = configuration.base_url;
 
   if (typeof home !== "string") {
-    home = homeDir(".pico-engine") as string;
+    const envHome = process.env.PICO_ENGINE_HOME;
+    if (
+      typeof envHome === "string" &&
+      envHome.length > 0 &&
+      process.env.NODE_ENV === "test"
+    ) {
+      home = envHome;
+    } else {
+      home = homeDir(".pico-engine") as string;
+    }
   }
   await makeDir(home);
 
@@ -93,6 +144,7 @@ export async function startEngine(
     log,
     modules: configuration.modules,
     useEventInputTime: configuration.useEventInputTime,
+    autoCreateRootPico: configuration.autoCreateRootPico ?? false,
     getPicoLogs(picoId) {
       return getPicoLogs(logFilePath, picoId);
     },
@@ -101,52 +153,60 @@ export async function startEngine(
   const rsRegistry = core.rsRegistry;
   const pf = core.picoFramework;
 
-  const krl_urls: string[] = [
-    toFileUrl(
-      path.resolve(__dirname, "..", "krl", "io.picolabs.pico-engine-ui.krl")
-    ),
-    toFileUrl(path.resolve(__dirname, "..", "krl", "io.picolabs.wrangler.krl")),
-    toFileUrl(
-      path.resolve(__dirname, "..", "krl", "io.picolabs.subscription.krl")
-    ),
-    toFileUrl(path.resolve(__dirname, "..", "krl", "io.picolabs.did-o.krl")),
-    toFileUrl(path.resolve(__dirname, "..", "krl", "io.picolabs.pds.krl")),
-  ];
-  for (const url of krl_urls) {
-    const { ruleset } = await rsRegistry.flush(url);
-    await pf.rootPico.install(ruleset, { url, config: {} });
+  // Fresh engines boot with zero roots. Adopt + (re)provision only when roots
+  // already exist (test harness with autoCreateRootPico, or a migrated DB).
+  let uiECI: string | null = null;
+  const existingRoots = pf.rootPicos();
+  if (existingRoots.length > 0) {
+    const provisioned = await provisionRoot(pf, core, { root: existingRoots[0] });
+    uiECI = provisioned.uiECI;
   }
 
-  let uiChannel = pf.rootPico
-    .toReadOnly()
-    .channels.find(
-      (chann) => "engine,ui" === chann.tags.slice(0).sort().join(",")
-    );
-  if (!uiChannel) {
-    uiChannel = (
-      await pf.rootPico.newChannel({
-        tags: ["engine", "ui"],
-        eventPolicy: {
-          allow: [{ domain: "engine_ui", name: "setup" }],
-          deny: [],
-        },
-      })
-    ).toReadOnly();
-  }
-  await pf.eventWait({
-    eci: uiChannel.id,
-    domain: "engine_ui",
-    name: "setup",
-    data: { attrs: {} },
-    time: 0,
+  const auth = new AuthService({
+    db: pf.db,
+    webauthn: configuration.webauthn || makeWebAuthnAdapter(),
+    getBaseUrl: () => core.base_url,
+    rpID: configuration.rpID,
+    rpName: configuration.rpName,
+    origin: configuration.origin,
+    allowSelfSignup: configuration.allowSelfSignup ?? false,
+    provisionRoot: async (opts) => {
+      const { root, uiECI } = await provisionRoot(pf, core, opts);
+      return { rootPicoId: root.id, uiECI };
+    },
+    getUiECI: (rootPicoId: string) => uiECIForRoot(pf, rootPicoId),
+    getPrimaryRootPicoId: () => {
+      try {
+        return pf.rootPico.id;
+      } catch {
+        return null;
+      }
+    },
+    onAccountClaimed: async (rootPicoId, displayName) => {
+      const uiChannel = uiECIForRoot(pf, rootPicoId);
+      if (!uiChannel || !displayName.trim()) {
+        return;
+      }
+      await pf.eventWait({
+        eci: uiChannel,
+        domain: "engine_ui",
+        name: "box",
+        data: { attrs: { name: displayName.trim() } },
+        time: 0,
+      });
+    },
   });
 
-  const uiECI = uiChannel.id;
+  const oauth = new OAuthService({
+    db: pf.db,
+    pf,
+  });
+  core.modules["oauth"] = initOAuthModule(oauth);
 
-  const app = server(core, uiECI);
+  const app = server(core, uiECI, auth, oauth);
 
   if ((!port || !_.isInteger(port) || port < 1) && port !== 0) {
-    port = 3000;
+    port = process.env.NODE_ENV === "test" ? 0 : 3000;
   }
   await new Promise((resolve) => {
     const listener = app.listen(port, () => {
@@ -167,16 +227,17 @@ export async function startEngine(
 
   log.info(`Listening at ${base_url}`);
 
-  pf.event({
-    eci: uiECI,
-    domain: "engine",
-    name: "started",
-    data: { attrs: {} },
-    time: 0, // TODO remove this typescript requirement
-  }).catch((error) => {
-    log.error("Error signaling engine:started event", { error });
-    // TODO signal all errors engine:error
-  });
+  if (uiECI) {
+    pf.event({
+      eci: uiECI,
+      domain: "engine",
+      name: "started",
+      data: { attrs: {} },
+      time: 0, // TODO remove this typescript requirement
+    }).catch((error) => {
+      log.error("Error signaling engine:started event", { error });
+    });
+  }
 
   return {
     version,
@@ -188,5 +249,7 @@ export async function startEngine(
     pf,
     uiECI,
     rsRegistry,
+    auth,
+    oauth,
   };
 }

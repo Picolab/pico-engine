@@ -120,10 +120,157 @@ The server is configured via some environment variables.
 - `PORT` - The port the http server should listen on. By default it's `3000`
 - `PICO_ENGINE_HOME` - Where the database and other files should be stored. By default it's `~/.pico-engine/`
 - `PICO_ENGINE_BASE_URL` - The public url prefix to reach this engine. By default it's `"http://localhost:3000"`
+- `PICO_ENGINE_ALLOW_SELF_SIGNUP` - Set to `"true"` or `"1"` to allow open registration after bootstrap (default: off; bootstrap and invite still work)
+- `PICO_ENGINE_ALLOW_LOCALHOST_C` - Set to `"0"` to require passkey session on `/c/*` even from localhost (default: allow localhost without session for in-engine HTTP loops). Full registry: repo `MEMORY.md` § Engine environment variables.
 
 The `PORT` is the only value used in setting up the engine’s [nodejs http server](https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback). We only specify the `port` so it listens listens to all traffic on that port, it will not filter by host.
 
 For example, say you want to have your engine running with SSL on a custom domain i.e. `https://example.com` Starting the engine like this `PICO_ENGINE_BASE_URL=https://example.com pico-engine` is not enough. You will need to use a reverse proxy server like nginx to handle the SSL termination, and then forward the traffic to your private port that is running the engine.
+
+## Authentication
+
+The developer UI uses **passkeys** (WebAuthn). On first visit you register a passkey, which creates your account and root pico. Sign in again with the same passkey; add more passkeys or invite others from **Settings** (gear icon).
+
+- **`/c/*`** — internal/UI API; requires a passkey session cookie (localhost bypass is on by default for in-engine KRL HTTP loops; set `PICO_ENGINE_ALLOW_LOCALHOST_C=0` to disable).
+- **`/auth/*`** — registration, login, session management.
+
+## OAuth
+
+OAuth protects external access to the mesh on **`/sky/*`**. The UI and in-engine loops continue to use passkey sessions on **`/c/*`**.
+
+Two grant types can coexist in the same mesh:
+
+| Grant | Use case | Client ID | Scope |
+|-------|----------|-----------|-------|
+| **Client Credentials** | Inbound webhooks (Stripe, GitHub, …) | Channel **ECI** | Single channel only |
+| **Authorization Code + PKCE** | Apps like Home Assistant | `app_…` | Whole mesh (root + descendants) |
+
+### Mesh lock
+
+Install the optional ruleset **`io.picolabs.oauth`** on the **root pico** to require a Bearer token on all **`/sky/*`** requests for that mesh. Without it, open channels work as before (channel policy only); channels tagged **`oauth-webhook`** always require Bearer.
+
+From the Rulesets tab, install `io.picolabs.oauth` (KRL source: `packages/pico-engine/krl/io.picolabs.oauth.krl`). Removing the ruleset unlocks the mesh again.
+
+Ruleset queries (install `io.picolabs.oauth` on the root): `meshEnabled()`, `meshRequiresOAuth(eci)`, `channelStatus(eci)`, `createChannelSecret(eci)`, … — see `krl/io.picolabs.oauth.krl`.
+
+### Webhook credentials (Client Credentials)
+
+For channels tagged **`oauth-webhook`** at creation time:
+
+1. Open the channel in the **Channels** tab.
+2. **Create credentials** — `client_id` is the channel ECI; copy the `client_secret` (shown once).
+3. Mint a test token in the UI, or call `POST /oauth/token`:
+
+```http
+POST /oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "<channel-eci>",
+  "client_secret": "<secret>"
+}
+```
+
+The returned **`oat_…`** access token works only on **`/sky/*`** URLs for **that ECI**.
+
+Family, subscription, and system channels are not eligible.
+
+### OAuth apps (Authorization Code)
+
+For integrators that need access across the mesh (e.g. Home Assistant):
+
+1. Install **`io.picolabs.oauth`** on the root pico (mesh lock).
+2. **Settings → OAuth apps** — register an app (name, redirect URIs, public vs confidential client). The **client ID** (`app_…`) is not secret; a confidential client’s **secret** is shown once.
+3. The app sends the user to authorize; after passkey consent, the app exchanges the code for tokens.
+
+**Authorize** (browser; user must be signed in):
+
+```http
+GET /oauth/authorize?client_id=app_…&redirect_uri=…&response_type=code&code_challenge=…&code_challenge_method=S256&scope=mesh
+```
+
+Unauthenticated users are redirected to sign in and then returned to authorize (`/?oauth_return=…`).
+
+**Token exchange** (must be **POST**, not a browser GET with query params):
+
+```http
+POST /oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "authorization_code",
+  "code": "oac_…",
+  "redirect_uri": "…",
+  "client_id": "app_…",
+  "code_verifier": "…"
+}
+```
+
+For manual testing with plain PKCE, use `code_challenge_method=plain` and set `code_challenge` and `code_verifier` to the same string.
+
+**Refresh:**
+
+```http
+POST /oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "refresh_token",
+  "refresh_token": "ort_…",
+  "client_id": "app_…"
+}
+```
+
+**Use the access token** on any channel ECI in the mesh:
+
+```http
+GET /sky/query/<eci>/io.picolabs.wrangler/name
+Authorization: Bearer oat_…
+```
+
+### Token prefixes
+
+| Prefix | Meaning |
+|--------|---------|
+| `oac_` | Authorization code (single-use, ~10 min) — exchange at `/oauth/token`, not a Bearer token |
+| `oat_` | Access token — use on **`/sky/*`** |
+| `ort_` | Refresh token — use at `/oauth/token` only |
+
+### OAuth HTTP endpoints
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `POST` | `/oauth/token` | Public | Client credentials, authorization code, refresh token |
+| `GET` | `/oauth/token` | Public | Dev-friendly alias (query params); prefer POST |
+| `GET` | `/oauth/authorize` | Passkey session | Authorization code + PKCE; consent page |
+| `POST` | `/oauth/approve` | Passkey session | Consent form handler |
+| `GET/POST/DELETE` | `/oauth/apps` | Passkey session | Register/list/revoke OAuth apps |
+| `GET/POST/DELETE` | `/oauth/channels/:eci/*` | Passkey session | Webhook credential management |
+
+### Building the UI
+
+The root `npm run build` compiles the engine only. To pick up UI changes (Settings, Channels OAuth panels, etc.):
+
+```sh
+cd packages/pico-engine-ui && npm run build
+```
+
+That copies the bundle into `packages/pico-engine/public/`. Restart the engine and hard-refresh the browser.
+
+For UI development, run the engine and `npm run dev` in `packages/pico-engine-ui` in separate terminals.
+
+### OAuth tests
+
+```sh
+cd packages/pico-engine
+npm run test:oauth    # webhook Client Credentials
+npm run test:acg      # authorization code + refresh
+npm run test:http     # /c/* vs /sky/* surface + mesh lock
+npm run test:auth     # passkeys
+```
+
+Tests use isolated temp homes and ephemeral ports; they do not require stopping a running engine.
 
 ## Contributing
 

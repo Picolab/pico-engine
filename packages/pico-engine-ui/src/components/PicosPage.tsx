@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { apiSavePicoBox } from "../api";
 import picoPageStore from "../stores/picoPageStore";
 import Pico from "./Pico";
+import SettingsModal from "./SettingsModal";
 
 interface Props {}
 
@@ -13,6 +14,7 @@ const PicosPage: React.FC<Props> = () => {
   const openTab = params.tab;
 
   const picoPage = picoPageStore.use();
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
 
   React.useEffect(() => {
     picoPageStore.fetchAll();
@@ -68,8 +70,29 @@ const PicosPage: React.FC<Props> = () => {
         <div>
           {picoPage.uiContext ? `version: ${picoPage.uiContext.version}` : ""}
         </div>
+        {picoPage.uiContext?.session?.displayName ? (
+          <div>Signed into {picoPage.uiContext.session.displayName}</div>
+        ) : (
+          ""
+        )}
+        <div className="mt-2">
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setSettingsOpen(true)}
+          >
+            Settings
+          </button>
+        </div>
         {process.env.NODE_ENV === "development" && <div>Development Mode</div>}
       </footer>
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onLogout={() => picoPageStore.logout()}
+        allowSelfSignup={picoPage.uiContext?.allowSelfSignup === true}
+      />
 
       <div className="container-fluid">
         {picoPage.loading ? "Loading..." : ""}

@@ -1,9 +1,7 @@
-import * as cuid from "cuid";
-import * as path from "path";
 import { ChannelConfig, Pico, PicoFramework } from "pico-framework";
-import * as os from "os";
-import { PicoEngineConfiguration, startEngine } from "../../src/index";
+import { PicoEngineConfiguration } from "../../src/index";
 import { cleanDirectives } from "./cleanDirectives";
+import { startIsolatedEngine } from "./isolatedEngine";
 import { toTestKrlURL } from "./toTestKrlURL";
 
 export const allowAllChannelConf: ChannelConfig = {
@@ -42,13 +40,16 @@ export async function startTestEngine(
   testFiles: string[] = [],
   conf: PicoEngineConfiguration = {}
 ) {
-  const pe = await startEngine({
+  const pe = await startIsolatedEngine({
     ...conf,
-    home: conf.home || path.resolve(os.tmpdir(), "pico-engine", cuid()),
-    port: 0,
+    autoCreateRootPico: conf.autoCreateRootPico ?? true,
   });
 
-  const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
+  const root = pe.pf.rootPicos()[0];
+  if (!root) {
+    throw new Error("startTestEngine expected a root pico (autoCreateRootPico)");
+  }
+  const chann = await root.newChannel(allowAllChannelConf);
   const eci = chann.id;
 
   async function installTestFile(pico: Pico, file: string) {
@@ -59,7 +60,7 @@ export async function startTestEngine(
 
   // order matters
   for (const file of testFiles) {
-    await installTestFile(pe.pf.rootPico, file);
+    await installTestFile(root, file);
   }
 
   const mkSignal = mkSignalBase(pe.pf);

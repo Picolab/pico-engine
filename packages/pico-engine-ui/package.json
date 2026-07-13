@@ -2,7 +2,7 @@
   "name": "pico-engine-ui",
   "private": true,
   "type": "module",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "React UI for pico-engine",
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
     "build": "tsc && vite build && cp dist/pico-engine-ui.* ../pico-engine/public/"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^13.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0"

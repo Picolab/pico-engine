@@ -50,6 +50,7 @@ export class PicoEngineCore {
       db: conf.db,
       genID: conf.genID,
       useEventInputTime: conf.useEventInputTime,
+      autoCreateRootPico: conf.autoCreateRootPico,
 
       environment: (rsCtx: RulesetContext) => makeKrlCtx(this, rsCtx),
 
