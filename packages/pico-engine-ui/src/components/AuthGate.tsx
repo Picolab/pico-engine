@@ -3,32 +3,23 @@ import {
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
-import { authPost, fetchInvite, InvitePeek, UiContext } from "../authApi";
+import { authPost, fetchInvite, InvitePeek, readInviteFromUrl, UiContext } from "../authApi";
 
 interface Props {
   context: UiContext;
   onAuthenticated: () => void;
 }
 
-function readInviteFromUrl(): string | null {
-  try {
-    const token = new URL(window.location.href).searchParams.get("invite");
-    return token && token.trim() ? token.trim() : null;
-  } catch {
-    return null;
-  }
-}
-
 const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
   const [displayName, setDisplayName] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const inviteToken = React.useMemo(() => readInviteFromUrl(), []);
+  const inviteToken = readInviteFromUrl();
   const [invite, setInvite] = React.useState<InvitePeek | null>(null);
   const [inviteLoading, setInviteLoading] = React.useState(!!inviteToken);
   const inviteRegister = !!inviteToken && invite?.valid === true;
   const [mode, setMode] = React.useState<"register" | "login">(
-    context.hasRoots && !inviteRegister ? "login" : "register"
+    inviteToken || !context.hasRoots ? "register" : "login"
   );
 
   React.useEffect(() => {
@@ -195,21 +186,6 @@ const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
               {busy ? "Waiting for passkey…" : "Register with passkey"}
             </button>
           </form>
-          {showInviteRegister ? (
-            <button
-              type="button"
-              className="btn btn-link btn-block mt-2"
-              disabled={busy}
-              onClick={() => {
-                setError(null);
-                setMode("login");
-              }}
-            >
-              Already have an account? Sign in
-            </button>
-          ) : (
-            ""
-          )}
         </>
       ) : mode === "login" ? (
         <>

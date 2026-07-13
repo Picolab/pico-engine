@@ -1,6 +1,6 @@
 import * as React from "react";
 import { HashRouter, Route, Routes } from "react-router-dom";
-import { fetchUiContext, UiContext } from "./authApi";
+import { authLogout, clearInviteFromUrl, fetchUiContext, readInviteFromUrl, UiContext } from "./authApi";
 import AuthGate from "./components/AuthGate";
 import PicosPage from "./components/PicosPage";
 
@@ -30,6 +30,8 @@ const App: React.FC = () => {
   const [context, setContext] = React.useState<UiContext | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const inviteToken = readInviteFromUrl();
+  const [clearingInviteSession, setClearingInviteSession] = React.useState(false);
 
   const loadContext = React.useCallback(async () => {
     setLoading(true);
@@ -45,6 +47,7 @@ const App: React.FC = () => {
 
   const handleAuthenticated = React.useCallback(async () => {
     const returnPath = readOAuthReturn();
+    clearInviteFromUrl();
     await loadContext();
     if (returnPath) {
       clearOAuthReturnFromUrl();
@@ -56,7 +59,26 @@ const App: React.FC = () => {
     loadContext();
   }, [loadContext]);
 
-  if (loading) {
+  React.useEffect(() => {
+    if (!inviteToken || !context?.session?.authenticated) {
+      setClearingInviteSession(false);
+      return;
+    }
+    let cancelled = false;
+    setClearingInviteSession(true);
+    authLogout()
+      .then(() => loadContext())
+      .finally(() => {
+        if (!cancelled) {
+          setClearingInviteSession(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [inviteToken, context?.session?.authenticated, loadContext]);
+
+  if (loading || clearingInviteSession) {
     return <div className="container py-5">Loading…</div>;
   }
   if (error) {
@@ -67,8 +89,9 @@ const App: React.FC = () => {
   }
 
   const authenticated = context.session?.authenticated === true;
+  const showAuthGate = !authenticated || !!inviteToken;
 
-  if (!authenticated) {
+  if (showAuthGate) {
     return (
       <AuthGate context={context} onAuthenticated={handleAuthenticated} />
     );

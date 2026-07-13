@@ -109,6 +109,28 @@ export async function createInvite(label?: string): Promise<InviteInfo> {
   return authPost("/auth/invites", { label: label || undefined });
 }
 
+export function readInviteFromUrl(): string | null {
+  try {
+    const token = new URL(window.location.href).searchParams.get("invite");
+    return token && token.trim() ? token.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearInviteFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("invite")) {
+      return;
+    }
+    url.searchParams.delete("invite");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  } catch {
+    // ignore
+  }
+}
+
 export function inviteRegisterUrl(token: string): string {
   const url = new URL(window.location.href);
   url.searchParams.set("invite", token);
