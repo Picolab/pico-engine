@@ -1,3 +1,11 @@
+# 1.5.1 - July 14, 2026
+
+* **Channel editing** — developer UI lets you update tags and event/query policies on existing external channels (including adding `oauth-webhook` for Client Credentials).
+* **Wrangler** — `updateChannel` defaction and `channel_update_request` / `channel_updated` events for programmatic channel updates.
+* **Migration** — on startup, reinstall `io.picolabs.pico-engine-ui` and refresh UI channel policies across the pico tree so `update_channel` works on upgraded engines.
+* **ctx:putChannel** — returns the updated channel map (matches `newChannel`).
+* **Tests** — `uiChannelUpdate.ts`, `wranglerChannel.ts`.
+
 # 1.5.0 - July 13, 2026
 
 * **Passkey authentication (WebAuthn)** — register, sign-in, sessions, and UI gate; one root pico per account; legacy mesh claim and invite-gated registration.

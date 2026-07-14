@@ -6,6 +6,9 @@ import { PicoDetails } from "../../types/PicoDetails";
 import useAsyncAction from "../../useAsyncAction";
 import useAsyncLoader from "../../useAsyncLoader";
 import {
+  channelTagsToString,
+  formatEventPolicy,
+  formatQueryPolicy,
   parseEventPolicy,
   ParseNViewEventPolicy,
   ParseNViewQueryPolicy,
@@ -373,6 +376,179 @@ function ChannelOAuthPanel({ channelId }: { channelId: string }) {
   );
 }
 
+function ChannelEditPanel({
+  channel,
+  disabled,
+  onSave,
+}: {
+  channel: Channel;
+  disabled: boolean;
+  onSave: (data: {
+    eci: string;
+    tags: string[];
+    eventPolicy: ReturnType<typeof parseEventPolicy>;
+    queryPolicy: ReturnType<typeof parseQueryPolicy>;
+  }) => void;
+}) {
+  const [tags, setTags] = React.useState(() => channelTagsToString(channel.tags));
+  const [eventPolicy, setEventPolicy] = React.useState(() =>
+    formatEventPolicy(channel.eventPolicy)
+  );
+  const [queryPolicy, setQueryPolicy] = React.useState(() =>
+    formatQueryPolicy(channel.queryPolicy)
+  );
+
+  React.useEffect(() => {
+    setTags(channelTagsToString(channel.tags));
+    setEventPolicy(formatEventPolicy(channel.eventPolicy));
+    setQueryPolicy(formatQueryPolicy(channel.queryPolicy));
+  }, [channel]);
+
+  function appendTag(tag: string) {
+    const parts = tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (parts.some((t) => t.toLowerCase() === tag.toLowerCase())) {
+      return;
+    }
+    setTags(parts.length === 0 ? tag : `${parts.join(", ")}, ${tag}`);
+  }
+
+  function getUpdateData() {
+    return {
+      eci: channel.id,
+      tags: tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      eventPolicy: parseEventPolicy(eventPolicy),
+      queryPolicy: parseQueryPolicy(queryPolicy),
+    };
+  }
+
+  function isReadyToSave(): boolean {
+    try {
+      getUpdateData();
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  const tagList = tags
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const showOAuth =
+    channel.tags.includes("oauth-webhook") ||
+    tagList.some((t) => t.toLowerCase() === "oauth-webhook");
+
+  return (
+    <div className="mb-3">
+      <h5 className="h6">Edit channel</h5>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!isReadyToSave()) {
+            return;
+          }
+          onSave(getUpdateData());
+        }}
+      >
+        <div className="form-group">
+          <label htmlFor={`edit-chann-tags-${channel.id}`}>Tags</label>
+          <div className="text-muted small mb-1">
+            Add{" "}
+            <button
+              type="button"
+              className="btn btn-link btn-sm p-0 align-baseline text-mono"
+              onClick={() => appendTag("oauth-webhook")}
+              disabled={disabled}
+            >
+              oauth-webhook
+            </button>{" "}
+            for webhook Client Credentials.
+          </div>
+          <div className="row">
+            <div className="col">
+              <input
+                id={`edit-chann-tags-${channel.id}`}
+                type="text"
+                className="form-control form-control-sm"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                disabled={disabled}
+              />
+            </div>
+            <div className="col">
+              {tagList.map((tag, i) => (
+                <span key={i} className="badge badge-secondary ml-1">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor={`edit-chann-event-${channel.id}`}>Event Policy</label>
+          <div className="row">
+            <div className="col">
+              <textarea
+                id={`edit-chann-event-${channel.id}`}
+                rows={3}
+                className="form-control form-control-sm"
+                value={eventPolicy}
+                onChange={(e) => setEventPolicy(e.target.value)}
+                disabled={disabled}
+              />
+            </div>
+            <div className="col">
+              <ParseNViewEventPolicy src={eventPolicy} />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor={`edit-chann-query-${channel.id}`}>Query Policy</label>
+          <div className="row">
+            <div className="col">
+              <textarea
+                id={`edit-chann-query-${channel.id}`}
+                rows={3}
+                className="form-control form-control-sm"
+                value={queryPolicy}
+                onChange={(e) => setQueryPolicy(e.target.value)}
+                disabled={disabled}
+              />
+            </div>
+            <div className="col">
+              <ParseNViewQueryPolicy src={queryPolicy} />
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="btn btn-sm btn-outline-primary"
+          disabled={disabled || !isReadyToSave()}
+        >
+          Save changes
+        </button>
+      </form>
+
+      {showOAuth ? (
+        <div className="mt-3">
+          <ChannelOAuthPanel channelId={channel.id} />
+        </div>
+      ) : (
+        ""
+      )}
+    </div>
+  );
+}
+
 const Channels: React.FC<Props> = ({ pico }) => {
   const [expandedChannels, setExpandedChannels] = React.useState<{
     [eci: string]: boolean;
@@ -417,12 +593,27 @@ const Channels: React.FC<Props> = ({ pico }) => {
     ).then((d) => picoDetails.setData(d))
   );
 
+  const updateChannel = useAsyncAction<{
+    eci: string;
+    tags: string[];
+    eventPolicy: ReturnType<typeof parseEventPolicy>;
+    queryPolicy: ReturnType<typeof parseQueryPolicy>;
+  }>((data) =>
+    apiPost(
+      `/c/${pico.eci}/event/engine_ui/update_channel/query/io.picolabs.pico-engine-ui/pico`,
+      data
+    ).then((d) => picoDetails.setData(d))
+  );
+
   React.useEffect(() => {
     picoDetails.load();
   }, [pico.eci]);
 
   const waiting: boolean =
-    picoDetails.waiting || delChannel.waiting || addChannel.waiting;
+    picoDetails.waiting ||
+    delChannel.waiting ||
+    addChannel.waiting ||
+    updateChannel.waiting;
 
   const channels: Channel[] =
     (picoDetails.data && picoDetails.data.channels) || [];
@@ -454,6 +645,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
       <h3>Channels</h3>
       <ErrorStatus error={picoDetails.error} />
       <ErrorStatus error={delChannel.error} />
+      <ErrorStatus error={updateChannel.error} />
 
       {channels.length === 0 ? (
         <div className="text-muted">- no channels -</div>
@@ -462,6 +654,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
           const isOpen = !!expandedChannels[channel.id];
           const canDelete =
             !channel.familyChannelPicoID && !channel.tags.includes("system");
+          const canEdit = canDelete;
           return (
             <div key={channel.id}>
               <div>
@@ -515,18 +708,17 @@ const Channels: React.FC<Props> = ({ pico }) => {
                 </div>
               </div>
               {isOpen ? (
-                <div className="ml-3">
+                <div className="ml-3 mb-3">
                   {channel.familyChannelPicoID ? (
                     <div className="text-muted">This is a family channel.</div>
+                  ) : canEdit ? (
+                    <ChannelEditPanel
+                      channel={channel}
+                      disabled={waiting}
+                      onSave={(data) => updateChannel.act(data)}
+                    />
                   ) : (
                     <div className="row">
-                      <div className="col-12">
-                        {channel.tags.includes("oauth-webhook") ? (
-                          <ChannelOAuthPanel channelId={channel.id} />
-                        ) : (
-                          ""
-                        )}
-                      </div>
                       <div className="col">
                         Event Policy
                         <ViewEventPolicy policy={channel.eventPolicy} />

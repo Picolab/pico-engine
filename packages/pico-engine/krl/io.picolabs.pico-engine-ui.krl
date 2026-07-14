@@ -124,12 +124,8 @@ ruleset io.picolabs.pico-engine-ui {
         })
         .reverse()
     }
-  }
-  rule setup {
-    select when engine_ui setup
-    ctx:upsertChannel(
-      tags = ["engine", "ui"],
-      eventPolicy = {
+    uiChannelEventPolicy = function() {
+      {
         "allow": [
           { "domain": "engine_ui", "name": "setup" },
           { "domain": "engine_ui", "name": "box" },
@@ -140,6 +136,7 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "engine_ui", "name": "flush" },
           { "domain": "engine_ui", "name": "new_channel" },
           { "domain": "engine_ui", "name": "del_channel" },
+          { "domain": "engine_ui", "name": "update_channel" },
           { "domain": "engine_ui", "name": "testing_eci" },
           { "domain": "engine", "name": "started" },
           { "domain": "wrangler", "name": "subscription" },
@@ -149,8 +146,10 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "wrangler", "name": "subscription_cancellation" }
         ],
         "deny": []
-      },
-      queryPolicy = {
+      }
+    }
+    uiChannelQueryPolicy = function() {
+      {
         "allow": [
           { "rid": "*", "name": "__testing" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "uiECI" },
@@ -166,7 +165,18 @@ ruleset io.picolabs.pico-engine-ui {
         ],
         "deny": []
       }
-    )
+    }
+    refreshUiChannel = defaction() {
+      ctx:upsertChannel(
+        tags = ["engine", "ui"],
+        eventPolicy = uiChannelEventPolicy(),
+        queryPolicy = uiChannelQueryPolicy()
+      )
+    }
+  }
+  rule setup {
+    select when engine_ui setup
+    refreshUiChannel()
   }
   rule box {
     select when engine_ui box
@@ -186,6 +196,26 @@ ruleset io.picolabs.pico-engine-ui {
       ent:parent_ui_eci := event:attrs{"parentUiEci"} if event:attrs{"parentUiEci"}
     }
   }
+  rule refresh_ui_channel_on_engine_started {
+    select when engine started
+    refreshUiChannel()
+  }
+
+  rule refresh_child_ui_channels_on_engine_started {
+    select when engine started
+      foreach ctx:children setting(familyEci)
+    pre {
+      childUi = (not ent:child_ui_ecis{familyEci}.isnull()) => ent:child_ui_ecis{familyEci} | ctx:query(familyEci, ctx:rid, "uiECI")
+    }
+    if childUi then
+      ctx:event(
+        eci=childUi,
+        domain="engine_ui",
+        name="setup",
+        attrs={}
+      )
+  }
+
   rule remember_child_ui_eci {
     select when wrangler new_child_created
     pre {
@@ -251,6 +281,14 @@ ruleset io.picolabs.pico-engine-ui {
     select when engine_ui flush
     ctx:flush(url=event:attrs{"url"})
   }
+  rule refresh_ui_channel_after_flush {
+    select when engine_ui flush
+    pre {
+      url = event:attrs{"url"} || ""
+      self_flush = url.match(re#io\.picolabs\.pico-engine-ui#)
+    }
+    if self_flush then refreshUiChannel()
+  }
   rule new_channel {
     select when engine_ui new_channel
     ctx:newChannel(
@@ -262,6 +300,15 @@ ruleset io.picolabs.pico-engine-ui {
   rule del_channel {
     select when engine_ui del_channel
     ctx:delChannel(event:attrs{"eci"})
+  }
+  rule update_channel {
+    select when engine_ui update_channel
+    ctx:putChannel(
+      eci=event:attrs{"eci"},
+      tags=event:attrs{"tags"},
+      eventPolicy=event:attrs{"eventPolicy"},
+      queryPolicy=event:attrs{"queryPolicy"}
+    )
   }
   rule testing_eci {
     select when engine_ui testing_eci

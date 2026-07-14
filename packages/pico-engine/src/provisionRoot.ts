@@ -32,10 +32,62 @@ export function uiECIForRoot(
   if (!pico) {
     return null;
   }
+  return uiECIForPico(pico);
+}
+
+export function uiECIForPico(pico: Pico): string | null {
   const chann = pico
     .toReadOnly()
     .channels.find((c) => uiChannelKey(UI_CHANNEL_TAGS) === uiChannelKey(c.tags));
   return chann ? chann.id : null;
+}
+
+/**
+ * Install the current io.picolabs.pico-engine-ui ruleset on every pico in the
+ * tree and re-run setup so ["engine","ui"] channel policies stay in sync.
+ */
+export async function refreshAllUiChannelPolicies(
+  pf: PicoFramework,
+  core: PicoEngineCore
+): Promise<void> {
+  const uiUrl = toFileUrl(
+    path.resolve(__dirname, "..", "krl", "io.picolabs.pico-engine-ui.krl")
+  );
+  const { ruleset: uiRuleset } = await core.rsRegistry.flush(uiUrl);
+
+  async function visit(pico: Pico): Promise<void> {
+    await pico.install(uiRuleset, { url: uiUrl, config: {} });
+    const uiEci = uiECIForPico(pico);
+    if (uiEci) {
+      await pf.eventWait({
+        eci: uiEci,
+        domain: "engine_ui",
+        name: "setup",
+        data: { attrs: {} },
+        time: 0,
+      });
+    }
+  }
+
+  async function walk(pico: Pico): Promise<void> {
+    await visit(pico);
+    for (const familyEci of pico.children) {
+      const chann = pico.channels[familyEci];
+      const childId = chann?.familyChannelPicoID;
+      if (!childId) {
+        continue;
+      }
+      try {
+        await walk(pf.getPico(childId));
+      } catch {
+        // child may have been deleted
+      }
+    }
+  }
+
+  for (const root of pf.rootPicos()) {
+    await walk(root);
+  }
 }
 
 /**
@@ -74,13 +126,7 @@ export async function provisionRoot(
     ).toReadOnly();
   }
 
-  await pf.eventWait({
-    eci: uiChannel.id,
-    domain: "engine_ui",
-    name: "setup",
-    data: { attrs: {} },
-    time: 0,
-  });
+  await refreshAllUiChannelPolicies(pf, core);
 
   const name = (opts.name || "").trim();
   if (name) {

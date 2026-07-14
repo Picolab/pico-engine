@@ -116,7 +116,7 @@ export default function initCtxModule(core: PicoEngineCore) {
       ["eci", "tags", "eventPolicy", "queryPolicy"],
       async function putChannel(eci, tags, eventPolicy, queryPolicy) {
         const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
-        await this.rsCtx.putChannel(eci, conf);
+        return await this.rsCtx.putChannel(eci, conf);
       }
     ),
 

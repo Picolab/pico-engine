@@ -15,7 +15,7 @@ ruleset io.picolabs.wrangler {
     author "BYU Pico Lab"
 
     provides skyQuery, picoQuery,
-    channels, createChannel, deleteChannel, //channel
+    channels, createChannel, updateChannel, deleteChannel, //channel
     rulesetConfig, rulesetMeta, installedRIDs, //ruleset
     children, parent_eci, name, myself //pico
 
@@ -39,6 +39,8 @@ ruleset io.picolabs.wrangler {
                               "attrs": [ "eci"] },
                               { "domain": "wrangler", "name": "new_channel_request",
                                 "attrs": [ "tags", "eventPolicy", "queryPolicy" ] },
+                              { "domain": "wrangler", "name": "channel_update_request",
+                                "attrs": [ "eci", "tags", "eventPolicy", "queryPolicy" ] },
                               { "domain": "wrangler", "name": "channel_deletion_request",
                                 "attrs": [ "eci" ] },
                               { "domain": "wrangler", "name": "install_ruleset_request",
@@ -199,6 +201,16 @@ ruleset io.picolabs.wrangler {
       return channel
     }
 
+    updateChannel = defaction(eci, tags, eventPolicy, queryPolicy) {
+      ctx:putChannel(
+        eci=eci,
+        tags=tags,
+        eventPolicy=eventPolicy,
+        queryPolicy=queryPolicy
+      ) setting(channel)
+      return channel
+    }
+
 // ********************************************************************************************
 // ***                                      Picos                                           ***
 // ********************************************************************************************
@@ -336,6 +348,22 @@ ruleset io.picolabs.wrangler {
     deleteChannel(eci)
     fired {
       raise wrangler event "channel_deleted" attributes event:attrs
+    }
+  }
+
+  rule updateChannel {
+    select when wrangler channel_update_request
+    pre {
+      eci = event:attrs{"eci"}
+      tags = event:attrs{"tags"}
+      eventPolicy = event:attrs{"eventPolicy"}
+      queryPolicy = event:attrs{"queryPolicy"}
+    }
+    if eci && tags && eventPolicy && queryPolicy then
+      updateChannel(eci, tags, eventPolicy, queryPolicy) setting(channel)
+    fired {
+      raise wrangler event "channel_updated"
+        attributes event:attrs.put({"channel": channel})
     }
   }
 

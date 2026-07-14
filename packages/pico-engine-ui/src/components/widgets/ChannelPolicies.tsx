@@ -98,6 +98,26 @@ export function parseQueryPolicy(src: string): QueryPolicy {
   return policy;
 }
 
+export function formatEventPolicy(policy: EventPolicy): string {
+  const lines = [
+    ...policy.allow.map((rule) => `allow ${rule.domain}:${rule.name}`),
+    ...policy.deny.map((rule) => `deny ${rule.domain}:${rule.name}`),
+  ];
+  return lines.join("\n");
+}
+
+export function formatQueryPolicy(policy: QueryPolicy): string {
+  const lines = [
+    ...policy.allow.map((rule) => `allow ${rule.rid}/${rule.name}`),
+    ...policy.deny.map((rule) => `deny ${rule.rid}/${rule.name}`),
+  ];
+  return lines.join("\n");
+}
+
+export function channelTagsToString(tags: string[]): string {
+  return tags.join(", ");
+}
+
 export const ParseError: React.FC<{
   error: any;
   line: string;
