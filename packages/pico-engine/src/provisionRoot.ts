@@ -1,6 +1,11 @@
 import * as path from "path";
 import { PicoEngineCore } from "pico-engine-core";
-import { Pico, PicoFramework } from "pico-framework";
+import { ChannelConfig, Pico, PicoFramework } from "pico-framework";
+import {
+  UI_CHANNEL_EVENT_POLICY,
+  UI_CHANNEL_QUERY_POLICY,
+  UI_CHANNEL_TAGS,
+} from "./uiChannelPolicies";
 import { toFileUrl } from "./utils/toFileUrl";
 
 /**
@@ -15,11 +20,15 @@ const BASE_KRL_FILES = [
   "io.picolabs.pds.krl",
 ];
 
-const UI_CHANNEL_TAGS = ["engine", "ui"];
-
 function uiChannelKey(tags: string[]): string {
   return tags.slice(0).sort().join(",");
 }
+
+const UI_CHANNEL_CONFIG: ChannelConfig = {
+  tags: [...UI_CHANNEL_TAGS],
+  eventPolicy: UI_CHANNEL_EVENT_POLICY,
+  queryPolicy: UI_CHANNEL_QUERY_POLICY,
+};
 
 /**
  * Find the ["engine","ui"] channel on a pico, if it exists.
@@ -38,13 +47,22 @@ export function uiECIForRoot(
 export function uiECIForPico(pico: Pico): string | null {
   const chann = pico
     .toReadOnly()
-    .channels.find((c) => uiChannelKey(UI_CHANNEL_TAGS) === uiChannelKey(c.tags));
+    .channels.find((c) => uiChannelKey([...UI_CHANNEL_TAGS]) === uiChannelKey(c.tags));
   return chann ? chann.id : null;
 }
 
+async function forEachLoadedPico(
+  pf: PicoFramework,
+  fn: (pico: Pico) => Promise<void>
+): Promise<void> {
+  for (const pico of pf.loadedPicos()) {
+    await fn(pico);
+  }
+}
+
 /**
- * Install the current io.picolabs.pico-engine-ui ruleset on every pico in the
- * tree and re-run setup so ["engine","ui"] channel policies stay in sync.
+ * Install the current io.picolabs.pico-engine-ui ruleset on every pico and
+ * refresh its ["engine","ui"] channel policy directly (no event policy gate).
  */
 export async function refreshAllUiChannelPolicies(
   pf: PicoFramework,
@@ -55,39 +73,13 @@ export async function refreshAllUiChannelPolicies(
   );
   const { ruleset: uiRuleset } = await core.rsRegistry.flush(uiUrl);
 
-  async function visit(pico: Pico): Promise<void> {
+  await forEachLoadedPico(pf, async (pico) => {
     await pico.install(uiRuleset, { url: uiUrl, config: {} });
     const uiEci = uiECIForPico(pico);
     if (uiEci) {
-      await pf.eventWait({
-        eci: uiEci,
-        domain: "engine_ui",
-        name: "setup",
-        data: { attrs: {} },
-        time: 0,
-      });
+      await pico.putChannel(uiEci, UI_CHANNEL_CONFIG);
     }
-  }
-
-  async function walk(pico: Pico): Promise<void> {
-    await visit(pico);
-    for (const familyEci of pico.children) {
-      const chann = pico.channels[familyEci];
-      const childId = chann?.familyChannelPicoID;
-      if (!childId) {
-        continue;
-      }
-      try {
-        await walk(pf.getPico(childId));
-      } catch {
-        // child may have been deleted
-      }
-    }
-  }
-
-  for (const root of pf.rootPicos()) {
-    await walk(root);
-  }
+  });
 }
 
 /**
@@ -113,11 +105,11 @@ export async function provisionRoot(
 
   let uiChannel = root
     .toReadOnly()
-    .channels.find((c) => uiChannelKey(UI_CHANNEL_TAGS) === uiChannelKey(c.tags));
+    .channels.find((c) => uiChannelKey([...UI_CHANNEL_TAGS]) === uiChannelKey(c.tags));
   if (!uiChannel) {
     uiChannel = (
       await root.newChannel({
-        tags: UI_CHANNEL_TAGS,
+        tags: [...UI_CHANNEL_TAGS],
         eventPolicy: {
           allow: [{ domain: "engine_ui", name: "setup" }],
           deny: [],

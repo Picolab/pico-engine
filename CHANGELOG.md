@@ -2,7 +2,7 @@
 
 * **Channel editing** — developer UI lets you update tags and event/query policies on existing external channels (including adding `oauth-webhook` for Client Credentials).
 * **Wrangler** — `updateChannel` defaction and `channel_update_request` / `channel_updated` events for programmatic channel updates.
-* **Migration** — on startup, reinstall `io.picolabs.pico-engine-ui` and refresh UI channel policies across the pico tree so `update_channel` works on upgraded engines.
+* **Migration** — on startup, reinstall `io.picolabs.pico-engine-ui` on every loaded pico and apply UI channel policies directly via `putChannel` (fixes missed picos and stale policies blocking `update_channel`).
 * **ctx:putChannel** — returns the updated channel map (matches `newChannel`).
 * **Tests** — `uiChannelUpdate.ts`, `wranglerChannel.ts`.
 

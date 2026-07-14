@@ -196,26 +196,6 @@ ruleset io.picolabs.pico-engine-ui {
       ent:parent_ui_eci := event:attrs{"parentUiEci"} if event:attrs{"parentUiEci"}
     }
   }
-  rule refresh_ui_channel_on_engine_started {
-    select when engine started
-    refreshUiChannel()
-  }
-
-  rule refresh_child_ui_channels_on_engine_started {
-    select when engine started
-      foreach ctx:children setting(familyEci)
-    pre {
-      childUi = (not ent:child_ui_ecis{familyEci}.isnull()) => ent:child_ui_ecis{familyEci} | ctx:query(familyEci, ctx:rid, "uiECI")
-    }
-    if childUi then
-      ctx:event(
-        eci=childUi,
-        domain="engine_ui",
-        name="setup",
-        attrs={}
-      )
-  }
-
   rule remember_child_ui_eci {
     select when wrangler new_child_created
     pre {
