@@ -1511,6 +1511,13 @@ function postludeStatementCore(state: State): ast.PostludeStatement {
     };
   }
 
+  if (easyLookahead(state, 2) === "SYMBOL=") {
+    throw new ParseError(
+      "Declarations are not allowed in rule postludes",
+      state.curr.token
+    );
+  }
+
   return declaration(state);
 }
 

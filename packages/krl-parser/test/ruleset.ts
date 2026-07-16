@@ -843,56 +843,61 @@ test("RulePostlude", t => {
   };
 
   // test location
-  var src = "ruleset rs{rule r1{always{aaa=one();bbb=two()}}}";
+  var src =
+    "ruleset rs{rule r1{always{ent:aaa:=one();app:bbb:=two()}}}";
   t.deepEqual(parseRuleset(tokenizer(src)).rules[0].postlude, {
-    loc: { start: 19, end: 46 },
+    loc: { start: 19, end: 56 },
     type: "RulePostlude",
     fired: null,
     notfired: null,
     always: [
       {
-        loc: { start: 26, end: 35 },
-        type: "Declaration",
-        op: "=",
+        loc: { start: 33, end: 35 },
+        type: "PersistentVariableAssignment",
+        op: ":=",
         left: {
-          loc: { start: 26, end: 29 },
-          type: "Identifier",
+          loc: { start: 26, end: 33 },
+          type: "DomainIdentifier",
+          domain: "ent",
           value: "aaa"
         },
+        path_expression: null,
         right: {
-          loc: { start: 30, end: 35 },
+          loc: { start: 35, end: 40 },
           type: "Application",
           callee: {
-            loc: { start: 30, end: 33 },
+            loc: { start: 35, end: 38 },
             type: "Identifier",
             value: "one"
           },
           args: {
-            loc: { start: 33, end: 35 },
+            loc: { start: 38, end: 40 },
             type: "Arguments",
             args: []
           }
         }
       },
       {
-        loc: { start: 36, end: 45 },
-        type: "Declaration",
-        op: "=",
+        loc: { start: 48, end: 50 },
+        type: "PersistentVariableAssignment",
+        op: ":=",
         left: {
-          loc: { start: 36, end: 39 },
-          type: "Identifier",
+          loc: { start: 41, end: 48 },
+          type: "DomainIdentifier",
+          domain: "app",
           value: "bbb"
         },
+        path_expression: null,
         right: {
-          loc: { start: 40, end: 45 },
+          loc: { start: 50, end: 55 },
           type: "Application",
           callee: {
-            loc: { start: 40, end: 43 },
+            loc: { start: 50, end: 53 },
             type: "Identifier",
             value: "two"
           },
           args: {
-            loc: { start: 43, end: 45 },
+            loc: { start: 53, end: 55 },
             type: "Arguments",
             args: []
           }

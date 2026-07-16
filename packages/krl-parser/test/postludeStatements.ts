@@ -398,22 +398,6 @@ test("GuardCondition", t => {
     }
   ]);
 
-  testPost("foo = bar on final", [
-    {
-      type: "GuardCondition",
-      condition: "on final",
-      statement: mk.declare("=", mk.id("foo"), mk.id("bar"))
-    }
-  ]);
-
-  testPost("foo = bar if baz > 0", [
-    {
-      type: "GuardCondition",
-      condition: mk.op(">", mk.id("baz"), mk(0)),
-      statement: mk.declare("=", mk.id("foo"), mk.id("bar"))
-    }
-  ]);
-
   testPost("ent:foo := bar if baz > 0", [
     {
       type: "GuardCondition",
