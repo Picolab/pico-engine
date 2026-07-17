@@ -32,7 +32,7 @@ export interface StoredAccount {
   accountId: string;
   rootPicoId: string;
   displayName: string;
-  /** Stable WebAuthn `user.name`; legacy accounts omit this (displayName was used). */
+  /** @deprecated Stable opaque id; passkeys now use displayName as WebAuthn user.name. */
   webauthnUserName?: string;
   createdAt: string;
 }
@@ -58,6 +58,8 @@ export interface CredentialInfo {
 export interface InviteInfo {
   token: string;
   label?: string;
+  bootstrapUrl?: string;
+  bootstrapRid?: string;
   createdAt: string;
   expiresAt: number;
 }
@@ -65,6 +67,8 @@ export interface InviteInfo {
 export interface InvitePeek {
   valid: boolean;
   label?: string;
+  bootstrapUrl?: string;
+  bootstrapRid?: string;
   expiresAt?: number;
 }
 
@@ -72,6 +76,8 @@ interface StoredInvite {
   token: string;
   createdByAccountId: string;
   label?: string;
+  bootstrapUrl?: string;
+  bootstrapRid?: string;
   createdAt: string;
   expiresAt: number;
 }
@@ -121,9 +127,13 @@ export interface AuthServiceDeps {
   sessionTtlMs?: number;
   inviteTtlMs?: number;
 
+  /** Compile a bootstrap ruleset URL (invite creation validation). */
+  flushBootstrapUrl: (url: string) => Promise<{ rid: string }>;
+
   /** Mint a brand new root pico (installs base rulesets) for a new account. */
   provisionRoot: (opts?: {
     name?: string;
+    bootstrapUrl?: string;
   }) => Promise<{ rootPicoId: string; uiECI: string }>;
   /** Resolve the ["engine","ui"] ECI for an existing root. */
   getUiECI: (rootPicoId: string) => Promise<string | null> | string | null;
@@ -194,13 +204,17 @@ export class AuthService {
     }
     const { rpID, rpName } = this.rp();
     const accountId = randomId();
-    const displayName = (input.displayName || "").trim() || `pico-${accountId.slice(0, 6)}`;
+    const displayName = await this.resolveRegistrationDisplayName(
+      accountId,
+      input.displayName
+    );
+    const { userName, userDisplayName } = this.webauthnUserFields(displayName);
     const options = await this.deps.webauthn.generateRegistrationOptions({
       rpID,
       rpName,
       userID: new TextEncoder().encode(accountId),
-      userName: accountId,
-      userDisplayName: displayName,
+      userName,
+      userDisplayName,
       excludeCredentials: [],
     });
     const ceremonyId = this.putCeremony({
@@ -246,11 +260,10 @@ export class AuthService {
       accountId: cer.accountId,
       rootPicoId: cer.rootPicoId,
       displayName: cer.displayName,
-      webauthnUserName: cer.accountId,
       createdAt: new Date().toISOString(),
     };
     await this.deps.db.put([ACCOUNT_PREFIX, account.accountId], account);
-    await this.storeCredential(account.accountId, result.credential, "passkey");
+    await this.storeCredential(account.accountId, result.credential, cer.displayName);
 
     if (this.deps.onAccountClaimed) {
       await this.deps.onAccountClaimed(cer.rootPicoId, cer.displayName);
@@ -269,7 +282,21 @@ export class AuthService {
   async createInvite(input: {
     createdByAccountId: string;
     label?: string;
+    bootstrapUrl?: string;
   }): Promise<InviteInfo> {
+    const bootstrapUrl = (input.bootstrapUrl || "").trim() || undefined;
+    let bootstrapRid: string | undefined;
+    if (bootstrapUrl) {
+      try {
+        const flushed = await this.deps.flushBootstrapUrl(bootstrapUrl);
+        bootstrapRid = flushed.rid;
+      } catch (err) {
+        const detail =
+          err instanceof Error ? err.message : "Bootstrap ruleset URL could not be loaded";
+        throw new AuthError(`Invalid bootstrap ruleset URL: ${detail}`, 400);
+      }
+    }
+
     const token = randomToken();
     const now = Date.now();
     const ttl = this.deps.inviteTtlMs ?? DEFAULT_INVITE_TTL_MS;
@@ -277,6 +304,8 @@ export class AuthService {
       token,
       createdByAccountId: input.createdByAccountId,
       label: (input.label || "").trim() || undefined,
+      bootstrapUrl,
+      bootstrapRid,
       createdAt: new Date(now).toISOString(),
       expiresAt: now + ttl,
     };
@@ -284,6 +313,8 @@ export class AuthService {
     return {
       token: invite.token,
       label: invite.label,
+      bootstrapUrl: invite.bootstrapUrl,
+      bootstrapRid: invite.bootstrapRid,
       createdAt: invite.createdAt,
       expiresAt: invite.expiresAt,
     };
@@ -300,6 +331,8 @@ export class AuthService {
     return {
       valid: true,
       label: invite.label,
+      bootstrapUrl: invite.bootstrapUrl,
+      bootstrapRid: invite.bootstrapRid,
       expiresAt: invite.expiresAt,
     };
   }
@@ -321,13 +354,18 @@ export class AuthService {
 
     const { rpID, rpName } = this.rp();
     const accountId = randomId();
-    const displayName = (input.displayName || "").trim() || `pico-${accountId.slice(0, 6)}`;
+    const displayName = await this.resolveRegistrationDisplayName(
+      accountId,
+      input.displayName,
+      inviteToken
+    );
+    const { userName, userDisplayName } = this.webauthnUserFields(displayName);
     const options = await this.deps.webauthn.generateRegistrationOptions({
       rpID,
       rpName,
       userID: new TextEncoder().encode(accountId),
-      userName: accountId,
-      userDisplayName: displayName,
+      userName,
+      userDisplayName,
       excludeCredentials: [],
     });
     const ceremonyId = this.putCeremony({
@@ -365,20 +403,26 @@ export class AuthService {
       throw new AuthError("Registration could not be verified", 400);
     }
 
+    let bootstrapUrl: string | undefined;
+    if (cer.inviteToken) {
+      const invite = await this.getInvite(cer.inviteToken);
+      bootstrapUrl = invite?.bootstrapUrl;
+    }
+
     // Provision the account's root only after the ceremony verifies.
     const { rootPicoId, uiECI } = await this.deps.provisionRoot({
       name: cer.displayName,
+      bootstrapUrl,
     });
 
     const account: StoredAccount = {
       accountId: cer.accountId,
       rootPicoId,
       displayName: cer.displayName,
-      webauthnUserName: cer.accountId,
       createdAt: new Date().toISOString(),
     };
     await this.deps.db.put([ACCOUNT_PREFIX, account.accountId], account);
-    await this.storeCredential(account.accountId, result.credential, "passkey");
+    await this.storeCredential(account.accountId, result.credential, cer.displayName);
 
     if (cer.inviteToken) {
       await this.consumeInvite(cer.inviteToken);
@@ -455,13 +499,13 @@ export class AuthService {
     }
     const { rpID, rpName } = this.rp();
     const existing = await this.listStoredCredentials(input.accountId);
-    const userName = account.webauthnUserName || account.displayName;
+    const { userName, userDisplayName } = this.webauthnUserFields(account.displayName);
     const options = await this.deps.webauthn.generateRegistrationOptions({
       rpID,
       rpName,
       userID: new TextEncoder().encode(account.accountId),
       userName,
-      userDisplayName: account.displayName,
+      userDisplayName,
       excludeCredentials: existing.map((c) => ({
         id: c.credentialID,
         transports: c.transports,
@@ -591,6 +635,36 @@ export class AuthService {
   }
 
   // ---- stores ----
+
+  /** Mesh name for registration: explicit input, else invite label, else generated. */
+  private async resolveRegistrationDisplayName(
+    accountId: string,
+    inputDisplayName?: string,
+    inviteToken?: string
+  ): Promise<string> {
+    const fromInput = (inputDisplayName || "").trim();
+    if (fromInput) {
+      return fromInput;
+    }
+    const token = (inviteToken || "").trim();
+    if (token) {
+      const invite = await this.getInvite(token);
+      const fromInvite = (invite?.label || "").trim();
+      if (fromInvite) {
+        return fromInvite;
+      }
+    }
+    return `pico-${accountId.slice(0, 6)}`;
+  }
+
+  /** WebAuthn user.name is what password managers (e.g. 1Password) show alongside the site. */
+  private webauthnUserFields(displayName: string): {
+    userName: string;
+    userDisplayName: string;
+  } {
+    const name = (displayName || "").trim() || "My mesh";
+    return { userName: name, userDisplayName: name };
+  }
 
   private async assertRegistrationAllowed(inviteToken?: string): Promise<void> {
     const count = await this.accountCount();

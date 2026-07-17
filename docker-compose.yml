@@ -1,0 +1,24 @@
+# Local pico-engine 1.5.2 from this checkout (Dockerfile.local).
+#
+# Build:  docker compose build
+# Run:    docker compose up -d
+# Logs:   docker compose logs -f
+# Stop:   docker compose down
+#
+# Data persists in ./docker/pico-image (PICO_ENGINE_HOME).
+
+services:
+  pico-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+      additional_contexts:
+        pico-framework: ../pico-framework
+    image: picolabs/pico-engine:1.5.2
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./docker/pico-image:/var/pico-image
+    environment:
+      PICO_ENGINE_BASE_URL: http://localhost:3001
+    restart: unless-stopped

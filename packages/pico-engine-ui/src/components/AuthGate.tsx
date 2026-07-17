@@ -3,7 +3,7 @@ import {
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
-import { authPost, fetchInvite, InvitePeek, readInviteFromUrl, UiContext } from "../authApi";
+import { authPost, clearAuthParamsFromUrl, fetchInvite, InvitePeek, readInviteFromUrl, UiContext } from "../authApi";
 
 interface Props {
   context: UiContext;
@@ -54,6 +54,13 @@ const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
     };
   }, [inviteToken, context.hasRoots, context.needsAuthMigration]);
 
+  React.useEffect(() => {
+    if (!invite?.valid || !invite.label) {
+      return;
+    }
+    setDisplayName((current) => current.trim() || invite.label!);
+  }, [invite?.valid, invite?.label]);
+
   const claimOnly = context.needsAuthMigration === true;
   const registerOnly = !context.hasRoots;
   const showInviteRegister = inviteRegister && !claimOnly && mode === "register";
@@ -69,6 +76,7 @@ const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
       });
       const attResp = await startRegistration({ optionsJSON: options });
       await authPost("/auth/register/verify", attResp);
+      clearAuthParamsFromUrl();
       onAuthenticated();
     } catch (err) {
       setError(err + "");
@@ -87,6 +95,7 @@ const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
       });
       const attResp = await startRegistration({ optionsJSON: options });
       await authPost("/auth/claim/verify", attResp);
+      clearAuthParamsFromUrl();
       onAuthenticated();
     } catch (err) {
       setError(err + "");
@@ -102,6 +111,7 @@ const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
       const options = await authPost("/auth/login/options", {});
       const attResp = await startAuthentication({ optionsJSON: options });
       await authPost("/auth/login/verify", attResp);
+      clearAuthParamsFromUrl();
       onAuthenticated();
     } catch (err) {
       setError(err + "");
@@ -138,13 +148,13 @@ const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
           </p>
           <form onSubmit={handleClaim}>
             <div className="form-group">
-              <label htmlFor="displayName">Display name</label>
+              <label htmlFor="displayName">Mesh name</label>
               <input
                 id="displayName"
                 className="form-control"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="My mesh"
+                placeholder={invite?.label || "My mesh"}
                 autoComplete="nickname"
               />
             </div>
@@ -166,15 +176,23 @@ const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
                 : "You've been invited to join. Create your account with a passkey."
               : "Create your account with a passkey. This will create your root pico."}
           </p>
+          {showInviteRegister && invite?.bootstrapRid ? (
+            <p className="text-muted small">
+              This invite will install <code>{invite.bootstrapRid}</code> on your new
+              root pico.
+            </p>
+          ) : (
+            ""
+          )}
           <form onSubmit={handleRegister}>
             <div className="form-group">
-              <label htmlFor="displayName">Display name</label>
+              <label htmlFor="displayName">Mesh name</label>
               <input
                 id="displayName"
                 className="form-control"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="My mesh"
+                placeholder={invite?.label || "My mesh"}
                 autoComplete="nickname"
               />
             </div>
@@ -219,13 +237,13 @@ const AuthGate: React.FC<Props> = ({ context, onAuthenticated }) => {
           <p className="text-muted">Register a new account and root pico.</p>
           <form onSubmit={handleRegister}>
             <div className="form-group">
-              <label htmlFor="displayName">Display name</label>
+              <label htmlFor="displayName">Mesh name</label>
               <input
                 id="displayName"
                 className="form-control"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="My mesh"
+                placeholder={invite?.label || "My mesh"}
                 autoComplete="nickname"
               />
             </div>

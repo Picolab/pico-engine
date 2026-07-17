@@ -1,6 +1,8 @@
 import test from "ava";
+import * as path from "path";
 import { AuthError } from "../src/auth";
 import { WebAuthnAdapter } from "../src/auth/webauthn";
+import { toFileUrl } from "../src/utils/toFileUrl";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
 
 /**
@@ -350,5 +352,102 @@ test("invite allows registration when self-signup is disabled", async (t) => {
         invite: invite.token,
       }),
     { instanceOf: AuthError }
+  );
+});
+
+test("invite label defaults to mesh name when display name omitted", async (t) => {
+  const pe = await startIsolatedEngine({
+    webauthn: fakeAuthenticator(),
+    allowSelfSignup: false,
+  });
+
+  const r1 = await pe.auth.registerNewAccountOptions({ displayName: "Owner" });
+  await pe.auth.registerNewAccountVerify({
+    ceremonyId: r1.ceremonyId,
+    response: { id: "cred-owner" } as any,
+  });
+
+  const invite = await pe.auth.createInvite({
+    createdByAccountId: (await pe.auth.whoami()).accountId!,
+    label: "Skills Mesh",
+  });
+
+  const r2 = await pe.auth.registerNewAccountOptions({ invite: invite.token });
+  const guest = await pe.auth.registerNewAccountVerify({
+    ceremonyId: r2.ceremonyId,
+    response: { id: "cred-guest" } as any,
+  });
+
+  t.is(guest.account.displayName, "Skills Mesh");
+
+  const rootUi = guest.uiECI;
+  const box = await pe.pf.query({
+    eci: rootUi,
+    rid: "io.picolabs.pico-engine-ui",
+    name: "box",
+  });
+  t.is(box.name, "Skills Mesh");
+});
+
+test("invite with bootstrap URL installs ruleset on new root", async (t) => {
+  const pe = await startIsolatedEngine({
+    webauthn: fakeAuthenticator(),
+    allowSelfSignup: false,
+  });
+
+  const r1 = await pe.auth.registerNewAccountOptions({ displayName: "Owner" });
+  const owner = await pe.auth.registerNewAccountVerify({
+    ceremonyId: r1.ceremonyId,
+    response: { id: "cred-owner" } as any,
+  });
+
+  const bootstrapUrl = toFileUrl(
+    path.resolve(__dirname, "../../../test-rulesets/hello-world.krl")
+  );
+  const invite = await pe.auth.createInvite({
+    createdByAccountId: owner.account.accountId,
+    label: "Bootstrap guest",
+    bootstrapUrl,
+  });
+  t.is(invite.bootstrapRid, "io.picolabs.hello_world");
+
+  const peek = await pe.auth.peekInvite(invite.token);
+  t.true(peek.valid);
+  t.is(peek.bootstrapRid, "io.picolabs.hello_world");
+
+  const r2 = await pe.auth.registerNewAccountOptions({
+    displayName: "Guest",
+    invite: invite.token,
+  });
+  const guest = await pe.auth.registerNewAccountVerify({
+    ceremonyId: r2.ceremonyId,
+    response: { id: "cred-guest" } as any,
+  });
+
+  const guestRoot = pe.pf.rootPicos().find((p) => p.id === guest.account.rootPicoId);
+  t.truthy(guestRoot);
+  const rids = guestRoot!.toReadOnly().rulesets.map((rs) => rs.rid);
+  t.true(rids.includes("io.picolabs.hello_world"));
+});
+
+test("invite rejects invalid bootstrap URL at creation", async (t) => {
+  const pe = await startIsolatedEngine({
+    webauthn: fakeAuthenticator(),
+    allowSelfSignup: false,
+  });
+
+  const r1 = await pe.auth.registerNewAccountOptions({ displayName: "Owner" });
+  const owner = await pe.auth.registerNewAccountVerify({
+    ceremonyId: r1.ceremonyId,
+    response: { id: "cred-owner" } as any,
+  });
+
+  await t.throwsAsync(
+    () =>
+      pe.auth.createInvite({
+        createdByAccountId: owner.account.accountId,
+        bootstrapUrl: "file:///no/such/bootstrap.krl",
+      }),
+    { instanceOf: AuthError, message: /Invalid bootstrap ruleset URL/ }
   );
 });

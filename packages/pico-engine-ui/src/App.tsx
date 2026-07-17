@@ -1,37 +1,31 @@
 import * as React from "react";
 import { HashRouter, Route, Routes } from "react-router-dom";
-import { authLogout, clearInviteFromUrl, fetchUiContext, readInviteFromUrl, UiContext } from "./authApi";
+import {
+  authLogout,
+  clearAuthParamsFromUrl,
+  fetchInvite,
+  fetchUiContext,
+  readInviteFromUrl,
+  readOAuthReturnFromUrl,
+  UiContext,
+} from "./authApi";
 import AuthGate from "./components/AuthGate";
 import PicosPage from "./components/PicosPage";
-
-function readOAuthReturn(): string | null {
-  try {
-    const value = new URL(window.location.href).searchParams.get("oauth_return");
-    return value && value.trim() ? value.trim() : null;
-  } catch {
-    return null;
-  }
-}
-
-function clearOAuthReturnFromUrl() {
-  try {
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has("oauth_return")) {
-      return;
-    }
-    url.searchParams.delete("oauth_return");
-    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
-  } catch {
-    // ignore
-  }
-}
 
 const App: React.FC = () => {
   const [context, setContext] = React.useState<UiContext | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const inviteToken = readInviteFromUrl();
+  const [urlVersion, setUrlVersion] = React.useState(0);
+  const inviteToken = React.useMemo(
+    () => readInviteFromUrl(),
+    [urlVersion]
+  );
   const [clearingInviteSession, setClearingInviteSession] = React.useState(false);
+
+  const bumpUrl = React.useCallback(() => {
+    setUrlVersion((v) => v + 1);
+  }, []);
 
   const loadContext = React.useCallback(async () => {
     setLoading(true);
@@ -46,14 +40,14 @@ const App: React.FC = () => {
   }, []);
 
   const handleAuthenticated = React.useCallback(async () => {
-    const returnPath = readOAuthReturn();
-    clearInviteFromUrl();
+    const returnPath = readOAuthReturnFromUrl();
+    clearAuthParamsFromUrl();
+    bumpUrl();
     await loadContext();
     if (returnPath) {
-      clearOAuthReturnFromUrl();
       window.location.assign(returnPath);
     }
-  }, [loadContext]);
+  }, [loadContext, bumpUrl]);
 
   React.useEffect(() => {
     loadContext();
@@ -66,8 +60,19 @@ const App: React.FC = () => {
     }
     let cancelled = false;
     setClearingInviteSession(true);
-    authLogout()
-      .then(() => loadContext())
+    fetchInvite(inviteToken)
+      .then((peek) => {
+        if (cancelled) {
+          return;
+        }
+        if (!peek.valid) {
+          clearAuthParamsFromUrl();
+          bumpUrl();
+          setClearingInviteSession(false);
+          return;
+        }
+        return authLogout().then(() => loadContext());
+      })
       .finally(() => {
         if (!cancelled) {
           setClearingInviteSession(false);
@@ -76,7 +81,7 @@ const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [inviteToken, context?.session?.authenticated, loadContext]);
+  }, [inviteToken, context?.session?.authenticated, loadContext, bumpUrl]);
 
   if (loading || clearingInviteSession) {
     return <div className="container py-5">Loading…</div>;
@@ -89,7 +94,7 @@ const App: React.FC = () => {
   }
 
   const authenticated = context.session?.authenticated === true;
-  const showAuthGate = !authenticated || !!inviteToken;
+  const showAuthGate = !authenticated;
 
   if (showAuthGate) {
     return (

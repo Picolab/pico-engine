@@ -687,6 +687,7 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
       .createInvite({
         createdByAccountId: session.accountId,
         label: req.body && req.body.label,
+        bootstrapUrl: req.body && req.body.bootstrapUrl,
       })
       .then((invite) => res.json(invite))
       .catch(next);

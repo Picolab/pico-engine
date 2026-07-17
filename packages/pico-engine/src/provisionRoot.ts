@@ -93,7 +93,7 @@ export async function refreshAllUiChannelPolicies(
 export async function provisionRoot(
   pf: PicoFramework,
   core: PicoEngineCore,
-  opts: { root?: Pico; name?: string } = {}
+  opts: { root?: Pico; name?: string; bootstrapUrl?: string } = {}
 ): Promise<{ root: Pico; uiECI: string }> {
   const root = opts.root || (await pf.createRootPico());
 
@@ -119,6 +119,19 @@ export async function provisionRoot(
   }
 
   await refreshAllUiChannelPolicies(pf, core);
+
+  const bootstrapUrl = (opts.bootstrapUrl || "").trim();
+  if (bootstrapUrl) {
+    // Same path as the Rulesets tab: engine_ui install → wrangler
+    // install_ruleset_request → ruleset_installed (bootstrap rulesets depend on this).
+    await pf.eventWait({
+      eci: uiChannel.id,
+      domain: "engine_ui",
+      name: "install",
+      data: { attrs: { url: bootstrapUrl, config: {} } },
+      time: 0,
+    });
+  }
 
   const name = (opts.name || "").trim();
   if (name) {

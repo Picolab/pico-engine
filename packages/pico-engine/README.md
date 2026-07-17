@@ -131,6 +131,8 @@ For example, say you want to have your engine running with SSL on a custom domai
 
 The developer UI uses **passkeys** (WebAuthn). On first visit you register a passkey, which creates your account and root pico. Sign in again with the same passkey; add more passkeys or invite others from **Settings** (gear icon).
 
+When self-signup is disabled, **Settings → Invite someone** can include an optional **bootstrap ruleset URL** (`file://` or `https://`). The engine validates the URL when the invite is created; when the invitee registers, that ruleset is installed on their new root after the base OS rulesets (e.g. a Manifold bootstrap KRL). The invite **label** pre-fills the invitee's mesh name (editable before registering). WebAuthn `user.name` is set to the mesh name so password managers (e.g. 1Password) show it alongside the site hostname.
+
 - **`/c/*`** — internal/UI API; requires a passkey session cookie (localhost bypass is on by default for in-engine KRL HTTP loops; set `PICO_ENGINE_ALLOW_LOCALHOST_C=0` to disable).
 - **`/auth/*`** — registration, login, session management.
 

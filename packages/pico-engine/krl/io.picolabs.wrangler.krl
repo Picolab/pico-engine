@@ -375,10 +375,9 @@ ruleset io.picolabs.wrangler {
   rule createChild {
     select when wrangler new_child_request
       name re#.+#             // required
-      backgroundColor re#.*#  // optional
+      backgroundColor re#.*#  // optional (layout rule assigns palette color)
     pre {
       name = event:attrs{"name"}
-      backgroundColor = event:attrs{"backgroundColor"} || "#87CEFA"
       engine_ui_rid = "io.picolabs.pico-engine-ui"
       engine_ui_ruleset = function(){
         the_ruleset = ctx:rulesets
@@ -417,7 +416,6 @@ ruleset io.picolabs.wrangler {
         name="box",
         attrs={
           "name": name,
-          "backgroundColor": backgroundColor,
           "parentUiEci": parentUiEci
         }
       )

@@ -1,3 +1,13 @@
+# 1.5.2 - July 16, 2026
+
+* **Invites** — optional bootstrap ruleset URL on registration invites; validated (compile/load) when the invite is created; installed on the new root via wrangler (raises `ruleset_installed`) when the invite is accepted. Supports `file://` and `https://` URLs.
+* **Settings UI** — bootstrap ruleset URL field on invite creation; invite peek shows derived ruleset id to the invitee.
+* **Invite UX** — invite label pre-fills the invitee's mesh name (editable); WebAuthn `user.name` uses the mesh name so password managers show it alongside the site hostname.
+* **Invite UX** — clear `?invite=` (and `?oauth_return=`) from the URL after successful registration, claim, or login, including params on hash routes; consumed invites no longer block the main UI or force logout on refresh.
+* **Child layout** — new picos from `new_child_request` get a grid offset from the parent and distinct palette colors (fixes bootstrap stacks).
+* **Developer UI** — re-fetch the pico tree after load so bootstrap rulesets that create children asynchronously (e.g. owner, manifold) appear without a manual refresh.
+* **Tests** — invite bootstrap install and invalid URL rejection.
+
 # 1.5.1 - July 14, 2026
 
 * **Channel editing** — developer UI lets you update tags and event/query policies on existing external channels (including adding `oauth-webhook` for Client Credentials).

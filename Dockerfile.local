@@ -1,20 +1,32 @@
-# Build pico-engine from this checkout (includes bundled io.picolabs.pds).
+# syntax=docker/dockerfile:1
+# Build pico-engine 1.5.x from this checkout (engine + bundled UI).
+# Requires sibling pico-framework (loadedPicos) via BuildKit additional context.
 #
-#   docker build -f Dockerfile.local -t picolabs/pico-engine:local .
+#   docker compose build
+#   docker compose up -d
 #
-# Use with manifold-api / sensor-network harness:
-#   PICO_ENGINE_IMAGE=picolabs/pico-engine:local npm test
+# Or: docker build -f Dockerfile.local --build-context pico-framework=../pico-framework -t picolabs/pico-engine:1.5.1 .
 
 FROM node:lts-alpine
 
 WORKDIR /usr/src/app
+
+COPY --from=pico-framework . /usr/src/pico-framework
+RUN cd /usr/src/pico-framework && npm install --no-package-lock && npm run build
 
 COPY package.json lerna.json ./
 COPY packages ./packages
 
 RUN npm install --no-package-lock \
  && npm run bootstrap \
- && npm run build
+ && rm -rf packages/krl-stdlib/node_modules/pico-framework \
+           packages/pico-engine-core/node_modules/pico-framework \
+           packages/pico-engine/node_modules/pico-framework \
+ && ln -s /usr/src/pico-framework packages/krl-stdlib/node_modules/pico-framework \
+ && ln -s /usr/src/pico-framework packages/pico-engine-core/node_modules/pico-framework \
+ && ln -s /usr/src/pico-framework packages/pico-engine/node_modules/pico-framework \
+ && npm run build \
+ && cd packages/pico-engine-ui && npm run build
 
 RUN npm install -g ./packages/pico-engine
 

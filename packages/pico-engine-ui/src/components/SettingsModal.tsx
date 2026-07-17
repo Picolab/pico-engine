@@ -101,6 +101,7 @@ const SettingsModal: React.FC<Props> = ({
   const [error, setError] = React.useState<string | null>(null);
   const [newLabel, setNewLabel] = React.useState("");
   const [inviteLabel, setInviteLabel] = React.useState("");
+  const [inviteBootstrapUrl, setInviteBootstrapUrl] = React.useState("");
   const [inviteLink, setInviteLink] = React.useState<string | null>(null);
   const [inviteBusy, setInviteBusy] = React.useState(false);
   const [oauthApps, setOAuthApps] = React.useState<OAuthAppSummary[] | null>(null);
@@ -178,9 +179,13 @@ const SettingsModal: React.FC<Props> = ({
     setInviteBusy(true);
     setError(null);
     try {
-      const invite = await createInvite(inviteLabel.trim() || undefined);
+      const invite = await createInvite(
+        inviteLabel.trim() || undefined,
+        inviteBootstrapUrl.trim() || undefined
+      );
       setInviteLink(inviteRegisterUrl(invite.token));
       setInviteLabel("");
+      setInviteBootstrapUrl("");
     } catch (err) {
       setError(err + "");
     } finally {
@@ -434,6 +439,23 @@ const SettingsModal: React.FC<Props> = ({
                       placeholder="e.g. Alex"
                       disabled={inviteBusy || busy}
                     />
+                  </div>
+                  <div className="form-group mb-2">
+                    <label htmlFor="inviteBootstrapUrl" className="small mb-1">
+                      Bootstrap ruleset URL (optional)
+                    </label>
+                    <input
+                      id="inviteBootstrapUrl"
+                      className="form-control form-control-sm text-mono"
+                      value={inviteBootstrapUrl}
+                      onChange={(e) => setInviteBootstrapUrl(e.target.value)}
+                      placeholder="file://… or https://…/bootstrap.krl"
+                      disabled={inviteBusy || busy}
+                    />
+                    <small className="form-text text-muted">
+                      Installed on the new root when the invite is accepted. Validated
+                      when you create the invite.
+                    </small>
                   </div>
                   <button
                     type="button"

@@ -26,12 +26,16 @@ export interface UiContext {
 export interface InvitePeek {
   valid: boolean;
   label?: string;
+  bootstrapUrl?: string;
+  bootstrapRid?: string;
   expiresAt?: number;
 }
 
 export interface InviteInfo {
   token: string;
   label?: string;
+  bootstrapUrl?: string;
+  bootstrapRid?: string;
   createdAt: string;
   expiresAt: number;
 }
@@ -105,35 +109,99 @@ export async function fetchInvite(token: string): Promise<InvitePeek> {
   return data;
 }
 
-export async function createInvite(label?: string): Promise<InviteInfo> {
-  return authPost("/auth/invites", { label: label || undefined });
+export async function createInvite(
+  label?: string,
+  bootstrapUrl?: string
+): Promise<InviteInfo> {
+  return authPost("/auth/invites", {
+    label: label || undefined,
+    bootstrapUrl: bootstrapUrl?.trim() || undefined,
+  });
 }
 
-export function readInviteFromUrl(): string | null {
+/** Query params stripped after sign-in / registration (search bar and hash routes). */
+const AUTH_URL_PARAMS = ["invite", "oauth_return"];
+
+function readAuthParamFromUrl(name: string): string | null {
   try {
-    const token = new URL(window.location.href).searchParams.get("invite");
-    return token && token.trim() ? token.trim() : null;
+    const url = new URL(window.location.href);
+    const fromSearch = url.searchParams.get(name);
+    if (fromSearch && fromSearch.trim()) {
+      return fromSearch.trim();
+    }
+    const hash = url.hash;
+    const q = hash.indexOf("?");
+    if (q < 0) {
+      return null;
+    }
+    const fromHash = new URLSearchParams(hash.slice(q + 1)).get(name);
+    return fromHash && fromHash.trim() ? fromHash.trim() : null;
   } catch {
     return null;
   }
 }
 
-export function clearInviteFromUrl() {
+export function readInviteFromUrl(): string | null {
+  return readAuthParamFromUrl("invite");
+}
+
+export function readOAuthReturnFromUrl(): string | null {
+  return readAuthParamFromUrl("oauth_return");
+}
+
+/** Remove auth-related query params from the location bar and hash route. */
+export function clearAuthParamsFromUrl(): boolean {
   try {
     const url = new URL(window.location.href);
-    if (!url.searchParams.has("invite")) {
-      return;
+    let changed = false;
+
+    for (const name of AUTH_URL_PARAMS) {
+      if (url.searchParams.has(name)) {
+        url.searchParams.delete(name);
+        changed = true;
+      }
     }
-    url.searchParams.delete("invite");
-    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+
+    const hash = url.hash;
+    const q = hash.indexOf("?");
+    if (q >= 0) {
+      const hashPath = hash.slice(0, q);
+      const hashParams = new URLSearchParams(hash.slice(q + 1));
+      for (const name of AUTH_URL_PARAMS) {
+        if (hashParams.has(name)) {
+          hashParams.delete(name);
+          changed = true;
+        }
+      }
+      const rest = hashParams.toString();
+      url.hash = rest ? `${hashPath}?${rest}` : hashPath;
+    }
+
+    if (!changed) {
+      return false;
+    }
+
+    const search = url.searchParams.toString();
+    window.history.replaceState(
+      {},
+      "",
+      url.pathname + (search ? `?${search}` : "") + url.hash
+    );
+    return true;
   } catch {
-    // ignore
+    return false;
   }
+}
+
+/** @deprecated use clearAuthParamsFromUrl */
+export function clearInviteFromUrl() {
+  clearAuthParamsFromUrl();
 }
 
 export function inviteRegisterUrl(token: string): string {
   const url = new URL(window.location.href);
-  url.searchParams.set("invite", token);
+  url.search = "";
   url.hash = "";
+  url.searchParams.set("invite", token);
   return url.toString();
 }

@@ -170,6 +170,10 @@ export async function startEngine(
     rpName: configuration.rpName,
     origin: configuration.origin,
     allowSelfSignup: configuration.allowSelfSignup ?? false,
+    flushBootstrapUrl: async (url) => {
+      const flushed = await rsRegistry.flush(url);
+      return { rid: flushed.rid };
+    },
     provisionRoot: async (opts) => {
       const { root, uiECI } = await provisionRoot(pf, core, opts);
       return { rootPicoId: root.id, uiECI };

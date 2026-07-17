@@ -62,10 +62,13 @@ export default (function picoPageStore() {
     return state;
   }
 
-  async function fetchAll() {
-    state.loading = true;
-    state.error = null;
-    notify();
+  async function fetchAll(opts: { retryLateChildren?: boolean } = {}) {
+    const quiet = opts.retryLateChildren === true;
+    if (!quiet) {
+      state.loading = true;
+      state.error = null;
+      notify();
+    }
     try {
       const context: UiContext = await apiGet("/api/ui-context");
       const rootEci = context.eci || context.session?.uiECI;
@@ -82,11 +85,24 @@ export default (function picoPageStore() {
       state.subs = {...await fetchSubscriptions(boxes)};
       computeSubLines();
     } catch (err) {
-      state.error = err + "";
+      if (!quiet) {
+        state.error = err + "";
+      }
     } finally {
-      state.loading = false;
+      if (!quiet) {
+        state.loading = false;
+      }
     }
     notify();
+  }
+
+  function fetchAllWithBootstrapRetry() {
+    fetchAll();
+    for (const ms of [500, 1500, 3000]) {
+      window.setTimeout(() => {
+        fetchAll({ retryLateChildren: true });
+      }, ms);
+    }
   }
 
   function computeSubLines() {
@@ -136,5 +152,5 @@ export default (function picoPageStore() {
     window.location.reload();
   }
 
-  return { use, fetchAll, updateBox, setPicoMoving, logout };
+  return { use, fetchAll, fetchAllWithBootstrapRetry, updateBox, setPicoMoving, logout };
 })();

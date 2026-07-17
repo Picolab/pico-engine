@@ -91,6 +91,112 @@ Commits `5878bdf4 … f18f9233`.
 
 ---
 
+## SHIPPED: pico-engine 1.5.0 + 1.5.1 (2026-07-14)
+
+**Layer 1 (passkeys + multi-root) + Layer 3 (OAuth) shipped.** Layer 2 (DID/DIDComm interchange) still
+deferred.
+
+### Release status (2026-07-14)
+
+| Artifact | Status | Notes |
+|----------|--------|-------|
+| **npm** | 1.5.0 published; **1.5.1** ready to publish | Use `npm run publish` from repo root (`lerna publish from-package --yes`). Do **not** publish from repo root or `pico-engine-ui` (both `"private": true`). Publish **pico-framework@0.8.0+** first if bumped. |
+| **GitHub tags** | `v1.5.0`, `v1.5.1` local | **`git push` does not push tags.** Run `git push origin v1.5.0` (and `v1.5.1`) separately. GitHub **Releases** are created in the UI (or `gh release create`) *after* the tag is on origin. |
+| **UI version string** | From `packages/pico-engine/package.json` | Shown via `/api/ui-context` → AuthGate + Picos page footer. Bumped to **1.5.1** in commit `d135b1d7`. |
+| **pico-framework** | **0.8.0** npm + local **`loadedPicos()`** (`203856a`) | Engine migration uses `pf.loadedPicos()` — link local framework when developing (`npm run link-framework`). |
+
+**Tag ↔ commit mapping (local):**
+
+- **`v1.5.0`** → `3470acd6` (passkey auth + OAuth external API)
+- **`v1.5.1`** → current `master` head (channel editing + migration fix)
+
+### 1.5.0 highlights
+
+- Passkey auth (WebAuthn), sessions, AuthGate UI, multi-root (`pico-framework` 0.8.0)
+- OAuth: Client Credentials (`oauth-webhook` channels), Authorization Code + PKCE (HA-style integrators)
+- HTTP split: passkey session on **`/c/*`**; Bearer on **`/sky/*`** when mesh locked or webhook channel
+- `io.picolabs.oauth` ruleset (optional mesh lock); Settings UI for OAuth apps
+- Legacy claim migration + invite-gated registration
+- Docs drafted for Confluence (Identity, Passkeys, CC, ACG, env vars)
+
+### 1.5.1 highlights (channel editing — 2026-07-14)
+
+**Motivation:** builders need to add `oauth-webhook` (and tighten policies) on **existing** channels,
+not only at creation — e.g. before HA / webhook testing.
+
+| Area | What shipped |
+|------|----------------|
+| **Developer UI** | Channels tab: expand a non-system channel → **Edit channel** (tags, event/query policy, Save). One-click **`oauth-webhook`** tag. Webhook OAuth panel when tag present. |
+| **KRL (`engine_ui`)** | `update_channel` event → `ctx:putChannel` |
+| **Wrangler** | `updateChannel` defaction; `channel_update_request` / `channel_updated` events |
+| **`ctx:putChannel`** | Returns updated channel map (matches `newChannel`) |
+| **Startup migration** | `refreshAllUiChannelPolicies()` in `provisionRoot.ts`: for **every loaded pico**, reinstall `io.picolabs.pico-engine-ui` + apply canonical UI channel policy via **`putChannel`** (not tree-walk + `setup` events). Policy constants in `src/uiChannelPolicies.ts` — keep in sync with KRL `uiChannelEventPolicy()` / `uiChannelQueryPolicy()`. |
+| **Tests** | `test/uiChannelUpdate.ts`, `test/wranglerChannel.ts` |
+
+**Migration gotcha (fixed in 1.5.1):** first migration attempt walked parent→child tree and fired
+`engine_ui:setup` on each UI channel. Some picos were **missed** (not reachable from root walk);
+others had stale UI channel policies blocking `update_channel` → **"Not allowed by channel policy"**
+even after engine restart. **Fix:** iterate `pf.loadedPicos()` and `putChannel` directly (bypasses
+event policy gate). After upgrade: **restart engine** once (migration runs in `provisionRoot`).
+
+**Manual fallback (single pico):** Rulesets tab → flush **`io.picolabs.pico-engine-ui`**.
+
+**Programmatic update (wrangler):**
+
+```krl
+wrangler:updateChannel(eci, tags, eventPolicy, queryPolicy) setting(channel)
+// or
+raise wrangler event "channel_update_request" attributes { "eci": ..., "tags": ..., ... }
+```
+
+Confluence: **Managing Channels** — add "Updating a Channel" section (UI + wrangler).
+
+### HA / Manifold testing (next up — 2026-07-14)
+
+User picking up **Home Assistant** integration — exercises **both** OAuth paths in one real mesh:
+
+| Integration | OAuth grant | Channel setup | Use |
+|-------------|-------------|---------------|-----|
+| **Home Assistant** | **Authorization Code + PKCE** | OAuth app in **Settings** (mesh-wide) | HA as front-end to the pico mesh: `/oauth/authorize` → passkey + consent → token; Bearer on **`/sky/query/{eci}/…`** across subtree |
+| **Helium sensor network** | **Client Credentials** | Per-sensor (or ingress) channel tagged **`oauth-webhook`** — add via Channels **Edit channel** (1.5.1) or `wrangler:updateChannel` at create time | Live webhook ingress from sensor network; fixed URL + `POST /oauth/token` → Bearer on **`/sky/event/…`** or queries as policy allows |
+
+**Why this is a good end-to-end test:** one mesh, two integrator styles — human-consented mesh client (HA) vs machine webhook sender (Helium CC) — plus channel policy, mesh lock (`io.picolabs.oauth`), and 1.5.1 channel edit for retrofitting `oauth-webhook` on existing sensor channels.
+
+**Requires:** engine **1.5.1** built + restarted; tags on GitHub if tracking releases there.
+
+### HA custom integration — plan (2026-07-15)
+
+**No HA project exists yet.** Build a new repo (suggested: `pico-home-assistant` or `homeassistant-pico`) with a **custom integration** — not HAforPicos (legacy KRL copy, no component).
+
+**Repo created:** `/Users/pjw/Dropbox/prog/picolabs/pico-home-assistant` (sibling to pico-engine). Domain `pico_mesh`; scaffold includes OAuth config flow, Sky API client, coordinator, sensor platform. Git initialized, not yet committed.
+
+**User mesh plan:** Manifold bootstrap on root → sensor network bootstrap on Manifold pico → sensor community → **LHT65** thing (`type: "lht65"` — Dragino LHT65; code has no `dht65` router). Helium webhook → thing CC channel; HA → ACG mesh token.
+
+**Discovery API (ACG Bearer on `/sky/query/`):**
+
+1. `io.picolabs.manifold_pico/getManifoldInfo` on Manifold **app channel** ECI → things + communities (each with subscription `Tx` ECI)
+2. Per thing: `io.picolabs.lht65.router/lastInternalTemp`, `lastHumidity`, `lastProbeTemp`, `lastHeartbeat`
+3. Optional community rollup: `io.picolabs.sensor.community/lastTemperatures` on community Tx ECI
+
+**HA integration shape:** config flow (OAuth PKCE) → DataUpdateCoordinator polling Sky → `sensor` platform entities per reading; Device Registry entry per thing. Redirect URI e.g. `https://<ha-host>:8123/auth/external/callback` — register in engine Settings → OAuth apps (public client + PKCE).
+
+**Phased build:** (0) mesh + Helium uplink working, (1) engine OAuth mesh lock + HA app registered, (2) HA dev container + manual token probe with curl, (3) minimal integration OAuth + one entity, (4) full discovery from `getManifoldInfo`, (5) dashboards (native HA — free once entities exist).
+
+**Helium CC** stays on thing webhook channel; HA reads via ACG queries on subscription Tx — orthogonal paths, same mesh test.
+
+### Key commits (master, post-1.5.0 tag)
+
+```
+d135b1d7 Bump package versions to 1.5.1 to match CHANGELOG.
+db04c0c8 Fix UI channel policy migration for all loaded picos.
+16eacea4 Add channel editing in UI and wrangler with startup migration.
+e505a1a2 Fix invite links to always show registration
+```
+
+**Engine requirement for Manifold / HA:** pico-engine **1.5.1+**, pico-framework **0.8.0+**.
+
+---
+
 ## ROADMAP (deferred / future engine work)
 
 ### 1. Pico-level event schema (engine + wrangler)
@@ -605,15 +711,15 @@ _inward_ authn stays passkey.** One mechanism per direction, each using best-ava
 Build in **three layers** that match the architecture (engine ← wrangler ← manifold) and the
 identity model (human authn → agent, then agent↔world DID, then external OAuth).
 
-**Release plan (2026-07-11):** defer **Layer 2** (DID/DIDComm interchange modernization) in favor of
-**Layer 3** (OAuth). Target **v1.5** = Layer 1 (complete) + Layer 3. Layer 2 remains important but
-is a large, cross-cutting migration (engine primitives, wrangler fold-in, retire did-o, route all
-interchange over DIDComm) — ship OAuth external access on the current HTTP/ECI + passkey foundation
-first.
+**Release plan (2026-07-11, updated 2026-07-14):** defer **Layer 2** (DID/DIDComm interchange
+modernization) in favor of **Layer 3** (OAuth). **v1.5.0 + v1.5.1 shipped** (Layer 1 + Layer 3).
+Layer 2 remains a large, cross-cutting migration — ship OAuth external access on the current
+HTTP/ECI + passkey foundation first (HA testing next).
 
 | Release | Scope |
 |---------|--------|
-| **v1.5** | Layer 1 ✅ + Layer 3 (OAuth AS on root-pico-as-agent; scoped tokens for **`/sky/*`**) |
+| **v1.5.0** | Layer 1 ✅ + Layer 3 (OAuth AS on root-pico-as-agent; scoped tokens for **`/sky/*`**) ✅ **shipped** |
+| **v1.5.1** | Channel editing (UI + wrangler); UI channel policy migration fix ✅ **shipped** |
 | **Later** | Layer 2 — did:webvh/did:peer + DIDComm as primary interchange |
 
 **Why skip Layer 2 for now:** OAuth delivers immediate value (third-party apps, Manifold integrations,
@@ -622,9 +728,10 @@ access model; passkeys gate the admin UI. Layer 2 can land when we're ready to u
 
 Build order (revised):
 
-1. **Layer 1** — passkeys + multi-root (done: 1a–1d)
-2. **Layer 3** — OAuth for external API access ← **next**
-3. **Layer 2** — DID/DIDComm interchange ← **deferred**
+1. **Layer 1** — passkeys + multi-root ✅ (1a–1d)
+2. **Layer 3** — OAuth for external API access ✅ **shipped (1.5.0)**
+3. **1.5.1** — channel edit + UI channel policy migration ✅ **shipped**
+4. **Layer 2** — DID/DIDComm interchange ← **deferred**
 
 #### Layer 1 — User/admin identity via passkeys + multi-root
 - **Passkey (WebAuthn) admin authn to the root pico** (§9); each root = its own relying party.
@@ -902,7 +1009,7 @@ from a signed-in user.
 - UI: `?invite=TOKEN` on auth gate shows register form; Settings → "Create invite link"
 - `allowSelfSignup` default **false**; bootstrap (zero accounts) and legacy claim still work
 
-#### Layer 3 — OAuth for external API access ← **v1.5 (next)**
+#### Layer 3 — OAuth for external API access ✅ **shipped in 1.5.0** (+ channel edit in **1.5.1**)
 
 **Goal:** third-party and machine access to **`/sky/*`** without passkey sessions or bare-ECI
 capability URLs — while keeping ECI + channel policy as the authorization model.
@@ -1098,6 +1205,10 @@ wrangler:createChannel(
 Channel credential store: `["oauth-channel", eci]` → `{ secretHash, rootPicoId, createdAt, … }`.
 
 Secrets are **not** auto-created when the channel is created — explicit owner action.
+
+**Updating existing channels (1.5.1):** use Channels tab **Edit channel** or
+`wrangler:updateChannel` / `channel_update_request` to add `oauth-webhook` (or change policies)
+without rotating the ECI.
 
 **Management UI:** extend **Channels tab** (not Settings) for eligible channels: create credentials,
 copy client_id/secret, revoke secret, revoke active tokens.

@@ -166,6 +166,10 @@ ruleset io.picolabs.pico-engine-ui {
         "deny": []
       }
     }
+    childPalette = [
+      "#FFB347", "#77DD77", "#B19CD9", "#FF6961", "#FDFD96",
+      "#84B6F4", "#FFD1DC", "#C9A0DC", "#98FB98", "#E6E6FA"
+    ]
     refreshUiChannel = defaction() {
       ctx:upsertChannel(
         tags = ["engine", "ui"],
@@ -187,10 +191,10 @@ ruleset io.picolabs.pico-engine-ui {
       }
     }
     always {
-      ent:x := event:attrs{"x"}.as("Number") if event:attrs{"x"}
-      ent:y := event:attrs{"y"}.as("Number") if event:attrs{"y"}
-      ent:width := event:attrs{"width"}.as("Number") if event:attrs{"width"}
-      ent:height := event:attrs{"height"}.as("Number") if event:attrs{"height"}
+      ent:x := event:attrs{"x"}.as("Number") if not event:attrs{"x"}.isnull()
+      ent:y := event:attrs{"y"}.as("Number") if not event:attrs{"y"}.isnull()
+      ent:width := event:attrs{"width"}.as("Number") if not event:attrs{"width"}.isnull()
+      ent:height := event:attrs{"height"}.as("Number") if not event:attrs{"height"}.isnull()
       ent:name := event:attrs{"name"}.as("String") if event:attrs{"name"}
       ent:backgroundColor := event:attrs{"backgroundColor"}.validateColor() if event:attrs{"backgroundColor"}
       ent:parent_ui_eci := event:attrs{"parentUiEci"} if event:attrs{"parentUiEci"}
@@ -201,11 +205,60 @@ ruleset io.picolabs.pico-engine-ui {
     pre {
       uiEci = event:attr("uiEci")
       familyEci = event:attr("eci")
+      childIndex = ent:child_ui_ecis.defaultsTo({}).keys().length()
+      gridCol = childIndex % 4
+      gridRow = (childIndex - childIndex % 4) / 4
+      layoutX = ent:x.defaultsTo(100) + 48 + gridCol * 118
+      layoutY = ent:y.defaultsTo(100) + 48 + gridRow * 98
+      layoutColor = childPalette[childIndex % childPalette.length]
     }
-    if uiEci && familyEci then noop()
+    if uiEci && familyEci then
+      ctx:event(
+        eci=uiEci,
+        domain="engine_ui",
+        name="box",
+        attrs={
+          "x": layoutX,
+          "y": layoutY,
+          "width": 100,
+          "height": 100,
+          "backgroundColor": layoutColor,
+          "parentUiEci": uiECI()
+        }
+      )
     always {
       ent:child_ui_ecis{[familyEci]} := uiEci
     }
+  }
+  rule spread_children_on_startup {
+    select when engine started
+      foreach ent:child_ui_ecis.defaultsTo({}).keys() setting(familyEci)
+    pre {
+      uiEci = ent:child_ui_ecis{familyEci}
+      childKeys = ent:child_ui_ecis.defaultsTo({}).keys()
+      childIndex = childKeys.index(familyEci)
+      originX = ent:x.defaultsTo(100)
+      originY = ent:y.defaultsTo(100)
+      gridCol = childIndex % 4
+      gridRow = (childIndex - childIndex % 4) / 4
+      layoutX = originX + 48 + gridCol * 118
+      layoutY = originY + 48 + gridRow * 98
+      layoutColor = childPalette[childIndex % childPalette.length]
+    }
+    if uiEci then
+      ctx:event(
+        eci=uiEci,
+        domain="engine_ui",
+        name="box",
+        attrs={
+          "x": layoutX,
+          "y": layoutY,
+          "width": 100,
+          "height": 100,
+          "backgroundColor": layoutColor,
+          "parentUiEci": uiECI()
+        }
+      )
   }
   rule backfill_child_ui_eci {
     select when engine started

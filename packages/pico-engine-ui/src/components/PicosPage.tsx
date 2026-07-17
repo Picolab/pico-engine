@@ -17,7 +17,7 @@ const PicosPage: React.FC<Props> = () => {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
 
   React.useEffect(() => {
-    picoPageStore.fetchAll();
+    picoPageStore.fetchAllWithBootstrapRetry();
   }, []);
 
   function onMouseMove(e: React.MouseEvent) {
