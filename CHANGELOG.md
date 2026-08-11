@@ -1,3 +1,8 @@
+# 1.6.1 - August 11, 2026
+
+* **Developer UI** — Subscriptions tab uses **DID-based** / **ECI-based** labels instead of “Layer 2” / “legacy”; badges show **DID** / **ECI**; help text references **did:webvh** at create time; “Raw subscription record” replaces “Raw bus record”.
+* **KRL docs (embedded)** — `event:send` module docs aligned with the same terminology (`layer2` field unchanged in API).
+
 # 1.6.0 - August 11, 2026
 
 * **Layer 2 identity** — every pico gets a portable **did:webvh** identity (`/picos/{picoId}/did.jsonl`); root picos default **`publicIntro: true`** for unsolicited SKY intro.

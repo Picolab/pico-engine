@@ -285,7 +285,7 @@ function SubDetail({
   showSend?: boolean;
   deleteLabel?: string;
 }) {
-  const layer2 = isLayer2Sub(sub);
+  const didBased = isLayer2Sub(sub);
   const sendDomain = React.useRef<HTMLInputElement | null>(null);
   const sendType = React.useRef<HTMLInputElement | null>(null);
   const [sendError, setSendError] = React.useState<string | null>(null);
@@ -312,15 +312,15 @@ function SubDetail({
 
   return (
     <div className="ml-3 mb-3">
-      {layer2 ? (
-        <span className="badge badge-primary mb-2">layer2</span>
+      {didBased ? (
+        <span className="badge badge-primary mb-2">DID</span>
       ) : (
-        <span className="badge badge-secondary mb-2">legacy ECI</span>
+        <span className="badge badge-secondary mb-2">ECI</span>
       )}
 
       <DidRow label="Remote Tx DID" value={sub.Tx_did} />
       <DidRow label="Local Rx DID" value={sub.Rx_did} />
-      {!layer2 && sub.Tx ? (
+      {!didBased && sub.Tx ? (
         <DidRow label="Remote Tx ECI" value={sub.Tx} />
       ) : null}
       {sub.Tx_host ? <DidRow label="Tx host" value={sub.Tx_host} /> : null}
@@ -339,7 +339,7 @@ function SubDetail({
         />
       ) : null}
 
-      {showSend && layer2 ? (
+      {showSend && didBased ? (
         <form className="form-inline mt-2" onSubmit={sendTestEvent}>
           <input
             type="text"
@@ -368,7 +368,7 @@ function SubDetail({
       ) : null}
 
       <details className="mt-2">
-        <summary className="small text-muted">Raw bus record</summary>
+        <summary className="small text-muted">Raw subscription record</summary>
         <pre className="small mb-0">{JSON.stringify(sub, null, 2)}</pre>
       </details>
 
@@ -421,7 +421,7 @@ function IdentityPanel({
       <h5 className="h6 mb-3">Identity</h5>
       <DidRow label="did:webvh (myDid)" value={myDid || undefined} copyable />
       {wellKnownRx ? (
-        <DidRow label="Legacy wellKnown_Rx ECI" value={wellKnownRx} />
+        <DidRow label="wellKnown_Rx (ECI-based)" value={wellKnownRx} />
       ) : null}
       <div className="form-check mt-2">
         <input
@@ -451,9 +451,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
   const [expandedSubs, setExpandedSubs] = React.useState<{
     [id: string]: boolean;
   }>({});
-  const [createMode, setCreateMode] = React.useState<"layer2" | "legacy">(
-    "layer2"
-  );
+  const [createMode, setCreateMode] = React.useState<"did" | "legacy">("did");
   const [createError, setCreateError] = React.useState<string | null>(null);
 
   const targetDid = React.useRef<HTMLInputElement | null>(null);
@@ -559,7 +557,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
     refreshAll();
   };
 
-  async function createLayer2(e: React.FormEvent) {
+  async function createDidBased(e: React.FormEvent) {
     e.preventDefault();
     setCreateError(null);
     const did = (getRefVal(targetDid) || "").trim();
@@ -649,7 +647,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
                 <span className="text-mono">{sub.Id}</span>
               )}
               {isLayer2Sub(sub) ? (
-                <span className="badge badge-primary ml-1">layer2</span>
+                <span className="badge badge-primary ml-1">DID</span>
               ) : null}
             </label>
           </div>
@@ -734,11 +732,11 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
             <button
               type="button"
               className={
-                "nav-link" + (createMode === "layer2" ? " active" : "")
+                "nav-link" + (createMode === "did" ? " active" : "")
               }
-              onClick={() => setCreateMode("layer2")}
+              onClick={() => setCreateMode("did")}
             >
-              Layer 2 (DID)
+              DID-based
             </button>
           </li>
           <li className="nav-item">
@@ -749,17 +747,17 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
               }
               onClick={() => setCreateMode("legacy")}
             >
-              Legacy (ECI)
+              ECI-based
             </button>
           </li>
         </ul>
 
-        {createMode === "layer2" ? (
-          <form onSubmit={createLayer2}>
+        {createMode === "did" ? (
+          <form onSubmit={createDidBased}>
             <p className="text-muted small">
-              Introduce via SKY to a peer&apos;s <code>did:webvh</code> or{" "}
-              <code>did:peer</code>. Use your <b>myDid</b> above as the target
-              on the remote pico.
+              Introduce via SKY using the peer&apos;s <code>did:webvh</code>{" "}
+              (<b>myDid</b> on their Subscriptions tab). Share your{" "}
+              <b>myDid</b> above when they subscribe to you.
             </p>
             <div className="form-group">
               <label>target_did</label>
@@ -767,7 +765,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
                 type="text"
                 className="form-control"
                 ref={targetDid}
-                placeholder="did:webvh:… or did:peer:2…"
+                placeholder="did:webvh:…"
                 required
               />
             </div>
@@ -801,13 +799,13 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
               </div>
             </div>
             <button type="submit" className="btn btn-outline-primary">
-              Request layer2 subscription
+              Request subscription
             </button>
           </form>
         ) : (
           <form onSubmit={createLegacy}>
             <p className="text-muted small">
-              Legacy introduction via wellKnown_Rx ECI (pre-1.6).
+              Classic introduction via the peer&apos;s wellKnown_Rx ECI.
             </p>
             <div className="form-group">
               <label>wellKnown_Tx</label>

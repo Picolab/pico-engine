@@ -39,7 +39,7 @@ event:send({
 }, host)                           // optional host for remote ECI
 ```
 
-**Layer 2 (1.6+) — send by DID** (requires an established layer2 subscription):
+**DID-based (1.6+) — send by DID** (requires an established DID-based subscription):
 
 ```krl
 event:send({
@@ -50,7 +50,7 @@ event:send({
 })
 ```
 
-**Layer 2 — send via subscription bus record** (from `subscription:established()` etc.):
+**DID-based — send via established subscription map** (from `subscription:established()` etc.):
 
 ```krl
 event:send({
@@ -61,7 +61,7 @@ event:send({
 })
 ```
 
-When `bus.layer2` is true, routing uses `Tx_did` and DIDComm (or verified local dispatch on the same engine). Legacy subscriptions use `bus.Tx` and optional `bus.Tx_host` as before.
+When `bus.layer2` is true (DID-based subscription), routing uses `Tx_did` and DIDComm (or verified local dispatch on the same engine). ECI-based subscriptions use `bus.Tx` and optional `bus.Tx_host` as before.
 
 ## event:attr
 

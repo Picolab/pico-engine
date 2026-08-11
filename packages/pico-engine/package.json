@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "An implementation of the pico-engine targeting node.js",
   "repository": {
     "type": "git",
@@ -112,5 +112,5 @@
       "!test/helpers/**/*"
     ]
   },
-  "gitHead": "26aee8aeb73a2450f9224f2d8d81f3a3d49b33f2"
+  "gitHead": "e7b5699ce223e802b8d2b68f78f3a87bd369b273"
 }
