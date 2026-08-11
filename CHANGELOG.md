@@ -1,4 +1,4 @@
-# 1.6.0 - (unreleased)
+# 1.6.0 - August 11, 2026
 
 * **Layer 2 identity** — every pico gets a portable **did:webvh** identity (`/picos/{picoId}/did.jsonl`); root picos default **`publicIntro: true`** for unsolicited SKY intro.
 * **Layer 2 subscriptions** — form subscriptions with **`layer2: true`** and **`target_did`** (did:webvh) instead of legacy **`wellKnown_Tx`** ECI; established subs store **`Tx_did`** / **`Rx_did`** (did:peer num_algo 2) for remote traffic.

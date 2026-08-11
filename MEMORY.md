@@ -103,7 +103,7 @@ deferred.
 | **npm** | 1.5.0 published; **1.5.1** ready to publish | Use `npm run publish` from repo root (`lerna publish from-package --yes`). Do **not** publish from repo root or `pico-engine-ui` (both `"private": true`). Publish **pico-framework@0.8.0+** first if bumped. |
 | **GitHub tags** | `v1.5.0`, `v1.5.1` local | **`git push` does not push tags.** Run `git push origin v1.5.0` (and `v1.5.1`) separately. GitHub **Releases** are created in the UI (or `gh release create`) *after* the tag is on origin. |
 | **UI version string** | From `packages/pico-engine/package.json` | Shown via `/api/ui-context` → AuthGate + Picos page footer. Bumped to **1.5.1** in commit `d135b1d7`. |
-| **pico-framework** | **0.8.1** (unreleased) — custom channel id, `eciIsTaken` | **Required** for pico-engine 1.6 (`^0.8.1` in package.json). Publish framework before engine. **`npm run link-framework`** is for co-development only, not deployment. |
+| **pico-framework** | **0.8.1** — custom channel id, `eciIsTaken` | **Required** for pico-engine 1.6 (`^0.8.1` in package.json). Publish framework before engine. **`npm run link-framework`** is for co-development only, not deployment. |
 
 **Tag ↔ commit mapping (local):**
 
@@ -738,7 +738,7 @@ Build order (revised):
 1. **Layer 1** — passkeys + multi-root ✅ (1a–1d)
 2. **Layer 3** — OAuth for external API access ✅ **shipped (1.5.0)**
 3. **1.5.1** — channel edit + UI channel policy migration ✅ **shipped**
-4. **Layer 2** — DID/DIDComm interchange ✅ **implemented (1.6 unreleased)** — see § Layer 2 below
+4. **Layer 2** — DID/DIDComm interchange ✅ **shipped in 1.6** — see § Layer 2 below
 
 #### Layer 1 — User/admin identity via passkeys + multi-root
 - **Passkey (WebAuthn) admin authn to the root pico** (§9); each root = its own relying party.
@@ -1273,7 +1273,7 @@ Details TBD when implementing; webhook Client Credentials shipped first (Layer 3
 Canonical Sky query path is **`/sky/query/`** (docs); **`/sky/cloud/`** kept as legacy alias.
 Wrangler `picoQuery`/`skyQuery` default path updated to `/sky/query/`.
 
-#### Layer 2 — did:webvh / did:peer + DIDComm as the interchange ✅ **shipped in 1.6 (unreleased)**
+#### Layer 2 — did:webvh / did:peer + DIDComm as the interchange ✅ **shipped in 1.6**
 - **Build on the existing engine `dido` module** (did:peer:2 + DIDComm v2 already present — see
   "Existing engine support" in §5). **Update/modernize** it and **add did:webvh**.
 - **NO separate wrapper ruleset.** Fold `io.picolabs.did-o`'s capabilities (routing, send/query,
