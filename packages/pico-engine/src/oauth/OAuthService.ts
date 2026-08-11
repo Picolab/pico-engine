@@ -232,6 +232,17 @@ export class OAuthService {
   }
 
   async skyRequiresBearer(eci: string): Promise<boolean> {
+    try {
+      const channel = this.lookupChannelReadOnly(eci);
+      if (
+        channel.tags.includes("didcomm") &&
+        channel.tags.includes("ingress")
+      ) {
+        return false;
+      }
+    } catch (_e) {
+      // channel not found — fall through
+    }
     if (await this.channelRequiresBearer(eci)) {
       return true;
     }
@@ -240,6 +251,31 @@ export class OAuthService {
 
   async validateBearerToken(token: string, channelEci: string): Promise<boolean> {
     return this.validateSkyBearerToken(token, channelEci);
+  }
+
+  /** Mesh-wide OAuth token (authorization_code grant) → root pico id. */
+  async resolveMeshBearerToken(
+    token: string
+  ): Promise<{ rootPicoId: string; scope?: string } | null> {
+    const trimmed = (token || "").trim();
+    if (!trimmed) {
+      return null;
+    }
+    const record = await this.getTokenRecord(trimmed);
+    if (!record) {
+      return null;
+    }
+    if (record.expiresAt !== 0 && record.expiresAt < Date.now()) {
+      await this.deps.db.del([OAUTH_TOKEN_PREFIX, trimmed]);
+      return null;
+    }
+    if ((record.grant || "client_credentials") !== "authorization_code") {
+      return null;
+    }
+    if (!record.rootPicoId) {
+      return null;
+    }
+    return { rootPicoId: record.rootPicoId, scope: record.scope };
   }
 
   async validateSkyBearerToken(

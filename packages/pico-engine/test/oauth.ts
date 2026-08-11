@@ -1,3 +1,7 @@
+/**
+ * OAuth client credentials, webhook bearer tokens, and channel eligibility.
+ */
+
 import test from "ava";
 import { OAuthError } from "../src/oauth/errors";
 import { WebAuthnAdapter } from "../src/auth/webauthn";

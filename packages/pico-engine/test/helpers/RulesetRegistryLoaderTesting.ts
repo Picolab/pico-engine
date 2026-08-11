@@ -1,3 +1,7 @@
+/**
+ * In-memory RulesetRegistryLoader for engine integration tests.
+ */
+
 import { CachedRuleset, RulesetRegistryLoader } from "pico-engine-core";
 import { Ruleset } from "pico-framework";
 

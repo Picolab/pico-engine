@@ -274,6 +274,45 @@ npm run test:auth     # passkeys
 
 Tests use isolated temp homes and ephemeral ports; they do not require stopping a running engine.
 
+## Layer 2 identity and subscriptions (1.6)
+
+Every pico has a portable **did:webvh** identity. **Layer 2 subscriptions** use **`layer2: true`** and a **`target_did`** (did:webvh) instead of the legacy **`wellKnown_Tx`** ECI handshake. After intro, remote traffic uses **did:peer** DIDs and SKY over **DIDComm** when picos are on different meshes or engines.
+
+- **Same engine:** intra-mesh queries/events stay local when roots share a mesh.
+- **Cross-engine:** set a peer-reachable **`PICO_ENGINE_BASE_URL`** on each engine (for local demos, two processes on `localhost:3001` and `:3002` — see below).
+- **Developer UI:** **Subscriptions** tab (Layer 2 create, inbound approval, established subs with `Tx_did` / `Rx_did`).
+- **Legacy ECI subscriptions** are unchanged.
+
+**Deprecated:** `io.picolabs.did-o` and `dido:prepareQuery` — use **`wrangler:picoQuery`** and **`event:send({ did: … })`**.
+
+Full guide: [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md) · Release notes: [docs/release/1.6.md](../../docs/release/1.6.md)
+
+**Dependency:** pico-engine 1.6 requires **pico-framework `^0.8.1`** (npm). When developing engine + framework together, use `npm run link-framework` from the repo root.
+
+### Layer 2 tests
+
+```sh
+cd packages/pico-engine
+npm run test:epic9          # release regression matrix
+npm run test:cross-engine   # two engines, intro + query + event
+npm run test:layer2-wrangler
+npm run test:layer2-policy
+```
+
+### Cross-engine demo (two processes on one machine)
+
+Use separate data directories and ports so each engine is an independent mesh. `PICO_ENGINE_BASE_URL` defaults to `http://localhost:$PORT`, which works for passkeys and for peer DID fetch (same as `npm run test:cross-engine`).
+
+```sh
+# terminal 1
+PICO_ENGINE_HOME=/tmp/pico-engine-a PORT=3001 npm start
+
+# terminal 2 (from repo root)
+PICO_ENGINE_HOME=/tmp/pico-engine-b PORT=3002 npm start
+```
+
+Open http://localhost:3001 and http://localhost:3002 — register on both, then Layer 2 subscribe A→B. See [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md). Test/demo homes live under **`/tmp`** (not `~/.pico-engine`).
+
 ## Contributing
 
 See the repository [root readme](https://github.com/Picolab/pico-engine#readme)

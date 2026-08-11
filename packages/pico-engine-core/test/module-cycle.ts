@@ -1,3 +1,7 @@
+/**
+ * Module dependency cycles and missing-module errors on flush.
+ */
+
 import test from "ava";
 import { makeKrlLogger } from "krl-stdlib";
 import {

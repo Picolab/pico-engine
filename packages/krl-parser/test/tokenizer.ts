@@ -1,3 +1,7 @@
+/**
+ * KRL tokenizer: token stream from source text.
+ */
+
 import test from "ava";
 import tokenizer from "../src/tokenizer";
 

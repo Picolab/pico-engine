@@ -1,3 +1,7 @@
+/**
+ * KRL parser: event expression parsing.
+ */
+
 import test from "ava";
 import { parseRuleset } from "../src/krl";
 import tokenizer from "../src/tokenizer";

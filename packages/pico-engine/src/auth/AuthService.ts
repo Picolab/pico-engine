@@ -167,11 +167,27 @@ export class AuthService {
     } catch (_e) {
       // fall through to defaults
     }
+    const originLabel = this.originLabelFromUrl(origin);
+    const rpName =
+      this.deps.rpName ||
+      (originLabel
+        ? `${DEFAULT_RP_NAME} (${originLabel})`
+        : DEFAULT_RP_NAME);
     return {
       rpID: this.deps.rpID || hostname,
-      rpName: this.deps.rpName || DEFAULT_RP_NAME,
+      rpName,
       origin: this.deps.origin || origin,
     };
+  }
+
+  /** Host[:port] label for disambiguating local multi-engine setups in WebAuthn UI. */
+  private originLabelFromUrl(origin: string): string {
+    try {
+      const url = new URL(origin);
+      return url.port ? `${url.hostname}:${url.port}` : url.hostname;
+    } catch (_e) {
+      return "";
+    }
   }
 
   isSecure(): boolean {
@@ -663,7 +679,12 @@ export class AuthService {
     userDisplayName: string;
   } {
     const name = (displayName || "").trim() || "My mesh";
-    return { userName: name, userDisplayName: name };
+    const originLabel = this.originLabelFromUrl(this.rp().origin);
+    const unique =
+      originLabel && !name.includes(originLabel)
+        ? `${name} (${originLabel})`
+        : name;
+    return { userName: unique, userDisplayName: unique };
   }
 
   private async assertRegistrationAllowed(inviteToken?: string): Promise<void> {

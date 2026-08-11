@@ -1,3 +1,7 @@
+/**
+ * Ruleset flush behavior and module dependency validation.
+ */
+
 import test from "ava";
 import { makeKrlLogger } from "krl-stdlib";
 import { PicoEngineCore } from "../src/PicoEngineCore";

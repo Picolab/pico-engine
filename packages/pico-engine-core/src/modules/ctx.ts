@@ -2,6 +2,8 @@ import fetch from "cross-fetch";
 import { krl } from "krl-stdlib";
 import * as normalizeUrl from "normalize-url";
 import {
+  allowsEventPolicy,
+  allowsQueryPolicy,
   ChannelConfig,
   cleanChannelTags,
   NewPicoRuleset,
@@ -92,6 +94,13 @@ export default function initCtxModule(core: PicoEngineCore) {
       const newEci = await this.rsCtx.newPico({
         rulesets: toInstall,
       });
+      if (core.onPicoCreated) {
+        const childPico = core.picoFramework.getPico(newEci);
+        await core.onPicoCreated(childPico.id, {
+          isRoot: false,
+          parentPicoId: this.rsCtx.pico().id,
+        });
+      }
       return newEci;
     }),
 
@@ -104,9 +113,12 @@ export default function initCtxModule(core: PicoEngineCore) {
     }),
 
     newChannel: krl.Action(
-      ["tags", "eventPolicy", "queryPolicy"],
-      async function newChannel(tags, eventPolicy, queryPolicy) {
+      ["tags", "eventPolicy", "queryPolicy", "id"],
+      async function newChannel(tags, eventPolicy, queryPolicy, id) {
         const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
+        if (typeof id === "string" && id.trim().length > 0) {
+          conf.id = id;
+        }
         const chann = await this.rsCtx.newChannel(conf);
         return chann;
       }
@@ -310,6 +322,32 @@ export default function initCtxModule(core: PicoEngineCore) {
     logs: krl.Function([], async function logs() {
       const entries = await this.getPicoLogs();
       return entries;
+    }),
+
+    allowsEvent: krl.Function(["eci", "domain", "name"], function allowsEvent(
+      eci,
+      domain,
+      name
+    ) {
+      try {
+        const channel = core.picoFramework.lookupChannel(eci);
+        return allowsEventPolicy(channel.eventPolicy, { domain, name });
+      } catch {
+        return false;
+      }
+    }),
+
+    allowsQuery: krl.Function(["eci", "rid", "name"], function allowsQuery(
+      eci,
+      rid,
+      name
+    ) {
+      try {
+        const channel = core.picoFramework.lookupChannel(eci);
+        return allowsQueryPolicy(channel.queryPolicy, { rid, name });
+      } catch {
+        return false;
+      }
     }),
 
   };

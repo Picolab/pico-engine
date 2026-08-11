@@ -1,3 +1,7 @@
+/**
+ * KRL http module: requests, autosend, and redirects.
+ */
+
 import test from "ava";
 import * as http from "http";
 import * as _ from "lodash";

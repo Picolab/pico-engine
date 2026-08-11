@@ -1,3 +1,7 @@
+/**
+ * KRL runtime: function args, isMap, and related builtins.
+ */
+
 import test from "ava";
 import { krl } from "krl-stdlib";
 import * as _ from "lodash";

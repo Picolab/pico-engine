@@ -8,7 +8,6 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "npm run build",
     "start": "ava -w",
     "test": "ava",
     "build": "rm -rf dist && tsc"
@@ -38,7 +37,7 @@
   "dependencies": {
     "json-log": "^3.0.1",
     "lodash": "^4.17.11",
-    "pico-framework": "^0.8.0",
+    "pico-framework": "^0.8.1",
     "select-when": "^0.1.9"
   },
   "ava": {

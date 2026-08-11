@@ -7,18 +7,13 @@ import {
   UI_CHANNEL_TAGS,
 } from "./uiChannelPolicies";
 import { toFileUrl } from "./utils/toFileUrl";
+import { BUNDLED_KRL_FILES } from "./bundledKrl";
 
 /**
  * Base rulesets installed onto every root pico. These make up the engine's
  * "OS" layer (wrangler + friends) plus the built-in UI ruleset.
  */
-const BASE_KRL_FILES = [
-  "io.picolabs.pico-engine-ui.krl",
-  "io.picolabs.wrangler.krl",
-  "io.picolabs.subscription.krl",
-  "io.picolabs.did-o.krl",
-  "io.picolabs.pds.krl",
-];
+const BASE_KRL_FILES = [...BUNDLED_KRL_FILES];
 
 function uiChannelKey(tags: string[]): string {
   return tags.slice(0).sort().join(",");
@@ -143,6 +138,14 @@ export async function provisionRoot(
       time: 0,
     });
   }
+
+  await pf.eventWait({
+    eci: uiChannel.id,
+    domain: "engine_ui",
+    name: "setup",
+    data: { attrs: {} },
+    time: 0,
+  });
 
   return { root, uiECI: uiChannel.id };
 }

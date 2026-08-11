@@ -8,6 +8,10 @@ import { PicoEngineCore } from "pico-engine-core";
 import { PicoFramework } from "pico-framework";
 import { AuthError, AuthService } from "./auth";
 import { OAuthError, OAuthService, parseApproveBody, parseAuthorizeQuery, renderConsentHtml } from "./oauth";
+import { uiECIForRoot } from "./provisionRoot";
+import { IdentityService } from "./identity/IdentityService";
+import { registerWebvhRoutes } from "./identity/webvhRoutes";
+import { registerDidcommIngressRoutes } from "./identity/didcommIngressRoutes";
 
 const engineVersion = require("../package.json").version;
 
@@ -66,7 +70,8 @@ export function server(
   core: PicoEngineCore,
   uiECI: string | null,
   auth?: AuthService,
-  oauth?: OAuthService
+  oauth?: OAuthService,
+  identity?: IdentityService
 ): Express {
   const pf = core.picoFramework;
   const app = express();
@@ -112,12 +117,18 @@ export function server(
     return defaultHelmet(req, res, next);
   });
   app.use(express.static(path.resolve(__dirname, "..", "public")));
+
+  if (identity) {
+    registerWebvhRoutes(app, identity);
+  }
+
   app.use(
     bodyParser.json({
       type: [
         "application/json",
         "application/octet-stream",
         "application/ssi-agent-wire",
+        "application/didcomm-encrypted+json",
       ],
     })
   );
@@ -128,6 +139,10 @@ export function server(
       extended: false,
     })
   );
+
+  if (identity) {
+    registerDidcommIngressRoutes(app, identity);
+  }
 
   if (auth) {
     registerAuthRoutes(app, auth);
@@ -238,6 +253,47 @@ export function server(
   if (oauth) {
     registerOAuthRoutes(app, oauth, auth, requireAuthSession, parseCookies);
   }
+
+  app.get("/api/mesh-context", function (req, res, next) {
+    if (!oauth) {
+      res.status(503).json({ error: "OAuth not enabled" });
+      return;
+    }
+    const header = req.headers.authorization;
+    if (typeof header !== "string" || !header.startsWith("Bearer ")) {
+      res.status(401).json({ error: "Bearer token required" });
+      return;
+    }
+    const token = header.slice("Bearer ".length).trim();
+    oauth
+      .resolveMeshBearerToken(token)
+      .then((ctx) => {
+        if (!ctx) {
+          res.status(401).json({ error: "Invalid or expired token" });
+          return;
+        }
+        const rootUiEci = uiECIForRoot(pf, ctx.rootPicoId);
+        if (!rootUiEci) {
+          res.status(503).json({ error: "Mesh UI channel not found" });
+          return;
+        }
+        let baseUrl = core.base_url;
+        if (!baseUrl) {
+          baseUrl = `${req.protocol}://${req.get("host") || "localhost"}`;
+        }
+        baseUrl = baseUrl.replace(/\/$/, "");
+        res.json({
+          baseUrl,
+          rootUiEci,
+          oauth: {
+            authorize: `${baseUrl}/oauth/authorize`,
+            token: `${baseUrl}/oauth/token`,
+          },
+          scope: ctx.scope,
+        });
+      })
+      .catch(next);
+  });
 
   app.get("/api/ui-context", function (req, res, next) {
     const hasRoots = pf.rootPicos().length > 0;

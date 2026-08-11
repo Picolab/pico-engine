@@ -1,3 +1,8 @@
+/**
+ * Shared integration helper: engine, query/signal shortcuts, optional test
+ * rulesets.
+ */
+
 import { ChannelConfig, Pico, PicoFramework } from "pico-framework";
 import { PicoEngineConfiguration } from "../../src/index";
 import { cleanDirectives } from "./cleanDirectives";

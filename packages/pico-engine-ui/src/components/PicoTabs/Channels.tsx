@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiGet, apiPost } from "../../api";
 import { Channel } from "../../types/Channel";
 import { PicoBox } from "../../types/PicoBox";
@@ -17,6 +18,11 @@ import {
   ViewQueryPolicy,
 } from "../widgets/ChannelPolicies";
 import ErrorStatus from "../widgets/ErrorStatus";
+import {
+  suggestChannelId,
+  validateChannelIdInput,
+  CUSTOM_CHANNEL_ID_MIN_LENGTH,
+} from "../../channelId";
 import {
   createOAuthChannelCredentials,
   exchangeOAuthToken,
@@ -550,15 +556,26 @@ function ChannelEditPanel({
 }
 
 const Channels: React.FC<Props> = ({ pico }) => {
+  const [searchParams] = useSearchParams();
+  const focusChannel = searchParams.get("focus") || "";
+
   const [expandedChannels, setExpandedChannels] = React.useState<{
     [eci: string]: boolean;
   }>({});
   const [tags, setTags] = React.useState<string>("");
+  const [channelId, setChannelId] = React.useState<string>(() =>
+    suggestChannelId()
+  );
   const [eventPolicy, setEventPolicy] = React.useState<string>("allow *:*");
   const [queryPolicy, setQueryPolicy] = React.useState<string>("allow */*");
 
   function getNewChannData(): any {
+    const idError = validateChannelIdInput(channelId);
+    if (idError) {
+      throw new Error(idError);
+    }
     return {
+      id: channelId.trim(),
       tags: tags.split(","),
       eventPolicy: parseEventPolicy(eventPolicy),
       queryPolicy: parseQueryPolicy(queryPolicy),
@@ -583,7 +600,10 @@ const Channels: React.FC<Props> = ({ pico }) => {
       apiPost(
         `/c/${eci}/event/engine_ui/new_channel/query/io.picolabs.pico-engine-ui/pico`,
         data
-      ).then((d) => picoDetails.setData(d))
+      ).then((d) => {
+        picoDetails.setData(d);
+        setChannelId(suggestChannelId());
+      })
   );
 
   const delChannel = useAsyncAction<string>((eci) =>
@@ -608,6 +628,12 @@ const Channels: React.FC<Props> = ({ pico }) => {
   React.useEffect(() => {
     picoDetails.load();
   }, [pico.eci]);
+
+  React.useEffect(() => {
+    if (focusChannel) {
+      setExpandedChannels({ [focusChannel]: true });
+    }
+  }, [focusChannel, pico.eci]);
 
   const waiting: boolean =
     picoDetails.waiting ||
@@ -749,6 +775,30 @@ const Channels: React.FC<Props> = ({ pico }) => {
           addChannel.act({ eci: pico.eci, data });
         }}
       >
+        <div className="form-group">
+          <label htmlFor="new-chann-id">Channel id (ECI)</label>
+          <div className="text-muted small mb-1">
+            Choose once at creation; cannot be changed later. At least{" "}
+            {CUSTOM_CHANNEL_ID_MIN_LENGTH} characters; letters, digits, hyphen,
+            and underscore only. Must be unique across this engine.
+          </div>
+          <input
+            id="new-chann-id"
+            type="text"
+            className="form-control text-mono"
+            value={channelId}
+            onChange={(e) => setChannelId(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+          />
+      {(() => {
+        const channelIdError = validateChannelIdInput(channelId);
+        return channelIdError ? (
+          <div className="text-danger small mt-1">{channelIdError}</div>
+        ) : null;
+      })()}
+        </div>
+
         <div className="form-group">
           <label htmlFor="new-chann-tags">Tags</label>
           <div className="text-muted small mb-1">

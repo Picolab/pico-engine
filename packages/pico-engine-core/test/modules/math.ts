@@ -1,3 +1,7 @@
+/**
+ * KRL math module builtins.
+ */
+
 import test from "ava";
 import { KrlCtx } from "krl-stdlib";
 import kmath from "../../src/modules/math";

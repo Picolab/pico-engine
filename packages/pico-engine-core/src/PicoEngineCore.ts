@@ -17,7 +17,6 @@ import { initScheduleModule } from "./modules/schedule";
 import module_stdlib from "./modules/stdlib";
 import module_time from "./modules/time";
 import module_ursa from "./modules/ursa";
-import module_dido from "./modules/dido";
 import initMetaModule from "./modules/meta";
 import { PicoEngineCoreConfiguration } from "./PicoEngineCoreConfiguration";
 import { CachedRuleset, RulesetRegistry } from "./RulesetRegistry";
@@ -33,6 +32,10 @@ export class PicoEngineCore {
   modules: { [domain: string]: krl.Module } = {};
   base_url: string | undefined;
   picoFramework: PicoFramework;
+  onPicoCreated?: (
+    picoId: string,
+    ctx: { isRoot: boolean; parentPicoId: string }
+  ) => Promise<void>;
 
   private picos: { [picoId: string]: CorePico } = {};
   private startupModules: (() => Promise<any>)[] = [];
@@ -40,6 +43,7 @@ export class PicoEngineCore {
   constructor(conf: PicoEngineCoreConfiguration) {
     const log = (this.log = conf.log);
     this.getPicoLogs = conf.getPicoLogs;
+    this.onPicoCreated = conf.onPicoCreated;
     this.rsRegistry = new RulesetRegistry(conf.rsRegLoader, (crs) =>
       this.onRulesetLoaded(crs)
     );
@@ -125,7 +129,6 @@ export class PicoEngineCore {
     this.modules["stdlib"] = module_stdlib;
     this.modules["time"] = module_time;
     this.modules["ursa"] = module_ursa;
-    this.modules["dido"] = module_dido;
     this.modules["meta"] = initMetaModule(this);
 
     if (conf.modules) {

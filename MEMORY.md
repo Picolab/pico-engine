@@ -103,7 +103,7 @@ deferred.
 | **npm** | 1.5.0 published; **1.5.1** ready to publish | Use `npm run publish` from repo root (`lerna publish from-package --yes`). Do **not** publish from repo root or `pico-engine-ui` (both `"private": true`). Publish **pico-framework@0.8.0+** first if bumped. |
 | **GitHub tags** | `v1.5.0`, `v1.5.1` local | **`git push` does not push tags.** Run `git push origin v1.5.0` (and `v1.5.1`) separately. GitHub **Releases** are created in the UI (or `gh release create`) *after* the tag is on origin. |
 | **UI version string** | From `packages/pico-engine/package.json` | Shown via `/api/ui-context` → AuthGate + Picos page footer. Bumped to **1.5.1** in commit `d135b1d7`. |
-| **pico-framework** | **0.8.0** npm + local **`loadedPicos()`** (`203856a`) | Engine migration uses `pf.loadedPicos()` — link local framework when developing (`npm run link-framework`). |
+| **pico-framework** | **0.8.1** (unreleased) — custom channel id, `eciIsTaken` | **Required** for pico-engine 1.6 (`^0.8.1` in package.json). Publish framework before engine. **`npm run link-framework`** is for co-development only, not deployment. |
 
 **Tag ↔ commit mapping (local):**
 
@@ -151,38 +151,34 @@ raise wrangler event "channel_update_request" attributes { "eci": ..., "tags": .
 
 Confluence: **Managing Channels** — add "Updating a Channel" section (UI + wrangler).
 
-### HA / Manifold testing (next up — 2026-07-14)
+### HA / Manifold integration (2026-07-21 — hub + companions)
 
-User picking up **Home Assistant** integration — exercises **both** OAuth paths in one real mesh:
+**POC scope:** Home Assistant as a **general front-end to a Manifold mesh**. Community-specific
+behavior (sensor-network, etc.) ships as **optional HA companion integrations** beside KRL repos,
+not baked into the hub.
 
-| Integration | OAuth grant | Channel setup | Use |
-|-------------|-------------|---------------|-----|
-| **Home Assistant** | **Authorization Code + PKCE** | OAuth app in **Settings** (mesh-wide) | HA as front-end to the pico mesh: `/oauth/authorize` → passkey + consent → token; Bearer on **`/sky/query/{eci}/…`** across subtree |
-| **Helium sensor network** | **Client Credentials** | Per-sensor (or ingress) channel tagged **`oauth-webhook`** — add via Channels **Edit channel** (1.5.1) or `wrangler:updateChannel` at create time | Live webhook ingress from sensor network; fixed URL + `POST /oauth/token` → Bearer on **`/sky/event/…`** or queries as policy allows |
+**Source of truth:** [`manifold-home-assistant/MEMORY.md`](../manifold-home-assistant/MEMORY.md)
 
-**Why this is a good end-to-end test:** one mesh, two integrator styles — human-consented mesh client (HA) vs machine webhook sender (Helium CC) — plus channel policy, mesh lock (`io.picolabs.oauth`), and 1.5.1 channel edit for retrofitting `oauth-webhook` on existing sensor channels.
+**Docker harness:** [`manifold-home-assistant`](../manifold-home-assistant) — `docker compose`
+when Docker is available; mounts `pico_mesh` + `pico_mesh_sensor_network` (from sensor-network repo).
 
-**Requires:** engine **1.5.1** built + restarted; tags on GitHub if tracking releases there.
+| Integrator | OAuth grant | Role |
+|------------|-------------|------|
+| **Home Assistant (hub)** | Authorization Code + PKCE | Manifold discovery + mesh-wide `/sky/query/` |
+| **HA companions** | (none — use hub OAuth) | e.g. `pico_mesh_sensor_network` probes router rulesets |
+| **Helium / webhooks** (optional) | Client Credentials | Thing channel ingress; not POC focus |
 
-### HA custom integration — plan (2026-07-15)
+**Requires:** engine **1.5.2+**, pico-framework **0.8.0+**.
 
-**No HA project exists yet.** Build a new repo (suggested: `pico-home-assistant` or `homeassistant-pico`) with a **custom integration** — not HAforPicos (legacy KRL copy, no component).
+**Hub repo:** `manifold-home-assistant` — domain `pico_mesh`, public API `custom_components/pico_mesh/hub.py`.
 
-**Repo created:** `/Users/pjw/Dropbox/prog/picolabs/pico-home-assistant` (sibling to pico-engine). Domain `pico_mesh`; scaffold includes OAuth config flow, Sky API client, coordinator, sensor platform. Git initialized, not yet committed.
+**Discovery (Manifold-first):**
 
-**User mesh plan:** Manifold bootstrap on root → sensor network bootstrap on Manifold pico → sensor community → **LHT65** thing (`type: "lht65"` — Dragino LHT65; code has no `dht65` router). Helium webhook → thing CC channel; HA → ACG mesh token.
+1. `io.picolabs.manifold_pico/getManifoldInfo` → thing & community devices
+2. Per thing: **discovery channel** → `discovery capabilities` → `thing.apps` → entities/services
+3. Companions: probe `wrangler:installedRIDs` on thing Tx for community rulesets (e.g. LHT65 router)
 
-**Discovery API (ACG Bearer on `/sky/query/`):**
-
-1. `io.picolabs.manifold_pico/getManifoldInfo` on Manifold **app channel** ECI → things + communities (each with subscription `Tx` ECI)
-2. Per thing: `io.picolabs.lht65.router/lastInternalTemp`, `lastHumidity`, `lastProbeTemp`, `lastHeartbeat`
-3. Optional community rollup: `io.picolabs.sensor.community/lastTemperatures` on community Tx ECI
-
-**HA integration shape:** config flow (OAuth PKCE) → DataUpdateCoordinator polling Sky → `sensor` platform entities per reading; Device Registry entry per thing. Redirect URI e.g. `https://<ha-host>:8123/auth/external/callback` — register in engine Settings → OAuth apps (public client + PKCE).
-
-**Phased build:** (0) mesh + Helium uplink working, (1) engine OAuth mesh lock + HA app registered, (2) HA dev container + manual token probe with curl, (3) minimal integration OAuth + one entity, (4) full discovery from `getManifoldInfo`, (5) dashboards (native HA — free once entities exist).
-
-**Helium CC** stays on thing webhook channel; HA reads via ACG queries on subscription Tx — orthogonal paths, same mesh test.
+Redirect URI for local Docker: `http://localhost:8123/auth/external/callback`.
 
 ### Key commits (master, post-1.5.0 tag)
 
@@ -496,6 +492,12 @@ needed. The exploration we had recorded:
   collapsing the earlier two-layer "SPIFFE workload id + DID continuity" into one identity layer.
 
 ### 7. Pico migration / portability (cross-engine, cross-mesh)
+**Design doc (2026-07-17):** [`docs/design/pico-move.md`](../docs/design/pico-move.md) — phased plan
+for Bruce's export/move primitives ([#664](https://github.com/Picolab/pico-engine/issues/664),
+[#665](https://github.com/Picolab/pico-engine/issues/665), [#659](https://github.com/Picolab/pico-engine/issues/659)):
+ruleset+entity export first, subtree import with ECI remapping, channel clone+retire, then
+DID-native move.
+
 Surfaced by the R1T adoption scenario (see "Worked scenario" in the identity section). Moving a
 pico from one engine/mesh to another so it **leaves** the source and **exists** in the destination.
 
@@ -506,6 +508,11 @@ pico from one engine/mesh to another so it **leaves** the source and **exists** 
   continuity** across the move: did:webvh moves host/path but retains the **SCID** + full history
   (needs `portable: true` at inception). (This is a key reason SPIFFE was set aside — it would
   re-mint the identity.)
+- **ECIs are not portable** — interim subtree move mints new ECIs and supplies an old→new map;
+  peers and external integrators must rewire or follow DID (Phase D in design doc). Do not reuse
+  ECIs across engines to "simplify" move.
+- **Parent coupling** — moving a subtree may break behavior if the parent provided rulesets,
+  subscriptions, or platform services; export manifest + migration hooks required (see design doc).
 - **Relationship rewiring follows the survivability taxonomy** (§5): parent–child severed;
   mesh-membership subscriptions swapped; peer/service subscriptions **survive** via **DIDComm DID
   Rotation** (SCID continuity, new location/endpoint).
@@ -731,7 +738,7 @@ Build order (revised):
 1. **Layer 1** — passkeys + multi-root ✅ (1a–1d)
 2. **Layer 3** — OAuth for external API access ✅ **shipped (1.5.0)**
 3. **1.5.1** — channel edit + UI channel policy migration ✅ **shipped**
-4. **Layer 2** — DID/DIDComm interchange ← **deferred**
+4. **Layer 2** — DID/DIDComm interchange ✅ **implemented (1.6 unreleased)** — see § Layer 2 below
 
 #### Layer 1 — User/admin identity via passkeys + multi-root
 - **Passkey (WebAuthn) admin authn to the root pico** (§9); each root = its own relying party.
@@ -1266,7 +1273,7 @@ Details TBD when implementing; webhook Client Credentials shipped first (Layer 3
 Canonical Sky query path is **`/sky/query/`** (docs); **`/sky/cloud/`** kept as legacy alias.
 Wrangler `picoQuery`/`skyQuery` default path updated to `/sky/query/`.
 
-#### Layer 2 — did:webvh / did:peer + DIDComm as the interchange ← **deferred post-1.5**
+#### Layer 2 — did:webvh / did:peer + DIDComm as the interchange ✅ **shipped in 1.6 (unreleased)**
 - **Build on the existing engine `dido` module** (did:peer:2 + DIDComm v2 already present — see
   "Existing engine support" in §5). **Update/modernize** it and **add did:webvh**.
 - **NO separate wrapper ruleset.** Fold `io.picolabs.did-o`'s capabilities (routing, send/query,
@@ -1457,17 +1464,54 @@ wrangler (event sits on the schedule and never runs).
 |----------|---------|-------|---------|
 | `PORT` | `3000` | 1.x | HTTP listen port. |
 | `PICO_ENGINE_HOME` | `~/.pico-engine/` | 1.x | Database, logs, ruleset cache directory. |
-| `PICO_ENGINE_BASE_URL` | `http://localhost:$PORT` | 1.x | Public URL prefix (WebAuthn RP origin, links). |
+| `PICO_ENGINE_BASE_URL` | `http://localhost:$PORT` | 1.x | Public URL prefix (WebAuthn RP origin, did:webvh, links). |
 | `PICO_ENGINE_ALLOW_SELF_SIGNUP` | off (`false`) | Phase 1 | `"true"` / `"1"` = open registration after bootstrap; default invite-only. |
 | `PICO_ENGINE_ALLOW_LOCALHOST_C` | on (any value except `"0"`) | 3b.0 (2026-07-12) | Set to `"0"` to require passkey session on **`/c/*`** even from localhost. Default allows localhost without session so KRL `ctx:event` / `event` loops that POST to `host/c/…` keep working. Tests set `"0"` to simulate external callers. **Security note:** with default, any local process can hit `/c/*` without login; tighter internal token TBD. |
 
 **Not operator-facing:** `NODE_ENV=test` affects log formatting in tests only.
 
+**Testing / demo `PICO_ENGINE_HOME`:** always under **`/tmp`** — e.g. `/tmp/pico-engine-a` and `/tmp/pico-engine-b` for manual cross-engine demos, `/tmp/pico-engine/{cuid}` for automated tests (`packages/pico-engine/test/helpers/tmpHome.ts`). Do not use `~/.pico-engine` for tests or throwaway demos.
+
+---
+
+## Layer 2 (1.6) — engine progress
+
+**Work plan:** [`docs/design/pico-identity-layer2-work.md`](docs/design/pico-identity-layer2-work.md)
+
+| Epic | Status |
+|------|--------|
+| 3–4 Identity + DIDComm ingress | ✅ |
+| 5 Subscription ruleset (layer2) | ✅ same-engine + cross-engine |
+| 6 Wrangler / event:send / did-o retired | ✅ |
+| 7 Channel policy on DIDComm delivery | ✅ |
+| 7b Subscriptions UI | ✅ — layer2 create, identity panel, inline Rx policy, forest view |
+| 8 Cross-engine subscriptions | ✅ |
+| 9 Testing & CI | ✅ `test:epic9`, `test:cross-engine`, layer2/identity suites |
+| 10 Documentation & release | ✅ drafts in repo; version bump + npm publish pending |
+
+**Identity model (1.6):** **did:webvh** for intros and portable pico identity; **did:peer** for established subscription pairwise traffic. SKY over DIDComm cross-engine; verified local dispatch intra-mesh.
+
+**pico-framework 0.8.1:** optional custom channel ECI at creation (UI New Channel); engine-wide uniqueness via `eciIsTaken`.
+
+**Epic 9 (`npm run test:epic9`):** legacy ECI sub, family picoQuery, public intro, SCID tamper, DIDComm pack/unpack, layer2 E2E, OAuth eligibility. **Deferred post-1.6:** did:peer:4, cross-mesh move (1.7+).
+
+**Subscriptions UI:** `Subscriptions.tsx` — layer2 create, `myDid`/`publicIntro`, off-engine forest sink, cancel outbound, copy myDid. Rebuild UI after changes: `cd packages/pico-engine-ui && npm run build`.
+
 ---
 
 ## Cross-references
+- **Pico move / export-import design (2026-07-17):**
+  [`docs/design/pico-move.md`](../docs/design/pico-move.md) · GitHub
+  [#659](https://github.com/Picolab/pico-engine/issues/659)
+  [#664](https://github.com/Picolab/pico-engine/issues/664)
+  [#665](https://github.com/Picolab/pico-engine/issues/665)
 - **Manifold / sensor-network context (source of truth):**
   `/Users/pjw/Dropbox/prog/picolabs/manifold-api/MEMORY.md`
+- **Home Assistant / Manifold POC:**
+  [`manifold-home-assistant`](../manifold-home-assistant) ·
+  [`manifold-home-assistant/MEMORY.md`](../manifold-home-assistant/MEMORY.md) ·
+  `docker-compose.yml` (engine + HA, `/var/picolabs` mount) · hub `custom_components/pico_mesh` ·
+  companion `pico_mesh_sensor_network` in [`sensor-network`](../sensor-network)
 - **PDS source:** [`PDS.krl`](https://github.com/Picolab/wrangler/blob/master/PDS.krl) in
   [Picolab/wrangler](https://github.com/Picolab/wrangler).
 - **Fuse PDS-as-platform precedent:** `/Users/pjw/prog/kynetx/Fuse-API/api`

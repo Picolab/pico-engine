@@ -1,3 +1,7 @@
+/**
+ * Wrangler channel_update_request: tags and policy updates.
+ */
+
 import test from "ava";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
 import { allowAllChannelConf } from "./helpers/startTestEngine";

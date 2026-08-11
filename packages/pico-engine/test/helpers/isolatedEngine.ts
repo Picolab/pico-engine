@@ -1,11 +1,11 @@
-import * as cuid from "cuid";
-import * as os from "os";
-import * as path from "path";
-import { PicoEngineConfiguration, startEngine } from "../../src/index";
+/**
+ * Start an engine in an isolated temp home with an ephemeral port.
+ */
 
-export function tmpHome(): string {
-  return path.resolve(os.tmpdir(), "pico-engine", cuid());
-}
+import { PicoEngineConfiguration, startEngine } from "../../src/index";
+import { tmpHome } from "./tmpHome";
+
+export { tmpHome, namedTestHome } from "./tmpHome";
 
 /**
  * Start an engine in an isolated temp home with an ephemeral port. Sets

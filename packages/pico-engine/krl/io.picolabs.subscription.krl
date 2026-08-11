@@ -6,8 +6,8 @@ ruleset io.picolabs.subscription {
     >>
     author "Tedrub Modulus"
     use module io.picolabs.wrangler alias wrangler
-    provides established, outbound, inbound, wellKnown_Rx, autoAcceptConfig
-    shares   established, outbound, inbound, wellKnown_Rx, autoAcceptConfig
+    provides established, outbound, inbound, wellKnown_Rx, autoAcceptConfig, queryOnSub
+    shares   established, outbound, inbound, wellKnown_Rx, autoAcceptConfig, queryOnSub
     logging on
   }
 
@@ -62,11 +62,14 @@ ent:outbound [
 
 ent:established [
   {
-    "Tx":"", //The channel identifier this pico will send events to
-    "Rx":"", //The channel identifier this pico will be listening and receiving events on
-    "Tx_role":"", //The subscription role or purpose that the pico on the other side of the subscription serves
-    "Rx_role":"", //The role this pico serves, or this picos purpose in relation to the subscription
-    "Tx_host": "" //the host location of the other pico if that pico is running on a separate engine
+    "Tx":"", // Legacy: remote channel ECI. Layer 2: use Tx_did instead.
+    "Rx":"", // Internal Rx channel ECI (policy eval); not shared as address
+    "Tx_did":"", // Layer 2: remote peer DID for outbound traffic
+    "Rx_did":"", // Layer 2: local peer DID for this subscription
+    "layer2": false, // true when formed via SKY intro (1.6+)
+    "Tx_role":"",
+    "Rx_role":"",
+    "Tx_host": ""
   },...,...
 ]
 */
@@ -144,6 +147,21 @@ ent:established [
         event:attr("Rx") => buses.filter( function(bus){ bus{"Rx"} == event:attr("Rx") }).head() |
           event:attr("Tx") => buses.filter( function(bus){ bus{"Tx"} == event:attr("Tx") }).head() |
             buses.filter( function(bus){ bus{"Rx"} == meta:eci }).head() ;
+    }
+
+    /**
+     * Query a function on a remote pico via an established subscription.
+     * Layer 2 subs use DIDComm / verified local dispatch; legacy subs use Tx ECI.
+     */
+    queryOnSub = function(subId, rid, name, args) {
+      bus = established("Id", subId).head()
+      bus.isnull() => null |
+        bus{"layer2"} == true => dido:crossPicoQuery(subId, {
+          "rid": rid,
+          "name": name,
+          "args": args.defaultsTo({})
+        }) |
+        wrangler:picoQuery(bus{"Tx"}, rid, name, args.defaultsTo({}), bus{"Tx_host"})
     }
 
     pending_entry = function(){
@@ -293,36 +311,87 @@ ent:established [
   rule createRxBus {
     select when wrangler subscription
     pre {
+      layer2 = event:attr("layer2") == true
       channel_name  = event:attr("name").defaultsTo(random:word())
       channel_type  = event:attr("channel_type").defaultsTo("Tx_Rx","Tx_Rx channel_type used.")
       pending_entry = pending_entry().put(["wellKnown_Tx"],event:attr("wellKnown_Tx"))
     }
-    if( pending_entry{"wellKnown_Tx"}) then // check if we have someone to send a request to
+    if not layer2 && pending_entry{"wellKnown_Tx"} then // check if we have someone to send a request to
       ctx:newChannel([channel_name,channel_type],allow_all_eventPolicy,allow_all_queryPolicy) setting(channel); // create Rx
     fired {
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
       fullNewBus    = newBus.put(
-                                  {  "channel_name": channel_name,
+                                  {  "name": channel_name,
+                                     "channel_name": channel_name,
                                      "channel_type": channel_type,
                                    }
                                  );
-      ent:outbound := outbound().append( newBus );
+      ent:outbound := outbound().append( fullNewBus );
       raise wrangler event "subscription_request_needed"
         attributes event:attrs.put(fullNewBus);
       raise wrangler event "outbound_pending_subscription_added" attributes event:attrs.put(fullNewBus)// API event
     }
-    else {
-      raise wrangler event "wellKnown_Tx_format_failure" attributes  event:attrs // API event
-    }
   }//end createMySubscription rule
+
+  rule createRxBusLegacyFailure {
+    select when wrangler subscription
+    pre {
+      layer2 = event:attr("layer2") == true
+      hasWellKnown = event:attr("wellKnown_Tx")
+    }
+    if not layer2 && not hasWellKnown then noop()
+    fired {
+      raise wrangler event "wellKnown_Tx_format_failure" attributes event:attrs
+    }
+  }
+
+  rule createRxBusLayer2 {
+    select when wrangler subscription
+    pre {
+      layer2 = event:attr("layer2") == true
+      target_did = event:attr("target_did")
+      channel_name = event:attr("name").defaultsTo(random:word())
+      channel_type = event:attr("channel_type").defaultsTo("Tx_Rx","Tx_Rx channel_type used.")
+      pending_entry = pending_entry()
+        .put(["target_did"], target_did)
+        .put(["layer2"], true)
+    }
+    if layer2 && target_did then
+      ctx:newChannel([channel_name,channel_type],allow_all_eventPolicy,allow_all_queryPolicy) setting(channel)
+    fired {
+      newBus = pending_entry.put({ "Rx" : channel{"id"} })
+      fullNewBus = newBus.put({
+        "name": channel_name,
+        "channel_name": channel_name,
+        "channel_type": channel_type,
+      })
+      ent:outbound := outbound().append(fullNewBus)
+      raise wrangler event "subscription_request_needed" attributes event:attrs.put(fullNewBus)
+      raise wrangler event "outbound_pending_subscription_added" attributes event:attrs.put(fullNewBus)
+    }
+  }
+
+  rule createRxBusLayer2Failure {
+    select when wrangler subscription
+    pre {
+      layer2 = event:attr("layer2") == true
+      target_did = event:attr("target_did")
+    }
+    if layer2 && not target_did then noop()
+    fired {
+      raise wrangler event "target_did_format_failure" attributes event:attrs
+    }
+  }
 
   rule requestSubscription {
     select when wrangler subscription_request_needed
       pre {
+        layer2 = event:attr("layer2") == true
         myHost = event:attr("Rx_host") == "localhost" => null                  |
                  event:attr("Rx_host")                => event:attr("Rx_host") |
                                                          meta:host
       }
+      if not layer2 && event:attr("wellKnown_Tx") then
       event:send({
           "eci"   : event:attr("wellKnown_Tx"),
           "domain": "wrangler", "type": "new_subscription_request",
@@ -336,6 +405,44 @@ ent:established [
           }, event:attr("Tx_host")); //send event to this host if provided
   }
 
+  rule sendLayer2Intro {
+    select when wrangler subscription_request_needed
+    pre {
+      layer2 = event:attr("layer2") == true
+      target = event:attr("target_did")
+      sent = layer2 && target => dido:sendSkyIntro({
+        "subscriptionId": event:attr("Id"),
+        "targetDid": target,
+        "name": event:attr("name").defaultsTo(event:attr("channel_name")),
+        "Tx_role": event:attr("Tx_role"),
+        "Rx_role": event:attr("Rx_role"),
+        "channel_type": event:attr("channel_type"),
+        "Tx_host": meta:host
+      }) | null
+    }
+  }
+
+  rule addInboundPendingFromSkyIntro {
+    select when wrangler sky_intro
+    pre {
+      sub_name = event:attr("name").defaultsTo(event:attr("channel_name"))
+      pending_entry = pending_entry()
+        .put(["Tx_did"], event:attr("peer_did_long"))
+        .put(["layer2"], true)
+        .put(["Rx"], event:attr("Rx"))
+        .put(["name"], sub_name)
+        .put(["channel_name"], sub_name)
+    }
+    if pending_entry{"Rx"} && pending_entry{"Tx_did"} then noop()
+    fired {
+      ent:inbound := inbound().append(pending_entry)
+      raise wrangler event "inbound_pending_subscription_added" attributes event:attrs
+    }
+    else {
+      raise wrangler event "no_Tx_did_failure" attributes event:attrs
+    }
+  }
+
   rule addInboundPendingSubscription {
     select when wrangler new_subscription_request
     pre {
@@ -346,6 +453,8 @@ ent:established [
     fired {
       Rx = channel{"id"};
       newBus       = pending_entry.put({"Rx" : Rx,
+                                        "name": event:attr("channel_name"),
+                                        "channel_name": event:attr("channel_name"),
                                        });
       ent:inbound := inbound().append( newBus );
       raise wrangler event "inbound_pending_subscription_added" attributes event:attrs.put(["Rx"], Rx); // API event
@@ -355,11 +464,24 @@ ent:established [
     }
   }
 
+  rule approveInboundPendingSubscriptionLayer2 {
+    select when wrangler pending_subscription_approval
+    pre {
+      bus = findBus(inbound())
+      response = bus{"layer2"} == true => dido:sendSkyIntroResponse(bus{"Id"}, bus{"Tx_did"}, {"status": "accepted"}) | null
+    }
+    if bus{"layer2"} == true then noop()
+    fired {
+      raise wrangler event "inbound_pending_subscription_approved" attributes event:attrs.put("Id", bus{"Id"}).put(["bus"],bus)
+    }
+  }
+
   rule approveInboundPendingSubscription {
     select when wrangler pending_subscription_approval
     pre {
       bus     = findBus(inbound())
     }
+    if not bus{"layer2"} == true && bus then
       event:send({
           "eci": bus{"Tx"},
           "domain": "wrangler", "type": "outbound_pending_subscription_approved",
@@ -368,8 +490,27 @@ ent:established [
                     "Tx"           : bus{"Rx"} ,
                     })
           }, bus{"Tx_host"})
-    always {
+    fired {
       raise wrangler event "inbound_pending_subscription_approved" attributes event:attrs.put("Id", bus{"Id"}).put(["bus"],bus)
+    }
+  }
+
+  rule addOutboundSubscriptionLayer2 {
+    select when wrangler sky_intro_response
+    pre {
+      buses = outbound()
+      bus = findBus(buses)
+      index = indexOfId(buses, bus{"Id"})
+    }
+    if event:attr("status") == "accepted" && bus{"layer2"} == true && index >= 0 then noop()
+    fired {
+      updated = bus.put({
+        "Tx_did": event:attr("peer_did_long"),
+        "Tx_host": event:attr("Tx_host")
+      }).delete(["target_did"]).delete(["wellKnown_Tx"])
+      ent:established := established().append(updated)
+      ent:outbound := buses.splice(index, 1)
+      raise wrangler event "subscription_added" attributes event:attrs.put(["bus"], updated)
     }
   }
 
@@ -408,19 +549,53 @@ ent:established [
     }
   }
 
+  // Layer 2 (1.6+): provision did:peer + internal Rx identity when bus.layer2 is set.
+  rule establish_layer2_subscription_identity {
+    select when wrangler subscription_added
+    pre {
+      bus = event:attr("bus").defaultsTo({})
+      layer2_identity = bus{"layer2"} == true => dido:establishSubscription(bus) | null
+    }
+    if bus{"layer2"} == true && layer2_identity then noop()
+    fired {
+      enriched = bus
+        .put("Rx_did", layer2_identity{"peerDid"})
+        .put("Rx", layer2_identity{"rxEci"})
+      buses = established()
+      index = indexOfId(buses, bus{"Id"})
+      ent:established := index >= 0 => buses.splice(index, 1).append(enriched) | buses
+    }
+  }
+
+  rule cancelEstablishedLayer2 {
+    select when wrangler subscription_cancellation
+    pre {
+      bus = findBus(established())
+      sent = bus{"layer2"} == true => dido:crossPicoEvent(bus{"Id"}, {
+        "domain": "wrangler",
+        "name": "established_removal",
+        "attrs": event:attrs.put("Id", bus{"Id"})
+      }) | null
+    }
+    if bus{"layer2"} == true then noop()
+    fired {
+      raise wrangler event "established_removal" attributes event:attrs.put("Id", bus{"Id"})
+    }
+  }
+
   rule cancelEstablished {
     select when wrangler subscription_cancellation
     pre{
       bus     = findBus(established())
       Tx_host = bus{"Tx_host"}
     }
-    if bus then
+    if not bus{"layer2"} == true && bus then
       event:send({
           "eci"   : bus{"Tx"},
           "domain": "wrangler", "type": "established_removal",
           "attrs" : event:attrs.put({
-                      "Rx": bus{"Tx"}, //change perspective
-                      "Tx": bus{"Rx"}, //change perspective
+                      "Rx": bus{"Tx"},
+                      "Tx": bus{"Rx"},
                       "Id": bus{"Id"}
                     })
           }, Tx_host)
@@ -435,6 +610,7 @@ ent:established [
       buses = established()
       bus   = findBus(buses)
       index = indexOfId(buses, bus{"Id"})
+      teardown = bus{"layer2"} == true => dido:teardownSubscription(bus{"Id"}) | null
     }
     if index >= 0 then
       wrangler:deleteChannel(bus{"Rx"})
@@ -444,13 +620,30 @@ ent:established [
     }
   }
 
+  rule cancelInboundLayer2 {
+    select when wrangler inbound_rejection
+    pre {
+      bus = findBus(inbound())
+      sent = bus{"layer2"} == true => dido:crossPicoEvent(bus{"Id"}, {
+        "domain": "wrangler",
+        "name": "outbound_removal",
+        "attrs": event:attrs.put("Id", bus{"Id"})
+      }) | null
+    }
+    if bus{"layer2"} == true then noop()
+    always {
+      raise wrangler event "inbound_removal" attributes event:attrs.put("Id", bus{"Id"})
+    }
+  }
+
   rule cancelInbound {
     select when wrangler inbound_rejection
     pre{
       bus     = findBus(inbound())
       Tx_host = bus{"Tx_host"}
     }
-    event:send({
+    if not bus{"layer2"} == true && bus then
+      event:send({
           "eci"   : bus{"Tx"},
           "domain": "wrangler", "type": "outbound_removal",
           "attrs" : event:attrs.put({
@@ -468,6 +661,7 @@ ent:established [
       buses = inbound()
       bus   = findBus(buses)
       index = indexOfId(buses, bus{"Id"})
+      teardown = bus{"layer2"} == true => dido:teardownSubscription(bus{"Id"}) | null
     }
     if index >= 0 then
       wrangler:deleteChannel(bus{"Rx"})
@@ -477,13 +671,30 @@ ent:established [
     }
   }
 
+  rule cancelOutboundLayer2 {
+    select when wrangler outbound_cancellation
+    pre {
+      bus = findBus(outbound())
+      sent = bus{"layer2"} == true => dido:crossPicoEvent(bus{"Id"}, {
+        "domain": "wrangler",
+        "name": "inbound_removal",
+        "attrs": event:attrs.put("Id", bus{"Id"}).put("Tx", bus{"Rx"})
+      }) | null
+    }
+    if bus{"layer2"} == true then noop()
+    always {
+      raise wrangler event "outbound_removal" attributes event:attrs.put("Id", bus{"Id"})
+    }
+  }
+
   rule cancelOutbound {
     select when wrangler outbound_cancellation
     pre{
       bus     = findBus(outbound())
       Tx_host = bus{"Tx_host"}
     }
-    event:send({
+    if not bus{"layer2"} == true && bus then
+      event:send({
           "eci"   : bus{"wellKnown_Tx"},
           "domain": "wrangler", "type": "inbound_removal",
           "attrs" : event:attrs.put({
@@ -502,6 +713,7 @@ ent:established [
       buses = outbound()
       bus   = findBus(buses)
       index = indexOfId(buses,bus{"Id"})
+      teardown = bus{"layer2"} == true => dido:teardownSubscription(bus{"Id"}) | null
     }
     if index >= 0 then
       wrangler:deleteChannel(bus{"Rx"})
@@ -539,10 +751,17 @@ ent:established [
     select when wrangler send_event_to_subs
     foreach event:attr("subs") setting (sub)
     pre {
-      tx = sub{"Tx"}                                                                       // Get the "Tx" channel to send our query to
-      host = sub{"Tx_host"}                                                                // See if the pico is on a different host. If it isn't use this engine's host
+      layer2 = sub{"layer2"} == true
+      sent = layer2 => dido:crossPicoEvent(sub{"Id"}, {
+        "domain": event:attr("domain"),
+        "name": event:attr("type"),
+        "attrs": event:attr("attrs").defaultsTo({})
+      }) | null
+      tx = sub{"Tx"}
+      host = sub{"Tx_host"}
     }
-    event:send({"eci":tx, "domain":event:attr("domain"), "type":event:attr("type"), "attrs":event:attr("attrs").defaultsTo({})}, host)
+    if not layer2 && tx then
+      event:send({"eci":tx, "domain":event:attr("domain"), "type":event:attr("type"), "attrs":event:attr("attrs").defaultsTo({})}, host)
   }
 
   rule autoAccept {

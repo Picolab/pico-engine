@@ -6,6 +6,8 @@
 # Stop:   docker compose down
 #
 # Data persists in ./docker/pico-image (PICO_ENGINE_HOME).
+#
+# Cross-engine demo: two host processes (see docs/guides/layer2-subscriptions.md).
 
 services:
   pico-engine:

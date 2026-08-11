@@ -1,3 +1,7 @@
+/**
+ * KRL random module builtins.
+ */
+
 import test from "ava";
 import { krl } from "krl-stdlib";
 import krandom from "../../src/modules/random";

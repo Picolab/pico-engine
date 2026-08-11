@@ -47,4 +47,12 @@ export interface PicoEngineCoreConfiguration {
    * Set true in tests that expect the historical auto-created root.
    */
   autoCreateRootPico?: boolean;
+
+  /**
+   * Called after ctx:newPico creates a child pico (Epic 3+ identity provisioning).
+   */
+  onPicoCreated?: (
+    picoId: string,
+    ctx: { isRoot: boolean; parentPicoId: string }
+  ) => Promise<void>;
 }

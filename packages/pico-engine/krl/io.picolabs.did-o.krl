@@ -20,7 +20,11 @@ DID-O V 1.0.0
       name "did-o"
     description 
     <<
-    Ruleset for DIDComm v2 Communication Using Picos
+    DEPRECATED (pico-engine 1.6+): Layer 2 identity folds DIDComm routing into the
+    engine dido module and wrangler core. Do not install on new picos. Use
+    wrangler:myDid(), event:send({did: ...}), and wrangler:picoQuery with DID targets instead.
+
+    Legacy ruleset for DIDComm v2 communication using picos (did:peer:2 era).
     >>
     author "Rembrand Paul Pardo, Kekoapoaono Montalbo, Josh Mann"
     

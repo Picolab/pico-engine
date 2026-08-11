@@ -1,3 +1,7 @@
+/**
+ * UI channel update_channel after provision refresh.
+ */
+
 import test from "ava";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
 import { uiECIForPico } from "../src/provisionRoot";

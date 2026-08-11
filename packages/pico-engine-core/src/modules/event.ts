@@ -39,15 +39,35 @@ const event: krl.Module = {
       let attrs = options.attrs;
       if (!eci) {
         if (options.sub) {
-          eci = options.sub.Tx
-          host = options.sub.Tx_host
+          const sub = options.sub;
+          if (sub.layer2 === true) {
+            const did = sub.Tx_did;
+            if (!krl.isString(did)) {
+              throw new TypeError(
+                "layer2 subscription missing Tx_did: " + krl.toString(did)
+              );
+            }
+            await this.krl.assertAction(this.module("dido")!["picoEvent"])(this, [
+              did,
+              {
+                domain,
+                name,
+                attrs,
+              },
+            ]);
+            return;
+          }
+          eci = sub.Tx;
+          host = sub.Tx_host;
         } else if (options.did) {
-          await this.useModule("io.picolabs.did-o", "didx");
-          await this.krl.assertFunction(this.module("didx")!["sendEvent"])(this, [options.did, {
-            "domain": domain,
-            "name": name,
-            "attrs": attrs
-          }]);
+          await this.krl.assertAction(this.module("dido")!["picoEvent"])(this, [
+            options.did,
+            {
+              domain,
+              name,
+              attrs,
+            },
+          ]);
           return;
         }
       }

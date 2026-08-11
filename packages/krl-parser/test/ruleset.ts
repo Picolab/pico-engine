@@ -1,3 +1,7 @@
+/**
+ * KRL parser: ruleset structure and ruleset ID parsing.
+ */
+
 import test from "ava";
 import { parseRuleset } from "../src/krl";
 import tokenizer from "../src/tokenizer";

@@ -1,3 +1,7 @@
+/**
+ * Resolve test-rulesets/*.krl paths to file:// URLs for ruleset loading.
+ */
+
 import * as path from "path";
 import { toFileUrl } from "../../src/utils/toFileUrl";
 

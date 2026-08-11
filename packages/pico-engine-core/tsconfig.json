@@ -6,7 +6,8 @@
     "declaration": true,
     "lib": ["es2017", "esnext.asynciterable"],
     "outDir": "dist",
-    "strict": true
+    "strict": true,
+    "skipLibCheck": true
   },
   "include": ["src"]
 }

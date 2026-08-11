@@ -1,0 +1,3 @@
+# Docker runtime data — gitignored; holds LevelDB and auth state.
+*
+!.gitignore

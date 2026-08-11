@@ -6,6 +6,7 @@ import * as path from "path";
 import { RulesetRegistryLoader } from "pico-engine-core";
 import { PicoDbKey, Ruleset } from "pico-framework";
 import * as urlLib from "url";
+import { resolveBundledKrlUrl } from "./bundledKrl";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
 const charwise = require("charwise");
@@ -127,6 +128,7 @@ export function RulesetRegistryLoaderFs(
 }
 
 async function fetchKrl(url: string): Promise<string> {
+  url = resolveBundledKrlUrl(url);
   const urlParsed = urlLib.parse(url);
   if (urlParsed.protocol === "file:") {
     return new Promise((resolve, reject) => {

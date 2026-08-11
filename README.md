@@ -42,6 +42,8 @@ That will start the server and run the test. `npm start` is simply an alias for 
 
 **NOTE about dependencies:** generally don't use `npm i`, rather use `npm run setup` from the root. [lerna](https://github.com/lerna/lerna) will link up the packages so when you make changes in one package, it will be used in others.
 
+**pico-engine 1.6** requires **pico-framework `^0.8.1`** (publish framework before engine). For co-development with a sibling `pico-framework` clone, use `npm run link-framework` from the repo root — not needed for normal `npm install` deployments.
+
 
 ### Working in sub-package
 
@@ -63,6 +65,8 @@ The Pico Labs documentation has a page inviting contributions and giving a step-
 ## Changelog
 
 To view details about versions: [CHANGELOG.md](https://github.com/Picolab/pico-engine/blob/master/CHANGELOG.md)
+
+**1.6:** Layer 2 identity (**did:webvh** for intros, **did:peer** for subscription traffic), DID-based subscriptions, and cross-engine SKY/DIDComm. Requires **pico-framework ^0.8.1**. See [docs/guides/layer2-subscriptions.md](docs/guides/layer2-subscriptions.md) and [docs/release/1.6.md](docs/release/1.6.md).
 
 ## License
 MIT

@@ -16,18 +16,21 @@ ruleset io.picolabs.wrangler {
 
     provides skyQuery, picoQuery,
     channels, createChannel, updateChannel, deleteChannel, //channel
+    discoveryChannel, filterBindingsForCaller, //discovery
     rulesetConfig, rulesetMeta, installedRIDs, //ruleset
-    children, parent_eci, name, myself //pico
+    children, parent_eci, name, myself, myDid, publicIntro, establishSubscription, callerDid //pico
 
     shares skyQuery, picoQuery,
     channels, //channel
+    discoveryChannel, filterBindingsForCaller, //discovery
     rulesetConfig, rulesetMeta,installedRIDs, //ruleset
-    children, parent_eci, name, myself, id //pico
+    children, parent_eci, name, myself, myDid, publicIntro, establishSubscription, callerDid, id //pico
   }
   global {
     __testing = { "queries": [  {"name": "name"},
                                 {"name": "myself"},
                                 { "name": "channels", "args":["tags"] },
+                                { "name": "discoveryChannel"},
                                 { "name": "installedRIDs"},
                                 {"name":"skyQuery", "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
                                 {"name":"children", "args":[]}
@@ -145,11 +148,12 @@ ruleset io.picolabs.wrangler {
        thisPico = ctx:channels.any(function(c){c{"id"}==eci})
        thisHost = _host.isnull() || _host == meta:host;
        web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url)
+       queryArgs = params.defaultsTo({})
 
       response = thisPico => QUERY_SELF_INVALID_HTTP_MAP                                         |
-                 isDid    => dido:prepareQuery(eci, {"rid": mod, "name": func, "args": params})  |
-                 thisHost => processQueryResponse(ctx:query(eci, mod, func, {}.put(params)))     |
-                             processHTTPResponse(http:get(web_hook, {}.put(params)))
+                 isDid    => dido:picoQuery(eci, {"rid": mod, "name": func, "args": queryArgs})  |
+                 thisHost => processQueryResponse(ctx:query(eci, mod, func, {}.put(queryArgs)))     |
+                             processHTTPResponse(http:get(web_hook, {}.put(queryArgs)))
 
       response
      }
@@ -212,6 +216,105 @@ ruleset io.picolabs.wrangler {
     }
 
 // ********************************************************************************************
+// ***                                      Discovery                                       ***
+// ********************************************************************************************
+
+    discoveryEventPolicy = function() {
+      {
+        "allow": [{ "domain": "discovery", "name": "capabilities" }],
+        "deny": []
+      }
+    }
+
+    discoveryQueryPolicy = function() {
+      {
+        "allow": [],
+        "deny": [{ "rid": "*", "name": "*" }]
+      }
+    }
+
+    discoveryChannel = function() {
+      channels("discovery").head()
+    }
+
+    channelForEci = function(eci) {
+      ctx:channels.filter(function(c) {
+        c{"id"} == eci
+      }).head()
+    }
+
+    policyAllowsEvent = function(eventPolicy, domain, name) {
+      eventPolicy{"deny"}.any(function(p) {
+        (p{"domain"} == "*" || p{"domain"} == domain) &&
+        (p{"name"} == "*" || p{"name"} == name)
+      }) => false |
+      eventPolicy{"allow"}.any(function(p) {
+        (p{"domain"} == "*" || p{"domain"} == domain) &&
+        (p{"name"} == "*" || p{"name"} == name)
+      })
+    }
+
+    policyAllowsQuery = function(queryPolicy, rid, name) {
+      queryPolicy{"deny"}.any(function(p) {
+        (p{"rid"} == "*" || p{"rid"} == rid) &&
+        (p{"name"} == "*" || p{"name"} == name)
+      }) => false |
+      queryPolicy{"allow"}.any(function(p) {
+        (p{"rid"} == "*" || p{"rid"} == rid) &&
+        (p{"name"} == "*" || p{"name"} == name)
+      })
+    }
+
+    allowsEventForChannel = function(eci, domain, name) {
+      channel = channelForEci(eci)
+      channel.isnull() => false |
+      policyAllowsEvent(channel{"eventPolicy"}, domain, name)
+    }
+
+    allowsQueryForChannel = function(eci, rid, name) {
+      channel = channelForEci(eci)
+      channel.isnull() => false |
+      policyAllowsQuery(channel{"queryPolicy"}, rid, name)
+    }
+
+    dropTriggerBinding = function(notif, caller_eci) {
+      (notif{"trigger"}.isnull() ||
+        allowsEventForChannel(caller_eci, notif{"trigger"}{"domain"}, notif{"trigger"}{"name"})) =>
+        notif |
+        notif.delete("trigger")
+    }
+
+    dropForwardBinding = function(notif, caller_eci) {
+      (notif{"forward"}.isnull() ||
+        allowsEventForChannel(caller_eci, notif{"forward"}{"domain"}, notif{"forward"}{"name"})) =>
+        notif |
+        notif.delete("forward")
+    }
+
+    filterNotificationBindings = function(notif, caller_eci) {
+      notif.isnull() => null |
+      dropForwardBinding(dropTriggerBinding(notif, caller_eci), caller_eci)
+    }
+
+    filterBindingsBody = function(bindings, caller_eci, rid) {
+      {
+        "version": bindings{"version"},
+        "queries": bindings{"queries"}.defaultsTo([]).filter(function(q) {
+          allowsQueryForChannel(caller_eci, rid, q{"name"})
+        }),
+        "events": bindings{"events"}.defaultsTo([]).filter(function(e) {
+          allowsEventForChannel(caller_eci, e{"domain"}, e{"name"})
+        }),
+        "notifications": filterNotificationBindings(bindings{"notifications"}, caller_eci)
+      }
+    }
+
+    filterBindingsForCaller = function(bindings, caller_eci, rid) {
+      caller_eci.isnull() => bindings |
+      filterBindingsBody(bindings.defaultsTo({}), caller_eci, rid)
+    }
+
+// ********************************************************************************************
 // ***                                      Picos                                           ***
 // ********************************************************************************************
 
@@ -221,6 +324,30 @@ ruleset io.picolabs.wrangler {
         "id":ent:id,
         "eci":ent:eci
       }
+    }
+
+    /** Portable did:webvh for this pico (Layer 2). */
+    myDid = function() {
+      dido:myDid()
+    }
+
+    /** True when this pico accepts unsolicited intro DIDComm on its did:webvh. */
+    publicIntro = function() {
+      dido:publicIntro()
+    }
+
+    setPublicIntro = defaction(enabled) {
+      dido:setPublicIntro(enabled)
+    }
+
+    /** Layer 2: create did:peer + internal Rx for a subscription bus map. */
+    establishSubscription = function(bus) {
+      dido:establishSubscription(bus)
+    }
+
+    /** did:webvh of the pico that sent the current event (layer2 cross-pico delivery). */
+    callerDid = function() {
+      event:attr("callerDid")
     }
     
     children = function() {
@@ -437,7 +564,6 @@ ruleset io.picolabs.wrangler {
         parts.splice(parts.length()-1,1,rid+".krl").join("/")
       }
       subs_url = sibling_ruleset_url("io.picolabs.subscription")
-      did_o_url = sibling_ruleset_url("io.picolabs.did-o")
       pds_url = sibling_ruleset_url("io.picolabs.pds")
     }
     fired {
@@ -445,8 +571,6 @@ ruleset io.picolabs.wrangler {
         attributes {"url": pds_url}
       raise wrangler event "install_ruleset_request"
         attributes {"url": subs_url}
-      raise wrangler event "install_ruleset_request"
-        attributes {"url": did_o_url}
       ent:parent_eci := ctx:parent
       ent:name := event:attr("name")
       ent:id := ctx:picoId
@@ -506,6 +630,65 @@ ruleset io.picolabs.wrangler {
       event:send({"eci":ent:parent_eci,
         "domain":"wrangler", "type":"child_deletion_request",
         "attrs":{"eci":my_eci}})
+  }
+
+  rule ensure_discovery_channel_on_setup {
+    select when engine_ui setup
+    pre {
+      existing = discoveryChannel()
+    }
+    if existing.isnull() then
+      createChannel(["discovery"], discoveryEventPolicy(), discoveryQueryPolicy())
+  }
+
+  rule ensure_discovery_channel_on_initialized {
+    select when wrangler pico_initialized
+    pre {
+      existing = discoveryChannel()
+    }
+    if existing.isnull() then
+      createChannel(["discovery"], discoveryEventPolicy(), discoveryQueryPolicy())
+  }
+
+  rule ensure_discovery_channel_on_wrangler_installed {
+    select when wrangler ruleset_installed where event:attr("rids") >< ctx:rid
+    pre {
+      existing = discoveryChannel()
+    }
+    if existing.isnull() then
+      createChannel(["discovery"], discoveryEventPolicy(), discoveryQueryPolicy())
+  }
+
+  rule ensure_discovery_channel_on_engine_started {
+    select when engine started
+    pre {
+      existing = discoveryChannel()
+    }
+    if existing.isnull() then
+      createChannel(["discovery"], discoveryEventPolicy(), discoveryQueryPolicy())
+  }
+
+  rule wrangler_set_public_intro {
+    select when wrangler set_public_intro
+    setPublicIntro(event:attr("enabled"))
+  }
+
+  // ---- DIDComm ingress (folded from io.picolabs.did-o, Layer 2) ----
+
+  rule didcomm_init_routes_on_setup {
+    select when engine_ui setup
+    pre {
+      ping = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping", "dido", "receive_trust_ping")
+      ping_response = dido:addRoute("https://didcomm.org/trust_ping/2.0/ping_response", "dido", "receive_trust_ping_response")
+    }
+  }
+
+  rule didcomm_route_message {
+    select when dido didcomm_message
+    pre {
+      response = dido:route(event:attrs.delete("_headers"))
+    }
+    if response then send_directive("response", {}.put(response))
   }
 
 }//end ruleset

@@ -48,6 +48,14 @@ Raise an event to yourself. This event does not use a channel, only runs on the 
 - `name` - String - The event name.
 - `attrs` - Map - The event attributes.
 
+## ctx:allowsEvent(eci, domain, name)
+
+Return `true` when the given channel's event policy would allow an event with this domain and name. Returns `false` for unknown channels or denied events (never throws).
+
+## ctx:allowsQuery(eci, rid, name)
+
+Return `true` when the given channel's query policy would allow this query. Returns `false` for unknown channels or denied queries (never throws).
+
 ## ctx:query(eci, rid, name, args = {})
 
 Query a local pico.

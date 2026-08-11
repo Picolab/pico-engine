@@ -1,5 +1,6 @@
 - [KRL Manual](/krl/)
   - [Rulesets](/krl/rulesets)
+  - [Discovery](/krl/discovery)
   - [Standard Library](/krl/stdlib)
   - [Modules](/krl/modules)
   - [ctx](/krl/modules/ctx)

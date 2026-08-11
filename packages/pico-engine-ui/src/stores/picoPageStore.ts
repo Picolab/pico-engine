@@ -2,7 +2,24 @@ import * as React from "react";
 import { apiGet, getAllPicoBoxes } from "../api";
 import { authLogout, UiContext } from "../authApi";
 import { PicoBox } from "../types/PicoBox";
+import {
+  loadOffEnginePosition,
+  saveOffEnginePosition,
+} from "./offEnginePosition";
 import { fetchSubscriptions, computeSubscriptionLines } from "./subscriptions";
+
+type XY = { x: number; y: number };
+type LineXYs = { from: XY; to: XY };
+
+export interface OffEngineNode {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string;
+  hosts?: string[];
+}
 
 interface State {
   loading: boolean;
@@ -13,18 +30,17 @@ interface State {
   picoBoxes: { [eci: string]: PicoBox };
   channelLines: LineXYs[];
   subLines: LineXYs[];
-  subs: { [id: string]: PicoBox[] };
+  offEngineNode: OffEngineNode | null;
+  subs: Record<string, { ecis: string[]; sub: Record<string, unknown> }>;
 }
 
 export interface PicoMoving {
-  eci: string;
+  eci?: string;
+  offEngine?: boolean;
   action: "moving" | "resizing";
   relX: number;
   relY: number;
 }
-
-type XY = { x: number; y: number };
-type LineXYs = { from: XY; to: XY };
 
 export default (function picoPageStore() {
   let state: State = {
@@ -34,9 +50,13 @@ export default (function picoPageStore() {
     picoMoving: null,
     picoBoxes: {},
     subLines: [],
+    offEngineNode: null,
     channelLines: [],
-    subs: {}
+    subs: {},
   };
+
+  let offEnginePosition: XY | null = null;
+  let rootEciForLayout: string | null = null;
 
   // way to subscribe and notify react components of state change
   let setters: React.Dispatch<React.SetStateAction<number>>[] = [];
@@ -75,6 +95,10 @@ export default (function picoPageStore() {
       if (!rootEci) {
         throw new Error("Not signed in");
       }
+      if (rootEciForLayout !== rootEci) {
+        rootEciForLayout = rootEci;
+        offEnginePosition = loadOffEnginePosition(rootEci);
+      }
       const boxes = await getAllPicoBoxes(rootEci);
       state.uiContext = context;
       state.picoBoxes = {};
@@ -106,7 +130,26 @@ export default (function picoPageStore() {
   }
 
   function computeSubLines() {
-    state.subLines = computeSubscriptionLines(state.subs, state.picoBoxes);
+    const result = computeSubscriptionLines(
+      state.subs,
+      state.picoBoxes,
+      offEnginePosition
+    );
+    state.subLines = result.lines;
+    state.offEngineNode = result.offEngineNode;
+    if (!offEnginePosition && result.defaultOffEnginePosition) {
+      offEnginePosition = result.defaultOffEnginePosition;
+    }
+  }
+
+  async function refreshSubscriptions() {
+    const boxes = Object.values(state.picoBoxes);
+    if (boxes.length === 0) {
+      return;
+    }
+    state.subs = { ...(await fetchSubscriptions(boxes)) };
+    computeSubLines();
+    notify();
   }
 
   function computeChannelLines() {
@@ -142,6 +185,18 @@ export default (function picoPageStore() {
     }
   }
 
+  function updateOffEnginePosition(x: number, y: number) {
+    offEnginePosition = { x, y };
+    computeSubLines();
+    notify();
+  }
+
+  function persistOffEnginePosition() {
+    if (rootEciForLayout && offEnginePosition) {
+      saveOffEnginePosition(rootEciForLayout, offEnginePosition);
+    }
+  }
+
   function setPicoMoving(p: PicoMoving | null) {
     state.picoMoving = p;
     notify();
@@ -152,5 +207,15 @@ export default (function picoPageStore() {
     window.location.reload();
   }
 
-  return { use, fetchAll, fetchAllWithBootstrapRetry, updateBox, setPicoMoving, logout };
+  return {
+    use,
+    fetchAll,
+    fetchAllWithBootstrapRetry,
+    refreshSubscriptions,
+    updateBox,
+    updateOffEnginePosition,
+    persistOffEnginePosition,
+    setPicoMoving,
+    logout,
+  };
 })();

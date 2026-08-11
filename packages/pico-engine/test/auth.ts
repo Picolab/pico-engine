@@ -1,3 +1,7 @@
+/**
+ * Passkey registration, login, session lifecycle, and account management.
+ */
+
 import test from "ava";
 import * as path from "path";
 import { AuthError } from "../src/auth";
@@ -50,6 +54,18 @@ function fakeAuthenticator(): WebAuthnAdapter {
     },
   };
 }
+
+test("WebAuthn user.name includes host:port for multi-engine disambiguation", async (t) => {
+  const pe = await startIsolatedEngine({
+    webauthn: fakeAuthenticator(),
+    base_url: "http://localhost:3002",
+  });
+
+  const reg = await pe.auth.registerNewAccountOptions({ displayName: "Alice" });
+  t.is((reg.options as any).user.name, "Alice (localhost:3002)");
+
+  await pe.pf.db.close();
+});
 
 test("registration provisions a new root, stores account+credential, session reflects it", async (t) => {
   const pe = await startIsolatedEngine({

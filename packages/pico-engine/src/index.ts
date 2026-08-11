@@ -6,6 +6,8 @@ import * as path from "path";
 import { PicoEngineCore, RulesetRegistry } from "pico-engine-core";
 import { PicoDbKey, PicoFramework } from "pico-framework";
 import { AuthService, WebAuthnAdapter, makeWebAuthnAdapter } from "./auth";
+import { IdentityStore, IdentityService, initDidoModule } from "./identity";
+import { registerWebvhRoutes } from "./identity/webvhRoutes";
 import { OAuthService, initOAuthModule } from "./oauth";
 import { getPicoLogs, makeRotatingFileLogWriter } from "./logging";
 import { provisionRoot, uiECIForRoot } from "./provisionRoot";
@@ -107,6 +109,8 @@ export interface PicoEngine {
   rsRegistry: RulesetRegistry;
   auth: AuthService;
   oauth: OAuthService;
+  identity: IdentityStore;
+  identityService: IdentityService;
 }
 
 export async function startEngine(
@@ -149,9 +153,23 @@ export async function startEngine(
       return getPicoLogs(logFilePath, picoId);
     },
   });
+  const pf = core.picoFramework;
+  const identity = new IdentityStore({ db: pf.db });
+  let identityService!: IdentityService;
+  identityService = new IdentityService({
+    store: identity,
+    getBaseUrl: () => core.base_url || base_url || "",
+    pf,
+  });
+  core.onPicoCreated = async (picoId, ctx) => {
+    if (core.base_url) {
+      await identityService.ensureWebvhDid(picoId, { isRoot: ctx.isRoot });
+    }
+  };
+  core.modules["dido"] = initDidoModule(identityService);
+
   await core.start();
   const rsRegistry = core.rsRegistry;
-  const pf = core.picoFramework;
 
   // Fresh engines boot with zero roots. Adopt + (re)provision only when roots
   // already exist (test harness with autoCreateRootPico, or a migrated DB).
@@ -176,6 +194,9 @@ export async function startEngine(
     },
     provisionRoot: async (opts) => {
       const { root, uiECI } = await provisionRoot(pf, core, opts);
+      if (core.base_url) {
+        await identityService.ensureWebvhDid(root.id, { isRoot: true });
+      }
       return { rootPicoId: root.id, uiECI };
     },
     getUiECI: (rootPicoId: string) => uiECIForRoot(pf, rootPicoId),
@@ -207,7 +228,7 @@ export async function startEngine(
   });
   core.modules["oauth"] = initOAuthModule(oauth);
 
-  const app = server(core, uiECI, auth, oauth);
+  const app = server(core, uiECI, auth, oauth, identityService);
 
   if ((!port || !_.isInteger(port) || port < 1) && port !== 0) {
     port = process.env.NODE_ENV === "test" ? 0 : 3000;
@@ -228,6 +249,8 @@ export async function startEngine(
     base_url = `http://localhost:${port}`;
   }
   core.base_url = base_url;
+
+  await identityService.ensureWebvhForAllLoadedPicos();
 
   log.info(`Listening at ${base_url}`);
 
@@ -255,5 +278,7 @@ export async function startEngine(
     rsRegistry,
     auth,
     oauth,
+    identity,
+    identityService,
   };
 }

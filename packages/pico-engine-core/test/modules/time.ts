@@ -1,3 +1,7 @@
+/**
+ * KRL time module builtins.
+ */
+
 import test from "ava";
 import { KrlCtx } from "krl-stdlib";
 import time from "../../src/modules/time";

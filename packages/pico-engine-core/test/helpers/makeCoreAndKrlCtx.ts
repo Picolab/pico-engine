@@ -1,3 +1,7 @@
+/**
+ * Build PicoEngineCore plus KrlCtx for module unit tests.
+ */
+
 import { KrlCtx, makeKrlLogger } from "krl-stdlib";
 import { PicoEngineCore } from "../../src/PicoEngineCore";
 import { RulesetRegistryLoaderTesting } from "./RulesetRegistryLoaderTesting";

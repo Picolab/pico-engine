@@ -20,6 +20,8 @@ export const UI_CHANNEL_EVENT_POLICY: EventPolicy = {
     { domain: "wrangler", name: "inbound_rejection" },
     { domain: "wrangler", name: "outbound_cancellation" },
     { domain: "wrangler", name: "subscription_cancellation" },
+    { domain: "wrangler", name: "set_public_intro" },
+    { domain: "wrangler", name: "send_event_on_subs" },
   ],
   deny: [],
 };
@@ -38,6 +40,8 @@ export const UI_CHANNEL_QUERY_POLICY: QueryPolicy = {
     { rid: "io.picolabs.subscription", name: "inbound" },
     { rid: "io.picolabs.subscription", name: "outbound" },
     { rid: "io.picolabs.subscription", name: "wellKnown_Rx" },
+    { rid: "io.picolabs.wrangler", name: "myDid" },
+    { rid: "io.picolabs.wrangler", name: "publicIntro" },
   ],
   deny: [],
 };

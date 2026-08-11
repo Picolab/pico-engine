@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useParams } from "react-router-dom";
 import { apiSavePicoBox } from "../api";
+import OffEngineNode from "./OffEngineNode";
 import picoPageStore from "../stores/picoPageStore";
 import Pico from "./Pico";
 import SettingsModal from "./SettingsModal";
@@ -25,16 +26,27 @@ const PicosPage: React.FC<Props> = () => {
 
     switch (picoPage.picoMoving.action) {
       case "moving": {
-        picoPageStore.updateBox(picoPage.picoMoving.eci, {
-          x: e.clientX - (picoPage.picoMoving.relX || 0),
-          y: e.clientY - (picoPage.picoMoving.relY || 0),
-        });
+        if (picoPage.picoMoving.offEngine) {
+          picoPageStore.updateOffEnginePosition(
+            e.clientX - (picoPage.picoMoving.relX || 0),
+            e.clientY - (picoPage.picoMoving.relY || 0)
+          );
+        } else if (picoPage.picoMoving.eci) {
+          picoPageStore.updateBox(picoPage.picoMoving.eci, {
+            x: e.clientX - (picoPage.picoMoving.relX || 0),
+            y: e.clientY - (picoPage.picoMoving.relY || 0),
+          });
+        }
         break;
       }
       case "resizing": {
-        const box = picoPage.picoBoxes[picoPage.picoMoving.eci];
+        const eci = picoPage.picoMoving.eci;
+        if (!eci) {
+          break;
+        }
+        const box = picoPage.picoBoxes[eci];
         if (box) {
-          picoPageStore.updateBox(picoPage.picoMoving.eci, {
+          picoPageStore.updateBox(eci, {
             width: Math.max(0, e.clientX - box.x),
             height: Math.max(0, e.clientY - box.y),
           });
@@ -47,14 +59,18 @@ const PicosPage: React.FC<Props> = () => {
   function onMouseUp(e: React.MouseEvent) {
     if (!picoPage.picoMoving) return;
 
-    const box = picoPage.picoBoxes[picoPage.picoMoving.eci];
-    if (box) {
-      apiSavePicoBox(box.eci, {
-        x: box.x,
-        y: box.y,
-        width: box.width,
-        height: box.height,
-      });
+    if (picoPage.picoMoving.offEngine) {
+      picoPageStore.persistOffEnginePosition();
+    } else if (picoPage.picoMoving.eci) {
+      const box = picoPage.picoBoxes[picoPage.picoMoving.eci];
+      if (box) {
+        apiSavePicoBox(box.eci, {
+          x: box.x,
+          y: box.y,
+          width: box.width,
+          height: box.height,
+        });
+      }
     }
 
     picoPageStore.setPicoMoving(null);
@@ -113,6 +129,10 @@ const PicosPage: React.FC<Props> = () => {
           />
         );
       })}
+
+      {picoPage.offEngineNode ? (
+        <OffEngineNode node={picoPage.offEngineNode} />
+      ) : null}
 
       <svg id="picos-svg">
         {picoPage.channelLines.map((line, i) => {

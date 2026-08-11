@@ -1,15 +1,18 @@
+/**
+ * Ruleset registry: load, cache, and resolve rulesets from URLs.
+ */
+
 import test from "ava";
-import * as cuid from "cuid";
 import * as fs from "fs";
 import * as makeDir from "make-dir";
 import * as path from "path";
-import * as os from "os";
 import { RulesetRegistry } from "pico-engine-core";
 import { RulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
 import { toFileUrl } from "../src/utils/toFileUrl";
+import { tmpHome } from "./helpers/tmpHome";
 
 test("RulesetRegistry", async (t) => {
-  const dir = path.resolve(os.tmpdir(), "pico-engine", cuid());
+  const dir = tmpHome();
   await makeDir(dir);
 
   await fs.promises.writeFile(

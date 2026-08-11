@@ -1,3 +1,7 @@
+/**
+ * KRL parser error messages and ambiguous syntax cases.
+ */
+
 import test from "ava";
 import { parse } from "../src/krl";
 import tokenizer from "../src/tokenizer";

@@ -1,3 +1,7 @@
+/**
+ * Permissive channel config shared by core module tests.
+ */
+
 import { ChannelConfig } from "pico-framework";
 
 export const allowAllChannelConf: ChannelConfig = {

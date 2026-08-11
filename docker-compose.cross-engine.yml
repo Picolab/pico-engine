@@ -1,0 +1,44 @@
+# EXPERIMENTAL — bridge-network Docker is a poor fit for cross-engine demos
+# (localhost in DIDs is not reachable container-to-container; passkeys vs
+# host.docker.internal conflict). Prefer two host processes — see
+# docs/guides/layer2-subscriptions.md § Cross-engine on one machine.
+#
+# Build:  docker compose -f docker-compose.cross-engine.yml build
+# Run:    docker compose -f docker-compose.cross-engine.yml up -d
+
+services:
+  pico-engine-a:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+      additional_contexts:
+        pico-framework: ../pico-framework
+    image: picolabs/pico-engine:1.6-dev
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./docker/pico-image-a:/var/pico-image
+    environment:
+      PICO_ENGINE_BASE_URL: http://host.docker.internal:3001
+      PICO_ENGINE_ALLOW_LOCALHOST_C: "1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  pico-engine-b:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+      additional_contexts:
+        pico-framework: ../pico-framework
+    image: picolabs/pico-engine:1.6-dev
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./docker/pico-image-b:/var/pico-image
+    environment:
+      PICO_ENGINE_BASE_URL: http://host.docker.internal:3002
+      PICO_ENGINE_ALLOW_LOCALHOST_C: "1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

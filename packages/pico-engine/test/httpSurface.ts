@@ -1,3 +1,8 @@
+/**
+ * HTTP surface auth: passkey sessions on /c/*, bearer on oauth-webhook, mesh
+ * OAuth rules.
+ */
+
 import test from "ava";
 process.env.PICO_ENGINE_ALLOW_LOCALHOST_C = "0";
 import fetch from "cross-fetch";

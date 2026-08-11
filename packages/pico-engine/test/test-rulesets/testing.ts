@@ -1,3 +1,7 @@
+/**
+ * AVA smoke test for the io.picolabs.testing ruleset fixture.
+ */
+
 import test from "ava";
 import { startTestEngine } from "../helpers/startTestEngine";
 

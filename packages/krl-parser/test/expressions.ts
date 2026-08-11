@@ -1,3 +1,7 @@
+/**
+ * KRL parser: expression literals and operators.
+ */
+
 import test from "ava";
 import { parse, parseExpression, parseRuleset } from "../src/krl";
 import tokenizer from "../src/tokenizer";

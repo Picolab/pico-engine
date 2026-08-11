@@ -1,3 +1,7 @@
+/**
+ * Base signal/event helper for pico-engine-core module tests.
+ */
+
 import { PicoFramework } from "pico-framework";
 import { cleanDirectives } from "./cleanDirectives";
 

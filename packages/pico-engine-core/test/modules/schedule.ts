@@ -1,3 +1,7 @@
+/**
+ * KRL schedule module: at, cron, and cancelForPico.
+ */
+
 import test from "ava";
 import * as _ from "lodash";
 import { Scheduler } from "../../src/modules/schedule";

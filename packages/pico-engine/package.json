@@ -33,7 +33,6 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "prepare": "npm run build",
     "build": "rm -rf dist && tsc",
     "start": "npm run dev -s",
     "dev": "scriptsp -r dev:tsc dev:api",
@@ -43,15 +42,38 @@
     "test:auth": "ava reset-cache && ava --serial ./test/auth.ts --timeout=2m",
     "test:oauth": "ava reset-cache && ava --serial ./test/oauth.ts --timeout=2m",
     "test:acg": "ava reset-cache && ava --serial ./test/acg.ts --timeout=2m",
-    "test:http": "ava reset-cache && ava --serial ./test/httpSurface.ts --timeout=2m"
+    "test:http": "ava reset-cache && ava --serial ./test/httpSurface.ts --timeout=2m",
+    "test:identity": "ava reset-cache && ava --serial ./test/identityStore.ts ./test/identityStoreEngine.ts --timeout=2m",
+    "test:dido": "ava reset-cache && ava --serial ./test/didoModule.ts --timeout=2m",
+    "test:webvh": "ava reset-cache && ava --serial ./test/webvh.ts --timeout=2m",
+    "test:didcomm": "ava reset-cache && ava --serial ./test/didcommIngress.ts --timeout=2m",
+    "test:establish-sub": "ava reset-cache && ava --serial ./test/establishSubscription.ts --timeout=2m",
+    "test:sky-intro": "ava reset-cache && ava --serial ./test/skyIntro.ts --timeout=2m",
+    "test:layer2-routing": "ava reset-cache && ava --serial ./test/layer2Routing.ts --timeout=2m",
+    "test:layer2-cancel": "ava reset-cache && ava --serial ./test/layer2Cancellation.ts --timeout=2m",
+    "test:layer2-wrangler": "ava reset-cache && ava --serial ./test/layer2Wrangler.ts --timeout=2m",
+    "test:layer2-policy": "ava reset-cache && ava --serial ./test/layer2ChannelPolicy.ts --timeout=2m",
+    "test:cross-engine": "ava reset-cache && ava --serial ./test/crossEngineSubscription.ts --timeout=3m",
+    "test:epic9": "ava reset-cache && ava --serial ./test/epic9Matrix.ts --timeout=3m"
   },
   "dependencies": {
+    "@noble/curves": "^1.9.0",
     "@simplewebauthn/server": "^13.2.2",
+    "@veramo/core": "^7.0.0",
+    "@veramo/did-comm": "^7.0.0",
+    "@veramo/did-manager": "^7.0.0",
+    "@veramo/did-provider-peer": "^7.0.0",
+    "@veramo/did-resolver": "^7.0.0",
+    "@veramo/key-manager": "^7.0.0",
+    "@veramo/kms-local": "^7.0.0",
+    "@veramo/utils": "^7.0.0",
     "body-parser": "^1.18.3",
     "charwise": "^3.0.1",
     "classic-level": "^1.3.0",
     "cross-fetch": "^4.0.0",
     "cuid": "^2.1.8",
+    "did-resolver": "^4.1.0",
+    "didwebvh-ts": "^2.8.0",
     "express": "^4.16.4",
     "helmet": "^7.1.0",
     "home-dir": "^1.0.0",
@@ -62,7 +84,7 @@
     "make-dir": "^4.0.0",
     "minimist": "^1.2.5",
     "pico-engine-core": "^1.5.2",
-    "pico-framework": "^0.8.0",
+    "pico-framework": "^0.8.1",
     "rotating-file-stream": "^1.4.1"
   },
   "devDependencies": {
@@ -81,6 +103,7 @@
       "ts"
     ],
     "require": [
+      "./test/helpers/testEnv.js",
       "ts-node/register",
       "./test/helpers/testEnv.ts"
     ],

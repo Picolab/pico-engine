@@ -1,3 +1,7 @@
+/**
+ * In-memory LevelDB factory for pico-engine-core tests.
+ */
+
 import { MemoryLevel } from "memory-level";
 import { PicoDb, PicoDbKey } from "pico-framework";
 const charwise = require("charwise");

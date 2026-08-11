@@ -1,3 +1,18 @@
+# 1.6.0 - (unreleased)
+
+* **Layer 2 identity** — every pico gets a portable **did:webvh** identity (`/picos/{picoId}/did.jsonl`); root picos default **`publicIntro: true`** for unsolicited SKY intro.
+* **Layer 2 subscriptions** — form subscriptions with **`layer2: true`** and **`target_did`** (did:webvh) instead of legacy **`wellKnown_Tx`** ECI; established subs store **`Tx_did`** / **`Rx_did`** (did:peer num_algo 2) for remote traffic.
+* **SKY intro / DIDComm** — cross-mesh and cross-engine intro, query, and events over encrypted DIDComm to **`/sky/event/.../dido/didcomm_message`** ingress; intra-mesh traffic stays local when roots share a mesh.
+* **Wrangler** — `myDid`, `publicIntro` / `set_public_intro`, `picoQuery` accepts did:webvh or did:peer; **`event:send({ did: ... })`** for remote picos.
+* **Developer UI** — **Subscriptions** tab: identity panel, Layer 2 create, established/inbound/outbound with DID fields and **subscription name** in lists, Rx policy preview, movable **Off Engine** node for cross-engine subs; **Channels** tab: optional custom **channel id (ECI)** at creation, **`?focus=`** deep link for policy editing.
+* **Passkeys** — WebAuthn **`user.name`** / display name and default rpName include **`host:port`** so multiple engines on one machine are distinguishable in password managers.
+* **Layout** — forest pico positions persist across **engine restart** (startup grid layout only for picos without saved coordinates).
+* **Cross-engine** — two engines resolve peer did:webvh logs when **`PICO_ENGINE_BASE_URL`** is reachable; local demo: two processes on `localhost:3001` / `:3002` (see **`docs/guides/layer2-subscriptions.md`**).
+* **Deprecated** — **`io.picolabs.did-o`** ruleset and **`dido:prepareQuery`**; use **`wrangler:picoQuery`** and **`event:send`** with DIDs.
+* **Breaking / migration** — **new Layer 2 subscriptions require a 1.6-capable peer**; legacy ECI subscriptions unchanged; engines need stable **`PICO_ENGINE_BASE_URL`** for portable DIDs (existing picos keep URL from creation).
+* **Tests** — `npm run test:epic9` (release matrix), `npm run test:cross-engine`, layer2 wrangler/policy, webvh, sky-intro, didcomm.
+* Requires **pico-framework** `^0.8.1` (custom channel id at creation, `eciIsTaken`, policy helpers for Layer 2 UI paths).
+
 # 1.5.2 - July 16, 2026
 
 * **Invites** — optional bootstrap ruleset URL on registration invites; validated (compile/load) when the invite is created; installed on the new root via wrangler (raises `ruleset_installed`) when the invite is accepted. Supports `file://` and `https://` URLs.

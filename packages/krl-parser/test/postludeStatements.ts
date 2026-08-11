@@ -1,3 +1,7 @@
+/**
+ * KRL parser: postlude statements (clear, last, etc.).
+ */
+
 import test from "ava";
 import { parseRuleset } from "../src/krl";
 import tokenizer from "../src/tokenizer";

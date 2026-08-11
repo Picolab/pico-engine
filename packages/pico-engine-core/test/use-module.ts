@@ -1,3 +1,7 @@
+/**
+ * use module install order, startup dependencies, and get dependency updates.
+ */
+
 import test from "ava";
 import { makeKrlLogger } from "krl-stdlib";
 import {

@@ -3,7 +3,7 @@ ruleset io.picolabs.pico-engine-ui {
     version "0.0.0"
     name "pico-engine-ui"
     description "This is the only ruleset the pico-engine-ui.js needs to operate"
-    shares box, uiECI, pico, logs, testingECI, name
+    shares box, uiECI, pico, logs, testingECI, name, needsStartupLayout
   }
   global {
     uiECI = function(){
@@ -28,6 +28,9 @@ ruleset io.picolabs.pico-engine-ui {
     }
     name = function(){
       ent:name || "Pico"
+    }
+    needsStartupLayout = function(){
+      ent:x.isnull() && ent:y.isnull()
     }
     box = function(){
       return {
@@ -143,7 +146,9 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "wrangler", "name": "pending_subscription_approval" },
           { "domain": "wrangler", "name": "inbound_rejection" },
           { "domain": "wrangler", "name": "outbound_cancellation" },
-          { "domain": "wrangler", "name": "subscription_cancellation" }
+          { "domain": "wrangler", "name": "subscription_cancellation" },
+          { "domain": "wrangler", "name": "set_public_intro" },
+          { "domain": "wrangler", "name": "send_event_on_subs" }
         ],
         "deny": []
       }
@@ -161,7 +166,9 @@ ruleset io.picolabs.pico-engine-ui {
           { "rid": "io.picolabs.subscription", "name": "established" },
           { "rid": "io.picolabs.subscription", "name": "inbound" },
           { "rid": "io.picolabs.subscription", "name": "outbound" },
-          { "rid": "io.picolabs.subscription", "name": "wellKnown_Rx" }
+          { "rid": "io.picolabs.subscription", "name": "wellKnown_Rx" },
+          { "rid": "io.picolabs.wrangler", "name": "myDid" },
+          { "rid": "io.picolabs.wrangler", "name": "publicIntro" }
         ],
         "deny": []
       }
@@ -245,7 +252,7 @@ ruleset io.picolabs.pico-engine-ui {
       layoutY = originY + 48 + gridRow * 98
       layoutColor = childPalette[childIndex % childPalette.length]
     }
-    if uiEci then
+    if uiEci && ctx:query(uiEci, ctx:rid, "needsStartupLayout") then
       ctx:event(
         eci=uiEci,
         domain="engine_ui",
@@ -327,7 +334,8 @@ ruleset io.picolabs.pico-engine-ui {
     ctx:newChannel(
       tags=event:attrs{"tags"},
       eventPolicy=event:attrs{"eventPolicy"},
-      queryPolicy=event:attrs{"queryPolicy"}
+      queryPolicy=event:attrs{"queryPolicy"},
+      id=event:attrs{"id"}
     )
   }
   rule del_channel {
