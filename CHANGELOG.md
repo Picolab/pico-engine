@@ -1,3 +1,9 @@
+# 1.6.3 - August 13, 2026
+
+* **Fix** — Cancelling **outbound pending** DID-based relationships no longer fails with `Recipient subscription … missing rxEci`; local dispatch falls back to the peer's inbound `Rx` channel when needed, and removal notifications degrade gracefully.
+* **Self-relationship guard** — A pico cannot form a relationship with itself: KRL blocks `target_did == myDid` and legacy `wellKnown_Tx == wellKnown_Rx`; `sendSkyIntro` rejects self-target; Developer UI validates before POST.
+* **Tests** — `relationshipSelf.ts`; extended `layer2Cancellation.ts` for root→child outbound cancel via `outbound_relationship_cancellation`.
+
 # 1.6.2 - August 13, 2026
 
 * **Developer UI** — **Subscriptions** tab renamed to **Relationships**; user-facing copy uses *relationship*; forms POST to `wrangler/relationship`, `pending_relationship_approval`, `relationship_cancellation`, and `outbound_relationship_cancellation`. Tab URL is `/relationships` (legacy `/subscriptions` still opens the tab). Forest graph store/helpers renamed internally (`fetchRelationships`, `relationshipLines`).

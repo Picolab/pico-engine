@@ -66,7 +66,9 @@ The Pico Labs documentation has a page inviting contributions and giving a step-
 
 To view details about versions: [CHANGELOG.md](https://github.com/Picolab/pico-engine/blob/master/CHANGELOG.md)
 
-**1.6:** Layer 2 identity (**did:webvh** for intros, **did:peer** for subscription traffic), DID-based subscriptions, and cross-engine SKY/DIDComm. Requires **pico-framework ^0.8.1**. See [docs/guides/layer2-subscriptions.md](docs/guides/layer2-subscriptions.md) and [docs/release/1.6.md](docs/release/1.6.md).
+**1.6:** Layer 2 identity (**did:webvh** for intros, **did:peer** for relationship traffic), DID-based relationships, and cross-engine SKY/DIDComm. Requires **pico-framework ^0.8.1**. See [docs/guides/layer2-subscriptions.md](docs/guides/layer2-subscriptions.md) and [docs/release/1.6.md](docs/release/1.6.md).
+
+**1.6.2+:** Developer UI **Relationships** tab (legacy *subscription* KRL names still work). **1.6.3:** outbound pending cancel fix; block self-relationships.
 
 ## License
 MIT

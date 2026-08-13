@@ -565,6 +565,10 @@ const Relationships: React.FC<Props> = ({ pico }) => {
       setCreateError("target_did must start with did:");
       return;
     }
+    if (myDid && did === myDid) {
+      setCreateError("Cannot form a relationship with yourself (target_did equals myDid).");
+      return;
+    }
     try {
       await apiPost(`/c/${pico.eci}/event/wrangler/relationship`, {
         layer2: true,
@@ -585,6 +589,13 @@ const Relationships: React.FC<Props> = ({ pico }) => {
   async function createLegacy(e: React.FormEvent) {
     e.preventDefault();
     setCreateError(null);
+    const wellKnown = (getRefVal(wellKnown_Tx) || "").trim();
+    if (myWellKnown && wellKnown === myWellKnown) {
+      setCreateError(
+        "Cannot form a relationship with yourself (wellKnown_Tx equals your wellKnown_Rx)."
+      );
+      return;
+    }
     try {
       await apiPost(`/c/${pico.eci}/event/wrangler/relationship`, {
         wellKnown_Tx: getRefVal(wellKnown_Tx) || "",

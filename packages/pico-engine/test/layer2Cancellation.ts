@@ -126,3 +126,96 @@ test("layer2 outbound pending cancellation clears local outbound", async (t) => 
 
   await pe.pf.db.close();
 });
+
+test("root outbound pending cancellation via relationship alias clears both sides", async (t) => {
+  const pe = await startIsolatedEngine({ autoCreateRootPico: true });
+  const root = pe.pf.rootPicos()[0];
+  const rootChann = await root.newChannel({
+    tags: ["allow-all"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+
+  await pe.pf.eventWait({
+    eci: rootChann.id,
+    domain: "wrangler",
+    name: "new_child_request",
+    data: { attrs: { name: "cancel-outbound-target" } },
+    time: 0,
+  });
+
+  const child = pe.pf.getPico(root.toReadOnly().children[0]);
+  const childChann = await child.newChannel({
+    tags: ["allow-all"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+  const childWebvh = (await pe.identity.getWebvhDid(child.id))!;
+
+  await pe.pf.eventWait({
+    eci: childChann.id,
+    domain: "wrangler",
+    name: "set_public_intro",
+    data: { attrs: { enabled: true } },
+    time: 0,
+  });
+
+  await pe.pf.eventWait({
+    eci: rootChann.id,
+    domain: "wrangler",
+    name: "relationship",
+    data: {
+      attrs: {
+        layer2: true,
+        target_did: childWebvh,
+        name: "root-to-child-pending",
+        Tx_role: "member",
+        Rx_role: "community",
+      },
+    },
+    time: 0,
+  });
+
+  const outbound = (await pe.pf.query({
+    eci: rootChann.id,
+    rid: "io.picolabs.subscription",
+    name: "outbound",
+    args: {},
+  })) as Array<{ Id: string }>;
+  t.is(outbound.length, 1);
+  const subId = outbound[0].Id;
+
+  const childInboundBefore = (await pe.pf.query({
+    eci: childChann.id,
+    rid: "io.picolabs.subscription",
+    name: "inbound",
+    args: {},
+  })) as unknown[];
+  t.is(childInboundBefore.length, 1);
+
+  await pe.pf.eventWait({
+    eci: rootChann.id,
+    domain: "wrangler",
+    name: "outbound_relationship_cancellation",
+    data: { attrs: { Id: subId } },
+    time: 0,
+  });
+
+  const outboundAfter = await pe.pf.query({
+    eci: rootChann.id,
+    rid: "io.picolabs.subscription",
+    name: "outbound",
+    args: {},
+  });
+  t.is((outboundAfter as unknown[]).length, 0);
+
+  const childInboundAfter = await pe.pf.query({
+    eci: childChann.id,
+    rid: "io.picolabs.subscription",
+    name: "inbound",
+    args: {},
+  });
+  t.is((childInboundAfter as unknown[]).length, 0);
+
+  await pe.pf.db.close();
+});

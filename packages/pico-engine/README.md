@@ -274,18 +274,18 @@ npm run test:auth     # passkeys
 
 Tests use isolated temp homes and ephemeral ports; they do not require stopping a running engine.
 
-## Layer 2 identity and subscriptions (1.6)
+## Layer 2 identity and relationships (1.6)
 
-Every pico has a portable **did:webvh** identity. **Layer 2 subscriptions** use **`layer2: true`** and a **`target_did`** (did:webvh) instead of the legacy **`wellKnown_Tx`** ECI handshake. After intro, remote traffic uses **did:peer** DIDs and SKY over **DIDComm** when picos are on different meshes or engines.
+Every pico has a portable **did:webvh** identity. **DID-based relationships** (Layer 2) use **`layer2: true`** and a **`target_did`** (did:webvh) instead of the legacy **`wellKnown_Tx`** ECI handshake. After intro, remote traffic uses **did:peer** DIDs and SKY over **DIDComm** when picos are on different meshes or engines. Prefer **`wrangler:relationship`** and **`use module io.picolabs.subscription alias relationship`** in new rulesets; legacy *subscription* event names remain supported.
 
 - **Same engine:** intra-mesh queries/events stay local when roots share a mesh.
 - **Cross-engine:** set a peer-reachable **`PICO_ENGINE_BASE_URL`** on each engine (for local demos, two processes on `localhost:3001` and `:3002` — see below).
-- **Developer UI:** **Subscriptions** tab (Layer 2 create, inbound approval, established subs with `Tx_did` / `Rx_did`).
-- **Legacy ECI subscriptions** are unchanged.
+- **Developer UI:** **Relationships** tab (DID-based create, inbound approval, established relationships with `Tx_did` / `Rx_did`). A pico cannot target itself (`target_did` / `wellKnown_Tx` checks).
+- **Legacy ECI relationships** are unchanged.
 
 **Deprecated:** `io.picolabs.did-o` and `dido:prepareQuery` — use **`wrangler:picoQuery`** and **`event:send({ did: … })`**.
 
-Full guide: [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md) · Release notes: [docs/release/1.6.md](../../docs/release/1.6.md)
+Full guide: [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md) · Release notes: [docs/release/1.6.md](../../docs/release/1.6.md) · [CHANGELOG.md](../../CHANGELOG.md) (1.6.2 relationships rename, 1.6.3 fixes)
 
 **Dependency:** pico-engine 1.6 requires **pico-framework `^0.8.1`** (npm). When developing engine + framework together, use `npm run link-framework` from the repo root.
 
@@ -311,7 +311,7 @@ PICO_ENGINE_HOME=/tmp/pico-engine-a PORT=3001 npm start
 PICO_ENGINE_HOME=/tmp/pico-engine-b PORT=3002 npm start
 ```
 
-Open http://localhost:3001 and http://localhost:3002 — register on both, then Layer 2 subscribe A→B. See [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md). Test/demo homes live under **`/tmp`** (not `~/.pico-engine`).
+Open http://localhost:3001 and http://localhost:3002 — register on both, then form a Layer 2 relationship A→B. See [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md). Test/demo homes live under **`/tmp`** (not `~/.pico-engine`).
 
 ## Contributing
 

@@ -35,7 +35,7 @@ export interface CrossPicoDeps {
 }
 
 function remotePeerDid(sub: PeerSubscriptionRecord): string {
-  const did = sub.remotePeerDid || sub.remoteDid;
+  const did = sub.remotePeerDid || sub.remoteDid || sub.remoteWebvhDid;
   if (!did) {
     throw new IdentityError("Subscription missing remote peer DID", 400);
   }
@@ -114,20 +114,37 @@ export async function crossPicoEvent(
     to &&
     (await usesLocalDispatch(deps.store, deps.pf, fromPicoId, to, sub))
   ) {
-    const recipientSub = await findRecipientSub(deps.store, to, subscriptionId);
-    return deps.pf.eventWait(
-      {
-        eci: recipientSub.rxEci!,
-        domain: event.domain,
-        name: event.name,
-        data: { attrs },
-        time: 0,
-      },
-      fromPicoId
-    );
+    const rxEci = await resolveRecipientRxEci(deps, to, subscriptionId);
+    if (rxEci) {
+      return deps.pf.eventWait(
+        {
+          eci: rxEci,
+          domain: event.domain,
+          name: event.name,
+          data: { attrs },
+          time: 0,
+        },
+        fromPicoId
+      );
+    }
   }
 
-  return sendSkyEvent(deps, fromPicoId, sub, event, attrs);
+  try {
+    return await sendSkyEvent(deps, fromPicoId, sub, event, attrs);
+  } catch (err) {
+    if (isRemovalNotification(event.name)) {
+      return { eid: "none", responses: [] };
+    }
+    throw err;
+  }
+}
+
+function isRemovalNotification(name: string): boolean {
+  return (
+    name === "inbound_removal" ||
+    name === "outbound_removal" ||
+    name === "established_removal"
+  );
 }
 
 export async function crossPicoQuery(
@@ -150,34 +167,88 @@ export async function crossPicoQuery(
     to &&
     (await usesLocalDispatch(deps.store, deps.pf, fromPicoId, to, sub))
   ) {
-    const recipientSub = await findRecipientSub(deps.store, to, subscriptionId);
-    return deps.pf.query(
-      {
-        eci: recipientSub.rxEci!,
-        rid: query.rid,
-        name: query.name,
-        args: query.args || {},
-      },
-      fromPicoId
-    );
+    const rxEci = await resolveRecipientRxEci(deps, to, subscriptionId);
+    if (rxEci) {
+      return deps.pf.query(
+        {
+          eci: rxEci,
+          rid: query.rid,
+          name: query.name,
+          args: query.args || {},
+        },
+        fromPicoId
+      );
+    }
   }
 
   return sendSkyQuery(deps, fromPicoId, sub, query);
 }
 
-async function findRecipientSub(
-  store: IdentityStore,
+function deliveryEci(
+  pf: PicoFramework,
+  picoId: string,
+  preferred?: string
+): string {
+  if (preferred) {
+    return preferred;
+  }
+  const pico = pf.loadedPicos().find((p) => p.id === picoId);
+  if (!pico) {
+    throw new IdentityError(`Pico ${picoId} not loaded`, 404);
+  }
+  for (const ch of Object.values(pico.channels)) {
+    const ro = ch.toReadOnly();
+    if (ro.tags.includes("wellKnown_Rx")) {
+      return ro.id;
+    }
+  }
+  for (const ch of Object.values(pico.channels)) {
+    const ro = ch.toReadOnly();
+    if (ro.tags.includes("allow-all")) {
+      return ro.id;
+    }
+  }
+  const first = Object.keys(pico.channels)[0];
+  if (!first) {
+    throw new IdentityError("Pico has no channel for cross-pico delivery", 404);
+  }
+  return first;
+}
+
+/** Resolve Rx ECI on the recipient for local dispatch (identity store, then inbound bus). */
+async function resolveRecipientRxEci(
+  deps: CrossPicoDeps,
   toPicoId: string,
   subscriptionId: string
-): Promise<PeerSubscriptionRecord> {
-  const recipientSub = await store.getPeerSubscription(toPicoId, subscriptionId);
-  if (!recipientSub?.rxEci) {
-    throw new IdentityError(
-      `Recipient subscription ${subscriptionId} missing rxEci`,
-      404
-    );
+): Promise<string | undefined> {
+  const recipientSub = await deps.store.getPeerSubscription(
+    toPicoId,
+    subscriptionId
+  );
+  if (recipientSub?.rxEci) {
+    return recipientSub.rxEci;
   }
-  return recipientSub;
+
+  try {
+    const queryEci = deliveryEci(deps.pf, toPicoId, recipientSub?.rxEci);
+    const inbound = (await deps.pf.query(
+      {
+        eci: queryEci,
+        rid: "io.picolabs.subscription",
+        name: "inbound",
+        args: {},
+      },
+      toPicoId
+    )) as Array<{ Id?: string; Rx?: string }>;
+    const bus = inbound.find((b) => b.Id === subscriptionId);
+    if (typeof bus?.Rx === "string" && bus.Rx.length > 0) {
+      return bus.Rx;
+    }
+  } catch {
+    // fall through to DIDComm or no-op
+  }
+
+  return undefined;
 }
 
 async function sendSkyEvent(

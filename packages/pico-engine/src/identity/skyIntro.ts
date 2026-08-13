@@ -101,6 +101,11 @@ export async function sendSkyIntro(
   picoId: string,
   input: SkyIntroSendInput
 ): Promise<{ messageId: string; peerDid: string }> {
+  const senderWebvh = await deps.store.getWebvhDid(picoId);
+  if (senderWebvh && input.targetDid === senderWebvh) {
+    throw new IdentityError("Cannot form a relationship with self", 400);
+  }
+
   const established = await establishSubscriptionIdentity(
     deps.store,
     deps.pf,
@@ -126,7 +131,6 @@ export async function sendSkyIntro(
     subscription_id: input.subscriptionId,
   };
 
-  const senderWebvh = await deps.store.getWebvhDid(picoId);
   if (senderWebvh) {
     body.sender_webvh = senderWebvh;
     try {

@@ -328,7 +328,7 @@ ent:established [
       channel_type  = event:attr("channel_type").defaultsTo("Tx_Rx","Tx_Rx channel_type used.")
       pending_entry = pending_entry().put(["wellKnown_Tx"],event:attr("wellKnown_Tx"))
     }
-    if not layer2 && pending_entry{"wellKnown_Tx"} then // check if we have someone to send a request to
+    if not layer2 && pending_entry{"wellKnown_Tx"} && pending_entry{"wellKnown_Tx"} != wellKnown_Rx(){"id"} then // check if we have someone to send a request to
       ctx:newChannel([channel_name,channel_type],allow_all_eventPolicy,allow_all_queryPolicy) setting(channel); // create Rx
     fired {
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
@@ -344,6 +344,16 @@ ent:established [
       raise wrangler event "outbound_pending_subscription_added" attributes event:attrs.put(fullNewBus)// API event
     }
   }//end createMySubscription rule
+
+  rule createRxBusLegacySelfFailure {
+    select when wrangler subscription
+             or wrangler relationship
+             where not event:attr("layer2") == true
+               && event:attr("wellKnown_Tx") == wellKnown_Rx(){"id"}
+    fired {
+      raise wrangler event "self_relationship_failure" attributes event:attrs
+    }
+  }
 
   rule createRxBusLegacyFailure {
     select when wrangler subscription
@@ -370,7 +380,7 @@ ent:established [
         .put(["target_did"], target_did)
         .put(["layer2"], true)
     }
-    if layer2 && target_did then
+    if layer2 && target_did && target_did != wrangler:myDid() then
       ctx:newChannel([channel_name,channel_type],allow_all_eventPolicy,allow_all_queryPolicy) setting(channel)
     fired {
       newBus = pending_entry.put({ "Rx" : channel{"id"} })
@@ -382,6 +392,16 @@ ent:established [
       ent:outbound := outbound().append(fullNewBus)
       raise wrangler event "subscription_request_needed" attributes event:attrs.put(fullNewBus)
       raise wrangler event "outbound_pending_subscription_added" attributes event:attrs.put(fullNewBus)
+    }
+  }
+
+  rule createRxBusLayer2SelfFailure {
+    select when wrangler subscription
+             or wrangler relationship
+             where event:attr("layer2") == true
+               && event:attr("target_did") == wrangler:myDid()
+    fired {
+      raise wrangler event "self_relationship_failure" attributes event:attrs
     }
   }
 
@@ -425,7 +445,7 @@ ent:established [
     pre {
       layer2 = event:attr("layer2") == true
       target = event:attr("target_did")
-      sent = layer2 && target => dido:sendSkyIntro({
+      sent = layer2 && target && target != wrangler:myDid() => dido:sendSkyIntro({
         "subscriptionId": event:attr("Id"),
         "targetDid": target,
         "name": event:attr("name").defaultsTo(event:attr("channel_name")),
