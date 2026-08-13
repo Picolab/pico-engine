@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "An implementation of the pico-engine targeting node.js",
   "repository": {
     "type": "git",
@@ -54,6 +54,7 @@
     "test:layer2-wrangler": "ava reset-cache && ava --serial ./test/layer2Wrangler.ts --timeout=2m",
     "test:layer2-policy": "ava reset-cache && ava --serial ./test/layer2ChannelPolicy.ts --timeout=2m",
     "test:cross-engine": "ava reset-cache && ava --serial ./test/crossEngineSubscription.ts --timeout=3m",
+    "test:relationship-alias": "ava reset-cache && ava --serial ./test/relationshipAlias.ts --timeout=2m",
     "test:epic9": "ava reset-cache && ava --serial ./test/epic9Matrix.ts --timeout=3m"
   },
   "dependencies": {

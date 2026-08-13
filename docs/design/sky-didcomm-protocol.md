@@ -577,6 +577,109 @@ Type URIs are versioned in the path (`/sky/1.0/`). A future `/sky/1.1/` namespac
 
 ---
 
+## 17. DIDComm Discover Features (planned)
+
+**Status:** not implemented in 1.6 · **Priority:** optional (1.7+)
+
+### Three discovery mechanisms (do not conflate)
+
+| Mechanism | Plane | Question | Implementation |
+|-----------|-------|----------|----------------|
+| **Discovery channel** | Integrator (HTTP/OAuth) | What queries/events can I use on this pico? | `discovery capabilities` → `discovery capability` directives — see [discovery.md](../packages/pico-engine/public/docs/krl/discovery.md) |
+| **did:webvh resolution** | Identity | Who is this pico? Where is its log? | `GET /picos/{picoId}/did.jsonl`, `wrangler:myDid()` |
+| **DIDComm Discover Features 2.0** | Pico↔pico (DIDComm) | What **protocols and goal codes** does this **agent** support? | **Planned** — this section |
+
+Integrator discovery is **not** SKY and **not** DIDComm Discover Features. Discover Features is agent-to-agent capability advertisement **before or beside** relationship formation — not a replacement for the discovery channel or for Rx channel policy after a relationship exists.
+
+**Normative reference:** [Discover Features Protocol 2.0](https://didcomm.org/discover-features/2.0/) ([Aries RFC 0557](https://identity.foundation/aries-rfcs/latest/features/0557-discover-features-v2/))
+
+### Why support it
+
+Homogeneous pico-engine ↔ pico-engine traffic can assume SKY 1.0 after intro; **Discover Features still helps when:**
+
+1. **Pre-intro cold query to did:webvh** — learn whether a stranger accepts public intro, speaks SKY intro/event/query, or supports a **goal-code** (e.g. borrow, sale) *before* paying for a full SKY intro round trip.
+2. **Cross-ecosystem interop** — generic Aries/DIDComm agents discover what a pico supports via standard `queries` / `disclose` messages.
+3. **2020 SSIoT narrative** — [*Relationships in the SSIoT*](https://www.windley.com/archives/2020/12/relationships_in_the_self-sovereign_internet_of_things.shtml) describes using DIDComm Discovery to learn if Doug is open to a sale transaction; that maps to **goal-code** disclosure, not integrator bindings.
+
+Discover Features is **lower priority** when both sides are known pico-engine peers and intro + `publicIntro` + Rx policy suffice.
+
+### Message types
+
+| Type URI | Direction | Purpose |
+|----------|-----------|---------|
+| `https://didcomm.org/discover-features/2.0/queries` | Requester → agent | Ask what features match (protocol, goal-code, …) |
+| `https://didcomm.org/discover-features/2.0/disclose` | Agent → requester | List supported features (`thid` = query `id`) |
+
+Example query (protocol wildcard):
+
+```json
+{
+  "type": "https://didcomm.org/discover-features/2.0/queries",
+  "id": "q-discover-1",
+  "body": {
+    "queries": [
+      { "feature-type": "protocol", "match": "https://picolabs.org/sky/1.*" },
+      { "feature-type": "goal-code", "match": "org.picolabs.*" }
+    ]
+  }
+}
+```
+
+Example disclose (response):
+
+```json
+{
+  "type": "https://didcomm.org/discover-features/2.0/disclose",
+  "thid": "q-discover-1",
+  "body": {
+    "disclosures": [
+      { "feature-type": "protocol", "id": "https://picolabs.org/sky/1.0/intro" },
+      { "feature-type": "protocol", "id": "https://picolabs.org/sky/1.0/event" },
+      { "feature-type": "protocol", "id": "https://picolabs.org/sky/1.0/query" },
+      { "feature-type": "goal-code", "id": "org.picolabs.relationship.owner" },
+      { "feature-type": "goal-code", "id": "org.picolabs.relationship.borrower" }
+    ]
+  }
+}
+```
+
+### Where it runs
+
+- **Ingress:** same DIDComm door as SKY — `POST …/dido/didcomm_message` on the pico’s ingress ECI.
+- **Addressing:** typically **did:webvh** (public agent) before a did:peer relationship exists; optionally did:peer post-establishment for re-negotiation (deferred).
+- **Routing:** register handlers via `dido:addRoute` (same pattern as legacy trust-ping routes on wrangler setup).
+
+### Proposed 1.7 baseline (minimal)
+
+Engine responds to `discover-features/2.0/queries` with a **static or config-driven disclose** list:
+
+| Disclosure | Source |
+|------------|--------|
+| SKY 1.0 protocol URIs (intro, intro-response, event, query, query-response) | `skyProtocol.ts` constants |
+| `publicIntro` hint | `wrangler:publicIntro()` / identity store — optional goal-code or feature flag |
+| Relationship goal-codes (future) | Typed relations from [pico-relationships.md](./pico-relationships.md) ReBAC work |
+
+No ruleset participation required for v1; KRL authors do not implement discover-features per app.
+
+### Non-goals (initial)
+
+- Replacing the **discovery channel** or `filterBindingsForCaller`
+- Wildcard query engine beyond protocol + goal-code match
+- Mediators, OOB invitation combined with discover-features
+- Full Aries interop certification matrix
+
+### Implementation checklist (when scheduled)
+
+- [ ] `dido:addRoute` for `discover-features/2.0/queries` and handler in engine or thin KRL rule
+- [ ] Build disclose payload from SKY type URIs + `publicIntro`
+- [ ] Pack/unpack reply as DIDComm message to requester
+- [ ] Test: query to did:webvh ingress → disclose includes SKY intro URI
+- [ ] Document distinction from integrator [discovery.md](../packages/pico-engine/public/docs/krl/discovery.md)
+
+**Estimated effort:** similar to trust-ping routing (~small; not a new subsystem).
+
+---
+
 ## Related documents
 
 - [pico-identity-layer2-work.md](./pico-identity-layer2-work.md) — epics and decisions

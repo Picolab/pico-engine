@@ -6,7 +6,7 @@ import {
   loadOffEnginePosition,
   saveOffEnginePosition,
 } from "./offEnginePosition";
-import { fetchSubscriptions, computeSubscriptionLines } from "./subscriptions";
+import { fetchRelationships, computeRelationshipLines } from "./relationships";
 
 type XY = { x: number; y: number };
 type LineXYs = { from: XY; to: XY };
@@ -29,9 +29,9 @@ interface State {
   picoMoving: PicoMoving | null;
   picoBoxes: { [eci: string]: PicoBox };
   channelLines: LineXYs[];
-  subLines: LineXYs[];
+  relationshipLines: LineXYs[];
   offEngineNode: OffEngineNode | null;
-  subs: Record<string, { ecis: string[]; sub: Record<string, unknown> }>;
+  relationships: Record<string, { ecis: string[]; sub: Record<string, unknown> }>;
 }
 
 export interface PicoMoving {
@@ -49,10 +49,10 @@ export default (function picoPageStore() {
     uiContext: null,
     picoMoving: null,
     picoBoxes: {},
-    subLines: [],
+    relationshipLines: [],
     offEngineNode: null,
     channelLines: [],
-    subs: {},
+    relationships: {},
   };
 
   let offEnginePosition: XY | null = null;
@@ -106,8 +106,8 @@ export default (function picoPageStore() {
         state.picoBoxes[box.eci] = box;
       }
       computeChannelLines();
-      state.subs = {...await fetchSubscriptions(boxes)};
-      computeSubLines();
+      state.relationships = { ...(await fetchRelationships(boxes)) };
+      computeRelationshipLinesFromState();
     } catch (err) {
       if (!quiet) {
         state.error = err + "";
@@ -129,26 +129,26 @@ export default (function picoPageStore() {
     }
   }
 
-  function computeSubLines() {
-    const result = computeSubscriptionLines(
-      state.subs,
+  function computeRelationshipLinesFromState() {
+    const result = computeRelationshipLines(
+      state.relationships,
       state.picoBoxes,
       offEnginePosition
     );
-    state.subLines = result.lines;
+    state.relationshipLines = result.lines;
     state.offEngineNode = result.offEngineNode;
     if (!offEnginePosition && result.defaultOffEnginePosition) {
       offEnginePosition = result.defaultOffEnginePosition;
     }
   }
 
-  async function refreshSubscriptions() {
+  async function refreshRelationships() {
     const boxes = Object.values(state.picoBoxes);
     if (boxes.length === 0) {
       return;
     }
-    state.subs = { ...(await fetchSubscriptions(boxes)) };
-    computeSubLines();
+    state.relationships = { ...(await fetchRelationships(boxes)) };
+    computeRelationshipLinesFromState();
     notify();
   }
 
@@ -180,14 +180,14 @@ export default (function picoPageStore() {
         ...updates
       };
       computeChannelLines();
-      computeSubLines();
+      computeRelationshipLinesFromState();
       notify();
     }
   }
 
   function updateOffEnginePosition(x: number, y: number) {
     offEnginePosition = { x, y };
-    computeSubLines();
+    computeRelationshipLinesFromState();
     notify();
   }
 
@@ -211,7 +211,7 @@ export default (function picoPageStore() {
     use,
     fetchAll,
     fetchAllWithBootstrapRetry,
-    refreshSubscriptions,
+    refreshRelationships,
     updateBox,
     updateOffEnginePosition,
     persistOffEnginePosition,

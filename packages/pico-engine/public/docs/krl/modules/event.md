@@ -39,7 +39,7 @@ event:send({
 }, host)                           // optional host for remote ECI
 ```
 
-**DID-based (1.6+) — send by DID** (requires an established DID-based subscription):
+**DID-based (1.6+) — send by DID** (requires an established DID-based relationship):
 
 ```krl
 event:send({
@@ -50,18 +50,20 @@ event:send({
 })
 ```
 
-**DID-based — send via established subscription map** (from `subscription:established()` etc.):
+**DID-based — send via established relationship map** (from `relationship:established()` etc.; legacy module name `subscription:established()`):
 
 ```krl
+use module io.picolabs.subscription alias relationship
+
 event:send({
-  "sub": bus,                      // established subscription map
+  "sub": bus,                      // established relationship (bus) map
   "domain": "wrangler",
   "type": "ping",
   "attrs": {}
 })
 ```
 
-When `bus.layer2` is true (DID-based subscription), routing uses `Tx_did` and DIDComm (or verified local dispatch on the same engine). ECI-based subscriptions use `bus.Tx` and optional `bus.Tx_host` as before.
+When `bus.layer2` is true (DID-based relationship), routing uses `Tx_did` and DIDComm (or verified local dispatch on the same engine). ECI-based relationships use `bus.Tx` and optional `bus.Tx_host` as before.
 
 ## event:attr
 

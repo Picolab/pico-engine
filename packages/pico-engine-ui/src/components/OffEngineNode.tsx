@@ -25,7 +25,7 @@ const OffEngineNode: React.FC<Props> = ({ node }) => {
   const hostTitle =
     node.hosts && node.hosts.length > 0
       ? node.hosts.join("\n")
-      : "Subscription on another engine";
+      : "Relationship on another engine";
 
   return (
     <div

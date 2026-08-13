@@ -17,7 +17,7 @@ Find the channel with `wrangler:discoveryChannel()` or `wrangler:channels(["disc
 
 ## Integrator flow
 
-1. Obtain the target pico's discovery channel ECI (via subscription metadata, parent query, etc.).
+1. Obtain the target pico's discovery channel ECI (via relationship metadata, parent query, etc.).
 2. Send `discovery capabilities` on that channel.
 3. Optionally include an **`eci`** attribute — the channel the integrator will use for subsequent queries and events on this pico.
 4. Collect **`discovery capability`** directives from the event response.

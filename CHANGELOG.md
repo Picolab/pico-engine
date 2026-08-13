@@ -1,3 +1,10 @@
+# 1.6.2 - August 13, 2026
+
+* **Developer UI** — **Subscriptions** tab renamed to **Relationships**; user-facing copy uses *relationship*; forms POST to `wrangler/relationship`, `pending_relationship_approval`, `relationship_cancellation`, and `outbound_relationship_cancellation`. Tab URL is `/relationships` (legacy `/subscriptions` still opens the tab). Forest graph store/helpers renamed internally (`fetchRelationships`, `relationshipLines`).
+* **KRL docs (embedded)** — `event.md` and `discovery.md` use *relationship* terminology with legacy `subscription` module notes.
+* **Wrangler event aliases** — `wrangler:relationship`, `pending_relationship_approval`, `relationship_cancellation`, `inbound_relationship_rejection`, and `outbound_relationship_cancellation` are accepted alongside legacy `subscription_*` names. Ruleset RID **`io.picolabs.subscription`** and entity keys unchanged.
+* **Tests** — `relationshipAlias.ts` verifies layer2 formation via `wrangler:relationship`.
+
 # 1.6.1 - August 11, 2026
 
 * **Developer UI** — Subscriptions tab uses **DID-based** / **ECI-based** labels instead of “Layer 2” / “legacy”; badges show **DID** / **ECI**; help text references **did:webvh** at create time; “Raw subscription record” replaces “Raw bus record”.

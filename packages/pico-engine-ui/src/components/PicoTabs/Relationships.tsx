@@ -176,7 +176,7 @@ function RxPolicyPanel({
   return (
     <div className="mt-2 p-2 border rounded bg-light">
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <b className="small">Subscription Rx channel policy</b>
+        <b className="small">Relationship Rx channel policy</b>
         {channel && !editing ? (
           <button
             type="button"
@@ -257,7 +257,7 @@ function RxPolicyPanel({
         </div>
       ) : (
         <div className="text-muted small">
-          Channel details not loaded — reload the tab or expand this subscription
+          Channel details not loaded — reload the tab or expand this relationship
           again.
         </div>
       )}
@@ -274,7 +274,7 @@ function SubDetail({
   onRefresh,
   onChannelUpdated,
   showSend,
-  deleteLabel = "Cancel subscription",
+  deleteLabel = "Cancel relationship",
 }: {
   pico: PicoBox;
   sub: SubBus;
@@ -368,7 +368,7 @@ function SubDetail({
       ) : null}
 
       <details className="mt-2">
-        <summary className="small text-muted">Raw subscription record</summary>
+        <summary className="small text-muted">Raw relationship record</summary>
         <pre className="small mb-0">{JSON.stringify(sub, null, 2)}</pre>
       </details>
 
@@ -441,7 +441,7 @@ function IdentityPanel({
   );
 }
 
-const Subscriptions: React.FC<Props> = ({ pico }) => {
+const Relationships: React.FC<Props> = ({ pico }) => {
   const [established, setEstablished] = React.useState<SubBus[]>([]);
   const [outbound, setOutbound] = React.useState<SubBus[]>([]);
   const [inbound, setInbound] = React.useState<SubBus[]>([]);
@@ -490,7 +490,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
     getInbound();
     getOutbound();
     picoDetails.load();
-    picoPageStore.refreshSubscriptions();
+    picoPageStore.refreshRelationships();
   }
 
   const getWellKnown = () => {
@@ -539,19 +539,19 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
   }, [pico.eci]);
 
   const acceptInbound = async (Id: string) => {
-    await apiPost(`/c/${pico.eci}/event/wrangler/pending_subscription_approval`, {
+    await apiPost(`/c/${pico.eci}/event/wrangler/pending_relationship_approval`, {
       Id,
     });
     refreshAll();
   };
 
   const cancelOutbound = async (Id: string) => {
-    await apiPost(`/c/${pico.eci}/event/wrangler/outbound_cancellation`, { Id });
+    await apiPost(`/c/${pico.eci}/event/wrangler/outbound_relationship_cancellation`, { Id });
     refreshAll();
   };
 
-  const deleteSubscription = async (Id: string) => {
-    await apiPost(`/c/${pico.eci}/event/wrangler/subscription_cancellation`, {
+  const deleteRelationship = async (Id: string) => {
+    await apiPost(`/c/${pico.eci}/event/wrangler/relationship_cancellation`, {
       Id,
     });
     refreshAll();
@@ -566,7 +566,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
       return;
     }
     try {
-      await apiPost(`/c/${pico.eci}/event/wrangler/subscription`, {
+      await apiPost(`/c/${pico.eci}/event/wrangler/relationship`, {
         layer2: true,
         target_did: did,
         name: getRefVal(l2Name) || null,
@@ -576,7 +576,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
         password: getRefVal(l2Password) || null,
       });
       getOutbound();
-      picoPageStore.refreshSubscriptions();
+      picoPageStore.refreshRelationships();
     } catch (err) {
       setCreateError(String(err));
     }
@@ -586,7 +586,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
     e.preventDefault();
     setCreateError(null);
     try {
-      await apiPost(`/c/${pico.eci}/event/wrangler/subscription`, {
+      await apiPost(`/c/${pico.eci}/event/wrangler/relationship`, {
         wellKnown_Tx: getRefVal(wellKnown_Tx) || "",
         Rx_role: getRefVal(Rx_role) || null,
         Tx_role: getRefVal(Tx_role) || null,
@@ -693,7 +693,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
 
   return (
     <div>
-      <h3>Subscriptions</h3>
+      <h3>Relationships</h3>
       <ErrorStatus error={picoDetails.error} />
 
       <IdentityPanel
@@ -707,8 +707,8 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
       {established.length > 0 ? <h5>Established</h5> : null}
       {renderSubList(established, {
         keyPrefix: "est",
-        onDelete: deleteSubscription,
-        deleteLabel: "Delete subscription",
+        onDelete: deleteRelationship,
+        deleteLabel: "Delete relationship",
         showSend: true,
       })}
 
@@ -726,7 +726,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
       })}
 
       <div className="mt-4">
-        <h5>New subscription</h5>
+        <h5>New relationship</h5>
         <ul className="nav nav-pills mb-2">
           <li className="nav-item">
             <button
@@ -756,8 +756,8 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
           <form onSubmit={createDidBased}>
             <p className="text-muted small">
               Introduce via SKY using the peer&apos;s <code>did:webvh</code>{" "}
-              (<b>myDid</b> on their Subscriptions tab). Share your{" "}
-              <b>myDid</b> above when they subscribe to you.
+              (<b>myDid</b> on their Relationships tab). Share your{" "}
+              <b>myDid</b> above when they form a relationship with you.
             </p>
             <div className="form-group">
               <label>target_did</label>
@@ -799,7 +799,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
               </div>
             </div>
             <button type="submit" className="btn btn-outline-primary">
-              Request subscription
+              Request relationship
             </button>
           </form>
         ) : (
@@ -845,7 +845,7 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
               </div>
             </div>
             <button type="submit" className="btn btn-outline-secondary">
-              Request legacy subscription
+              Request legacy relationship
             </button>
           </form>
         )}
@@ -857,4 +857,4 @@ const Subscriptions: React.FC<Props> = ({ pico }) => {
   );
 };
 
-export default Subscriptions;
+export default Relationships;

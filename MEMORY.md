@@ -1499,7 +1499,26 @@ wrangler (event sits on the schedule and never runs).
 
 ---
 
+## Subscriptions → relationships (nomenclature + rename)
+
+- **Design guide:** [`docs/design/pico-relationships.md`](docs/design/pico-relationships.md) —
+  correct mental model (pairwise, bidirectional, introduced, policy-gated, long-lived, typed),
+  family vs graph edges, ReBAC direction, combined **UI + wrangler alias** rename plan (~1 day,
+  ruleset RID `io.picolabs.subscription` unchanged). Windley 2020 SSIoT truck essay is the narrative
+  precedent. **ReBAC:** community/Manifold layer (Fleet RS sketch in design guide), not engine
+  enums. **Default wrangler type `peer`:** baseline Rx policy on every relationship —
+  [`pico-relationships.md` § peer](docs/design/pico-relationships.md#default-relationship-type-peer).
+  **Graph + policy in RS:** relationship record is the ReBAC graph; enrich KRL policy in rulesets
+  (not external Cedar/SpiceDB files) — see design guide § relationship record as the graph.
+  **DIDComm Discover Features** (pre-intro): planned —
+  [`sky-didcomm-protocol.md` §17](docs/design/sky-didcomm-protocol.md#17-didcomm-discover-features-planned)
+  (distinct from integrator discovery channel).
+
+---
+
 ## Cross-references
+- **Pico relationships (nomenclature + rename plan, 2026-08-12):**
+  [`docs/design/pico-relationships.md`](docs/design/pico-relationships.md)
 - **Pico move / export-import design (2026-07-17):**
   [`docs/design/pico-move.md`](../docs/design/pico-move.md) · GitHub
   [#659](https://github.com/Picolab/pico-engine/issues/659)

@@ -7,7 +7,7 @@ import About from "./PicoTabs/About";
 import Channels from "./PicoTabs/Channels";
 import Logging from "./PicoTabs/Logging";
 import Rulesets from "./PicoTabs/Rulesets";
-import Subscriptions from "./PicoTabs/Subscriptions";
+import Relationships from "./PicoTabs/Relationships";
 import Testing from "./PicoTabs/Testing";
 
 function returnTabLink(pico: PicoBox, label: string, tab?: string) {
@@ -41,7 +41,8 @@ function renderTabsBody(pico: PicoBox, openTab?: string) {
       return <Testing pico={pico} />;
 
     case "subscriptions":
-      return <Subscriptions pico={pico} />;
+    case "relationships":
+      return <Relationships pico={pico} />;
   }
 
   return <About pico={pico} />;
@@ -125,7 +126,7 @@ const Pico: React.FC<Props> = (props) => {
 
               {returnTabLink(pico, "Logging", "logging")}
               {returnTabLink(pico, "Testing", "testing")}
-              {returnTabLink(pico, "Subscriptions", "subscriptions")}
+              {returnTabLink(pico, "Relationships", "relationships")}
             </ul>
           </div>
           <div className="card-body bg-white overflow-auto">

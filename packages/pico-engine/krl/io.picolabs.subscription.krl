@@ -25,13 +25,23 @@ ruleset io.picolabs.subscription {
           "attrs": [ "wellKnown_Tx","password"] },
         { "domain": "wrangler", "name": "subscription",
           "attrs": [ "wellKnown_Tx"] },
+        { "domain": "wrangler", "name": "relationship",
+          "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","Tx_host","password","layer2","target_did"] },
         { "domain": "wrangler", "name": "pending_subscription_approval",
+          "attrs": [ "Id" ] },
+        { "domain": "wrangler", "name": "pending_relationship_approval",
           "attrs": [ "Id" ] },
         { "domain": "wrangler", "name": "subscription_cancellation",
           "attrs": [ "Id" ] },
+        { "domain": "wrangler", "name": "relationship_cancellation",
+          "attrs": [ "Id" ] },
         { "domain": "wrangler", "name": "inbound_rejection",
           "attrs": [ "Id" ] },
+        { "domain": "wrangler", "name": "inbound_relationship_rejection",
+          "attrs": [ "Id" ] },
         { "domain": "wrangler", "name": "outbound_cancellation",
+          "attrs": [ "Id" ] },
+        { "domain": "wrangler", "name": "outbound_relationship_cancellation",
           "attrs": [ "Id" ] },
         { "domain": "wrangler", "name": "autoAcceptConfigUpdate",
           "attrs": [ "configName", "password", "regexMap","delete" ] },
@@ -79,6 +89,7 @@ ent:established [
     wellKnown_eventPolicy = { // we need to restrict what attributes are allowed on this channel, specifically Id.
       "allow": [
           {"domain": "wrangler", "name": "subscription"},
+          {"domain": "wrangler", "name": "relationship"},
           {"domain": "wrangler", "name": "new_subscription_request"},
           {"domain": "wrangler", "name": "inbound_removal"}
         ],
@@ -310,6 +321,7 @@ ent:established [
 
   rule createRxBus {
     select when wrangler subscription
+             or wrangler relationship
     pre {
       layer2 = event:attr("layer2") == true
       channel_name  = event:attr("name").defaultsTo(random:word())
@@ -335,6 +347,7 @@ ent:established [
 
   rule createRxBusLegacyFailure {
     select when wrangler subscription
+             or wrangler relationship
     pre {
       layer2 = event:attr("layer2") == true
       hasWellKnown = event:attr("wellKnown_Tx")
@@ -347,6 +360,7 @@ ent:established [
 
   rule createRxBusLayer2 {
     select when wrangler subscription
+             or wrangler relationship
     pre {
       layer2 = event:attr("layer2") == true
       target_did = event:attr("target_did")
@@ -373,6 +387,7 @@ ent:established [
 
   rule createRxBusLayer2Failure {
     select when wrangler subscription
+             or wrangler relationship
     pre {
       layer2 = event:attr("layer2") == true
       target_did = event:attr("target_did")
@@ -466,6 +481,7 @@ ent:established [
 
   rule approveInboundPendingSubscriptionLayer2 {
     select when wrangler pending_subscription_approval
+             or wrangler pending_relationship_approval
     pre {
       bus = findBus(inbound())
       response = bus{"layer2"} == true => dido:sendSkyIntroResponse(bus{"Id"}, bus{"Tx_did"}, {"status": "accepted"}) | null
@@ -478,6 +494,7 @@ ent:established [
 
   rule approveInboundPendingSubscription {
     select when wrangler pending_subscription_approval
+             or wrangler pending_relationship_approval
     pre {
       bus     = findBus(inbound())
     }
@@ -569,6 +586,7 @@ ent:established [
 
   rule cancelEstablishedLayer2 {
     select when wrangler subscription_cancellation
+             or wrangler relationship_cancellation
     pre {
       bus = findBus(established())
       sent = bus{"layer2"} == true => dido:crossPicoEvent(bus{"Id"}, {
@@ -585,6 +603,7 @@ ent:established [
 
   rule cancelEstablished {
     select when wrangler subscription_cancellation
+             or wrangler relationship_cancellation
     pre{
       bus     = findBus(established())
       Tx_host = bus{"Tx_host"}
@@ -622,6 +641,7 @@ ent:established [
 
   rule cancelInboundLayer2 {
     select when wrangler inbound_rejection
+             or wrangler inbound_relationship_rejection
     pre {
       bus = findBus(inbound())
       sent = bus{"layer2"} == true => dido:crossPicoEvent(bus{"Id"}, {
@@ -638,6 +658,7 @@ ent:established [
 
   rule cancelInbound {
     select when wrangler inbound_rejection
+             or wrangler inbound_relationship_rejection
     pre{
       bus     = findBus(inbound())
       Tx_host = bus{"Tx_host"}
@@ -673,6 +694,7 @@ ent:established [
 
   rule cancelOutboundLayer2 {
     select when wrangler outbound_cancellation
+             or wrangler outbound_relationship_cancellation
     pre {
       bus = findBus(outbound())
       sent = bus{"layer2"} == true => dido:crossPicoEvent(bus{"Id"}, {
@@ -689,6 +711,7 @@ ent:established [
 
   rule cancelOutbound {
     select when wrangler outbound_cancellation
+             or wrangler outbound_relationship_cancellation
     pre{
       bus     = findBus(outbound())
       Tx_host = bus{"Tx_host"}

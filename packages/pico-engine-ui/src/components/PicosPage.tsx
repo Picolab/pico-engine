@@ -147,8 +147,8 @@ const PicosPage: React.FC<Props> = () => {
           );
         })}
       </svg>
-      <svg id="subs-svg">
-        {picoPage.subLines.map((line, i) => {
+      <svg id="relationships-svg">
+        {picoPage.relationshipLines.map((line, i) => {
           return (
             <line
               strokeDasharray="4"
