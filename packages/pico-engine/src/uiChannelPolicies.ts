@@ -27,6 +27,7 @@ export const UI_CHANNEL_EVENT_POLICY: EventPolicy = {
     { domain: "wrangler", name: "relationship_cancellation" },
     { domain: "wrangler", name: "set_public_intro" },
     { domain: "wrangler", name: "send_event_on_subs" },
+    { domain: "wrangler", name: "send_event_on_relationships" },
   ],
   deny: [],
 };

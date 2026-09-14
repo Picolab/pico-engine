@@ -153,7 +153,8 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "wrangler", "name": "subscription_cancellation" },
           { "domain": "wrangler", "name": "relationship_cancellation" },
           { "domain": "wrangler", "name": "set_public_intro" },
-          { "domain": "wrangler", "name": "send_event_on_subs" }
+          { "domain": "wrangler", "name": "send_event_on_subs" },
+          { "domain": "wrangler", "name": "send_event_on_relationships" }
         ],
         "deny": []
       }
@@ -314,7 +315,15 @@ ruleset io.picolabs.pico-engine-ui {
   }
   rule install {
     select when engine_ui install
-    fired {
+    pre {
+      url = event:attrs{"url"} || ""
+      oauth_url = url.match(re#io\.picolabs\.oauth#)
+      // OAuth mesh ruleset is root-only; allow other URLs on any pico.
+      block_oauth = oauth_url && ctx:parent
+    }
+    // Action-block condition sets $fired; use notfired (or always) for the install path.
+    if block_oauth then noop()
+    notfired {
       raise wrangler event "install_ruleset_request" attributes event:attrs
     }
   }

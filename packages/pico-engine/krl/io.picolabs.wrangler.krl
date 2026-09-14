@@ -18,13 +18,13 @@ ruleset io.picolabs.wrangler {
     channels, createChannel, updateChannel, deleteChannel, //channel
     discoveryChannel, filterBindingsForCaller, //discovery
     rulesetConfig, rulesetMeta, installedRIDs, //ruleset
-    children, parent_eci, name, myself, myDid, publicIntro, establishSubscription, callerDid //pico
+    children, parent_eci, name, myself, myDid, publicIntro, establishSubscription, establishRelationship, callerDid //pico
 
     shares skyQuery, picoQuery,
     channels, //channel
     discoveryChannel, filterBindingsForCaller, //discovery
     rulesetConfig, rulesetMeta,installedRIDs, //ruleset
-    children, parent_eci, name, myself, myDid, publicIntro, establishSubscription, callerDid, id //pico
+    children, parent_eci, name, myself, myDid, publicIntro, establishSubscription, establishRelationship, callerDid, id //pico
   }
   global {
     __testing = { "queries": [  {"name": "name"},
@@ -340,10 +340,13 @@ ruleset io.picolabs.wrangler {
       dido:setPublicIntro(enabled)
     }
 
-    /** Layer 2: create did:peer + internal Rx for a subscription bus map. */
+    /** Layer 2: create did:peer + internal Rx for a relationship bus map. */
     establishSubscription = function(bus) {
       dido:establishSubscription(bus)
     }
+
+    /** Alias for establishSubscription (preferred name in new rulesets). */
+    establishRelationship = establishSubscription
 
     /** did:webvh of the pico that sent the current event (layer2 cross-pico delivery). */
     callerDid = function() {

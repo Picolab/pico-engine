@@ -1,17 +1,22 @@
 import { krl, KrlLogger, makeKrlLogger } from "krl-stdlib";
-import { ClassicLevel } from "classic-level";
 import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
+import type { Server } from "http";
 import { PicoEngineCore, RulesetRegistry } from "pico-engine-core";
 import { PicoDbKey, PicoFramework } from "pico-framework";
 import { AuthService, WebAuthnAdapter, makeWebAuthnAdapter } from "./auth";
 import { IdentityStore, IdentityService, initDidoModule } from "./identity";
 import { registerWebvhRoutes } from "./identity/webvhRoutes";
 import { OAuthService, initOAuthModule } from "./oauth";
-import { getPicoLogs, makeRotatingFileLogWriter } from "./logging";
+import {
+  getPicoLogs,
+  makeEngineLogWriter,
+  resolveEngineLogFilePath,
+} from "./logging";
+import { openClassicLevelWithRecovery } from "./levelDb";
 import { provisionRoot, uiECIForRoot } from "./provisionRoot";
-import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
+import { createRulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { server } from "./server";
 const charwise = require("charwise");
 const safeJsonCodec = require("level-json-coerce-null");
@@ -111,6 +116,9 @@ export interface PicoEngine {
   oauth: OAuthService;
   identity: IdentityStore;
   identityService: IdentityService;
+
+  /** Stop HTTP and close LevelDB stores (for container SIGTERM). */
+  shutdown(): Promise<void>;
 }
 
 export async function startEngine(
@@ -134,22 +142,32 @@ export async function startEngine(
   }
   await makeDir(home);
 
-  const logFilePath = path.resolve(home, "pico-engine.log");
+  const logFilePath = resolveEngineLogFilePath(home);
   const log = configuration.log
     ? configuration.log
-    : makeKrlLogger(makeRotatingFileLogWriter(logFilePath));
+    : makeKrlLogger(makeEngineLogWriter(logFilePath));
 
-  const core = new PicoEngineCore({
-    db: new ClassicLevel<PicoDbKey, any>(path.resolve(home, "db"), {
+  const db = await openClassicLevelWithRecovery<PicoDbKey, any>(
+    path.resolve(home, "db"),
+    {
       keyEncoding: charwise,
       valueEncoding: safeJsonCodec,
-    }),
-    rsRegLoader: RulesetRegistryLoaderFs(home),
+    },
+    log
+  );
+  const rulesetLoaderHandle = await createRulesetRegistryLoaderFs(home, log);
+
+  const core = new PicoEngineCore({
+    db,
+    rsRegLoader: rulesetLoaderHandle.loader,
     log,
     modules: configuration.modules,
     useEventInputTime: configuration.useEventInputTime,
     autoCreateRootPico: configuration.autoCreateRootPico ?? false,
     getPicoLogs(picoId) {
+      if (!logFilePath) {
+        return Promise.resolve([]);
+      }
       return getPicoLogs(logFilePath, picoId);
     },
   });
@@ -168,7 +186,14 @@ export async function startEngine(
   };
   core.modules["dido"] = initDidoModule(identityService);
 
-  await core.start();
+  try {
+    await core.start();
+  } catch (err) {
+    log.error("Engine startup failed", { error: err });
+    await rulesetLoaderHandle.close().catch(() => undefined);
+    await db.close().catch(() => undefined);
+    throw err;
+  }
   const rsRegistry = core.rsRegistry;
 
   // Fresh engines boot with zero roots. Adopt + (re)provision only when roots
@@ -233,10 +258,11 @@ export async function startEngine(
   if ((!port || !_.isInteger(port) || port < 1) && port !== 0) {
     port = process.env.NODE_ENV === "test" ? 0 : 3000;
   }
-  await new Promise((resolve) => {
-    const listener = app.listen(port, () => {
-      if (listener) {
-        const addr = listener.address();
+  let httpServer: Server | undefined;
+  await new Promise<void>((resolve) => {
+    httpServer = app.listen(port, () => {
+      if (httpServer) {
+        const addr = httpServer.address();
         if (addr && typeof addr !== "string" && _.isInteger(addr.port)) {
           // Get the actual port i.e. if they set port to 0 nodejs will assign you an available port
           port = addr.port;
@@ -266,6 +292,25 @@ export async function startEngine(
     });
   }
 
+  let shuttingDown = false;
+  async function shutdown() {
+    if (shuttingDown) {
+      return;
+    }
+    shuttingDown = true;
+    log.info("Shutting down pico-engine");
+    await new Promise<void>((resolve, reject) => {
+      if (!httpServer) {
+        resolve(undefined);
+        return;
+      }
+      httpServer.close((err) => (err ? reject(err) : resolve(undefined)));
+    });
+    await rulesetLoaderHandle.close();
+    await db.close();
+    log.info("Shutdown complete");
+  }
+
   return {
     version,
 
@@ -280,5 +325,6 @@ export async function startEngine(
     oauth,
     identity,
     identityService,
+    shutdown,
   };
 }

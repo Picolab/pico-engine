@@ -414,6 +414,8 @@ Add parallel rules (same postlude body) in `io.picolabs.subscription.krl` and/or
 
 Optional aliases: `inbound_rejection`, `outbound_cancellation` with `relationship_*` naming.
 
+**Lifecycle API events (final phase, 1.6.4):** each `subscription_*` lifecycle signal also raises the matching `relationship_*` event (dual raise). Rulesets may `select when wrangler relationship_added` (or legacy `subscription_added`). Includes `relationship_added`, `relationship_removed`, pending added/cancelled, `send_event_on_relationships`, and `wrangler:establishRelationship` (alias of `establishSubscription`).
+
 Update **wellKnown_Rx** event policy and **UI channel** policies (`io.picolabs.pico-engine-ui.krl`,
 `uiChannelPolicies.ts`) to allow new event names alongside old ones.
 
@@ -456,7 +458,7 @@ subscription:established()
 > `io.picolabs.subscription` and events such as `wrangler:subscription` remain supported.
 > Prefer **relationship** in new rulesets and UI-facing docs.
 
-No removal target date in the first release.
+Legacy wrangler events remain supported. **Lifecycle API events** (1.6.4+): rulesets may also listen for `relationship_added`, `inbound_pending_relationship_added`, `relationship_removed`, etc.; each is raised alongside the legacy `subscription_*` name.
 
 ---
 
@@ -469,6 +471,7 @@ No removal target date in the first release.
 - [x] Tab registration in pico UI shell
 - [x] Rebuild `public/pico-engine-ui.js`
 - [x] Test: `wrangler:relationship` with `layer2: true` establishes same as `subscription`
+- [x] **Lifecycle API event aliases** — dual-raise `relationship_*` alongside `subscription_*`; selectors accept both; `send_event_on_relationships`; `wrangler:establishRelationship`
 - [ ] **`relationship_type: "peer"`** on establish; apply **`peer` Rx policy preset** (future — after rename)
 - [ ] Confluence: Identity child page **DIDs — Pico Identity**; Subscriptions page title → Relationships (or cross-link)
 - [x] `CHANGELOG` entry
@@ -513,6 +516,7 @@ No removal target date in the first release.
 | **Ruleset RID** | `io.picolabs.relationship` wrapper — only if alias module proves insufficient |
 | **Entity rename** | `ent:relationships` in subscription ruleset — migration story required |
 | **Multi-party** | Co-owners via multiple pairwise relationships (same substrate; Fuse two-owners pattern) |
+| **Delegated admin** | Admin rights delegatable via relationship + policy preset — not shared passkeys; [delegated-admin-relationship.md](./delegated-admin-relationship.md) |
 | **VC-conferred relations** | Credentials attach relations to existing edges |
 | **DIDComm Discover Features** | Pre-intro protocol/goal-code disclosure — community goal-codes — [sky-didcomm-protocol.md §17](./sky-didcomm-protocol.md#17-didcomm-discover-features-planned) |
 

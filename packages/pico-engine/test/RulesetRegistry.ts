@@ -7,7 +7,7 @@ import * as fs from "fs";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import { RulesetRegistry } from "pico-engine-core";
-import { RulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
+import { createRulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
 import { toFileUrl } from "../src/utils/toFileUrl";
 import { tmpHome } from "./helpers/tmpHome";
 
@@ -23,7 +23,8 @@ test("RulesetRegistry", async (t) => {
   const file0 = path.resolve(dir, "krl0.krl");
   const url0 = toFileUrl(file0);
 
-  const rsReg = new RulesetRegistry(RulesetRegistryLoaderFs(dir));
+  const { loader } = await createRulesetRegistryLoaderFs(dir);
+  const rsReg = new RulesetRegistry(loader);
 
   let rs = await rsReg.load(url0);
   t.is(rs.ruleset.rid, "rid.hello");

@@ -56,6 +56,7 @@
     "test:cross-engine": "ava reset-cache && ava --serial ./test/crossEngineSubscription.ts --timeout=3m",
     "test:relationship-alias": "ava reset-cache && ava --serial ./test/relationshipAlias.ts --timeout=2m",
     "test:relationship-self": "ava reset-cache && ava --serial ./test/relationshipSelf.ts --timeout=2m",
+    "test:relationship-lifecycle": "ava reset-cache && ava --serial ./test/relationshipLifecycle.ts --timeout=2m",
     "test:epic9": "ava reset-cache && ava --serial ./test/epic9Matrix.ts --timeout=3m"
   },
   "dependencies": {

@@ -1513,6 +1513,9 @@ wrangler (event sits on the schedule and never runs).
   **DIDComm Discover Features** (pre-intro): planned —
   [`sky-didcomm-protocol.md` §17](docs/design/sky-didcomm-protocol.md#17-didcomm-discover-features-planned)
   (distinct from integrator discovery channel).
+- **Delegated admin relationship (follow-up, 2026-08-17):** co-control and host support via
+  **relationship + policy**, not shared passkeys — see
+  [`docs/design/delegated-admin-relationship.md`](docs/design/delegated-admin-relationship.md).
 
 ---
 

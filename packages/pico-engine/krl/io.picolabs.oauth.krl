@@ -45,4 +45,10 @@ ruleset io.picolabs.oauth {
       oauth:revokeTokens(eci)
     }
   }
+
+  // Mesh OAuth is keyed off the root pico; installing here has no effect.
+  rule reject_non_root_install {
+    select when wrangler ruleset_installed where event:attr("rids") >< ctx:rid
+    if ctx:parent then ctx:uninstall(ctx:rid)
+  }
 }
