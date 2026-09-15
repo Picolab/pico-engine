@@ -4,6 +4,7 @@ node_modules
 /packages/pico-engine/rulesets/
 /packages/pico-engine/pico-engine.log*
 /packages/pico-engine/pico-engine_test*
+/packages/pico-engine/test/logs/
 did-simulator-eci.js
 package-lock.json
 yarn.lock

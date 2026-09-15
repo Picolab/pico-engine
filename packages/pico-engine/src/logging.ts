@@ -6,10 +6,31 @@ import * as path from "path";
 const rfs = require("rotating-file-stream");
 
 const logStreams: { [filePath: string]: NodeJS.WritableStream } = {};
+
+function stdoutOnlyLogWriter(): (line: string) => void {
+  const isTest = process.env.NODE_ENV === "test";
+  return (line: string) => {
+    if (!isTest) {
+      process.stdout.write(line);
+    }
+  };
+}
+
+function attachSafeLogStreamHandlers(
+  fileStream: NodeJS.WritableStream,
+  filePath: string
+): void {
+  fileStream.on("error", (err: Error) => {
+    process.stderr.write(
+      `pico-engine log file write failed (${filePath}): ${err.message}\n`
+    );
+  });
+}
+
 function getRotatingFileStream(filePath: string): NodeJS.WritableStream {
   if (!logStreams[filePath]) {
     const filename = path.basename(filePath);
-    logStreams[filePath] = rfs(
+    const fileStream = rfs(
       (time: Date, index: number) => {
         if (!time) return filename;
 
@@ -18,16 +39,43 @@ function getRotatingFileStream(filePath: string): NodeJS.WritableStream {
       {
         path: path.dirname(filePath),
 
-        size: "100M", // rotate every 10 MegaBytes written
+        size: "100M", // rotate every 100 MegaBytes written
         maxFiles: 12,
-      },
+      }
     ) as NodeJS.WritableStream;
+    attachSafeLogStreamHandlers(fileStream, filePath);
+    logStreams[filePath] = fileStream;
   }
   return logStreams[filePath];
 }
 
+export function resolveEngineLogFilePath(home: string): string | null {
+  const configured = process.env.PICO_ENGINE_LOG_FILE;
+  if (
+    configured === "0" ||
+    configured === "-" ||
+    configured === "stdout" ||
+    configured === ""
+  ) {
+    return null;
+  }
+  if (typeof configured === "string" && configured.length > 0) {
+    return path.resolve(configured);
+  }
+  return path.resolve(home, "pico-engine.log");
+}
+
+export function makeEngineLogWriter(
+  filePath: string | null
+): (line: string) => void {
+  if (!filePath) {
+    return stdoutOnlyLogWriter();
+  }
+  return makeRotatingFileLogWriter(filePath);
+}
+
 export function makeRotatingFileLogWriter(
-  filePath: string,
+  filePath: string
 ): (line: string) => void {
   const fileStream = getRotatingFileStream(filePath);
   const isTest = process.env.NODE_ENV === "test";
@@ -36,7 +84,13 @@ export function makeRotatingFileLogWriter(
     if (!isTest) {
       process.stdout.write(line);
     }
-    fileStream.write(line);
+    fileStream.write(line, (err?: Error | null) => {
+      if (err) {
+        process.stderr.write(
+          `pico-engine log file write failed (${filePath}): ${err.message}\n`
+        );
+      }
+    });
   }
 
   return write;
@@ -44,9 +98,13 @@ export function makeRotatingFileLogWriter(
 
 export async function getPicoLogs(
   filePath: string,
-  picoId: string,
+  picoId: string
 ): Promise<PicoLogEntry[]> {
   const output: PicoLogEntry[] = [];
+
+  if (!(await fs.promises.stat(filePath).catch(() => null))) {
+    return output;
+  }
 
   const rl = readline.createInterface({
     input: fs.createReadStream(filePath),

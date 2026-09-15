@@ -5,8 +5,10 @@ import * as makeDir from "make-dir";
 import * as path from "path";
 import { RulesetRegistryLoader } from "pico-engine-core";
 import { PicoDbKey, Ruleset } from "pico-framework";
+import type { KrlLogger } from "krl-stdlib";
 import * as urlLib from "url";
 import { resolveBundledKrlUrl } from "./bundledKrl";
+import { openClassicLevelWithRecovery } from "./levelDb";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
 const charwise = require("charwise");
@@ -34,15 +36,25 @@ interface DbUrlRuleset {
   };
 }
 
-export function RulesetRegistryLoaderFs(
-  engineHomeDir: string
-): RulesetRegistryLoader {
+export interface RulesetRegistryLoaderFsHandle {
+  loader: RulesetRegistryLoader;
+  close: () => Promise<void>;
+}
+
+export async function createRulesetRegistryLoaderFs(
+  engineHomeDir: string,
+  log?: KrlLogger
+): Promise<RulesetRegistryLoaderFsHandle> {
   const rulesetDir = path.resolve(engineHomeDir, "rulesets");
 
-  const db = new ClassicLevel<PicoDbKey, any>(path.resolve(engineHomeDir, "rulesets-db"), {
-    keyEncoding: charwise,
-    valueEncoding: safeJsonCodec,
-  })
+  const db = await openClassicLevelWithRecovery<PicoDbKey, any>(
+    path.resolve(engineHomeDir, "rulesets-db"),
+    {
+      keyEncoding: charwise,
+      valueEncoding: safeJsonCodec,
+    },
+    log
+  );
 
   async function compileAndLoad(
     url: string,
@@ -91,7 +103,7 @@ export function RulesetRegistryLoaderFs(
     };
   }
 
-  return {
+  const loader: RulesetRegistryLoader = {
     fetchKrl,
 
     async save({ ruleset, ...rest }) {
@@ -124,6 +136,11 @@ export function RulesetRegistryLoaderFs(
         compiler,
       };
     },
+  };
+
+  return {
+    loader,
+    close: () => db.close(),
   };
 }
 

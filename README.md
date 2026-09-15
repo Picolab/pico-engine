@@ -68,7 +68,7 @@ To view details about versions: [CHANGELOG.md](https://github.com/Picolab/pico-e
 
 **1.6:** Layer 2 identity (**did:webvh** for intros, **did:peer** for relationship traffic), DID-based relationships, and cross-engine SKY/DIDComm. Requires **pico-framework ^0.8.1**. See [docs/guides/layer2-subscriptions.md](docs/guides/layer2-subscriptions.md) and [docs/release/1.6.md](docs/release/1.6.md).
 
-**1.6.2+:** Developer UI **Relationships** tab (legacy *subscription* KRL names still work). **1.6.3:** outbound pending cancel fix; block self-relationships.
+**1.6.2+:** Developer UI **Relationships** tab (legacy *subscription* KRL names still work). **1.6.3:** outbound pending cancel fix; block self-relationships. **1.6.4:** engine KRL directory UI, oauth root-only install guard, **`mesh-oauth-exempt`** for LoRa ingress under mesh OAuth.
 
 ## License
 MIT

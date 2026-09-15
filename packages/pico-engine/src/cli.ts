@@ -1,4 +1,4 @@
-import { PicoEngineConfiguration, startEngine } from "./index";
+import { PicoEngine, PicoEngineConfiguration, startEngine } from "./index";
 const version = require("../package.json").version;
 
 const args: {
@@ -64,8 +64,35 @@ if (allowSelfSignupEnv === "true" || allowSelfSignupEnv === "1") {
   env.allowSelfSignup = false;
 }
 
-startEngine(env).catch((err) => {
-  console.error("Failed to start engine.");
-  console.error(err);
-  process.exit(1);
-});
+function installGracefulShutdown(engine: PicoEngine) {
+  let shuttingDown = false;
+
+  const onSignal = (signal: NodeJS.Signals) => {
+    if (shuttingDown) {
+      return;
+    }
+    shuttingDown = true;
+    console.log(`Received ${signal}; shutting down`);
+    engine
+      .shutdown()
+      .then(() => process.exit(0))
+      .catch((err) => {
+        console.error("Shutdown failed.");
+        console.error(err);
+        process.exit(1);
+      });
+  };
+
+  process.on("SIGTERM", onSignal);
+  process.on("SIGINT", onSignal);
+}
+
+startEngine(env)
+  .then((engine) => {
+    installGracefulShutdown(engine);
+  })
+  .catch((err) => {
+    console.error("Failed to start engine.");
+    console.error(err);
+    process.exit(1);
+  });

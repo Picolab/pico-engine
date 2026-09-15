@@ -122,10 +122,94 @@ The server is configured via some environment variables.
 - `PICO_ENGINE_BASE_URL` - The public url prefix to reach this engine. By default it's `"http://localhost:3000"`
 - `PICO_ENGINE_ALLOW_SELF_SIGNUP` - Set to `"true"` or `"1"` to allow open registration after bootstrap (default: off; bootstrap and invite still work)
 - `PICO_ENGINE_ALLOW_LOCALHOST_C` - Set to `"0"` to require passkey session on `/c/*` even from localhost (default: allow localhost without session for in-engine HTTP loops). Full registry: repo `MEMORY.md` § Engine environment variables.
+- `PICO_ENGINE_LOG_FILE` - Log file path. Set to `stdout`, `-`, or `0` for **stdout only** (recommended on Fargate + EFS; use CloudWatch for retention). Default: `$PICO_ENGINE_HOME/pico-engine.log`.
 
 The `PORT` is the only value used in setting up the engine’s [nodejs http server](https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback). We only specify the `port` so it listens listens to all traffic on that port, it will not filter by host.
 
 For example, say you want to have your engine running with SSL on a custom domain i.e. `https://example.com` Starting the engine like this `PICO_ENGINE_BASE_URL=https://example.com pico-engine` is not enough. You will need to use a reverse proxy server like nginx to handle the SSL termination, and then forward the traffic to your private port that is running the engine.
+
+### Containers
+
+The engine stores mesh state in **LevelDB** under `PICO_ENGINE_HOME`:
+
+| Path | Purpose |
+|------|---------|
+| `db/` | Main mesh state (picos, channels, auth, identity, …) |
+| `rulesets-db/` | Cached flushed ruleset metadata (rebuildable from URLs) |
+| `rulesets/` | Compiled ruleset JS |
+| `pico-engine.log` | Rotating log file |
+
+On startup the engine opens both LevelDB directories. If a previous process exited uncleanly (e.g. container SIGKILL), startup removes a stale `LOCK` file and may run LevelDB repair before failing.
+
+The CLI handles **SIGTERM** and **SIGINT** by closing the HTTP server and both databases cleanly.
+
+**Docker Compose (local or any host):**
+
+```yaml
+services:
+  pico-engine:
+    image: picolabs/pico-engine:1.6.4
+    ports:
+      - "3001:3000"
+    environment:
+      PICO_ENGINE_HOME: /var/pico-image
+      PICO_ENGINE_BASE_URL: http://localhost:3001
+    volumes:
+      - pico-engine-data:/var/pico-image
+
+volumes:
+  pico-engine-data:
+```
+
+Use a **named volume** or bind mount for `PICO_ENGINE_HOME`. Do not run two containers against the same volume.
+
+#### Running on AWS ECS / Fargate
+
+Fargate has no persistent disk of its own. For a mesh that **survives redeploys and image updates**, mount **Amazon EFS** at `/var/pico-image` and set `PICO_ENGINE_HOME=/var/pico-image`.
+
+EFS + LevelDB is a common deployment pattern. LevelDB expects a **single writer**; it is not safe for two tasks to share one database directory. With one Fargate task and graceful shutdown, EFS persistence works well in practice.
+
+**Do not use Fargate managed EBS** for durable mesh storage on a service: those volumes are deleted when the task stops, so each deploy would start with an empty mesh unless you build a snapshot workflow.
+
+**Task definition (essentials):**
+
+| Setting | Value |
+|---------|--------|
+| Container port | `3000` |
+| `PICO_ENGINE_HOME` | `/var/pico-image` |
+| `PICO_ENGINE_BASE_URL` | Public **HTTPS** origin users hit (e.g. `https://picos.example.com`) — required for passkeys and did:webvh |
+| `PICO_ENGINE_LOG_FILE` | `stdout` — log to CloudWatch only; avoid writing `pico-engine.log` on EFS (NFS stale-handle errors can crash the process) |
+| EFS mount | `containerPath`: `/var/pico-image` |
+| Container `stopTimeout` | `120` (seconds) |
+
+`PICO_ENGINE_BASE_URL` must match the URL in the browser (scheme, host, no trailing slash). Put TLS at Cloudflare, an ALB, or another reverse proxy in front of the task.
+
+**Service deployment:**
+
+| Setting | Recommended | Why |
+|---------|-------------|-----|
+| `desiredCount` | `1` | One writer per EFS mount |
+| `minimumHealthyPercent` | `0` | Stop old task before starting new one |
+| `maximumPercent` | `100` | Avoid two tasks on the same volume during deploy |
+| `healthCheckGracePeriodSeconds` | `60`–`120` | Allow startup before health checks fail |
+
+**TLS / public URL:** Terminate HTTPS in front of the container (ALB, Cloudflare Tunnel, nginx, etc.). The engine listens on HTTP port 3000 inside the task.
+
+**If the engine fails to start** with LevelDB errors after an unclean shutdown:
+
+1. Stop the service (ensure no task is using the volume).
+2. Remove only the database directories on the EFS mount: `db/` and `rulesets-db/`.
+3. Start the service again and register a new passkey (fresh mesh).
+
+That wipes mesh state but preserves the volume mount and deployment layout. Export/backup of mesh state is a separate operational concern (see repo design docs on pico move/export).
+
+**Checklist for operators:**
+
+- [ ] EFS mounted at `/var/pico-image`
+- [ ] `PICO_ENGINE_BASE_URL` set to the public HTTPS URL
+- [ ] Single task per EFS volume
+- [ ] `stopTimeout` ≥ 60s; deploy stops old task before starting new one
+- [ ] Image includes graceful shutdown (1.6.x+)
 
 ## Authentication
 
@@ -149,11 +233,25 @@ Two grant types can coexist in the same mesh:
 
 ### Mesh lock
 
-Install the optional ruleset **`io.picolabs.oauth`** on the **root pico** to require a Bearer token on all **`/sky/*`** requests for that mesh. Without it, open channels work as before (channel policy only); channels tagged **`oauth-webhook`** always require Bearer.
+Install the optional ruleset **`io.picolabs.oauth`** on the **root pico** to require a Bearer token on most **`/sky/*`** requests for that mesh. Without it, open channels work as before (channel policy only); channels tagged **`oauth-webhook`** always require Bearer.
 
 From the Rulesets tab, install `io.picolabs.oauth` (KRL source: `packages/pico-engine/krl/io.picolabs.oauth.krl`). Removing the ruleset unlocks the mesh again.
 
 Ruleset queries (install `io.picolabs.oauth` on the root): `meshEnabled()`, `meshRequiresOAuth(eci)`, `channelStatus(eci)`, `createChannelSecret(eci)`, … — see `krl/io.picolabs.oauth.krl`.
+
+**Bearer evaluation order** (engine `skyRequiresBearer`):
+
+| Condition | `/sky/*` Bearer required? |
+|-----------|---------------------------|
+| Channel tags `didcomm` + `ingress` | No (DIDComm ingress) |
+| Channel tag `oauth-webhook` | **Yes** (Client Credentials) |
+| Channel tag **`mesh-oauth-exempt`** | **No** (opt out of mesh lock) |
+| Root has `io.picolabs.oauth` | **Yes** (mesh lock) |
+| Otherwise | No |
+
+Use **`mesh-oauth-exempt`** on inbound webhook channels that cannot send `Authorization` (e.g. LoRa/Helium POST to `/sky/event/...`) while mesh OAuth stays enabled for integrators (Home Assistant ACG). Tight **event policy** on those channels still applies. If a channel has both `oauth-webhook` and `mesh-oauth-exempt`, **`oauth-webhook` wins** (Bearer required).
+
+When mesh OAuth is enabled, the **Channels → New Channel** form offers a one-click **`mesh-oauth-exempt`** tag. Existing channels: add the tag under **Edit channel** → Tags.
 
 ### Webhook credentials (Client Credentials)
 
@@ -285,7 +383,7 @@ Every pico has a portable **did:webvh** identity. **DID-based relationships** (L
 
 **Deprecated:** `io.picolabs.did-o` and `dido:prepareQuery` — use **`wrangler:picoQuery`** and **`event:send({ did: … })`**.
 
-Full guide: [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md) · Release notes: [docs/release/1.6.md](../../docs/release/1.6.md) · [CHANGELOG.md](../../CHANGELOG.md) (1.6.2 relationships rename, 1.6.3 fixes)
+Full guide: [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md) · Release notes: [docs/release/1.6.md](../../docs/release/1.6.md) · [CHANGELOG.md](../../CHANGELOG.md) (1.6.4 mesh-oauth-exempt + KRL directory UI; 1.6.3 fixes)
 
 **Dependency:** pico-engine 1.6 requires **pico-framework `^0.8.1`** (npm). When developing engine + framework together, use `npm run link-framework` from the repo root.
 

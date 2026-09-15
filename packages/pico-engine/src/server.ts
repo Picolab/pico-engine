@@ -1,13 +1,26 @@
 import * as bodyParser from "body-parser";
 import * as express from "express";
 import { Express, Request, Response } from "express";
+import * as fs from "fs";
 import helmet from "helmet";
 import * as _ from "lodash";
 import * as path from "path";
+import {
+  bundledKrlDir,
+  listEngineKrlSources,
+  resolveEngineKrlFile,
+} from "./bundledKrl";
 import { PicoEngineCore } from "pico-engine-core";
 import { PicoFramework } from "pico-framework";
 import { AuthError, AuthService } from "./auth";
-import { OAuthError, OAuthService, parseApproveBody, parseAuthorizeQuery, renderConsentHtml } from "./oauth";
+import {
+  OAuthError,
+  OAuthService,
+  parseApproveBody,
+  parseAuthorizeQuery,
+  renderConsentHtml,
+  rootHasOAuthMeshRuleset,
+} from "./oauth";
 import { uiECIForRoot } from "./provisionRoot";
 import { IdentityService } from "./identity/IdentityService";
 import { registerWebvhRoutes } from "./identity/webvhRoutes";
@@ -254,6 +267,14 @@ export function server(
     registerOAuthRoutes(app, oauth, auth, requireAuthSession, parseCookies);
   }
 
+  app.get("/api/oauth/mesh-enabled", requireAuthSession, function (_req, res) {
+    const roots = pf.rootPicos();
+    const meshOAuthEnabled =
+      roots.length > 0 &&
+      roots.some((root) => rootHasOAuthMeshRuleset(pf, root.id));
+    res.json({ meshOAuthEnabled });
+  });
+
   app.get("/api/mesh-context", function (req, res, next) {
     if (!oauth) {
       res.status(503).json({ error: "OAuth not enabled" });
@@ -293,6 +314,38 @@ export function server(
         });
       })
       .catch(next);
+  });
+
+  app.get("/api/krl-sources", function (req, res, next) {
+    try {
+      let baseUrl = core.base_url;
+      if (!baseUrl) {
+        baseUrl = `${req.protocol}://${req.get("host") || "localhost"}`;
+      }
+      res.json({ sources: listEngineKrlSources(baseUrl.replace(/\/$/, "")) });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get(/^\/krl\/(.+\.krl)$/, function (req, res, next) {
+    const suffix = req.params[0];
+    if (typeof suffix !== "string" || !suffix.endsWith(".krl")) {
+      res.status(404).end();
+      return;
+    }
+    const filePath = resolveEngineKrlFile(suffix);
+    if (!filePath) {
+      res.status(404).end();
+      return;
+    }
+    fs.readFile(filePath, { encoding: "utf8" }, function (err, data) {
+      if (err) {
+        next(err);
+        return;
+      }
+      res.type("text/plain").send(data);
+    });
   });
 
   app.get("/api/ui-context", function (req, res, next) {

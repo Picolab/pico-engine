@@ -74,6 +74,17 @@ defaults, and feature flags — so Manifold can present, e.g., "add a controller
 
 ---
 
+## SHIPPED: pico-engine 1.6.4 (2026-09-15, branch `windley/mesh-oauth-exempt`)
+
+| Artifact | Notes |
+|----------|--------|
+| **Git** | 2 commits since `v1.6.3`: KRL directory UI + oauth root guard; **`mesh-oauth-exempt`** |
+| **npm** | Bump to **1.6.4** in `packages/pico-engine`, `-ui`, `-core`, `lerna.json` |
+| **ECS deploy gotcha** | Task def pinned to `@sha256:…` does **not** pick up retagged `:1.6.3` / `:1.6.4` pushes — create new revision with `:tag` |
+| **Verify live** | `GET /api/oauth/mesh-enabled` → JSON (not 404) |
+
+---
+
 ## SHIPPED: pico-engine 1.4.0 (released, npm published)
 
 Commits `5878bdf4 … f18f9233`.
@@ -1164,7 +1175,8 @@ deps are wired. Dependencies listed in `package.json` but optional until integra
 ##### Layer 3b.1 IMPLEMENTED ✅ (mesh OAuth gate, 2026-07-12)
 
 - **`io.picolabs.oauth.krl`** — optional ruleset (not in default provision); install on root to lock mesh; **home for per-mesh OAuth config** (app registry lives in engine DB; ruleset is the mesh lock marker)
-- **`skyRequiresBearer(eci)`** — true when `oauth-webhook` tag **or** root has `io.picolabs.oauth`
+- **`skyRequiresBearer(eci)`** — true when `oauth-webhook` tag **or** (root has `io.picolabs.oauth` **and** channel is not `mesh-oauth-exempt` / `didcomm`+`ingress`)
+- **`mesh-oauth-exempt` tag (2026-09-15)** — per-channel opt-out from mesh lock on `/sky/*` for inbound webhooks (LoRa/Helium) that cannot send Bearer; `oauth-webhook` still requires Bearer if both tags present; Channels **New Channel** UI shows one-click tag when mesh OAuth enabled (`GET /api/oauth/mesh-enabled`)
 - **`validateSkyBearerToken`** — CC tokens ECI-bound; ACG tokens validate subtree (3b.2 ✅)
 - **`io.picolabs.oauth`:** `meshEnabled()`, `meshRequiresOAuth(eci)`, webhook credential queries; engine `oauth:meshRequiresOAuth`
 - Token records include `grant` (`client_credentials` | `authorization_code`)
@@ -1254,6 +1266,9 @@ exchanges at `POST /oauth/token` and uses Bearer on **`/sky/*`** across the mesh
 
 **Open channels (no OAuth ruleset on root):** bare ECI in URL works as today (channel policy only),
 except channels tagged `oauth-webhook` (always require Bearer).
+
+**Mesh lock with inbound webhooks:** tag LoRa/sensor ingress channels **`mesh-oauth-exempt`**
+(alternative to Helium `Authorization: Bearer` + Client Credentials per channel).
 
 Details TBD when implementing; webhook Client Credentials shipped first (Layer 3a ✅).
 
@@ -1513,6 +1528,9 @@ wrangler (event sits on the schedule and never runs).
   **DIDComm Discover Features** (pre-intro): planned —
   [`sky-didcomm-protocol.md` §17](docs/design/sky-didcomm-protocol.md#17-didcomm-discover-features-planned)
   (distinct from integrator discovery channel).
+- **Delegated admin relationship (follow-up, 2026-08-17):** co-control and host support via
+  **relationship + policy**, not shared passkeys — see
+  [`docs/design/delegated-admin-relationship.md`](docs/design/delegated-admin-relationship.md).
 
 ---
 

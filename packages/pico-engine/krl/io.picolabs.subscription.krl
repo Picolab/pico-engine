@@ -2,7 +2,8 @@ ruleset io.picolabs.subscription {
   meta {
     name "subscription "
     description <<
-      Tx/Rx ruleset.
+      Pico-to-pico relationships (Tx/Rx). User-facing term: relationship.
+      Ruleset RID io.picolabs.subscription is stable; prefer module alias relationship.
     >>
     author "Tedrub Modulus"
     use module io.picolabs.wrangler alias wrangler
@@ -242,6 +243,7 @@ ent:established [
   
   rule cleanup_subscriptions {
     select when wrangler rulesets_need_to_cleanup
+             or wrangler cleanup_relationships
     always {
       raise wrangler event "cancel_subscriptions" attributes event:attrs
     }
@@ -342,6 +344,7 @@ ent:established [
       raise wrangler event "subscription_request_needed"
         attributes event:attrs.put(fullNewBus);
       raise wrangler event "outbound_pending_subscription_added" attributes event:attrs.put(fullNewBus)// API event
+      raise wrangler event "outbound_pending_relationship_added" attributes event:attrs.put(fullNewBus)// API event
     }
   }//end createMySubscription rule
 
@@ -392,6 +395,7 @@ ent:established [
       ent:outbound := outbound().append(fullNewBus)
       raise wrangler event "subscription_request_needed" attributes event:attrs.put(fullNewBus)
       raise wrangler event "outbound_pending_subscription_added" attributes event:attrs.put(fullNewBus)
+      raise wrangler event "outbound_pending_relationship_added" attributes event:attrs.put(fullNewBus)
     }
   }
 
@@ -472,6 +476,7 @@ ent:established [
     fired {
       ent:inbound := inbound().append(pending_entry)
       raise wrangler event "inbound_pending_subscription_added" attributes event:attrs
+      raise wrangler event "inbound_pending_relationship_added" attributes event:attrs
     }
     else {
       raise wrangler event "no_Tx_did_failure" attributes event:attrs
@@ -493,6 +498,7 @@ ent:established [
                                        });
       ent:inbound := inbound().append( newBus );
       raise wrangler event "inbound_pending_subscription_added" attributes event:attrs.put(["Rx"], Rx); // API event
+      raise wrangler event "inbound_pending_relationship_added" attributes event:attrs.put(["Rx"], Rx); // API event
     }
     else {
       raise wrangler event "no_Tx_failure" attributes  event:attrs // API event
@@ -509,6 +515,7 @@ ent:established [
     if bus{"layer2"} == true then noop()
     fired {
       raise wrangler event "inbound_pending_subscription_approved" attributes event:attrs.put("Id", bus{"Id"}).put(["bus"],bus)
+      raise wrangler event "inbound_pending_relationship_approved" attributes event:attrs.put("Id", bus{"Id"}).put(["bus"],bus)
     }
   }
 
@@ -529,6 +536,7 @@ ent:established [
           }, bus{"Tx_host"})
     fired {
       raise wrangler event "inbound_pending_subscription_approved" attributes event:attrs.put("Id", bus{"Id"}).put(["bus"],bus)
+      raise wrangler event "inbound_pending_relationship_approved" attributes event:attrs.put("Id", bus{"Id"}).put(["bus"],bus)
     }
   }
 
@@ -548,11 +556,13 @@ ent:established [
       ent:established := established().append(updated)
       ent:outbound := buses.splice(index, 1)
       raise wrangler event "subscription_added" attributes event:attrs.put(["bus"], updated)
+      raise wrangler event "relationship_added" attributes event:attrs.put(["bus"], updated)
     }
   }
 
   rule addOutboundSubscription {
     select when wrangler outbound_pending_subscription_approved
+             or wrangler outbound_pending_relationship_approved
     pre{
       outbound = outbound()
       bus      = findBus(outbound).put({"Tx"           : event:attr("Tx"),
@@ -567,11 +577,13 @@ ent:established [
       ent:established := established().append(bus);
       ent:outbound    := outbound.splice(index,1);
       raise wrangler event "subscription_added" attributes event:attrs.put(["bus"], bus) // API event
+      raise wrangler event "relationship_added" attributes event:attrs.put(["bus"], bus) // API event
     }
   }
 
   rule addInboundSubscription {
     select when wrangler inbound_pending_subscription_approved
+             or wrangler inbound_pending_relationship_approved
     pre{
       inbound = inbound()
       index   = indexOfId(inbound,event:attr("Id"))
@@ -583,12 +595,14 @@ ent:established [
       ent:established := established().append( event:attr("bus") );
       ent:inbound     := inbound.splice(index,1);
       raise wrangler event "subscription_added" attributes event:attrs // API event
+      raise wrangler event "relationship_added" attributes event:attrs // API event
     }
   }
 
   // Layer 2 (1.6+): provision did:peer + internal Rx identity when bus.layer2 is set.
   rule establish_layer2_subscription_identity {
     select when wrangler subscription_added
+             or wrangler relationship_added
     pre {
       bus = event:attr("bus").defaultsTo({})
       layer2_identity = bus{"layer2"} == true => dido:establishSubscription(bus) | null
@@ -656,6 +670,7 @@ ent:established [
     fired {
       ent:established := buses.splice(index,1);
       raise wrangler event "subscription_removed" attributes event:attrs.put({ "bus" : bus }) // API event
+      raise wrangler event "relationship_removed" attributes event:attrs.put({ "bus" : bus }) // API event
     }
   }
 
@@ -709,6 +724,7 @@ ent:established [
     fired {
       ent:inbound := buses.splice(index,1);
       raise wrangler event "inbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
+      raise wrangler event "inbound_relationship_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
     }
   }
 
@@ -763,11 +779,13 @@ ent:established [
     fired {
       ent:outbound := buses.splice(index,1);
       raise wrangler event "outbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
+      raise wrangler event "outbound_relationship_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
     }
   }
   
   rule sendEventToSubCheck {
     select when wrangler send_event_on_subs
+             or wrangler send_event_on_relationships
     pre {
       subID = event:attr("subID")
       Tx_role = event:attr("Tx_role")
@@ -783,6 +801,11 @@ ent:established [
       raise wrangler event "send_event_to_subs" attributes event:attrs.put("subs", subs)
     } else {
       raise wrangler event "failed_to_send_event_to_sub" attributes event:attrs.put({
+        "foundSubsToSendTo":subs.length() > 0,
+        "domainGiven":event:attr("domain").as("Boolean"),
+        "typeGiven":event:attr("type").as("Boolean"),
+      })
+      raise wrangler event "failed_to_send_event_to_relationship" attributes event:attrs.put({
         "foundSubsToSendTo":subs.length() > 0,
         "domainGiven":event:attr("domain").as("Boolean"),
         "typeGiven":event:attr("type").as("Boolean"),
@@ -809,6 +832,7 @@ ent:established [
 
   rule autoAccept {
     select when wrangler inbound_pending_subscription_added
+             or wrangler inbound_pending_relationship_added
     pre{
       /*
       autoAcceptConfig{
@@ -831,7 +855,9 @@ ent:established [
     if matches then noop()
     fired {
       raise wrangler event "pending_subscription_approval" attributes event:attrs;
+      raise wrangler event "pending_relationship_approval" attributes event:attrs;
       raise wrangler event "auto_accepted_subscription_request" attributes event:attrs;  //API event
+      raise wrangler event "auto_accepted_relationship_request" attributes event:attrs;  //API event
     }// else ...
   }
 
