@@ -94,6 +94,51 @@ async function createWebhookChannel(
   return created.id as string;
 }
 
+async function createMeshOAuthExemptChannel(
+  pe: Awaited<ReturnType<typeof startIsolatedEngine>>,
+  rootUiEci: string
+): Promise<string> {
+  const before = await pe.pf.query({
+    eci: rootUiEci,
+    rid: "io.picolabs.pico-engine-ui",
+    name: "pico",
+    args: {},
+  });
+  const beforeIds = new Set((before.channels || []).map((c: any) => c.id));
+  await pe.pf.eventQuery(
+    {
+      eci: rootUiEci,
+      domain: "engine_ui",
+      name: "new_channel",
+      data: {
+        attrs: {
+          tags: ["mesh-oauth-exempt", "test-exempt"],
+          eventPolicy: { allow: [{ domain: "test", name: "ping" }], deny: [] },
+          queryPolicy: { allow: [{ rid: "io.picolabs.wrangler", name: "name" }], deny: [] },
+        },
+      },
+      time: 0,
+    },
+    {
+      eci: rootUiEci,
+      rid: "io.picolabs.pico-engine-ui",
+      name: "pico",
+      args: {},
+    }
+  );
+  const after = await pe.pf.query({
+    eci: rootUiEci,
+    rid: "io.picolabs.pico-engine-ui",
+    name: "pico",
+    args: {},
+  });
+  const created = (after.channels || []).find((c: any) => !beforeIds.has(c.id));
+  if (!created?.id) {
+    throw new Error("Failed to create mesh-oauth-exempt channel");
+  }
+  return created.id as string;
+}
+
 async function createOpenChannel(
   pe: Awaited<ReturnType<typeof startIsolatedEngine>>,
   rootUiEci: string
@@ -241,6 +286,72 @@ test("mesh oauth ruleset locks all /sky/* channels on that mesh", async (t) => {
 
   t.is((await fetch(skyUrl)).status, 401);
   t.true(await pe.oauth.skyRequiresBearer(openEci));
+});
+
+test("mesh-oauth-exempt tag skips mesh lock on /sky/*", async (t) => {
+  const pe = await startIsolatedEngine({
+    webauthn: fakeAuthenticator(),
+  });
+  const acct = await bootstrapAccount(pe);
+  enableOAuthMesh(pe);
+  const exemptEci = await createMeshOAuthExemptChannel(pe, acct.uiECI);
+  const openEci = await createOpenChannel(pe, acct.uiECI);
+  const exemptUrl = `${pe.base_url}/sky/query/${exemptEci}/io.picolabs.wrangler/name`;
+  const openUrl = `${pe.base_url}/sky/query/${openEci}/io.picolabs.wrangler/name`;
+
+  t.false(await pe.oauth.skyRequiresBearer(exemptEci));
+  t.is((await fetch(exemptUrl)).status, 200);
+  t.is((await fetch(openUrl)).status, 401);
+});
+
+test("oauth-webhook still requires bearer when mesh-oauth-exempt is also set", async (t) => {
+  const pe = await startIsolatedEngine({
+    webauthn: fakeAuthenticator(),
+  });
+  const acct = await bootstrapAccount(pe);
+  enableOAuthMesh(pe);
+  const before = await pe.pf.query({
+    eci: acct.uiECI,
+    rid: "io.picolabs.pico-engine-ui",
+    name: "pico",
+    args: {},
+  });
+  const beforeIds = new Set((before.channels || []).map((c: any) => c.id));
+  await pe.pf.eventQuery(
+    {
+      eci: acct.uiECI,
+      domain: "engine_ui",
+      name: "new_channel",
+      data: {
+        attrs: {
+          tags: ["oauth-webhook", "mesh-oauth-exempt", "test-both"],
+          eventPolicy: { allow: [{ domain: "hook", name: "ping" }], deny: [] },
+          queryPolicy: { allow: [{ rid: "io.picolabs.wrangler", name: "name" }], deny: [] },
+        },
+      },
+      time: 0,
+    },
+    {
+      eci: acct.uiECI,
+      rid: "io.picolabs.pico-engine-ui",
+      name: "pico",
+      args: {},
+    }
+  );
+  const after = await pe.pf.query({
+    eci: acct.uiECI,
+    rid: "io.picolabs.pico-engine-ui",
+    name: "pico",
+    args: {},
+  });
+  const hookEci = (after.channels || []).find((c: any) => !beforeIds.has(c.id))?.id;
+  if (!hookEci) {
+    throw new Error("Failed to create dual-tagged channel");
+  }
+  const skyUrl = `${pe.base_url}/sky/query/${hookEci}/io.picolabs.wrangler/name`;
+
+  t.true(await pe.oauth.skyRequiresBearer(hookEci));
+  t.is((await fetch(skyUrl)).status, 401);
 });
 
 test("mesh oauth lock still allows webhook CC token on matching eci only", async (t) => {

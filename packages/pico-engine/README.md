@@ -233,11 +233,25 @@ Two grant types can coexist in the same mesh:
 
 ### Mesh lock
 
-Install the optional ruleset **`io.picolabs.oauth`** on the **root pico** to require a Bearer token on all **`/sky/*`** requests for that mesh. Without it, open channels work as before (channel policy only); channels tagged **`oauth-webhook`** always require Bearer.
+Install the optional ruleset **`io.picolabs.oauth`** on the **root pico** to require a Bearer token on most **`/sky/*`** requests for that mesh. Without it, open channels work as before (channel policy only); channels tagged **`oauth-webhook`** always require Bearer.
 
 From the Rulesets tab, install `io.picolabs.oauth` (KRL source: `packages/pico-engine/krl/io.picolabs.oauth.krl`). Removing the ruleset unlocks the mesh again.
 
 Ruleset queries (install `io.picolabs.oauth` on the root): `meshEnabled()`, `meshRequiresOAuth(eci)`, `channelStatus(eci)`, `createChannelSecret(eci)`, … — see `krl/io.picolabs.oauth.krl`.
+
+**Bearer evaluation order** (engine `skyRequiresBearer`):
+
+| Condition | `/sky/*` Bearer required? |
+|-----------|---------------------------|
+| Channel tags `didcomm` + `ingress` | No (DIDComm ingress) |
+| Channel tag `oauth-webhook` | **Yes** (Client Credentials) |
+| Channel tag **`mesh-oauth-exempt`** | **No** (opt out of mesh lock) |
+| Root has `io.picolabs.oauth` | **Yes** (mesh lock) |
+| Otherwise | No |
+
+Use **`mesh-oauth-exempt`** on inbound webhook channels that cannot send `Authorization` (e.g. LoRa/Helium POST to `/sky/event/...`) while mesh OAuth stays enabled for integrators (Home Assistant ACG). Tight **event policy** on those channels still applies. If a channel has both `oauth-webhook` and `mesh-oauth-exempt`, **`oauth-webhook` wins** (Bearer required).
+
+When mesh OAuth is enabled, the **Channels → New Channel** form offers a one-click **`mesh-oauth-exempt`** tag. Existing channels: add the tag under **Edit channel** → Tags.
 
 ### Webhook credentials (Client Credentials)
 

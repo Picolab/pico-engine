@@ -31,7 +31,10 @@ import {
   OAuthTokenResponse,
   revokeOAuthChannelCredentials,
   revokeOAuthChannelTokens,
+  fetchMeshOAuthEnabled,
 } from "../../oauthApi";
+
+const MESH_OAUTH_EXEMPT_TAG = "mesh-oauth-exempt";
 
 interface Props {
   pico: PicoBox;
@@ -595,6 +598,12 @@ const Channels: React.FC<Props> = ({ pico }) => {
     apiGet(`/c/${pico.eci}/query/io.picolabs.pico-engine-ui/pico`)
   );
 
+  const [meshOAuthEnabled, setMeshOAuthEnabled] = React.useState(false);
+
+  React.useEffect(() => {
+    fetchMeshOAuthEnabled().then(setMeshOAuthEnabled);
+  }, [pico.eci]);
+
   const addChannel = useAsyncAction<{ eci: string; data: any }>(
     ({ eci, data }) =>
       apiPost(
@@ -811,6 +820,23 @@ const Channels: React.FC<Props> = ({ pico }) => {
               oauth-webhook
             </button>{" "}
             for webhook Client Credentials.
+            {meshOAuthEnabled ? (
+              <>
+                {" "}
+                Add{" "}
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0 align-baseline text-mono"
+                  onClick={() => appendTag(MESH_OAUTH_EXEMPT_TAG)}
+                >
+                  {MESH_OAUTH_EXEMPT_TAG}
+                </button>{" "}
+                to allow unauthenticated <code>/sky/*</code> on this channel
+                (e.g. LoRa ingress) while mesh OAuth is enabled.
+              </>
+            ) : (
+              ""
+            )}
           </div>
           <div className="row">
             <div className="col">

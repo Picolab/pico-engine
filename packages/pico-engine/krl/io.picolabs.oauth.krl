@@ -3,9 +3,10 @@ ruleset io.picolabs.oauth {
     name "OAuth Mesh"
     description <<
       Optional mesh-level OAuth. Install on the root pico to require Bearer tokens on external /sky/*
-      for this mesh, and to hold per-mesh OAuth configuration (apps, consent policy, defaults).
-      Webhook Client Credentials (per channel) and app Authorization Code grants coexist here.
-      Not installed by default.
+      for this mesh (except channels tagged mesh-oauth-exempt or didcomm+ingress), and to hold
+      per-mesh OAuth configuration (apps, consent policy, defaults).
+      Webhook Client Credentials (per channel, oauth-webhook tag) and app Authorization Code grants
+      coexist here. Not installed by default.
 
       use module io.picolabs.oauth alias oauth
     >>
@@ -24,7 +25,7 @@ ruleset io.picolabs.oauth {
       true
     }
 
-    /** True when external /sky/* for eci requires a Bearer token (mesh lock or oauth-webhook tag). */
+    /** True when the mesh root has io.picolabs.oauth (mesh lock may still be skipped via mesh-oauth-exempt on a channel). */
     meshRequiresOAuth = function(eci) {
       oauth:meshRequiresOAuth(eci)
     }

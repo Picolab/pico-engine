@@ -1,3 +1,9 @@
+# Unreleased
+
+* **OAuth** — Channel tag **`mesh-oauth-exempt`** skips mesh-wide `/sky/*` Bearer requirement when `io.picolabs.oauth` is on the root (for inbound webhooks that cannot send `Authorization`, e.g. LoRa/Helium). `oauth-webhook` still requires Bearer. API: `GET /api/oauth/mesh-enabled`.
+* **Developer UI** — **New Channel** shows one-click **`mesh-oauth-exempt`** when mesh OAuth is enabled.
+* **Tests** — `httpSurface.ts` mesh-oauth-exempt coverage.
+
 # 1.6.3 - August 13, 2026
 
 * **Fix** — Cancelling **outbound pending** DID-based relationships no longer fails with `Recipient subscription … missing rxEci`; local dispatch falls back to the peer's inbound `Rx` channel when needed, and removal notifications degrade gracefully.

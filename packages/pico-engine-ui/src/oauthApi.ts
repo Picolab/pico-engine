@@ -45,6 +45,15 @@ async function parseJson(resp: Response) {
   return JSON.parse(text);
 }
 
+export async function fetchMeshOAuthEnabled(): Promise<boolean> {
+  const resp = await fetch("/api/oauth/mesh-enabled", { credentials: "include" });
+  if (!resp.ok) {
+    return false;
+  }
+  const data = await parseJson(resp);
+  return !!(data && data.meshOAuthEnabled);
+}
+
 export async function fetchOAuthChannelStatus(
   eci: string
 ): Promise<OAuthChannelStatus> {

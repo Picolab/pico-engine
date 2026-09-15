@@ -1,7 +1,10 @@
 import * as crypto from "crypto";
 import { ChannelReadOnly, PicoDb, PicoDbKey, PicoFramework } from "pico-framework";
 import * as acg from "./acg";
-import { isOAuthEligibleChannel } from "./channelEligibility";
+import {
+  isMeshOAuthExemptChannel,
+  isOAuthEligibleChannel,
+} from "./channelEligibility";
 import { OAuthError } from "./errors";
 import { isChannelUnderRoot, meshRequiresOAuth as meshRequiresOAuthForEci } from "./meshOAuth";
 
@@ -240,11 +243,14 @@ export class OAuthService {
       ) {
         return false;
       }
+      if (isOAuthEligibleChannel(channel)) {
+        return true;
+      }
+      if (isMeshOAuthExemptChannel(channel)) {
+        return false;
+      }
     } catch (_e) {
       // channel not found — fall through
-    }
-    if (await this.channelRequiresBearer(eci)) {
-      return true;
     }
     return this.meshRequiresOAuth(eci);
   }

@@ -13,7 +13,14 @@ import {
 import { PicoEngineCore } from "pico-engine-core";
 import { PicoFramework } from "pico-framework";
 import { AuthError, AuthService } from "./auth";
-import { OAuthError, OAuthService, parseApproveBody, parseAuthorizeQuery, renderConsentHtml } from "./oauth";
+import {
+  OAuthError,
+  OAuthService,
+  parseApproveBody,
+  parseAuthorizeQuery,
+  renderConsentHtml,
+  rootHasOAuthMeshRuleset,
+} from "./oauth";
 import { uiECIForRoot } from "./provisionRoot";
 import { IdentityService } from "./identity/IdentityService";
 import { registerWebvhRoutes } from "./identity/webvhRoutes";
@@ -259,6 +266,14 @@ export function server(
   if (oauth) {
     registerOAuthRoutes(app, oauth, auth, requireAuthSession, parseCookies);
   }
+
+  app.get("/api/oauth/mesh-enabled", requireAuthSession, function (_req, res) {
+    const roots = pf.rootPicos();
+    const meshOAuthEnabled =
+      roots.length > 0 &&
+      roots.some((root) => rootHasOAuthMeshRuleset(pf, root.id));
+    res.json({ meshOAuthEnabled });
+  });
 
   app.get("/api/mesh-context", function (req, res, next) {
     if (!oauth) {

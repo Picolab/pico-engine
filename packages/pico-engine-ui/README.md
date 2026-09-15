@@ -39,3 +39,9 @@ The Settings modal (gear icon) includes collapsible sections:
 - **OAuth apps** — register Authorization Code clients (`app_…`) for mesh-wide access; requires `io.picolabs.oauth` on the root pico
 
 See [packages/pico-engine README](../pico-engine/README.md#oauth) for the OAuth flow.
+
+## Channels
+
+When the root pico has **`io.picolabs.oauth`** (mesh lock), **New Channel** offers a one-click
+**`mesh-oauth-exempt`** tag so inbound `/sky/event/...` webhooks (e.g. LoRa) can stay unauthenticated
+while the rest of the mesh requires Bearer tokens for `/sky/*`.
