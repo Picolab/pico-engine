@@ -1,8 +1,13 @@
-# Unreleased
+# 1.6.4 - September 15, 2026
 
 * **OAuth** — Channel tag **`mesh-oauth-exempt`** skips mesh-wide `/sky/*` Bearer requirement when `io.picolabs.oauth` is on the root (for inbound webhooks that cannot send `Authorization`, e.g. LoRa/Helium). `oauth-webhook` still requires Bearer. API: `GET /api/oauth/mesh-enabled`.
+* **OAuth** — **`io.picolabs.oauth`** install blocked on non-root picos (KRL guard + Rulesets UI).
+* **Developer UI** — **Rulesets** tab browses bundled engine KRL (`GET /api/krl-sources`); one-click install; installed rulesets hidden from the pick list.
 * **Developer UI** — **New Channel** shows one-click **`mesh-oauth-exempt`** when mesh OAuth is enabled.
-* **Tests** — `httpSurface.ts` mesh-oauth-exempt coverage.
+* **Wrangler / subscription** — **`relationship_*`** lifecycle event aliases alongside legacy **`subscription_*`** names (KRL + tests).
+* **Engine** — LevelDB stale `LOCK` recovery and repair on unclean shutdown; expanded bundled KRL registry.
+* **Design** — delegated admin relationship doc (`docs/design/delegated-admin-relationship.md`).
+* **Tests** — `httpSurface.ts` (mesh-oauth-exempt, oauth root guard), `bundledKrl.ts`, `levelDbRecovery.ts`, `relationshipLifecycle.ts`.
 
 # 1.6.3 - August 13, 2026
 

@@ -74,6 +74,17 @@ defaults, and feature flags — so Manifold can present, e.g., "add a controller
 
 ---
 
+## SHIPPED: pico-engine 1.6.4 (2026-09-15, branch `windley/mesh-oauth-exempt`)
+
+| Artifact | Notes |
+|----------|--------|
+| **Git** | 2 commits since `v1.6.3`: KRL directory UI + oauth root guard; **`mesh-oauth-exempt`** |
+| **npm** | Bump to **1.6.4** in `packages/pico-engine`, `-ui`, `-core`, `lerna.json` |
+| **ECS deploy gotcha** | Task def pinned to `@sha256:…` does **not** pick up retagged `:1.6.3` / `:1.6.4` pushes — create new revision with `:tag` |
+| **Verify live** | `GET /api/oauth/mesh-enabled` → JSON (not 404) |
+
+---
+
 ## SHIPPED: pico-engine 1.4.0 (released, npm published)
 
 Commits `5878bdf4 … f18f9233`.

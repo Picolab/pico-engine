@@ -148,7 +148,7 @@ The CLI handles **SIGTERM** and **SIGINT** by closing the HTTP server and both d
 ```yaml
 services:
   pico-engine:
-    image: picolabs/pico-engine:1.6.3
+    image: picolabs/pico-engine:1.6.4
     ports:
       - "3001:3000"
     environment:
@@ -383,7 +383,7 @@ Every pico has a portable **did:webvh** identity. **DID-based relationships** (L
 
 **Deprecated:** `io.picolabs.did-o` and `dido:prepareQuery` — use **`wrangler:picoQuery`** and **`event:send({ did: … })`**.
 
-Full guide: [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md) · Release notes: [docs/release/1.6.md](../../docs/release/1.6.md) · [CHANGELOG.md](../../CHANGELOG.md) (1.6.2 relationships rename, 1.6.3 fixes)
+Full guide: [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md) · Release notes: [docs/release/1.6.md](../../docs/release/1.6.md) · [CHANGELOG.md](../../CHANGELOG.md) (1.6.4 mesh-oauth-exempt + KRL directory UI; 1.6.3 fixes)
 
 **Dependency:** pico-engine 1.6 requires **pico-framework `^0.8.1`** (npm). When developing engine + framework together, use `npm run link-framework` from the repo root.
 
