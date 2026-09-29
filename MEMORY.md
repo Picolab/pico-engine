@@ -204,17 +204,54 @@ e505a1a2 Fix invite links to always show registration
 
 ---
 
+## Release plan (post-1.6.4)
+
+| Release | Theme | Scope |
+|---------|--------|--------|
+| **1.7** | **Identity portability** | **did:peer:4** (new relationships; peer:2 backward compat); pico **move/rotation** — export/import ([`pico-move.md`](docs/design/pico-move.md) A/B) + DIDComm DID Rotation (Phase D). See [`pico-identity-libraries.md`](docs/design/pico-identity-libraries.md). |
+| **1.8** | **Mesh API + security** | **`meta.schema`** in KRL + `picoSchema()` / `schemaBindings(rid)` ([`pico-schemas.md`](docs/design/pico-schemas.md)); **channel policy fix** — deny overrides permit, pico-level ceiling ([§4](#4-channel-policy-engine-fix--permit-overrides-deny-must-fix)). |
+
+**Rationale:** 1.7 finishes the identity story (standards-grade peer DIDs + relocation). 1.8 pairs
+declarative pico surface (integrators, Testing tab, discovery) with the long-standing channel-policy
+security fix — both are platform maturity, not sensor-specific.
+
+**Later (not scoped):** LLM per pico ([`pico-llm-capabilities.md`](docs/design/pico-llm-capabilities.md)) —
+after 1.8 schema; mirrors/logging build on schema `logged` flags.
+
+---
+
 ## ROADMAP (deferred / future engine work)
 
-### 1. Pico-level event schema (engine + wrangler)
-An **event schema** per pico — the event (at the pico boundary) is the unit of record, NOT the
-ruleset (multiple rules from different RSs may respond to one event).
+### 1. Pico schemas (events + queries + attrs) — **target 1.8**
+
+A **pico-level schema** — aggregated from installed rulesets — describes events, queries, and
+attributes at the **pico boundary** (not per-RID). Multiple RSs may respond to one event; integrators,
+mirrors, LLM tools, and validation need one canonical surface.
+
+**Full design:** [`docs/design/pico-schemas.md`](docs/design/pico-schemas.md) (explore 2026-09-18).
+
+**Today (imperfect):** Testing tab calls `{rid}/__testing` per ruleset. Compiler injects
+`__testing` from `meta.shares` (queries + arg names) and rule `select when` + `event:attr` heuristics
+(`krl-compiler` `eventScope.getTestingJSON()`). RSs may override with manual global `__testing`
+(wrangler hand-maintains a large block). **Discovery `bindings`** is a separate, caller-filtered
+public subset — not the full pico schema.
+
+**Known gaps:** no pico merge/dedupe; attrs untyped and incomplete; raised-but-not-selected events
+missing; `provides`-only queries omitted; duplicates; manual drift.
+
+**Target programmatic API:** `wrangler:picoSchema()`, `rulesetSchema(rid)`, `publicSchema(caller_eci)`,
+install/uninstall registration, optional validate-before-dispatch, `wrangler:schema_updated` event,
+JSON Schema export for HA/MCP.
+
+**Declarative source (decided):** **`meta.schema { events { … } queries { … } }`** in the KRL
+`meta` block — **not** the `__testing` global kludge. Compiler extract (`eventScope`) is lint-only;
+discovery `bindings()` generated from `public` schema entries via `wrangler:schemaBindings(rid)`.
+
+**Event-only logging (original §1 scope):**
 
 - **Per `domain:type`:** attributes (required / optional / types); whether the event is **logged**
   for mirror/replay; optional flags (e.g. idempotent replay, `replaySafe: false` for external
   side effects).
-- **Registration:** rulesets register events into the pico's schema (mechanism TBD: KRL meta,
-  install-time wrangler hook, or explicit register API).
 - **Validation:** engine warns (or rejects in strict mode) on events not in schema.
 - **Logging:** schema marks which events are appended to the pico's replay log.
 
@@ -260,8 +297,9 @@ commands).
 5. PDS enhancements enabled by default install — `meta:callingRID()` write auth, validation,
    structured log records on persist, versioned profile merges.
 
-### 4. Channel policy engine fix — permit-overrides-deny (MUST FIX)
+### 4. Channel policy engine fix — permit-overrides-deny — **target 1.8**
 Affects **all** pico security relying on channel event/query policies, not just Manifold/PDS.
+Ship with **1.8** (schema release) as the mesh API + security package.
 
 **Current engine behavior (the flaw):**
 - Within one channel's policy, **permit overrides deny** — an allow rule wins even when a deny
@@ -531,6 +569,45 @@ pico from one engine/mesh to another so it **leaves** the source and **exists** 
   identity/relationship design.
 - **Open:** atomicity/rollback if the move half-completes; tombstone/forwarding on the source;
   ordering (structure before dependent subscriptions); consent gates on both meshes.
+
+### 9. Identity portability — **target 1.7**
+
+Finish Layer 2 identity deferred from 1.6:
+
+| Item | Notes |
+|------|--------|
+| **did:peer:4** | Vendor DIF [`did-peer-4`](https://github.com/decentralized-identity/did-peer-4); new subs only; **no** auto-convert peer:2 → peer:4 |
+| **Export/import** | [`pico-move.md`](docs/design/pico-move.md) Phase A (ruleset state) + B (subtree, new ECIs, remap) |
+| **DID Rotation** | Phase D — webvh log update + peer subscription survival across move |
+
+**Docs:** [`pico-identity-libraries.md`](docs/design/pico-identity-libraries.md), [`sky-didcomm-protocol.md`](docs/design/sky-didcomm-protocol.md).
+
+### 8. Local LLM per pico (Gemma / KRL-first) — post-1.8
+
+Optional **local inference** so each pico can call an LLM over **its own** context (entity vars,
+events, rulesets, channels) from **KRL** — not UI-only chat. Depends on **1.8** `picoSchema` for
+NL→event validation.
+
+**Full backlog:** [`docs/design/pico-llm-capabilities.md`](docs/design/pico-llm-capabilities.md)
+(brainstorm 2026-09-18).
+
+**Priority surfaces (programmatic):**
+
+| Surface | Examples |
+|---------|----------|
+| **KRL actions** | `llm:complete`, `llm:extract`, `llm:classify`, `llm:summarize`, `llm:context` |
+| **Events** | `llm:completion_requested/ready`, `llm:action_proposed` (propose only — rules commit) |
+| **Entity vars** | `llm:memory`, `llm:system_prompt`, `llm:budget`, `llm:tool_allowlist` |
+| **Queries** | `llm:enabled()`, `llm:explain_event`, `llm:mesh_summary`, `llm:policy_explain` |
+| **Channels** | NL webhook → extract → domain event; tag `llm-ingress` |
+| **Hierarchy** | Parent classify → raise to child; child `task:result` → parent summarize |
+| **Ruleset loop** | Draft/patch KRL via completion + compiler validate (**K1–K4** in design doc) |
+
+**Principles:** per-pico context boundary; channel policy bounds tool use; LLM proposes / KRL
+commits; local backend (Gemma/Ollama sidecar) default; cloud opt-in only.
+
+**Phasing:** complete + audit (P1) → extract/classify + async (P2) → memory + delegation (P3) →
+KRL copilot (P4).
 
 ### 6. PDS enhancements (post default-install)
 PDS is now engine-default (1.4.0). Enhancements that the stable contract enables:
@@ -1508,7 +1585,7 @@ wrangler (event sits on the schedule and never runs).
 
 **pico-framework 0.8.1:** optional custom channel ECI at creation (UI New Channel); engine-wide uniqueness via `eciIsTaken`.
 
-**Epic 9 (`npm run test:epic9`):** legacy ECI sub, family picoQuery, public intro, SCID tamper, DIDComm pack/unpack, layer2 E2E, OAuth eligibility. **Deferred post-1.6:** did:peer:4, cross-mesh move (1.7+).
+**Epic 9 (`npm run test:epic9`):** legacy ECI sub, family picoQuery, public intro, SCID tamper, DIDComm pack/unpack, layer2 E2E, OAuth eligibility. **Target 1.7:** did:peer:4, export/import + DID Rotation (move). See [Release plan](#release-plan-post-164).
 
 **Subscriptions UI:** `Subscriptions.tsx` — layer2 create, `myDid`/`publicIntro`, off-engine forest sink, cancel outbound, copy myDid. Rebuild UI after changes: `cd packages/pico-engine-ui && npm run build`.
 
@@ -1535,6 +1612,10 @@ wrangler (event sits on the schedule and never runs).
 ---
 
 ## Cross-references
+- **Pico schemas (events/queries/attrs, 2026-09-18):**
+  [`docs/design/pico-schemas.md`](docs/design/pico-schemas.md)
+- **Pico LLM capabilities (KRL-first backlog, 2026-09-18):**
+  [`docs/design/pico-llm-capabilities.md`](docs/design/pico-llm-capabilities.md)
 - **Pico relationships (nomenclature + rename plan, 2026-08-12):**
   [`docs/design/pico-relationships.md`](docs/design/pico-relationships.md)
 - **Pico move / export-import design (2026-07-17):**

@@ -675,13 +675,13 @@ The infrastructure pico is a **first-class actor**: own `did:webvh`, keys, DIDCo
 | Area | Tests |
 |------|-------|
 | didwebvh-ts | `webvh.ts`, `epic9Matrix.ts` (SCID tamper) |
-| did:peer:4 | **Deferred** — `epic9Matrix.ts` asserts num_algo 2 |
+| did:peer:4 | **Target 1.7** — `epic9Matrix.ts` asserts num_algo 2 today |
 | @veramo/did-comm | `establishSubscription.ts`, `epic9Matrix.ts` (pack/unpack roundtrip) |
 | Subscription E2E | `layer2Routing.ts`, `crossEngineSubscription.ts`, `epic9Matrix.ts` |
 | Public intro | `skyIntro.ts`, `crossEngineSubscription.ts`, `epic9Matrix.ts` (child + publicIntro) |
 | Intra-mesh sub | `didcommIngress.ts` |
 | Cross-mesh sub (same engine) | `didcommIngress.ts` |
-| Cross-mesh sub (move) | **Deferred 1.7+** |
+| Cross-mesh sub (move) | **Target 1.7** — export/import + DID Rotation |
 | Legacy sub regression | `epic9Matrix.ts` + `helpers/legacySub.ts` |
 | Family channel regression | `epic9Matrix.ts` |
 | OAuth regression | `oauth.ts`, `auth.ts`, `acg.ts`, `httpSurface.ts`, `epic9Matrix.ts` |
