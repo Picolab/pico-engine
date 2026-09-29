@@ -70,6 +70,19 @@ Atomicity and rollback (move half-completes), tombstones/forwarding on the sourc
 - Optional **parent ruleset manifest** — fail or warn if non-portable dependencies detected.
 - Legacy note: pre-1.x had `engine:exportPico` / `engine:importPico` ([CHANGELOG](../../CHANGELOG.md)); any revival should be DID-aware and multi-root-safe.
 
+#### Ruleset source policy (reference vs inline)
+
+**Do not embed KRL** when the ruleset can be **retrieved by reference** on the destination. Phase A blobs carry `url` + config + `ent`; Phase B adds KRL inline only when reference fetch will fail after move.
+
+| Source | Export pack | Import on destination |
+|--------|-------------|------------------------|
+| **`https:`** (or other remote URL) | **URL only** — re-fetch on import | `flush` + `load(url)` |
+| **Engine-bundled OS KRL** (wrangler, subscription, …) | **URL or rid** — no inline KRL | Remap via `resolveBundledKrlUrl()` to running engine's `krl/` (already works across different absolute `file:` paths on same engine class) |
+| **Local `file:`** (dev tree, invite bootstrap, machine-specific path) | **Inline KRL required** (from `rulesets-db` cache or read at export time) | Register under pack-local or engine-home URL; do not preserve source path |
+| **Unreachable at export** | Fail or warn — cannot move portably | — |
+
+Rationale: keeps packs small and avoids stale forks of rulesets that have a canonical remote source; only pay the bytes cost where reference retrieval is impossible (the cross-machine `file:` case).
+
 ### Phase C — Channel "move" (#665)
 
 - Prefer **clone + retire** over literal ECI transfer: create equivalent channel on target pico, copy policy/tags/ent-backed OAuth state, update subscriptions to new endpoint, deprecate source.

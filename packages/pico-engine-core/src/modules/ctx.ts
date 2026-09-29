@@ -10,6 +10,14 @@ import {
   RulesetConfig,
 } from "pico-framework";
 import { PicoEngineCore } from "../PicoEngineCore";
+import {
+  exportRulesetState as exportRulesetStateImpl,
+  importRulesetState as importRulesetStateImpl,
+} from "../rulesetState";
+import {
+  exportSubtree as exportSubtreeImpl,
+  importSubtree as importSubtreeImpl,
+} from "../subtreeState";
 
 export interface RulesetCtxInfo {
   rid: string;
@@ -233,6 +241,88 @@ export default function initCtxModule(core: PicoEngineCore) {
       url = normalizeUrl(url);
       await core.rsRegistry.flush(url);
     }),
+
+    exportRulesetState: krl.Function(
+      ["rid", "secret"],
+      async function exportRulesetState(rid: string, secret: string) {
+        if (typeof rid !== "string") {
+          throw new TypeError(
+            "Expected string for rid but got " + krl.typeOf(rid)
+          );
+        }
+        const picoReadOnly = this.rsCtx.pico();
+        return exportRulesetStateImpl(
+          { db: core.picoFramework.db, rsRegistry: core.rsRegistry },
+          picoReadOnly,
+          picoReadOnly.id,
+          rid,
+          secret
+        );
+      }
+    ),
+
+    importRulesetState: krl.Function(
+      ["blob", "secret"],
+      async function importRulesetState(blob: string, secret: string) {
+        if (typeof blob !== "string") {
+          throw new TypeError(
+            "Expected string for blob but got " + krl.typeOf(blob)
+          );
+        }
+        const picoId = this.rsCtx.pico().id;
+        const pico = core.picoFramework.getPico(picoId);
+        if (!pico) {
+          throw new Error("Pico not found: " + picoId);
+        }
+        return importRulesetStateImpl(
+          { db: core.picoFramework.db, rsRegistry: core.rsRegistry },
+          pico,
+          blob,
+          secret,
+          (rs, config) => this.rsCtx.install(rs, config)
+        );
+      }
+    ),
+
+    exportSubtree: krl.Function(
+      ["picoId", "secret"],
+      async function exportSubtree(picoId: string, secret: string) {
+        if (typeof picoId !== "string") {
+          throw new TypeError(
+            "Expected string for picoId but got " + krl.typeOf(picoId)
+          );
+        }
+        return exportSubtreeImpl(
+          { db: core.picoFramework.db, rsRegistry: core.rsRegistry },
+          core.picoFramework,
+          picoId,
+          secret
+        );
+      }
+    ),
+
+    importSubtree: krl.Function(
+      ["blob", "secret"],
+      async function importSubtree(blob: string, secret: string) {
+        if (typeof blob !== "string") {
+          throw new TypeError(
+            "Expected string for blob but got " + krl.typeOf(blob)
+          );
+        }
+        const picoId = this.rsCtx.pico().id;
+        const pico = core.picoFramework.getPico(picoId);
+        if (!pico) {
+          throw new Error("Pico not found: " + picoId);
+        }
+        return importSubtreeImpl(
+          { db: core.picoFramework.db, rsRegistry: core.rsRegistry },
+          core.picoFramework,
+          pico,
+          blob,
+          secret
+        );
+      }
+    ),
 
     raiseEvent: krl.Postlude(
       ["domain", "name", "attrs", "forRid"],

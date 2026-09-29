@@ -105,7 +105,7 @@ Reference implementation from the DIF did:webvh working group; actively maintain
 
 | Option | Package / source | Use when |
 |--------|------------------|----------|
-| **Preferred** ✅ | [`decentralized-identity/did-peer-4`](https://github.com/decentralized-identity/did-peer-4) | **Spike (1.7):** TS port compiled into `packages/pico-engine/src/identity/peerDid4.ts` — no npm package; DIF Python vector validated |
+| **Preferred** ✅ | [`decentralized-identity/did-peer-4`](https://github.com/decentralized-identity/did-peer-4) | **Spike (1.7):** TS port in `peerDid4.ts`; **upstream (P2):** [`docs/contributing/did-peer-4-upstream.md`](../contributing/did-peer-4-upstream.md) |
 | **Alternative** | [`@veramo/did-provider-peer`](https://www.npmjs.com/package/@veramo/did-provider-peer) v7 | Faster npm integration; create/control peer DIDs without full Veramo agent |
 | **Fallback** | [`@credo-ts/core`](https://www.npmjs.com/package/@credo-ts/core) peer registrar | Only if Veramo peer path is unsatisfactory — heavier API surface |
 

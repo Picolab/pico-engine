@@ -66,6 +66,43 @@ export class RulesetRegistry {
     return this.rulesetCache[url] || null;
   }
 
+  /** Register KRL under url without fetching (portable import packs). */
+  async registerInline(url: string, krl: string): Promise<CachedRuleset> {
+    const shasum = crypto.createHash("sha256");
+    shasum.update(krl);
+    const hash = shasum.digest("hex");
+
+    if (this.rulesetCache[url]?.hash === hash) {
+      return this.rulesetCache[url];
+    }
+
+    const { ruleset, compiler } = await this.regLoader.compileAndLoad(
+      url,
+      krl,
+      hash
+    );
+
+    validateModuleDependencies(Object.values(this.rulesetCache), {
+      url,
+      rid: ruleset.rid,
+      deps: getModuleUses(ruleset),
+    });
+
+    const toSave: CachedRuleset = {
+      url,
+      krl,
+      hash,
+      flushed: new Date(),
+      rid: ruleset.rid,
+      compiler,
+      ruleset,
+    };
+
+    await this.regLoader.save(toSave);
+    this.setCachedRuleset(toSave);
+    return toSave;
+  }
+
   private setCachedRuleset(rs: CachedRuleset) {
     this.rulesetCache[rs.url] = rs;
     if (this.onRulesetLoaded) {

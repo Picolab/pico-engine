@@ -218,6 +218,12 @@ security fix — both are platform maturity, not sensor-specific.
 **Later (not scoped):** LLM per pico ([`pico-llm-capabilities.md`](docs/design/pico-llm-capabilities.md)) —
 after 1.8 schema; mirrors/logging build on schema `logged` flags.
 
+### Parallel track (not blocking 1.7)
+
+| Track | Priority | Scope |
+|-------|----------|--------|
+| **did-peer-4 upstream** | **P2** — parallel to 1.7 | Contribute TS port to DIF [`did-peer-4`](https://github.com/decentralized-identity/did-peer-4). Issue draft + PR scaffold in [`contrib/did-peer-4-typescript/`](contrib/did-peer-4-typescript/); checklist [`docs/contributing/did-peer-4-upstream.md`](docs/contributing/did-peer-4-upstream.md). **~2–4 days** after maintainer feedback. Pico-engine keeps in-tree copy until upstream merge/npm. |
+
 ---
 
 ## ROADMAP (deferred / future engine work)
@@ -576,8 +582,9 @@ Finish Layer 2 identity deferred from 1.6:
 
 | Item | Notes |
 |------|--------|
-| **did:peer:4** | Vendor DIF [`did-peer-4`](https://github.com/decentralized-identity/did-peer-4); new subs only; **no** auto-convert peer:2 → peer:4 |
-| **Export/import** | [`pico-move.md`](docs/design/pico-move.md) Phase A (ruleset state) + B (subtree, new ECIs, remap) |
+| **did:peer:4** | **Spike done** — in-tree TS port (`peerDid4.ts`); new subs only; **no** auto-convert peer:2 → peer:4 |
+| **did-peer-4 upstream (P2)** | Offer TS port to DIF — [`docs/contributing/did-peer-4-upstream.md`](docs/contributing/did-peer-4-upstream.md) |
+| **Export/import** | Phase A **in progress** — `ctx:exportRulesetState` / `ctx:importRulesetState` (AES-256-GCM); Phase B (subtree + channel clone, #659/#665) next |
 | **DID Rotation** | Phase D — webvh log update + peer subscription survival across move |
 
 **Docs:** [`pico-identity-libraries.md`](docs/design/pico-identity-libraries.md), [`sky-didcomm-protocol.md`](docs/design/sky-didcomm-protocol.md).

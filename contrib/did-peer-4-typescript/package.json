@@ -1,0 +1,46 @@
+{
+  "name": "did-peer-4",
+  "version": "0.0.0-dev",
+  "description": "TypeScript implementation of did:peer numalgo 4 (proposed upstream to DIF)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "did",
+    "did:peer",
+    "did:peer:4",
+    "decentralized-identity"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/decentralized-identity/did-peer-4.git",
+    "directory": "typescript"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "bs58": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.2.2",
+    "vitest": "^2.0.0"
+  }
+}
