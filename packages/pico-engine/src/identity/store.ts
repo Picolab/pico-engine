@@ -1,5 +1,6 @@
 import { PicoDb, PicoDbKey } from "pico-framework";
 import { dbDel, dbGet, dbList, dbPut } from "./dbHelpers";
+import { peerDid4Matches } from "./peerDid4";
 import {
   CachedDidDoc,
   DidCommRoutes,
@@ -321,10 +322,13 @@ export async function migrateFromDidO(_picoId: string): Promise<void> {
   return;
 }
 
-/** Match did:peer short/long forms (numalgo 0/2). */
+/** Match did:peer short/long forms (numalgo 0/2/4). */
 function peerDidMatches(stored: string, incoming: string): boolean {
   if (stored === incoming) {
     return true;
+  }
+  if (stored.startsWith("did:peer:4") || incoming.startsWith("did:peer:4")) {
+    return peerDid4Matches(stored, incoming);
   }
   const storedShort = peerDidShortForm(stored);
   const incomingShort = peerDidShortForm(incoming);

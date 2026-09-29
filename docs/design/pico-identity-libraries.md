@@ -105,7 +105,7 @@ Reference implementation from the DIF did:webvh working group; actively maintain
 
 | Option | Package / source | Use when |
 |--------|------------------|----------|
-| **Preferred** | [`decentralized-identity/did-peer-4`](https://github.com/decentralized-identity/did-peer-4) | Vendoring or thin npm wrapper — DIF reference + test suite; best spec fidelity |
+| **Preferred** ✅ | [`decentralized-identity/did-peer-4`](https://github.com/decentralized-identity/did-peer-4) | **Spike (1.7):** TS port compiled into `packages/pico-engine/src/identity/peerDid4.ts` — no npm package; DIF Python vector validated |
 | **Alternative** | [`@veramo/did-provider-peer`](https://www.npmjs.com/package/@veramo/did-provider-peer) v7 | Faster npm integration; create/control peer DIDs without full Veramo agent |
 | **Fallback** | [`@credo-ts/core`](https://www.npmjs.com/package/@credo-ts/core) peer registrar | Only if Veramo peer path is unsatisfactory — heavier API surface |
 
@@ -202,7 +202,7 @@ Pico-engine-core is **CommonJS** (`main: dist/index.js`). Target libraries diffe
 |---------|---------------|----------------------|
 | `didwebvh-ts` | ESM-oriented | Dynamic `import()` from identity module, or small **`pico-engine-identity` ESM subpackage** |
 | `@veramo/did-comm` v7 | Node-friendly CJS/ESM | Direct import likely works |
-| `did-peer-4` (vendored) | TS source | Compile into engine or subpackage |
+| `did-peer-4` (TS port) | TS source | **In-tree** — `peerDid4.ts` + `peerDid4Create.ts`; deps `bs58`, `@noble/curves` |
 
 **Recommendation:** spike dynamic import of `didwebvh-ts` + `@veramo/did-comm` in a test harness before committing to a separate package. If ESM friction is high, isolate identity crypto in `packages/pico-engine-identity` (ESM, Node 20+) consumed by pico-engine-core.
 
@@ -278,7 +278,7 @@ No commitment to interop with did:peer:2 identities created by the old module.
 | Layer | Approach |
 |-------|----------|
 | did:webvh | `didwebvh-ts` test vectors; round-trip create → serve → resolve |
-| did:peer:4 | DIF [`did-peer-4`](https://github.com/decentralized-identity/did-peer-4) test suite (vendored) |
+| did:peer:4 | DIF Python vector + `npm run test:peer-did4` (encode/decode, resolve, DIDComm roundtrip) |
 | DIDComm | `@veramo/did-comm` unit tests; cross-engine integration test (two pico-engine instances) |
 | Engine door | Request sign/verify against cached resolved doc |
 | Regression | Ensure OAuth and passkey layers unaffected |
@@ -290,7 +290,7 @@ Consider interop smoke test against `didwebvh-ts` resolver examples and, optiona
 ## Open questions
 
 1. **Module name** — keep `dido` (breaking reboot) vs new `identity` module name?
-2. **did-peer-4 packaging** — vendored TS vs npm wrapper vs Veramo-only?
+2. ~~**did-peer-4 packaging**~~ — **Resolved (1.7 spike):** in-tree TS port; Veramo peer provider kept for num_algo 0/2 only; custom resolver for peer:4
 3. **P-256 vs X25519** — didwebvh v1.0 and DIDComm v2 allow both; default to **Ed25519 + X25519** (matches existing dido key types) unless interop requires P-256?
 4. **Witnesses** — defer until after Phase 4; engine-as-host sufficient initially?
 5. **Mediator support** — out of scope for Phase 3; direct HTTP only?

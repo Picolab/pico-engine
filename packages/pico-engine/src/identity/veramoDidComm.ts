@@ -6,6 +6,8 @@ import {
   type StoredPeerDidBundle,
   type StoredVeramoKey,
 } from "./peerDid";
+import { isPeerDid4, resolvePeerDid4 } from "./peerDid4";
+import { createPeerDid4WithKeys } from "./peerDid4Create";
 import {
   storedKeysFromWebvhKeys,
   webvhAgreementKeysForVeramo,
@@ -105,6 +107,40 @@ async function createAgentBundle(): Promise<AgentBundle> {
   const { PeerDIDProvider, getResolver: getPeerResolver } = require("@veramo/did-provider-peer");
   const { Resolver } = require("did-resolver");
 
+  const basePeerResolver = getPeerResolver();
+  const peerResolver = {
+    ...basePeerResolver,
+    peer: async (
+      did: string,
+      parsed: unknown,
+      resolver: unknown,
+      options: unknown
+    ) => {
+      if (isPeerDid4(did)) {
+        try {
+          const didDocument = resolvePeerDid4(did);
+          return {
+            didDocument,
+            didDocumentMetadata: {},
+            didResolutionMetadata: {
+              contentType: "application/did+ld+json",
+            },
+          };
+        } catch (err) {
+          return {
+            didDocument: null,
+            didDocumentMetadata: {},
+            didResolutionMetadata: {
+              error: "invalidDid",
+              message: (err as Error).message,
+            },
+          };
+        }
+      }
+      return basePeerResolver.peer(did, parsed, resolver, options);
+    },
+  };
+
   const privateKeyStore = new MemoryPrivateKeyStore();
   const agent = createAgent({
     plugins: [
@@ -120,7 +156,7 @@ async function createAgentBundle(): Promise<AgentBundle> {
         },
       }),
       new DIDResolverPlugin({
-        resolver: new Resolver({ ...getPeerResolver(), ...webvhResolverMethods() }),
+        resolver: new Resolver({ ...peerResolver, ...webvhResolverMethods() }),
       }),
       new DIDComm(),
     ],
@@ -149,7 +185,7 @@ export async function exportVeramoKeysForDid(
 }
 
 /** Create a did:peer (num_algo 2) and export key material for persistence. */
-export async function createPeerDidWithKeys(): Promise<{
+export async function createPeerDid2WithKeys(): Promise<{
   did: string;
   keys: StoredPeerDidBundle;
 }> {
@@ -162,6 +198,20 @@ export async function createPeerDidWithKeys(): Promise<{
   return {
     did: identity.did,
     keys: { veramoKeys },
+  };
+}
+
+/** Create a did:peer:4 (long form) and export key material for persistence. */
+export async function createPeerDidWithKeys(): Promise<{
+  did: string;
+  keys: StoredPeerDidBundle;
+}> {
+  const created = createPeerDid4WithKeys();
+  await getAgentBundle();
+  await importPeerDidOnAgent(created.did, created.keys.veramoKeys);
+  return {
+    did: created.did,
+    keys: created.keys,
   };
 }
 

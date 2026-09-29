@@ -228,10 +228,9 @@ test("DIDComm authcrypt pack and unpack roundtrip", async (t) => {
   await pe.pf.db.close();
 });
 
-test("did:peer uses num_algo 2 (did:peer:4 deferred)", async (t) => {
+test("did:peer uses num_algo 4 for new subscriptions", async (t) => {
   const { did } = await createPeerDidWithKeys();
-  t.true(did.startsWith("did:peer:2."));
-  t.false(did.startsWith("did:peer:4"));
+  t.true(did.startsWith("did:peer:4"));
 });
 
 test("layer2 subscription E2E: formation, query, and event", async (t) => {
