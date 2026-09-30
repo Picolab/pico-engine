@@ -319,7 +319,33 @@ export default function initCtxModule(core: PicoEngineCore) {
           core.picoFramework,
           pico,
           blob,
-          secret
+          secret,
+          {
+            async afterImport(result) {
+              await core.reloadImportedSchedules(
+                Object.values(result.picoIdMap)
+              );
+              const importedRoot = core.picoFramework.getPico(
+                result.newRootPicoId
+              );
+              if (importedRoot) {
+                await importedRoot.event({
+                  eci: result.newRootEci,
+                  domain: "wrangler",
+                  name: "pico_imported",
+                  data: {
+                    attrs: {
+                      oldRootPicoId: result.oldRootPicoId,
+                      newRootPicoId: result.newRootPicoId,
+                      eciMap: result.eciMap,
+                      picoIdMap: result.picoIdMap,
+                    },
+                  },
+                  time: Date.now(),
+                });
+              }
+            },
+          }
         );
       }
     ),

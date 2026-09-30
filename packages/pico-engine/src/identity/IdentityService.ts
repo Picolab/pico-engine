@@ -41,9 +41,19 @@ import {
   SKY_INTRO_RESPONSE,
   SKY_EVENT,
   SKY_QUERY,
+  SKY_ROTATE,
   parseSkyEventBody,
   parseSkyQueryBody,
 } from "./skyProtocol";
+import {
+  handleSkyRotateAtIngress,
+  notifyPeersOfWebvhRotation,
+} from "./skyRotation";
+import {
+  relocateWebvhDid,
+  type RelocateWebvhOptions,
+  type RelocateWebvhResult,
+} from "./webvhRelocation";
 import {
   sendSkyIntro,
   sendSkyIntroResponse,
@@ -72,6 +82,7 @@ export interface DidCommPlainMessage {
   to?: string[];
   thid?: string;
   pthid?: string;
+  from_prior?: string;
   created_time: number;
   expires_time?: number;
 }
@@ -276,6 +287,52 @@ export class IdentityService {
     return (await this.store.getRoutes(picoId)) || {};
   }
 
+  /**
+   * Append a did:webvh log entry after move (SCID unchanged, host/path/endpoint may change).
+   */
+  async relocateWebvhAfterMove(
+    picoId: string,
+    options: RelocateWebvhOptions = {}
+  ): Promise<RelocateWebvhResult> {
+    return relocateWebvhDid(
+      this.store,
+      this.pf,
+      () => this.getBaseUrl(),
+      picoId,
+      options
+    );
+  }
+
+  /** Notify established peer subscriptions of a did:webvh relocation. */
+  async notifyPeersOfWebvhRotation(
+    picoId: string,
+    relocation: RelocateWebvhResult
+  ): Promise<number> {
+    return notifyPeersOfWebvhRotation(this.rotationDeps(), picoId, relocation);
+  }
+
+  /** Relocate did:webvh and notify all peer subscriptions (Phase D move). */
+  async completePortableMove(
+    picoId: string,
+    options: RelocateWebvhOptions = {}
+  ): Promise<RelocateWebvhResult & { peersNotified: number }> {
+    const relocation = await this.relocateWebvhAfterMove(picoId, options);
+    const peersNotified = await this.notifyPeersOfWebvhRotation(
+      picoId,
+      relocation
+    );
+    return { ...relocation, peersNotified };
+  }
+
+  private rotationDeps() {
+    return {
+      store: this.store,
+      pf: this.pf,
+      getBaseUrl: this.getBaseUrl,
+      identity: this,
+    };
+  }
+
   generateMessage(options: DidCommMessageOptions): DidCommPlainMessage {
     const message: DidCommPlainMessage = {
       id: cuid(),
@@ -430,6 +487,10 @@ export class IdentityService {
         picoId,
         message
       );
+    }
+
+    if (message.type === SKY_ROTATE) {
+      return handleSkyRotateAtIngress(this.rotationDeps(), picoId, message);
     }
 
     // Channel policy (Epic 7): authenticated sender peer DID → subscription record →

@@ -1,3 +1,14 @@
+/**
+ * Engine global KRL module `dido` — the ruleset-facing bridge to IdentityService.
+ *
+ * Wrangler and subscription call `dido:*` for Layer 2 identity: did:webvh lookup,
+ * SKY intro/response, cross-pico query/event, DIDComm pack/unpack/route, and
+ * portable-move helpers. State lives in the engine identity store, not in KRL ent.
+ *
+ * Not the retired `io.picolabs.did-o` ruleset (removed in 1.7). Do not rename this
+ * module; it is internal OS plumbing wired at engine start via core.modules["dido"].
+ */
+
 import { krl } from "krl-stdlib";
 import { IdentityService } from "./IdentityService";
 import { IdentityError } from "./errors";
@@ -102,8 +113,6 @@ export default function initDidoModule(identity: IdentityService) {
       }
       return undefined;
     }),
-
-    prepareQuery: deprecated("prepareQuery"),
 
     sendQuery: krl.Function(["did", "message"], async function (
       did: string,
@@ -332,30 +341,51 @@ export default function initDidoModule(identity: IdentityService) {
       });
     }),
 
-    // Legacy did-o / did:peer:2 surface — removed in Layer 2 reboot.
-    generateDID: deprecated("generateDID"),
-    deleteDID: deprecated("deleteDID"),
-    updateDID: deprecated("updateDID"),
-    rotateDID: deprecated("rotateDID"),
-    rotateInviteDID: deprecated("rotateInviteDID"),
-    clearPendingRotations: deprecated("clearPendingRotations"),
-    mapDid: deprecated("mapDid"),
-    clearDidMap: deprecated("clearDidMap"),
-    clearDidDocs: deprecated("clearDidDocs"),
-    storeDidDoc: deprecated("storeDidDoc"),
-    addLabelsToChannel: deprecated("addLabelsToChannel"),
+    relocateWebvhAfterMove: krl.Function(["options"], async function (
+      options: Record<string, unknown> = {}
+    ) {
+      const opts: {
+        baseUrl?: string;
+        renewIngress?: boolean;
+      } = {};
+      if (typeof options.baseUrl === "string") {
+        opts.baseUrl = options.baseUrl;
+      }
+      if (options.renewIngress === true) {
+        opts.renewIngress = true;
+      }
+      return identity.relocateWebvhAfterMove(this.rsCtx.pico().id, opts);
+    }),
+
+    notifyPeersOfWebvhRotation: krl.Function(["relocation"], async function (
+      relocation: Record<string, unknown>
+    ) {
+      return identity.notifyPeersOfWebvhRotation(
+        this.rsCtx.pico().id,
+        relocation as unknown as Parameters<
+          IdentityService["notifyPeersOfWebvhRotation"]
+        >[1]
+      );
+    }),
+
+    completePortableMove: krl.Function(["options"], async function (
+      options: Record<string, unknown> = {}
+    ) {
+      const opts: {
+        baseUrl?: string;
+        renewIngress?: boolean;
+      } = {};
+      if (typeof options.baseUrl === "string") {
+        opts.baseUrl = options.baseUrl;
+      }
+      if (options.renewIngress === true) {
+        opts.renewIngress = true;
+      }
+      return identity.completePortableMove(this.rsCtx.pico().id, opts);
+    }),
   };
 
   return module;
-}
-
-function deprecated(name: string) {
-  return krl.Function([], async function () {
-    throw new IdentityError(
-      `dido:${name} removed in Layer 2 reboot — use engine identity primitives`,
-      410
-    );
-  });
 }
 
 function extractDidcommEndpoint(doc: Record<string, unknown>): string {

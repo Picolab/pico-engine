@@ -39,6 +39,8 @@ export class PicoEngineCore {
 
   private picos: { [picoId: string]: CorePico } = {};
   private startupModules: (() => Promise<any>)[] = [];
+  private reloadSchedulesForPico: (picoId: string) => Promise<void> = async () =>
+    undefined;
 
   constructor(conf: PicoEngineCoreConfiguration) {
     const log = (this.log = conf.log);
@@ -124,6 +126,7 @@ export class PicoEngineCore {
 
     scheduleHooks = initScheduleModule(this.picoFramework);
     this.modules["schedule"] = scheduleHooks.module;
+    this.reloadSchedulesForPico = scheduleHooks.reloadSchedulesForPico;
     this.startupModules.push(scheduleHooks.start);
 
     this.modules["stdlib"] = module_stdlib;
@@ -144,6 +147,13 @@ export class PicoEngineCore {
       await startModule();
     }
     await this.picoFramework.start();
+  }
+
+  /** Re-register in-memory schedule jobs from ent:_schedule after import. */
+  async reloadImportedSchedules(picoIds: string[]): Promise<void> {
+    for (const picoId of picoIds) {
+      await this.reloadSchedulesForPico(picoId);
+    }
   }
 
   onRulesetLoaded(crs: CachedRuleset) {

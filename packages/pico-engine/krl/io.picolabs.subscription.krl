@@ -813,6 +813,16 @@ ent:established [
     }
   }
   
+  rule apply_webvh_peer_rotation {
+    select when wrangler webvh_peer_rotated
+    always {
+      subId = event:attr("Id")
+      ent:established := established().map(function(b){
+        b{"Id"} == subId => b.put(["Tx_host"], event:attr("new_tx_host")) | b
+      })
+    }
+  }
+
   rule send_event_to_subs {
     select when wrangler send_event_to_subs
     foreach event:attr("subs") setting (sub)

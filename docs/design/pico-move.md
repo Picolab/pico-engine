@@ -66,7 +66,7 @@ Atomicity and rollback (move half-completes), tombstones/forwarding on the sourc
 ### Phase B — Subtree export/import (#659, minimal)
 
 - Export: pico id, installed rulesets, entity vars, children (recursive), channels (policy + tags, **not** preserving ECIs), subscriptions (logical endpoints), schedules.
-- Import: mint new ECIs everywhere; attach under nominated parent; emit old→new ECI map; fire wrangler `pico_imported` (or similar) for ruleset migration hooks.
+- Import: mint new ECIs everywhere; attach under nominated parent; emit old→new ECI map; remap ECIs embedded in `ent` (including `ent:_schedule` and subscription buses); reload schedule jobs; fire wrangler `pico_imported` with `{ eciMap, picoIdMap, oldRootPicoId, newRootPicoId }` for ruleset migration hooks.
 - Optional **parent ruleset manifest** — fail or warn if non-portable dependencies detected.
 - Legacy note: pre-1.x had `engine:exportPico` / `engine:importPico` ([CHANGELOG](../../CHANGELOG.md)); any revival should be DID-aware and multi-root-safe.
 
@@ -90,8 +90,9 @@ Rationale: keeps packs small and avoids stale forks of rulesets that have a cano
 
 ### Phase D — DID-native portable move
 
-- did:webvh log update (host/path) with SCID continuity (`portable: true` at inception).
-- DIDComm DID Rotation for peer/service subscriptions that must survive.
+- **Implemented:** `dido:relocateWebvhAfterMove()` appends a did:webvh log entry (SCID unchanged; `portable: true` only at inception). Optional `renewIngress: true` mints a fresh DIDComm ingress ECI (post-import move).
+- **Implemented:** `dido:notifyPeersOfWebvhRotation()` / `completePortableMove()` send SKY `…/rotate` DIDComm messages; peers update identity store + `ent:established` `Tx_host` via `wrangler:webvh_peer_rotated`.
+- **Implemented:** `from_prior` on rotate messages when the did:webvh identifier changes; `pendingRotations` stored on recipients.
 - Peers follow **DID**, not ECI; engine mints new local ECIs as routing handles only.
 
 ---

@@ -1,5 +1,5 @@
 /**
- * dido KRL module wiring (wrangler myDid) and did-o ruleset deprecation.
+ * Engine `dido` KRL module wiring (wrangler myDid delegates to dido:myDid).
  */
 
 import test from "ava";

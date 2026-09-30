@@ -10,6 +10,7 @@ import {
   PicoDbKey,
   PicoFramework,
 } from "pico-framework";
+import { remapEcisDeep } from "./eciRemap";
 import type { RulesetStateServices } from "./rulesetState";
 import {
   needsInlineKrlOnExport,
@@ -51,10 +52,18 @@ export interface SubtreeExportPayload {
 }
 
 export interface SubtreeImportResult {
+  oldRootPicoId: string;
   newRootPicoId: string;
   newRootEci: string;
   eciMap: Record<string, string>;
   picoIdMap: Record<string, string>;
+}
+
+export interface SubtreeImportOptions {
+  afterImport?: (
+    result: SubtreeImportResult,
+    payload: SubtreeExportPayload
+  ) => Promise<void>;
 }
 
 function channelKey(tags: string[]): string {
@@ -247,12 +256,6 @@ async function importPicoNode(
   picoIdMap[node.oldPicoId] = child.id;
   eciMap[node.oldPicoId] = child.id;
 
-  for (const [rid, vars] of Object.entries(node.ent || {})) {
-    for (const [name, value] of Object.entries(vars)) {
-      await child.putEnt(rid, name, value);
-    }
-  }
-
   for (const ch of node.channels) {
     const conf: ChannelConfig = {
       tags: ch.tags,
@@ -267,6 +270,12 @@ async function importPicoNode(
     await importPicoNode(services, pf, child, sub, eciMap, picoIdMap);
   }
 
+  for (const [rid, vars] of Object.entries(node.ent || {})) {
+    for (const [name, value] of Object.entries(vars)) {
+      await child.putEnt(rid, name, remapEcisDeep(value, eciMap));
+    }
+  }
+
   return child;
 }
 
@@ -276,7 +285,8 @@ export async function importSubtree(
   pf: PicoFramework,
   parent: Pico,
   blob: string,
-  secret: string
+  secret: string,
+  options?: SubtreeImportOptions
 ): Promise<SubtreeImportResult> {
   const raw = openPortableBlob(blob, secret) as SubtreeExportPayload;
   if (!raw || raw.version !== 1 || !raw.root) {
@@ -294,10 +304,17 @@ export async function importSubtree(
     picoIdMap
   );
 
-  return {
+  const result: SubtreeImportResult = {
+    oldRootPicoId: raw.root.oldPicoId,
     newRootPicoId: root.id,
     newRootEci: root.id,
     eciMap,
     picoIdMap,
   };
+
+  if (options?.afterImport) {
+    await options.afterImport(result, raw);
+  }
+
+  return result;
 }

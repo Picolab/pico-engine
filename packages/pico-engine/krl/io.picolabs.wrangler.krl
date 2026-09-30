@@ -589,6 +589,15 @@ ruleset io.picolabs.wrangler {
                    "domain": "wrangler", "type": "child_initialized",
                    "attrs" : event:attrs })
   }
+
+  rule note_subtree_import {
+    select when wrangler pico_imported
+    fired {
+      ent:last_subtree_import := event:attrs
+      raise wrangler event "subtree_imported"
+        attributes event:attrs
+    }
+  }
   
   // this pico is the primary pico
 

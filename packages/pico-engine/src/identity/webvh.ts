@@ -131,9 +131,9 @@ const INGRESS_CHANNEL: ChannelConfig = {
   },
 };
 
-async function ensureDidcommIngress(
-  pf: PicoFramework,
+export async function ensureDidcommIngress(
   store: IdentityStore,
+  pf: PicoFramework,
   picoId: string,
   baseUrl: string
 ): Promise<string> {
@@ -151,7 +151,7 @@ async function ensureDidcommIngress(
   return eci;
 }
 
-function didcommServiceEndpoint(baseUrl: string, ingressEci: string): string {
+export function didcommServiceEndpoint(baseUrl: string, ingressEci: string): string {
   const base = baseUrl.replace(/\/$/, "");
   return `${base}/sky/event/${ingressEci}/none/dido/didcomm_message`;
 }
@@ -176,7 +176,7 @@ export async function ensureWebvhDid(
   const webvh = await loadDidWebvhTs();
   const keyMaterial = await generateWebvhKeyMaterial();
   const crypto = await createWebvhCrypto(keyMaterial);
-  const ingressEci = await ensureDidcommIngress(pf, store, picoId, baseUrl);
+  const ingressEci = await ensureDidcommIngress(store, pf, picoId, baseUrl);
 
   const result = await webvh.createDID({
     address: baseUrlToDidAddress(baseUrl),

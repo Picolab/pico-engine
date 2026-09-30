@@ -314,8 +314,27 @@ export function initScheduleModule(pf: PicoFramework) {
     }),
   };
 
+  async function reloadSchedulesForPico(picoId: string) {
+    const pico = pf.getPico(picoId);
+    if (!pico) {
+      return;
+    }
+    for (const rs of pico.toReadOnly().rulesets) {
+      const schedule = (await pico.getEnt(rs.rid, "_schedule")) as
+        | { [id: string]: ScheduledEvent }
+        | null;
+      if (!schedule || typeof schedule !== "object") {
+        continue;
+      }
+      for (const sEvent of Object.values(schedule)) {
+        addScheduledEvent(rs.rid, sEvent);
+      }
+    }
+  }
+
   return {
     module,
+    reloadSchedulesForPico,
     async start() {
       const iter = pf.db.iterator({
         gte: ["entvar"],

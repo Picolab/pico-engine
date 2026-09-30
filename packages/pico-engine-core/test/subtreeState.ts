@@ -19,6 +19,26 @@ import { allowAllChannelConf } from "./helpers/allowAllChannelConf";
 import { mkSignalBase } from "./helpers/mkSignalBase";
 import { mkdb } from "./helpers/mkdb";
 
+const SCHED_KRL = `ruleset sched_test {
+  meta { shares readSchedule }
+  global {
+    readSchedule = function() { schedule:list() }
+  }
+}`;
+
+const HOOK_KRL = `ruleset import_hook {
+  meta { shares lastImport }
+  global {
+    lastImport = function() { ent:lastImport }
+  }
+  rule on_import {
+    select when wrangler pico_imported
+    always {
+      ent:lastImport := event:attrs
+    }
+  }
+}`;
+
 const LEAF_KRL = `ruleset leaf_test {
   meta { shares getLabel }
   global {
@@ -57,6 +77,8 @@ async function mkCore(krlUrls: Record<string, string> = {}) {
   const sources: Record<string, string> = {
     "mem://state_test": STATE_KRL,
     "mem://leaf_test": LEAF_KRL,
+    "mem://sched_test": SCHED_KRL,
+    "mem://import_hook": HOOK_KRL,
     ...krlUrls,
   };
   const core = new PicoEngineCore({
@@ -467,6 +489,515 @@ test("importSubtree via ctx function recreates subtree", async (t) => {
   t.not(result.newRootPicoId, sourceChild.id);
   const imported = core.picoFramework.getPico(result.newRootPicoId)!;
   t.is(await imported.getEnt("state_test", "counter"), 55);
+});
+
+test("importSubtree remaps _schedule ECI references", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+
+  const schedRs = await core.rsRegistry.load("mem://sched_test");
+  const childEci = await root.newPico({
+    rulesets: [{ rs: schedRs.ruleset, config: { url: "mem://sched_test" } }],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  const tickCh = await sourceChild.newChannel({
+    tags: ["tick"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+
+  const jobId = "job-1";
+  await sourceChild.putEnt("sched_test", "_schedule", {
+    [jobId]: {
+      id: jobId,
+      type: "at",
+      time: Date.now() + 86400000,
+      event: {
+        eci: tickCh.id,
+        domain: "sched_test",
+        name: "tick",
+        data: { attrs: {} },
+        time: 0,
+      },
+    },
+  });
+
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    sourceChild.id,
+    "sched"
+  );
+  const importResult = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "sched"
+  );
+
+  const imported = core.picoFramework.getPico(importResult.newRootPicoId)!;
+  const schedule = (await imported.getEnt("sched_test", "_schedule")) as Record<
+    string,
+    { event: { eci: string } }
+  >;
+  t.is(schedule[jobId].event.eci, importResult.eciMap[tickCh.id]);
+  t.not(schedule[jobId].event.eci, tickCh.id);
+});
+
+test("importSubtree remaps subscription Rx ECIs but keeps external Tx", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const childEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  const rxCh = await sourceChild.newChannel({
+    tags: ["wellKnown_Rx", "Tx_Rx"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+
+  await sourceChild.putEnt("state_test", "established", [
+    {
+      Id: "sub-1",
+      Rx: rxCh.id,
+      Tx: "external-peer-eci",
+      layer2: false,
+    },
+  ]);
+
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    sourceChild.id,
+    "sub"
+  );
+  const importResult = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "sub"
+  );
+
+  const imported = core.picoFramework.getPico(importResult.newRootPicoId)!;
+  const established = (await imported.getEnt(
+    "state_test",
+    "established"
+  )) as Array<{ Rx: string; Tx: string }>;
+  t.is(established[0].Rx, importResult.eciMap[rxCh.id]);
+  t.is(established[0].Tx, "external-peer-eci");
+});
+
+test("importSubtree via ctx raises wrangler pico_imported", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const hookRs = await core.rsRegistry.load("mem://import_hook");
+  await root.install(stateRs.ruleset, { url: "mem://state_test" });
+
+  const childEci = await root.newPico({
+    rulesets: [
+      { rs: stateRs.ruleset, config: { url: "mem://state_test" } },
+      { rs: hookRs.ruleset, config: { url: "mem://import_hook" } },
+    ],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  await sourceChild.putEnt("state_test", "counter", 3);
+
+  const exportCh = await root.newChannel(allowAllChannelConf);
+  const blob = await core.picoFramework.query({
+    eci: exportCh.id,
+    rid: "state_test",
+    name: "exportSubtree",
+    args: { picoId: sourceChild.id, secret: "hook" },
+  });
+
+  const importParentEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const importParent = core.picoFramework.getPico(importParentEci)!;
+  const importCh = await importParent.newChannel(allowAllChannelConf);
+  const result = (await core.picoFramework.query({
+    eci: importCh.id,
+    rid: "state_test",
+    name: "importSubtree",
+    args: { blob, secret: "hook" },
+  })) as { newRootPicoId: string; oldRootPicoId: string };
+
+  t.is(result.oldRootPicoId, sourceChild.id);
+  const imported = core.picoFramework.getPico(result.newRootPicoId)!;
+  const importedCh = await imported.newChannel(allowAllChannelConf);
+  const hookAttrs = await core.picoFramework.query({
+    eci: importedCh.id,
+    rid: "import_hook",
+    name: "lastImport",
+    args: {},
+  });
+  const attrs = hookAttrs as {
+    oldRootPicoId: string;
+    newRootPicoId: string;
+    eciMap: Record<string, string>;
+  };
+  t.is(attrs.oldRootPicoId, sourceChild.id);
+  t.is(attrs.newRootPicoId, result.newRootPicoId);
+  t.is(attrs.eciMap[sourceChild.id], result.newRootPicoId);
+});
+
+test("importSubtree returns oldRootPicoId", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const childEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    sourceChild.id,
+    "id"
+  );
+  const result = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "id"
+  );
+  t.is(result.oldRootPicoId, sourceChild.id);
+});
+
+test("exportSubtree excludes self and family channels", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const childEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  const userCh = await sourceChild.newChannel({
+    tags: ["app"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    sourceChild.id,
+    "ch"
+  );
+  const payload = openPortableBlob(blob, "ch") as SubtreeExportPayload;
+  const exportedEcis = payload.root.channels.map((c) => c.oldEci);
+  t.false(exportedEcis.includes(sourceChild.id));
+  t.true(exportedEcis.includes(userCh.id));
+  for (const ch of sourceChild.toReadOnly().channels) {
+    if (ch.familyChannelPicoID) {
+      t.false(exportedEcis.includes(ch.id));
+    }
+  }
+});
+
+test("importSubtree remaps parent ent referencing nested child channel", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const leafRs = await core.rsRegistry.load("mem://leaf_test");
+  const parentEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const parent = core.picoFramework.lookupChannel(parentEci).pico;
+  const childEci = await parent.newPico({
+    rulesets: [{ rs: leafRs.ruleset, config: { url: "mem://leaf_test" } }],
+  });
+  const child = core.picoFramework.lookupChannel(childEci).pico;
+  const leafCh = await child.newChannel({
+    tags: ["leaf"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+  await parent.putEnt("state_test", "leafTickCh", leafCh.id);
+
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    parent.id,
+    "nested"
+  );
+  const result = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "nested"
+  );
+
+  const newParent = core.picoFramework.getPico(result.newRootPicoId)!;
+  t.is(await newParent.getEnt("state_test", "leafTickCh"), result.eciMap[leafCh.id]);
+  t.not(await newParent.getEnt("state_test", "leafTickCh"), leafCh.id);
+});
+
+test("recursive importSubtree maps nested child channel ECIs", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const parentEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const parent = core.picoFramework.lookupChannel(parentEci).pico;
+  const childEci = await parent.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const child = core.picoFramework.lookupChannel(childEci).pico;
+  const childCh = await child.newChannel({
+    tags: ["nested"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    parent.id,
+    "map"
+  );
+  const result = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "map"
+  );
+
+  t.is(result.picoIdMap[child.id], result.eciMap[child.id]);
+  t.true(result.eciMap[childCh.id].length > 0);
+  t.not(result.eciMap[childCh.id], childCh.id);
+});
+
+test("importSubtree remaps inbound subscription ECIs", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const childEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  const rxCh = await sourceChild.newChannel({
+    tags: ["wellKnown_Rx", "Tx_Rx"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+
+  await sourceChild.putEnt("state_test", "inbound", [
+    { Id: "in-1", Rx: rxCh.id, Tx: "remote-initiator-eci" },
+  ]);
+
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    sourceChild.id,
+    "in"
+  );
+  const result = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "in"
+  );
+  const imported = core.picoFramework.getPico(result.newRootPicoId)!;
+  const inbound = (await imported.getEnt("state_test", "inbound")) as Array<{
+    Rx: string;
+    Tx: string;
+  }>;
+  t.is(inbound[0].Rx, result.eciMap[rxCh.id]);
+  t.is(inbound[0].Tx, "remote-initiator-eci");
+});
+
+test("importSubtree remaps outbound wellKnown_Tx ECIs", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const childEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  const wellKnownCh = await sourceChild.newChannel({
+    tags: ["wellKnown_Tx"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+  const rxCh = await sourceChild.newChannel({
+    tags: ["wellKnown_Rx", "Tx_Rx"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+
+  await sourceChild.putEnt("state_test", "outbound", [
+    {
+      Id: "out-1",
+      wellKnown_Tx: wellKnownCh.id,
+      Rx: rxCh.id,
+      Tx: "remote-peer-eci",
+    },
+  ]);
+
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    sourceChild.id,
+    "out"
+  );
+  const result = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "out"
+  );
+  const imported = core.picoFramework.getPico(result.newRootPicoId)!;
+  const outbound = (await imported.getEnt("state_test", "outbound")) as Array<{
+    wellKnown_Tx: string;
+    Rx: string;
+    Tx: string;
+  }>;
+  t.is(outbound[0].wellKnown_Tx, result.eciMap[wellKnownCh.id]);
+  t.is(outbound[0].Rx, result.eciMap[rxCh.id]);
+  t.is(outbound[0].Tx, "remote-peer-eci");
+});
+
+test("direct importSubtree does not fire pico_imported hook", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+  };
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  const hookRs = await core.rsRegistry.load("mem://import_hook");
+  const childEci = await root.newPico({
+    rulesets: [
+      { rs: stateRs.ruleset, config: { url: "mem://state_test" } },
+      { rs: hookRs.ruleset, config: { url: "mem://import_hook" } },
+    ],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    sourceChild.id,
+    "nohook"
+  );
+  const result = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "nohook"
+  );
+  const imported = core.picoFramework.getPico(result.newRootPicoId)!;
+  t.is(await imported.getEnt("import_hook", "lastImport"), null);
+});
+
+test("ctx importSubtree reloads schedule jobs after ECI remap", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const schedRs = await core.rsRegistry.load("mem://sched_test");
+  const stateRs = await core.rsRegistry.load("mem://state_test");
+  await root.install(stateRs.ruleset, { url: "mem://state_test" });
+
+  const childEci = await root.newPico({
+    rulesets: [{ rs: schedRs.ruleset, config: { url: "mem://sched_test" } }],
+  });
+  const sourceChild = core.picoFramework.lookupChannel(childEci).pico;
+  const tickCh = await sourceChild.newChannel({
+    tags: ["tick"],
+    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+  const jobId = "job-reload";
+  await sourceChild.putEnt("sched_test", "_schedule", {
+    [jobId]: {
+      id: jobId,
+      type: "at",
+      time: Date.now() + 86400000,
+      event: {
+        eci: tickCh.id,
+        domain: "sched_test",
+        name: "tick",
+        data: { attrs: {} },
+        time: 0,
+      },
+    },
+  });
+
+  const exportCh = await root.newChannel(allowAllChannelConf);
+  const blob = await core.picoFramework.query({
+    eci: exportCh.id,
+    rid: "state_test",
+    name: "exportSubtree",
+    args: { picoId: sourceChild.id, secret: "reload" },
+  });
+
+  const importParentEci = await root.newPico({
+    rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
+  });
+  const importParent = core.picoFramework.getPico(importParentEci)!;
+  const importCh = await importParent.newChannel(allowAllChannelConf);
+  const result = (await core.picoFramework.query({
+    eci: importCh.id,
+    rid: "state_test",
+    name: "importSubtree",
+    args: { blob, secret: "reload" },
+  })) as { newRootPicoId: string; eciMap: Record<string, string> };
+
+  const imported = core.picoFramework.getPico(result.newRootPicoId)!;
+  const queryCh = await imported.newChannel(allowAllChannelConf);
+  const jobs = (await core.picoFramework.query({
+    eci: queryCh.id,
+    rid: "sched_test",
+    name: "readSchedule",
+    args: {},
+  })) as Array<{ id: string; event: { eci: string } }>;
+  t.is(jobs.length, 1);
+  t.is(jobs[0].id, jobId);
+  t.is(jobs[0].event.eci, result.eciMap[tickCh.id]);
 });
 
 test("exportSubtree does not inline KRL for mem URLs", async (t) => {

@@ -7,6 +7,7 @@ export const SKY_INTRO_RESPONSE = `${SKY_NS}/intro-response`;
 export const SKY_EVENT = `${SKY_NS}/event`;
 export const SKY_QUERY = `${SKY_NS}/query`;
 export const SKY_QUERY_RESPONSE = `${SKY_NS}/query-response`;
+export const SKY_ROTATE = `${SKY_NS}/rotate`;
 
 export interface SkyEventBody {
   sky_version: string;
@@ -43,6 +44,14 @@ export interface SkyIntroBody {
   /** Sender's did:webvh (for cross-engine peer linking on the recipient). */
   sender_webvh?: string;
   subscription_id?: string;
+}
+
+export interface SkyRotateBody {
+  sky_version: string;
+  prior_webvh_did: string;
+  new_webvh_did: string;
+  new_tx_host?: string;
+  new_didcomm_endpoint?: string;
 }
 
 export interface SkyIntroResponseBody {
@@ -145,6 +154,43 @@ export function skyIntroResponseToWranglerAttrs(
     Tx_host: response.Tx_host || null,
     reason: response.reason,
     detail: response.detail,
+    ...extras,
+  };
+}
+
+export function parseSkyRotateBody(body: unknown): SkyRotateBody {
+  if (!body || typeof body !== "object") {
+    throw new Error("Invalid SKY rotate body");
+  }
+  const b = body as Record<string, unknown>;
+  if (
+    typeof b.prior_webvh_did !== "string" ||
+    typeof b.new_webvh_did !== "string"
+  ) {
+    throw new Error("SKY rotate body missing prior_webvh_did or new_webvh_did");
+  }
+  return {
+    sky_version: String(b.sky_version || "1.0"),
+    prior_webvh_did: b.prior_webvh_did,
+    new_webvh_did: b.new_webvh_did,
+    new_tx_host:
+      typeof b.new_tx_host === "string" ? b.new_tx_host : undefined,
+    new_didcomm_endpoint:
+      typeof b.new_didcomm_endpoint === "string"
+        ? b.new_didcomm_endpoint
+        : undefined,
+  };
+}
+
+export function skyRotateToWranglerAttrs(
+  rotate: SkyRotateBody,
+  extras: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    prior_webvh_did: rotate.prior_webvh_did,
+    new_webvh_did: rotate.new_webvh_did,
+    new_tx_host: rotate.new_tx_host,
+    new_didcomm_endpoint: rotate.new_didcomm_endpoint,
     ...extras,
   };
 }
