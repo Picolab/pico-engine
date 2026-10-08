@@ -47,13 +47,32 @@ function remoteTxHost(sub: PeerSubscriptionRecord, fallback: string): string {
   return host.replace(/\/$/, "");
 }
 
+function normalizeBaseUrl(url: string): string {
+  return url.replace(/\/$/, "");
+}
+
+/** Peer lives on another engine when identity store says so (post-move rotate). */
+function peerOnRemoteEngine(
+  sub: PeerSubscriptionRecord,
+  localBaseUrl: string
+): boolean {
+  if (!sub.remoteTxHost) {
+    return false;
+  }
+  return normalizeBaseUrl(sub.remoteTxHost) !== normalizeBaseUrl(localBaseUrl);
+}
+
 export async function usesLocalDispatch(
   store: IdentityStore,
   pf: PicoFramework,
   fromPicoId: string,
   toPicoId: string,
-  sub: PeerSubscriptionRecord
+  sub: PeerSubscriptionRecord,
+  localBaseUrl: string
 ): Promise<boolean> {
+  if (peerOnRemoteEngine(sub, localBaseUrl)) {
+    return false;
+  }
   const fromMesh = await store.getMeshRootId(fromPicoId);
   const toMesh = await store.getMeshRootId(toPicoId);
   if (!fromMesh || !toMesh || fromMesh !== toMesh) {
@@ -69,20 +88,22 @@ export async function resolveRecipientPicoId(
   store: IdentityStore,
   pf: PicoFramework,
   fromPicoId: string,
-  subscriptionId: string
+  subscriptionId: string,
+  localBaseUrl: string
 ): Promise<string | undefined> {
   const sub = await store.getPeerSubscription(fromPicoId, subscriptionId);
   if (!sub) {
     return undefined;
   }
+  const remoteEngine = peerOnRemoteEngine(sub, localBaseUrl);
   const remotePeer = sub.remotePeerDid || sub.remoteDid;
-  if (remotePeer) {
+  if (remotePeer && !remoteEngine) {
     const byPeer = await store.findPicoIdByLocalPeerDid(remotePeer);
     if (byPeer && pf.loadedPicos().some((p) => p.id === byPeer)) {
       return byPeer;
     }
   }
-  if (sub.remoteWebvhDid) {
+  if (sub.remoteWebvhDid && !remoteEngine) {
     const byWebvh = await store.findPicoIdByWebvhDid(sub.remoteWebvhDid);
     if (byWebvh && pf.loadedPicos().some((p) => p.id === byWebvh)) {
       return byWebvh;
@@ -106,13 +127,27 @@ export async function crossPicoEvent(
   const callerDid = await deps.store.getWebvhDid(fromPicoId);
   const attrs = { ...(event.attrs || {}), callerDid: callerDid || undefined };
 
+  const localBase = deps.getBaseUrl();
   const to =
     toPicoId ||
-    (await resolveRecipientPicoId(deps.store, deps.pf, fromPicoId, subscriptionId));
+    (await resolveRecipientPicoId(
+      deps.store,
+      deps.pf,
+      fromPicoId,
+      subscriptionId,
+      localBase
+    ));
 
   if (
     to &&
-    (await usesLocalDispatch(deps.store, deps.pf, fromPicoId, to, sub))
+    (await usesLocalDispatch(
+      deps.store,
+      deps.pf,
+      fromPicoId,
+      to,
+      sub,
+      localBase
+    ))
   ) {
     const rxEci = await resolveRecipientRxEci(deps, to, subscriptionId);
     if (rxEci) {
@@ -159,13 +194,27 @@ export async function crossPicoQuery(
     throw new IdentityError(`Unknown subscription ${subscriptionId}`, 404);
   }
 
+  const localBase = deps.getBaseUrl();
   const to =
     toPicoId ||
-    (await resolveRecipientPicoId(deps.store, deps.pf, fromPicoId, subscriptionId));
+    (await resolveRecipientPicoId(
+      deps.store,
+      deps.pf,
+      fromPicoId,
+      subscriptionId,
+      localBase
+    ));
 
   if (
     to &&
-    (await usesLocalDispatch(deps.store, deps.pf, fromPicoId, to, sub))
+    (await usesLocalDispatch(
+      deps.store,
+      deps.pf,
+      fromPicoId,
+      to,
+      sub,
+      localBase
+    ))
   ) {
     const rxEci = await resolveRecipientRxEci(deps, to, subscriptionId);
     if (rxEci) {

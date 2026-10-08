@@ -52,6 +52,25 @@ The export format should make these dependencies explicit — e.g. a manifest of
 
 Atomicity and rollback (move half-completes), tombstones/forwarding on the source, and consent on both meshes remain open problems; they align with network-mirror machinery ([MEMORY.md §3](../../MEMORY.md)) made federation-aware.
 
+### Donor mesh services — importer's responsibility (1.7)
+
+Portable export/import copies **the subtree only**. It does **not** clone ancestors or the platform services those ancestors provided in the **donor mesh**.
+
+Many picos implicitly depend on capabilities installed or configured on parents above the exported root — shared rulesets, platform subscriptions, query/event routes, OAuth mesh policy, Manifold catalog services, and similar “framework” behavior that lives on an ancestor rather than on the pico being copied. After import, the subtree is attached under a **new parent in the recipient mesh**; that parent (and its ancestors) may not offer the same services.
+
+**The importer is responsible** for ensuring the recipient mesh can satisfy those dependencies before expecting the imported pico to behave as it did on the donor mesh. Concretely:
+
+| Concern | Who owns it |
+|--------|-------------|
+| Subtree rulesets, `ent`, channels, schedules, Layer 2 identity | Export pack + import pipeline (implemented) |
+| Platform / framework rulesets on ancestors (e.g. Manifold) | **Importer** — install the same framework on the adoptive parent (or an ancestor) in the recipient mesh |
+| Subscriptions to siblings or cousins outside the exported pack | **Importer** — re-establish or accept broken behavior |
+| External integrators holding old ECIs or engine URLs | **Importer / operator** — update out-of-band |
+
+**Example — Manifold:** A thing or app pico developed under Manifold often assumes Manifold rulesets and parent-provided services exist above it in the tree. Importing that subtree under a bare wrangler root on another engine may “work” at the wrangler level but will not behave like a Manifold pico until Manifold (or equivalent services) is present on the **adoptive parent** in the recipient mesh. Prefer importing under a parent that already runs the same framework stack as the donor context.
+
+The engine does not yet emit an automatic **parent dependency manifest** in the export blob (see optional manifest in Phase B). Until then, operators should document or inspect what the subtree relied on in the donor mesh and reproduce that context at import time.
+
 ---
 
 ## Proposed phasing
@@ -93,7 +112,37 @@ Rationale: keeps packs small and avoids stale forks of rulesets that have a cano
 - **Implemented:** `dido:relocateWebvhAfterMove()` appends a did:webvh log entry (SCID unchanged; `portable: true` only at inception). Optional `renewIngress: true` mints a fresh DIDComm ingress ECI (post-import move).
 - **Implemented:** `dido:notifyPeersOfWebvhRotation()` / `completePortableMove()` send SKY `…/rotate` DIDComm messages; peers update identity store + `ent:established` `Tx_host` via `wrangler:webvh_peer_rotated`.
 - **Implemented:** `from_prior` on rotate messages when the did:webvh identifier changes; `pendingRotations` stored on recipients.
+- **Implemented:** Identity snapshots in subtree export (webvh log/keys, peer subscriptions); `IdentityService.exportPortableSubtree()` / `importPortableSubtree()` runs import → per-pico relocate → `completePortableMove` on the moved root.
+- **Implemented:** `test/portableMoveDemo.ts` — two engines, three meshes, cross-mesh subscriptions survive moving a hub pico + dependent.
+- **Implemented:** optional ruleset **`io.picolabs.portable_subtree`** (not autoloaded) — install on exporting parent or adopting parent; `exportSubtree` query + `import` event wrap the full pipeline.
 - Peers follow **DID**, not ECI; engine mints new local ECIs as routing handles only.
+
+### Using `io.picolabs.portable_subtree` (demo / utility)
+
+Copy is intentional: import does **not** delete the source subtree; remove it manually after peers have cut over.
+
+1. **Source engine** — on the parent of the subtree to copy, install `io.picolabs.portable_subtree` (Rulesets tab → engine KRL catalog, or `/krl/io.picolabs.portable_subtree.krl`).
+2. **Export** — from a channel on that parent, query:
+   - `io.picolabs.portable_subtree:exportSubtree(subtreeRootPicoId, secret)` → encrypted blob string.
+3. **Transfer** the blob to the destination (paste, file, HTTP — your choice; not built into wrangler yet).
+4. **Destination engine** — adopt under a parent that provides the services the subtree expects. For a **thing pico on someone’s Manifold**, use normal Manifold bootstrap (owner → Manifold app pico already exists); opt in once with `raise manifold event "enable_portable_thing"` (installs engine `io.picolabs.portable_subtree` + `io.picolabs.manifold_portable_thing` from manifold-api).
+5. **Import** — on the Manifold app channel:
+   - `raise manifold event "import_portable_thing" attributes { "blob", "secret", "name", "donorQueryEci", "renewIngress" }` → `import_portable_thing_done` (includes `thingQueryEci` when `donorQueryEci` is set).
+   - Generic (no Manifold registration): `raise portable_subtree event "import" attributes { "blob", "secret" }` on a pico that has `io.picolabs.portable_subtree`.
+6. **Clean up** — delete the old subtree on the source when no longer needed.
+
+**Cross-engine club gear demo (`docker-compose.cross-engine.yml`):** donor Engine A uses gitignored `io.picolabs.club_gear_demo` only to build the club and export bike #7; recipient Engine B uses standard Manifold bootstrap + steps 4–5 only (no demo ruleset). Optional `io.picolabs.ride_coordinator_demo` on B opens a Layer 2 subscription to the moved bike; the **owner approves** the pending subscription on the thing pico (`pending_subscription_approval` with the inbound `Id`) — Manifold things do not use subscription auto-accept.
+
+**Relationships after import (expectations):**
+
+| Edge | In the export blob? | After cross-engine import |
+|------|---------------------|---------------------------|
+| Manifold ↔ thing (destination) | No — created by `import_portable_thing` on B | **New** subscription on the imported pico |
+| Thing ↔ Trail Ride Community (community may stay on engine A) | Yes — subscription `ent:established` + identity peers | **Survives** like other Layer 2 relationships: export upgrades the bus to `Tx_did`, import relocates the bike’s did:webvh, SKY rotate updates the community’s `Tx_host` / `Tx_did`. Communities must call **`subscription:queryOnSub`** (not raw `picoQuery(Tx_did)`) so traffic follows the subscription after move. Delete the **donor** bike copy on A after import so the engine does not shortcut to a stale local pico with the same DID. |
+| Ride coordinator ↔ bike (Layer 2, pre-export) | Yes — `ent:established` + identity `peerSubscriptions` on the bike | **Should survive** — same SCID + rotate notices + local peer reconcile on the engine; re-run coordinator setup only if the relationship was never established before export |
+| Peer / Layer 2 services (same SCID) | Yes — identity `peerSubscriptions` + subscription buses | **Survive**; peers get SKY rotate + `webvh_peer_rotated` to update `Tx_host` |
+
+Import hydrates all ruleset `ent` vars (including relationship buses) and re-applies subscription/thing entity after wrangler bootstrap finishes, so community links on the **bike pico** are not dropped silently.
 
 ---
 
