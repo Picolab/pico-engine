@@ -1,3 +1,13 @@
+# 1.7.0 - October 10, 2026
+
+* **Identity portability** — **did:peer:4** for new Layer 2 relationships; TypeScript did-peer-4 port; matching and epic9 matrix updated (peer:2 subs unchanged).
+* **Portable move** — **`exportPortableSubtree` / `importPortableSubtree`** with identity pack, ECI remap, webvh relocation, SKY rotate + peer subscription notify; **`io.picolabs.portable_subtree`** KRL; **`IdentityService`** orchestration; E2E **`portableMoveDemo`** (multi-mesh, two engines).
+* **Ruleset / subtree state** — **`ctx:exportRulesetState` / `ctx:importRulesetState`**; subtree export includes schedules, channels, ruleset configs, Layer 2 identity snapshots.
+* **Wrangler / subscription** — portable import hooks, subscription entity sync helpers, community link preservation on export; **`relationship_*`** aliases (continued from 1.6.x).
+* **Developer UI** — **`reinstall_after_flush`** on **`engine_ui:flush`** when the flushed URL matches an installed RID on that pico.
+* **Tests** — portable move demo, identity portable, local peer reconcile, portable subtree ruleset, peer Did4, webvh relocation, sky rotation extensions.
+* Requires **pico-framework** `^0.8.1`.
+
 # 1.6.4 - September 15, 2026
 
 * **OAuth** — Channel tag **`mesh-oauth-exempt`** skips mesh-wide `/sky/*` Bearer requirement when `io.picolabs.oauth` is on the root (for inbound webhooks that cannot send `Authorization`, e.g. LoRa/Helium). `oauth-webhook` still requires Bearer. API: `GET /api/oauth/mesh-enabled`.

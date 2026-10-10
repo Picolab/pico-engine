@@ -20,6 +20,8 @@ import module_ursa from "./modules/ursa";
 import initMetaModule from "./modules/meta";
 import { PicoEngineCoreConfiguration } from "./PicoEngineCoreConfiguration";
 import { CachedRuleset, RulesetRegistry } from "./RulesetRegistry";
+import type { RulesetStateServices } from "./rulesetState";
+import type { SubtreePortableHooks } from "./subtreeState";
 
 const version = require("../package.json").version;
 
@@ -36,6 +38,15 @@ export class PicoEngineCore {
     picoId: string,
     ctx: { isRoot: boolean; parentPicoId: string }
   ) => Promise<void>;
+  /** Identity export/import for ctx:exportSubtree / importSubtree (set by pico-engine). */
+  subtreePortableHooks?: SubtreePortableHooks;
+  /** Remap bundled /krl/ ruleset URLs on import (set by pico-engine). */
+  resolveBundledRulesetUrl?: (url: string) => string;
+  /**
+   * Host-provided import hooks (e.g. wrangler events). Core stays OS-agnostic;
+   * the running engine sets this from a layer above ctx.
+   */
+  subtreeImportServices?: Partial<RulesetStateServices>;
 
   private picos: { [picoId: string]: CorePico } = {};
   private startupModules: (() => Promise<any>)[] = [];

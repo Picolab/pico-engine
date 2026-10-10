@@ -22,3 +22,20 @@ export function remapEcisDeep(
   }
   return value;
 }
+
+/** Remap family ECI keys and ui ECI values in pico-engine-ui ent:child_ui_ecis. */
+export function remapChildUiEcisEnt(
+  value: unknown,
+  eciMap: Record<string, string>
+): Record<string, unknown> {
+  const remapped = remapEcisDeep(value, eciMap);
+  if (!remapped || typeof remapped !== "object" || Array.isArray(remapped)) {
+    return {};
+  }
+  const obj = remapped as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(obj)) {
+    out[eciMap[key] ?? key] = val;
+  }
+  return out;
+}

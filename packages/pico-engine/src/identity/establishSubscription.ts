@@ -104,7 +104,7 @@ export async function establishSubscriptionIdentity(
 }
 
 export interface LinkRemotePeerInput {
-  remotePeerDid: string;
+  remotePeerDid?: string;
   remoteWebvhDid?: string;
   remoteMeshRootId?: string;
   remoteTxHost?: string;
@@ -123,7 +123,7 @@ export async function linkRemotePeer(
   }
   const updated: PeerSubscriptionRecord = {
     ...sub,
-    remotePeerDid: input.remotePeerDid,
+    remotePeerDid: input.remotePeerDid ?? sub.remotePeerDid,
     remoteWebvhDid: input.remoteWebvhDid ?? sub.remoteWebvhDid,
     remoteMeshRootId: input.remoteMeshRootId ?? sub.remoteMeshRootId,
     remoteTxHost: input.remoteTxHost ?? sub.remoteTxHost,

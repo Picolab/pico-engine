@@ -128,16 +128,23 @@ export async function notifyPeersOfWebvhRotation(
     if (!remotePeer) {
       continue;
     }
-    await deliverRotateNotice(
-      deps,
-      picoId,
-      remotePeer,
-      sub.remoteWebvhDid,
-      sub.remoteDidcommEndpoint,
-      body,
-      relocation.priorDid !== relocation.newDid ? relocation.priorDid : undefined
-    );
-    sent += 1;
+    try {
+      await deliverRotateNotice(
+        deps,
+        picoId,
+        remotePeer,
+        sub.remoteWebvhDid,
+        sub.remoteDidcommEndpoint,
+        body,
+        relocation.priorDid !== relocation.newDid ? relocation.priorDid : undefined
+      );
+      sent += 1;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[portable-move] SKY rotate to ${remotePeer} failed (import continues): ${msg}`
+      );
+    }
   }
   return sent;
 }

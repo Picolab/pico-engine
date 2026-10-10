@@ -817,8 +817,13 @@ ent:established [
     select when wrangler webvh_peer_rotated
     always {
       subId = event:attr("Id")
+      newDid = event:attr("new_webvh_did")
       ent:established := established().map(function(b){
-        b{"Id"} == subId => b.put(["Tx_host"], event:attr("new_tx_host")) | b
+        b{"Id"} == subId => b
+          .put(["Tx_host"], event:attr("new_tx_host"))
+          .put(["Tx_did"], newDid)
+          .put(["layer2"], true)
+          | b
       })
     }
   }

@@ -32,7 +32,7 @@ ruleset io.picolabs.wrangler {
                                 { "name": "channels", "args":["tags"] },
                                 { "name": "discoveryChannel"},
                                 { "name": "installedRIDs"},
-                                {"name":"skyQuery", "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
+                                {"name":"picoQuery", "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
                                 {"name":"children", "args":[]}
                                 ],
                   "events": [
@@ -377,6 +377,53 @@ ruleset io.picolabs.wrangler {
     id = function() {
       meta:picoId
     }
+
+    /** OS bootstrap for a new child (shared by events and import queries). */
+    bootstrapNewChild = defaction(name, passthroughAttrs) {
+      attrs = passthroughAttrs.defaultsTo({})
+      engine_ui_rid = "io.picolabs.pico-engine-ui"
+      engine_ui_ruleset = function(){
+        the_ruleset = ctx:rulesets
+          .filter(function(r){r.get("rid")==engine_ui_rid})
+          .head();
+        { "url":the_ruleset.get("url"),
+          "config":the_ruleset.get("config")
+        }
+      }
+      parentUiEci = ctx:channels
+        .filter(function(c){c["tags"].sort().join(",") == "engine,ui"})
+        .map(function(c){c["id"]})
+        .head()
+      every {
+        ctx:newPico(rulesets=[
+          engine_ui_ruleset(),
+          { "url": ctx:rid_url, "config": {} }
+        ]) setting(newEci)
+        ctx:eventQuery(
+          eci=newEci,
+          domain="engine_ui",
+          name="setup",
+          rid=engine_ui_rid,
+          queryName="uiECI"
+        ) setting(newUiECI)
+        ctx:event(
+          eci=newEci,
+          domain="wrangler",
+          name="pico_created",
+          attrs=attrs
+        )
+        ctx:event(
+          eci=newUiECI,
+          domain="engine_ui",
+          name="box",
+          attrs={
+            "name": name,
+            "parentUiEci": parentUiEci
+          }
+        )
+      }
+      return {"eci": newEci, "uiEci": newUiECI}
+    }
   
   }
   
@@ -506,53 +553,12 @@ ruleset io.picolabs.wrangler {
     select when wrangler new_child_request
       name re#.+#             // required
       backgroundColor re#.*#  // optional (layout rule assigns palette color)
-    pre {
-      name = event:attrs{"name"}
-      engine_ui_rid = "io.picolabs.pico-engine-ui"
-      engine_ui_ruleset = function(){
-        the_ruleset = ctx:rulesets
-          .filter(function(r){r.get("rid")==engine_ui_rid})
-          .head();
-        { "url":the_ruleset.get("url"),
-          "config":the_ruleset.get("config")
-        }
-      }
-      parentUiEci = ctx:channels
-        .filter(function(c){c["tags"].sort().join(",") == "engine,ui"})
-        .map(function(c){c["id"]})
-        .head()
-    }
     every {
-      ctx:newPico(rulesets=[
-        engine_ui_ruleset(),
-        { "url": ctx:rid_url, "config": {} }
-      ]) setting(newEci)
-      ctx:eventQuery(
-        eci=newEci,
-        domain="engine_ui",
-        name="setup",
-        rid=engine_ui_rid,
-        queryName="uiECI"
-      ) setting(newUiECI)
-      ctx:event(
-        eci=newEci,
-        domain="wrangler",
-        name="pico_created",
-        attrs=event:attrs
-      )
-      ctx:event(
-        eci=newUiECI,
-        domain="engine_ui",
-        name="box",
-        attrs={
-          "name": name,
-          "parentUiEci": parentUiEci
-        }
-      )
+      bootstrapNewChild(event:attrs{"name"}, event:attrs) setting(boot)
     }
     fired {
       raise wrangler event "new_child_created"
-        attributes event:attrs.put({"eci":newEci, "uiEci": newUiECI})
+        attributes event:attrs.put(boot)
     }
   }
 

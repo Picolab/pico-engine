@@ -15,3 +15,10 @@ export {
   VerifiedAuthentication,
   makeWebAuthnAdapter,
 } from "./webauthn";
+export {
+  authCookieNames,
+  sessionCookieHeader,
+  DEFAULT_SESSION_COOKIE,
+  DEFAULT_CEREMONY_COOKIE,
+  type AuthCookieNames,
+} from "./cookies";

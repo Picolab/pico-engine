@@ -1,6 +1,6 @@
 import * as cuid from "cuid";
 import fetch from "cross-fetch";
-import { PicoFramework } from "pico-framework";
+import { Pico, PicoFramework } from "pico-framework";
 import { IdentityStore } from "./store";
 import { DidCommRoutes, PeerSubscriptionRecord } from "./types";
 import { IdentityError } from "./errors";
@@ -54,6 +54,19 @@ import {
   type RelocateWebvhOptions,
   type RelocateWebvhResult,
 } from "./webvhRelocation";
+import { createSubtreePortableHooks } from "./identityPortable";
+import {
+  exportPortableSubtree as exportPortableSubtreeImpl,
+  finalizePortableImport as finalizePortableImportImpl,
+  importPortableSubtree as importPortableSubtreeImpl,
+  type PortableMoveImportResult,
+} from "./portableMove";
+import {
+  summarizeSubtreeExportBlob,
+  type SubtreeImportResult,
+} from "pico-engine-core";
+import type { RulesetRegistry } from "pico-engine-core";
+import type { SubtreePortableHooks } from "pico-engine-core";
 import {
   sendSkyIntro,
   sendSkyIntroResponse,
@@ -91,21 +104,135 @@ export interface IdentityServiceDeps {
   store: IdentityStore;
   getBaseUrl: () => string;
   pf: PicoFramework;
+  rsRegistry: RulesetRegistry;
+  resolveBundledRulesetUrl?: (url: string) => string;
+  reloadImportedSchedules?: (picoIds: string[]) => Promise<void>;
+  firePicoImported?: (
+    result: import("pico-engine-core").SubtreeImportResult
+  ) => Promise<void>;
 }
 
 /**
  * Engine identity primitive — store-backed DID state and DIDComm capabilities.
  * Crypto (pack/unpack) is delegated to Veramo when installed (Epic 2+).
  */
+function isSelfOrDescendant(
+  pf: PicoFramework,
+  ancestorPicoId: string,
+  descendantPicoId: string
+): boolean {
+  if (ancestorPicoId === descendantPicoId) {
+    return true;
+  }
+  let current: Pico | undefined = pf.getPico(descendantPicoId);
+  while (current) {
+    if (current.id === ancestorPicoId) {
+      return true;
+    }
+    current = current.parent ? pf.getPico(current.parent) : undefined;
+  }
+  return false;
+}
+
 export class IdentityService {
   private store: IdentityStore;
   private getBaseUrl: () => string;
   private pf: PicoFramework;
+  private rsRegistry: RulesetRegistry;
+  private resolveBundledRulesetUrl?: (url: string) => string;
+  private reloadImportedSchedules?: (picoIds: string[]) => Promise<void>;
+  private firePicoImported?: (
+    result: import("pico-engine-core").SubtreeImportResult
+  ) => Promise<void>;
 
   constructor(deps: IdentityServiceDeps) {
     this.store = deps.store;
     this.getBaseUrl = deps.getBaseUrl;
     this.pf = deps.pf;
+    this.rsRegistry = deps.rsRegistry;
+    this.resolveBundledRulesetUrl = deps.resolveBundledRulesetUrl;
+    this.reloadImportedSchedules = deps.reloadImportedSchedules;
+    this.firePicoImported = deps.firePicoImported;
+  }
+
+  /** Hooks wired into ctx:exportSubtree / importSubtree for identity snapshots. */
+  subtreePortableHooks(): SubtreePortableHooks {
+    return createSubtreePortableHooks(this.store, this.pf);
+  }
+
+  private portableMoveDeps() {
+    return {
+      store: this.store,
+      pf: this.pf,
+      rsRegistry: this.rsRegistry,
+      identity: this,
+      getBaseUrl: this.getBaseUrl,
+      resolveBundledRulesetUrl: this.resolveBundledRulesetUrl,
+      reloadImportedSchedules: this.reloadImportedSchedules,
+      firePicoImported: this.firePicoImported,
+    };
+  }
+
+  /**
+   * Export subtree + per-pico identity. Caller must be the subtree root or an ancestor.
+   */
+  async exportPortableSubtree(
+    fromPicoId: string,
+    subtreeRootPicoId: string,
+    secret: string,
+    options?: { recurse?: boolean; skipRelationshipUpgrade?: boolean }
+  ): Promise<string> {
+    if (!isSelfOrDescendant(this.pf, fromPicoId, subtreeRootPicoId)) {
+      throw new IdentityError(
+        `Pico ${fromPicoId} cannot export subtree rooted at ${subtreeRootPicoId}`,
+        403
+      );
+    }
+    return exportPortableSubtreeImpl(
+      this.portableMoveDeps(),
+      subtreeRootPicoId,
+      secret,
+      options
+    );
+  }
+
+  /** Decrypt a portable subtree export blob and return a debug summary (no pico access). */
+  summarizePortableSubtreeExport(blob: string, secret: string) {
+    return summarizeSubtreeExportBlob(blob, secret);
+  }
+
+  /** Import portable subtree under parent; relocate webvh and notify peer subscriptions. */
+  async importPortableSubtree(
+    parentPicoId: string,
+    blob: string,
+    secret: string,
+    relocateOptions?: RelocateWebvhOptions,
+    importOptions?: import("pico-engine-core").SubtreeImportOptions
+  ): Promise<PortableMoveImportResult> {
+    const parent = this.pf.getPico(parentPicoId);
+    if (!parent) {
+      throw new IdentityError(`Parent pico not found: ${parentPicoId}`, 404);
+    }
+    return importPortableSubtreeImpl(
+      this.portableMoveDeps(),
+      parent,
+      blob,
+      secret,
+      relocateOptions,
+      importOptions
+    );
+  }
+
+  /** Relocate webvh and notify peers after ctx/importIntoExistingChild hydration. */
+  async finalizePortableImport(
+    importResult: SubtreeImportResult,
+    relocateOptions?: RelocateWebvhOptions
+  ): Promise<PortableMoveImportResult["relocation"]> {
+    return finalizePortableImportImpl(
+      this.portableMoveDeps(),
+      importResult,
+      relocateOptions
+    );
   }
 
   async ensureWebvhDid(

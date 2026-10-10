@@ -229,6 +229,87 @@ test("layer2 intro handshake establishes subscription between two picos", async 
   await pe.pf.db.close();
 });
 
+test("layer2 subscription with autoAccept does not deadlock Tx pico", async (t) => {
+  const pe = await startIsolatedEngine({ autoCreateRootPico: true });
+  const root = pe.pf.rootPicos()[0];
+  const rootChann = await root.newChannel(allowAll);
+  await pe.identity.putPublicIntro(root.id, true);
+  const rootWebvh = (await pe.identity.getWebvhDid(root.id))!;
+
+  await pe.pf.eventWait({
+    eci: rootChann.id,
+    domain: "wrangler",
+    name: "autoAcceptConfigUpdate",
+    data: {
+      attrs: {
+        config: {
+          configName: "test-auto",
+          password: "",
+          entries: {
+            name: ["^layer2-auto$"],
+            Tx_role: ["^member$"],
+          },
+        },
+      },
+    },
+    time: 0,
+  });
+
+  await pe.pf.eventWait({
+    eci: rootChann.id,
+    domain: "wrangler",
+    name: "new_child_request",
+    data: { attrs: { name: "layer2-tx" } },
+    time: 0,
+  });
+
+  const child = pe.pf.getPico(root.toReadOnly().children[0]);
+  const childChann = await child.newChannel(allowAll);
+
+  await pe.pf.eventWait({
+    eci: childChann.id,
+    domain: "wrangler",
+    name: "subscription",
+    data: {
+      attrs: {
+        layer2: true,
+        target_did: rootWebvh,
+        name: "layer2-auto",
+        Tx_role: "member",
+        Rx_role: "community",
+        channel_type: "Tx_Rx",
+      },
+    },
+    time: 0,
+  });
+
+  let childEstablished: unknown[] = [];
+  for (let i = 0; i < 50; i++) {
+    childEstablished = (await pe.pf.query({
+      eci: childChann.id,
+      rid: "io.picolabs.subscription",
+      name: "established",
+      args: {},
+    })) as unknown[];
+    if (childEstablished.length > 0) {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+
+  const rootEstablished = (await pe.pf.query({
+    eci: rootChann.id,
+    rid: "io.picolabs.subscription",
+    name: "established",
+    args: {},
+  })) as unknown[];
+
+  t.is(childEstablished.length, 1);
+  t.is(rootEstablished.length, 1);
+
+  await pe.pf.db.close();
+});
+
 test("sendSkyIntro uses local dispatch for same-engine target", async (t) => {
   const pe = await startIsolatedEngine({ autoCreateRootPico: true });
   const root = pe.pf.rootPicos()[0];

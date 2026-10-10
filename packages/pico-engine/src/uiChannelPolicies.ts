@@ -28,6 +28,11 @@ export const UI_CHANNEL_EVENT_POLICY: EventPolicy = {
     { domain: "wrangler", name: "set_public_intro" },
     { domain: "wrangler", name: "send_event_on_subs" },
     { domain: "wrangler", name: "send_event_on_relationships" },
+    { domain: "wrangler", name: "child_deleted" },
+    { domain: "wrangler", name: "new_child_request" },
+    { domain: "wrangler", name: "new_child_created" },
+    { domain: "wrangler", name: "install_ruleset_request" },
+    { domain: "wrangler", name: "new_channel_request" },
   ],
   deny: [],
 };

@@ -26,6 +26,8 @@ Environment Variables:
     PORT - The port the http server should listen on. By default it's 3000
     PICO_ENGINE_HOME - Where the database and other files should be stored. By default it's ~/.pico-engine/
     PICO_ENGINE_BASE_URL - The public url prefix to reach this engine. By default it's http://localhost:$PORT
+    PICO_ENGINE_RP_ID - WebAuthn relying party id (defaults to hostname of PICO_ENGINE_BASE_URL)
+    PICO_ENGINE_ORIGIN - WebAuthn origin, scheme://host[:port] (defaults to origin of PICO_ENGINE_BASE_URL)
     PICO_ENGINE_ALLOW_SELF_SIGNUP - Set to "true" or "1" to allow anyone to register a new account
         after the engine is bootstrapped. Default is false (login only; bootstrap and invite still work).
     PICO_ENGINE_ALLOW_LOCALHOST_C - Set to "0" to require passkey session on /c/* even from localhost.
@@ -55,6 +57,20 @@ if (
   process.env.PICO_ENGINE_BASE_URL.length > 0
 ) {
   env.base_url = process.env.PICO_ENGINE_BASE_URL;
+}
+
+if (
+  typeof process.env.PICO_ENGINE_RP_ID === "string" &&
+  process.env.PICO_ENGINE_RP_ID.length > 0
+) {
+  env.rpID = process.env.PICO_ENGINE_RP_ID;
+}
+
+if (
+  typeof process.env.PICO_ENGINE_ORIGIN === "string" &&
+  process.env.PICO_ENGINE_ORIGIN.length > 0
+) {
+  env.origin = process.env.PICO_ENGINE_ORIGIN;
 }
 
 const allowSelfSignupEnv = process.env.PICO_ENGINE_ALLOW_SELF_SIGNUP;

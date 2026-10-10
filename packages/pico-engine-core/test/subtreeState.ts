@@ -4,8 +4,11 @@
 
 import test from "ava";
 import { makeKrlLogger } from "krl-stdlib";
+import { Pico, PicoFramework } from "pico-framework";
 import { PicoEngineCore } from "../src/PicoEngineCore";
 import { RulesetRegistryLoaderMem } from "../src/RulesetRegistryLoaderMem";
+import type { RulesetRegistry } from "../src/RulesetRegistry";
+import type { RulesetStateServices } from "../src/rulesetState";
 import {
   openPortableBlob,
   sealPortableBlob,
@@ -13,6 +16,7 @@ import {
 import {
   exportSubtree as exportSubtreeImpl,
   importSubtree as importSubtreeImpl,
+  subtreeRootBootstrapName,
   type SubtreeExportPayload,
 } from "../src/subtreeState";
 import { allowAllChannelConf } from "./helpers/allowAllChannelConf";
@@ -52,6 +56,13 @@ const LEAF_KRL = `ruleset leaf_test {
   }
 }`;
 
+const ENGINE_UI_STUB_KRL = `ruleset io.picolabs.pico-engine-ui {
+  meta { shares uiECI }
+  global {
+    uiECI = function() { ent:uiEci }
+  }
+}`;
+
 const STATE_KRL = `ruleset state_test {
   meta {
     shares getCounter, exportSubtree, importSubtree
@@ -73,12 +84,29 @@ const STATE_KRL = `ruleset state_test {
   }
 }`;
 
+function testImportServices(
+  pf: PicoFramework,
+  rsRegistry: RulesetRegistry,
+  extra?: Partial<RulesetStateServices>
+): RulesetStateServices {
+  return {
+    db: pf.db,
+    rsRegistry,
+    createImportChild: async (_pf, parent: Pico, _name, _opts) => {
+      const familyEci = await parent.newPico();
+      return { familyEci, child: pf.lookupChannel(familyEci).pico };
+    },
+    ...extra,
+  };
+}
+
 async function mkCore(krlUrls: Record<string, string> = {}) {
   const sources: Record<string, string> = {
     "mem://state_test": STATE_KRL,
     "mem://leaf_test": LEAF_KRL,
     "mem://sched_test": SCHED_KRL,
     "mem://import_hook": HOOK_KRL,
+    "mem://engine_ui_stub": ENGINE_UI_STUB_KRL,
     ...krlUrls,
   };
   const core = new PicoEngineCore({
@@ -96,8 +124,32 @@ async function mkCore(krlUrls: Record<string, string> = {}) {
     },
   });
   await core.start();
+  core.subtreeImportServices = {
+    createImportChild: async (pf, parent, _name) => {
+      const familyEci = await parent.newPico();
+      return { familyEci, child: pf.lookupChannel(familyEci).pico };
+    },
+  };
   return core;
 }
+
+test("subtreeRootBootstrapName reads wrangler ent name from blob", (t) => {
+  const payload: SubtreeExportPayload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    root: {
+      oldPicoId: "old-bike",
+      rulesets: [],
+      channels: [],
+      children: [],
+      ent: {
+        "io.picolabs.wrangler": { name: "Gravel Bike #7" },
+      },
+    },
+  };
+  const blob = sealPortableBlob(payload, "gear");
+  t.is(subtreeRootBootstrapName(blob, "gear"), "Gravel Bike #7");
+});
 
 test("exportSubtree packs rulesets, ent, and user channels", async (t) => {
   const core = await mkCore();
@@ -131,13 +183,35 @@ test("exportSubtree packs rulesets, ent, and user channels", async (t) => {
   t.is(payload.root.children.length, 0);
 });
 
+test("exportSubtree accepts any channel ECI on the pico (not only self ECI)", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  await root.install((await core.rsRegistry.load("mem://state_test")).ruleset, {
+    url: "mem://state_test",
+    config: {},
+  });
+  await root.putEnt("state_test", "counter", 9);
+  const queryCh = await root.newChannel(allowAllChannelConf);
+
+  const blob = await exportSubtreeImpl(
+    testImportServices(core.picoFramework, core.rsRegistry),
+    core.picoFramework,
+    queryCh.id,
+    "move"
+  );
+
+  const payload = openPortableBlob(blob, "move") as SubtreeExportPayload;
+  t.is(payload.root.oldPicoId, root.id);
+  t.is(payload.root.ent.state_test.counter, 9);
+});
+
 test("importSubtree recreates pico under new parent with fresh ECIs", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
 
   const sourceRs = await core.rsRegistry.load("mem://state_test");
   const childEci = await root.newPico({
@@ -193,10 +267,10 @@ test("importSubtree recreates pico under new parent with fresh ECIs", async (t) 
 test("exportSubtree recurses into child picos by default", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
 
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const parentEci = await root.newPico({
@@ -238,14 +312,58 @@ test("exportSubtree recurses into child picos by default", async (t) => {
   t.is(await newChild.getEnt("leaf_test", "label"), "deep");
 });
 
+test("importSubtree syncs child_ui_ecis via family channel as parent pico", async (t) => {
+  const core = await mkCore();
+  const root = core.picoFramework.rootPico;
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
+  const uiRs = await core.rsRegistry.load("mem://engine_ui_stub");
+  const leafRs = await core.rsRegistry.load("mem://leaf_test");
+
+  const parentEci = await root.newPico({
+    rulesets: [{ rs: uiRs.ruleset, config: { url: "mem://engine_ui_stub" } }],
+  });
+  const parent = core.picoFramework.lookupChannel(parentEci).pico;
+  const childEci = await parent.newPico({
+    rulesets: [{ rs: uiRs.ruleset, config: { url: "mem://engine_ui_stub" } }],
+  });
+  const child = core.picoFramework.lookupChannel(childEci).pico;
+  await child.putEnt("io.picolabs.pico-engine-ui", "uiEci", "ui-channel-nested");
+  await child.install(leafRs.ruleset, { url: "mem://leaf_test" });
+  await child.putEnt("leaf_test", "label", "nested-ui");
+
+  const blob = await exportSubtreeImpl(
+    services,
+    core.picoFramework,
+    parent.id,
+    "ui-map"
+  );
+  const importResult = await importSubtreeImpl(
+    services,
+    core.picoFramework,
+    root,
+    blob,
+    "ui-map"
+  );
+  const newParent = core.picoFramework.getPico(importResult.newRootPicoId)!;
+  const newChildFamily = newParent.toReadOnly().children[0];
+  const map = (await newParent.getEnt(
+    "io.picolabs.pico-engine-ui",
+    "child_ui_ecis"
+  )) as Record<string, string>;
+  t.is(map[newChildFamily], "ui-channel-nested");
+});
+
 test("exportSubtree inlines KRL for local file: rulesets", async (t) => {
   const fileUrl = "file:///tmp/dev-only/custom.krl";
   const core = await mkCore({ [fileUrl]: STATE_KRL });
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
 
   const rs = await core.rsRegistry.load(fileUrl);
   await root.install(rs.ruleset, { url: fileUrl, config: { tier: "gold" } });
@@ -263,10 +381,10 @@ test("exportSubtree inlines KRL for local file: rulesets", async (t) => {
 
   const destCore = await mkCore();
   const destRoot = destCore.picoFramework.rootPico;
-  const destServices = {
-    db: destCore.picoFramework.db,
-    rsRegistry: destCore.rsRegistry,
-  };
+  const destServices = testImportServices(
+    destCore.picoFramework,
+    destCore.rsRegistry
+  );
   const result = await importSubtreeImpl(
     destServices,
     destCore.picoFramework,
@@ -285,10 +403,10 @@ test("exportSubtree inlines KRL for local file: rulesets", async (t) => {
 test("exportSubtree with recurse false omits child picos", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
 
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const parentEci = await root.newPico({
@@ -314,10 +432,10 @@ test("exportSubtree with recurse false omits child picos", async (t) => {
 
 test("exportSubtree rejects unknown picoId", async (t) => {
   const core = await mkCore();
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   await t.throwsAsync(
     exportSubtreeImpl(
       services,
@@ -332,10 +450,10 @@ test("exportSubtree rejects unknown picoId", async (t) => {
 test("importSubtree rejects wrong secret", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   await root.install((await core.rsRegistry.load("mem://state_test")).ruleset, {
     url: "mem://state_test",
   });
@@ -354,10 +472,10 @@ test("importSubtree rejects wrong secret", async (t) => {
 test("importSubtree rejects invalid payload", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const blob = sealPortableBlob({ version: 99, root: null }, "secret");
   await t.throwsAsync(
     importSubtreeImpl(services, core.picoFramework, root, blob, "secret"),
@@ -368,10 +486,10 @@ test("importSubtree rejects invalid payload", async (t) => {
 test("importSubtree rejects ruleset rid mismatch", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const blob = sealPortableBlob(
     {
       version: 1,
@@ -401,10 +519,10 @@ test("importSubtree rejects ruleset rid mismatch", async (t) => {
 test("importSubtree preserves channel policies and ruleset config", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
 
   await root.install((await core.rsRegistry.load("mem://state_test")).ruleset, {
     url: "mem://state_test",
@@ -494,10 +612,10 @@ test("importSubtree via ctx function recreates subtree", async (t) => {
 test("importSubtree remaps _schedule ECI references", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
 
   const schedRs = await core.rsRegistry.load("mem://sched_test");
   const childEci = await root.newPico({
@@ -552,10 +670,10 @@ test("importSubtree remaps _schedule ECI references", async (t) => {
 test("importSubtree remaps subscription Rx ECIs but keeps external Tx", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
 
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const childEci = await root.newPico({
@@ -658,10 +776,10 @@ test("importSubtree via ctx raises wrangler pico_imported", async (t) => {
 test("importSubtree returns oldRootPicoId", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const childEci = await root.newPico({
     rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
@@ -686,10 +804,10 @@ test("importSubtree returns oldRootPicoId", async (t) => {
 test("exportSubtree excludes self and family channels", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const childEci = await root.newPico({
     rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
@@ -721,10 +839,10 @@ test("exportSubtree excludes self and family channels", async (t) => {
 test("importSubtree remaps parent ent referencing nested child channel", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const leafRs = await core.rsRegistry.load("mem://leaf_test");
   const parentEci = await root.newPico({
@@ -764,10 +882,10 @@ test("importSubtree remaps parent ent referencing nested child channel", async (
 test("recursive importSubtree maps nested child channel ECIs", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const parentEci = await root.newPico({
     rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
@@ -805,10 +923,10 @@ test("recursive importSubtree maps nested child channel ECIs", async (t) => {
 test("importSubtree remaps inbound subscription ECIs", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const childEci = await root.newPico({
     rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
@@ -849,10 +967,10 @@ test("importSubtree remaps inbound subscription ECIs", async (t) => {
 test("importSubtree remaps outbound wellKnown_Tx ECIs", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const childEci = await root.newPico({
     rulesets: [{ rs: stateRs.ruleset, config: { url: "mem://state_test" } }],
@@ -905,10 +1023,10 @@ test("importSubtree remaps outbound wellKnown_Tx ECIs", async (t) => {
 test("direct importSubtree does not fire pico_imported hook", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   const stateRs = await core.rsRegistry.load("mem://state_test");
   const hookRs = await core.rsRegistry.load("mem://import_hook");
   const childEci = await root.newPico({
@@ -1003,10 +1121,10 @@ test("ctx importSubtree reloads schedule jobs after ECI remap", async (t) => {
 test("exportSubtree does not inline KRL for mem URLs", async (t) => {
   const core = await mkCore();
   const root = core.picoFramework.rootPico;
-  const services = {
-    db: core.picoFramework.db,
-    rsRegistry: core.rsRegistry,
-  };
+  const services = testImportServices(
+    core.picoFramework,
+    core.rsRegistry
+  );
   await root.install((await core.rsRegistry.load("mem://state_test")).ruleset, {
     url: "mem://state_test",
   });

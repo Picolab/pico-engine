@@ -7,6 +7,7 @@ import test from "ava";
 process.env.PICO_ENGINE_ALLOW_LOCALHOST_C = "0";
 import fetch from "cross-fetch";
 import { OAUTH_MESH_RULESET_RID } from "../src/oauth";
+import { sessionCookieHeader } from "../src/auth/cookies";
 import { WebAuthnAdapter } from "../src/auth/webauthn";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
 
@@ -200,7 +201,9 @@ test("/c/* requires passkey session for external callers", async (t) => {
   t.is(unauth.status, 401);
 
   const authed = await fetch(url, {
-    headers: { Cookie: `pico-session=${acct.session.token}` },
+    headers: {
+      Cookie: sessionCookieHeader(pe.base_url, acct.session.token),
+    },
   });
   t.is(authed.status, 200);
 });
@@ -217,7 +220,9 @@ test("/sky/* oauth-webhook channel requires bearer not session", async (t) => {
   t.is(noBearer.status, 401);
 
   const sessionOnly = await fetch(skyUrl, {
-    headers: { Cookie: `pico-session=${acct.session.token}` },
+    headers: {
+      Cookie: sessionCookieHeader(pe.base_url, acct.session.token),
+    },
   });
   t.is(sessionOnly.status, 401);
 

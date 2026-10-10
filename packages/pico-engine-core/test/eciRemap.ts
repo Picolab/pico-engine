@@ -1,5 +1,5 @@
 import test from "ava";
-import { remapEcisDeep } from "../src/eciRemap";
+import { remapChildUiEcisEnt, remapEcisDeep } from "../src/eciRemap";
 
 test("remapEcisDeep replaces matching strings in nested structures", (t) => {
   const map = { oldEci: "newEci", oldPico: "newPico" };
@@ -28,4 +28,12 @@ test("remapEcisDeep leaves unmatched strings and non-strings unchanged", (t) => 
 test("remapEcisDeep with empty map is a no-op", (t) => {
   const input = { eci: "same", nested: [{ Tx: "peer" }] };
   t.deepEqual(remapEcisDeep(input, {}), input);
+});
+
+test("remapChildUiEcisEnt remaps family ECI keys and ui ECI values", (t) => {
+  const map = { oldFamily: "newFamily", oldUi: "newUi" };
+  t.deepEqual(
+    remapChildUiEcisEnt({ oldFamily: "oldUi", otherFamily: "keepUi" }, map),
+    { newFamily: "newUi", otherFamily: "keepUi" }
+  );
 });

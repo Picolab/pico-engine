@@ -41,8 +41,8 @@ ruleset io.picolabs.pico-engine-ui {
         "backgroundColor": ent:backgroundColor || "#87cefa",
         "x": ent:x || 100,
         "y": ent:y || 100,
-        "width": ent:width || 100,
-        "height": ent:height || 100
+        "width": ent:width || 125,
+        "height": ent:height || 90
       }
     }
     pico = function(){
@@ -154,7 +154,12 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "wrangler", "name": "relationship_cancellation" },
           { "domain": "wrangler", "name": "set_public_intro" },
           { "domain": "wrangler", "name": "send_event_on_subs" },
-          { "domain": "wrangler", "name": "send_event_on_relationships" }
+          { "domain": "wrangler", "name": "send_event_on_relationships" },
+          { "domain": "wrangler", "name": "child_deleted" },
+          { "domain": "wrangler", "name": "new_child_request" },
+          { "domain": "wrangler", "name": "new_child_created" },
+          { "domain": "wrangler", "name": "install_ruleset_request" },
+          { "domain": "wrangler", "name": "new_channel_request" }
         ],
         "deny": []
       }
@@ -183,6 +188,12 @@ ruleset io.picolabs.pico-engine-ui {
       "#FFB347", "#77DD77", "#B19CD9", "#FF6961", "#FDFD96",
       "#84B6F4", "#FFD1DC", "#C9A0DC", "#98FB98", "#E6E6FA"
     ]
+    // Grid slot from live children only — not ent:child_ui_ecis map size (stale
+    // entries survive pico deletion and were inflating layout Y on every recreate).
+    childLayoutIndex = function(familyEci) {
+      idx = ctx:children.index(familyEci)
+      idx.isnull() => ctx:children.length() - 1 | idx
+    }
     refreshUiChannel = defaction() {
       ctx:upsertChannel(
         tags = ["engine", "ui"],
@@ -218,11 +229,11 @@ ruleset io.picolabs.pico-engine-ui {
     pre {
       uiEci = event:attr("uiEci")
       familyEci = event:attr("eci")
-      childIndex = ent:child_ui_ecis.defaultsTo({}).keys().length()
+      childIndex = childLayoutIndex(familyEci)
       gridCol = childIndex % 4
       gridRow = (childIndex - childIndex % 4) / 4
-      layoutX = ent:x.defaultsTo(100) + 48 + gridCol * 118
-      layoutY = ent:y.defaultsTo(100) + 48 + gridRow * 98
+      layoutX = ent:x.defaultsTo(100) + 48 + gridCol * 143
+      layoutY = ent:y.defaultsTo(100) + 48 + gridRow * 108
       layoutColor = childPalette[childIndex % childPalette.length]
     }
     if uiEci && familyEci then
@@ -233,8 +244,8 @@ ruleset io.picolabs.pico-engine-ui {
         attrs={
           "x": layoutX,
           "y": layoutY,
-          "width": 100,
-          "height": 100,
+          "width": 125,
+          "height": 90,
           "backgroundColor": layoutColor,
           "parentUiEci": uiECI()
         }
@@ -245,17 +256,14 @@ ruleset io.picolabs.pico-engine-ui {
   }
   rule spread_children_on_startup {
     select when engine started
-      foreach ent:child_ui_ecis.defaultsTo({}).keys() setting(familyEci)
+      foreach ctx:children setting(familyEci)
     pre {
       uiEci = ent:child_ui_ecis{familyEci}
-      childKeys = ent:child_ui_ecis.defaultsTo({}).keys()
-      childIndex = childKeys.index(familyEci)
-      originX = ent:x.defaultsTo(100)
-      originY = ent:y.defaultsTo(100)
+      childIndex = childLayoutIndex(familyEci)
       gridCol = childIndex % 4
       gridRow = (childIndex - childIndex % 4) / 4
-      layoutX = originX + 48 + gridCol * 118
-      layoutY = originY + 48 + gridRow * 98
+      layoutX = ent:x.defaultsTo(100) + 48 + gridCol * 143
+      layoutY = ent:y.defaultsTo(100) + 48 + gridRow * 108
       layoutColor = childPalette[childIndex % childPalette.length]
     }
     if uiEci && ctx:query(uiEci, ctx:rid, "needsStartupLayout") then
@@ -266,8 +274,8 @@ ruleset io.picolabs.pico-engine-ui {
         attrs={
           "x": layoutX,
           "y": layoutY,
-          "width": 100,
-          "height": 100,
+          "width": 125,
+          "height": 90,
           "backgroundColor": layoutColor,
           "parentUiEci": uiECI()
         }
@@ -279,6 +287,21 @@ ruleset io.picolabs.pico-engine-ui {
     if ent:child_ui_ecis{familyEci}.isnull() then noop()
     always {
       ent:child_ui_ecis{[familyEci]} := ctx:query(familyEci, ctx:rid, "uiECI")
+    }
+  }
+  rule prune_stale_child_ui_ecis {
+    select when engine started
+      foreach ent:child_ui_ecis.defaultsTo({}).keys() setting(familyEci)
+    always {
+      clear ent:child_ui_ecis{familyEci}
+        if ctx:children.index(familyEci).isnull()
+    }
+  }
+  rule forget_child_ui_eci {
+    select when wrangler child_deleted
+      eci re#(.+)# setting(familyEci)
+    always {
+      clear ent:child_ui_ecis{familyEci}
     }
   }
   rule backfill_parent_ui_eci {
@@ -312,6 +335,9 @@ ruleset io.picolabs.pico-engine-ui {
         .head()
     }
     ctx:delPico(delEci)
+    always {
+      clear ent:child_ui_ecis{delEci} if delEci
+    }
   }
   rule install {
     select when engine_ui install
@@ -342,6 +368,22 @@ ruleset io.picolabs.pico-engine-ui {
       self_flush = url.match(re#io\.picolabs\.pico-engine-ui#)
     }
     if self_flush then refreshUiChannel()
+  }
+  rule reinstall_after_flush {
+    select when engine_ui flush
+    pre {
+      url = event:attrs{"url"} || ""
+      ridMatch = url.match(re#(io\.picolabs\.[^./]+)#)
+      rid = ridMatch => ridMatch[1] | null
+      should_reinstall = rid
+        && rid.substr(0, 11) == "io.picolabs."
+        && url
+        && (wrangler:installedRIDs() >< rid)
+    }
+    if not should_reinstall then noop()
+    notfired {
+      raise wrangler event "install_ruleset_request" attributes {"rid": rid, "url": url}
+    }
   }
   rule new_channel {
     select when engine_ui new_channel

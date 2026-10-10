@@ -65,3 +65,33 @@ export function portableRulesetUrl(krl: string): string {
 export function normalizeRulesetUrl(url: string): string {
   return normalizeUrl(url);
 }
+
+/** OS rulesets first — wrangler before pds/subscription init. */
+const IMPORT_RULESET_ORDER = [
+  "io.picolabs.wrangler",
+  "io.picolabs.pds",
+  "io.picolabs.subscription",
+  "io.picolabs.pico-engine-ui",
+];
+
+export function compareRulesetsForImport(a: string, b: string): number {
+  const ai = IMPORT_RULESET_ORDER.indexOf(a);
+  const bi = IMPORT_RULESET_ORDER.indexOf(b);
+  const ar = ai >= 0 ? ai : IMPORT_RULESET_ORDER.length;
+  const br = bi >= 0 ? bi : IMPORT_RULESET_ORDER.length;
+  if (ar !== br) {
+    return ar - br;
+  }
+  return a.localeCompare(b);
+}
+
+export function resolveImportRulesetUrl(
+  url: string,
+  resolveBundled?: (url: string) => string
+): string {
+  const normalized = normalizeRulesetUrl(url);
+  if (resolveBundled && isEngineBundledRulesetUrl(normalized)) {
+    return resolveBundled(normalized);
+  }
+  return normalized;
+}

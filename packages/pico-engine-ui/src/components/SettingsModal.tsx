@@ -650,14 +650,18 @@ const SettingsModal: React.FC<Props> = ({
           >
             Close
           </button>
-          <button
-            type="button"
-            className="btn btn-outline-danger"
-            disabled={busy}
-            onClick={onLogout}
-          >
-            Log out
-          </button>
+          {session ? (
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              disabled={busy}
+              onClick={onLogout}
+            >
+              Log out
+            </button>
+          ) : (
+            ""
+          )}
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@
 
 import test from "ava";
 import * as path from "path";
-import { AuthError } from "../src/auth";
+import { AuthError, authCookieNames } from "../src/auth";
 import { WebAuthnAdapter } from "../src/auth/webauthn";
 import { toFileUrl } from "../src/utils/toFileUrl";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
@@ -54,6 +54,21 @@ function fakeAuthenticator(): WebAuthnAdapter {
     },
   };
 }
+
+test("auth cookies are port-scoped on localhost for multi-engine tabs", (t) => {
+  t.deepEqual(authCookieNames("http://localhost:3001"), {
+    session: "pico-session-3001",
+    ceremony: "pico-ceremony-3001",
+  });
+  t.deepEqual(authCookieNames("http://localhost:3002"), {
+    session: "pico-session-3002",
+    ceremony: "pico-ceremony-3002",
+  });
+  t.deepEqual(authCookieNames("https://picos.example.com"), {
+    session: "pico-session",
+    ceremony: "pico-ceremony",
+  });
+});
 
 test("WebAuthn user.name includes host:port for multi-engine disambiguation", async (t) => {
   const pe = await startIsolatedEngine({

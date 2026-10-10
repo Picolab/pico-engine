@@ -16,8 +16,46 @@ import {
 } from "../rulesetState";
 import {
   exportSubtree as exportSubtreeImpl,
+  importIntoExistingChild as importIntoExistingChildImpl,
   importSubtree as importSubtreeImpl,
+  summarizeSubtreeExportBlob as summarizeSubtreeExportBlobImpl,
 } from "../subtreeState";
+import type { RulesetStateServices } from "../rulesetState";
+import type { SubtreeImportResult } from "../subtreeState";
+
+async function afterSubtreeImport(
+  core: PicoEngineCore,
+  result: SubtreeImportResult
+): Promise<void> {
+  await core.reloadImportedSchedules(Object.values(result.picoIdMap));
+  const importedRoot = core.picoFramework.getPico(result.newRootPicoId);
+  if (importedRoot) {
+    await importedRoot.event({
+      eci: result.newRootEci,
+      domain: "wrangler",
+      name: "pico_imported",
+      data: {
+        attrs: {
+          oldRootPicoId: result.oldRootPicoId,
+          newRootPicoId: result.newRootPicoId,
+          eciMap: result.eciMap,
+          picoIdMap: result.picoIdMap,
+        },
+      },
+      time: Date.now(),
+    });
+  }
+}
+
+function subtreeStateServices(core: PicoEngineCore): RulesetStateServices {
+  return {
+    db: core.picoFramework.db,
+    rsRegistry: core.rsRegistry,
+    portableHooks: core.subtreePortableHooks,
+    resolveBundledRulesetUrl: core.resolveBundledRulesetUrl,
+    ...core.subtreeImportServices,
+  };
+}
 
 export interface RulesetCtxInfo {
   rid: string;
@@ -284,6 +322,13 @@ export default function initCtxModule(core: PicoEngineCore) {
       }
     ),
 
+    summarizeSubtreeExportBlob: krl.Function(
+      ["blob", "secret"],
+      function summarizeSubtreeExportBlob(blob: string, secret: string) {
+        return summarizeSubtreeExportBlobImpl(blob, secret);
+      }
+    ),
+
     exportSubtree: krl.Function(
       ["picoId", "secret"],
       async function exportSubtree(picoId: string, secret: string) {
@@ -293,7 +338,7 @@ export default function initCtxModule(core: PicoEngineCore) {
           );
         }
         return exportSubtreeImpl(
-          { db: core.picoFramework.db, rsRegistry: core.rsRegistry },
+          subtreeStateServices(core),
           core.picoFramework,
           picoId,
           secret
@@ -315,37 +360,47 @@ export default function initCtxModule(core: PicoEngineCore) {
           throw new Error("Pico not found: " + picoId);
         }
         return importSubtreeImpl(
-          { db: core.picoFramework.db, rsRegistry: core.rsRegistry },
+          subtreeStateServices(core),
           core.picoFramework,
           pico,
           blob,
           secret,
-          {
-            async afterImport(result) {
-              await core.reloadImportedSchedules(
-                Object.values(result.picoIdMap)
-              );
-              const importedRoot = core.picoFramework.getPico(
-                result.newRootPicoId
-              );
-              if (importedRoot) {
-                await importedRoot.event({
-                  eci: result.newRootEci,
-                  domain: "wrangler",
-                  name: "pico_imported",
-                  data: {
-                    attrs: {
-                      oldRootPicoId: result.oldRootPicoId,
-                      newRootPicoId: result.newRootPicoId,
-                      eciMap: result.eciMap,
-                      picoIdMap: result.picoIdMap,
-                    },
-                  },
-                  time: Date.now(),
-                });
-              }
-            },
-          }
+          { afterImport: (result) => afterSubtreeImport(core, result) }
+        );
+      }
+    ),
+
+    importIntoExistingChild: krl.Function(
+      ["blob", "secret", "rootFamilyEci"],
+      async function importIntoExistingChild(
+        blob: string,
+        secret: string,
+        rootFamilyEci: string
+      ) {
+        if (typeof blob !== "string") {
+          throw new TypeError(
+            "Expected string for blob but got " + krl.typeOf(blob)
+          );
+        }
+        if (typeof rootFamilyEci !== "string") {
+          throw new TypeError(
+            "Expected string for rootFamilyEci but got " +
+              krl.typeOf(rootFamilyEci)
+          );
+        }
+        const picoId = this.rsCtx.pico().id;
+        const pico = core.picoFramework.getPico(picoId);
+        if (!pico) {
+          throw new Error("Pico not found: " + picoId);
+        }
+        return importIntoExistingChildImpl(
+          subtreeStateServices(core),
+          core.picoFramework,
+          pico,
+          rootFamilyEci,
+          blob,
+          secret,
+          { afterImport: (result) => afterSubtreeImport(core, result) }
         );
       }
     ),

@@ -310,16 +310,16 @@ export async function handleSkyIntroResponseAtIngress(
     Id: subscriptionId,
   });
 
-  await deps.pf.eventWait(
-    {
-      eci,
-      domain: "wrangler",
-      name: "sky_intro_response",
-      data: { attrs },
-      time: 0,
-    },
-    undefined
-  );
+  // Queue without waiting: the Tx pico may still be inside the outbound
+  // subscription transaction that triggered sendSkyIntro (same-engine local
+  // dispatch or cross-engine HTTP). eventWait here deadlocks that queue.
+  await deps.pf.event({
+    eci,
+    domain: "wrangler",
+    name: "sky_intro_response",
+    data: { attrs },
+    time: 0,
+  });
 
-  return { status: "intro_response_delivered", subscriptionId };
+  return { status: "intro_response_queued", subscriptionId };
 }

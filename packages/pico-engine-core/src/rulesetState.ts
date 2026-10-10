@@ -8,6 +8,7 @@ import {
   PicoDb,
   PicoDbKey,
   PicoReadOnly,
+  PicoFramework,
   Ruleset,
   RulesetConfig,
 } from "pico-framework";
@@ -18,9 +19,21 @@ import {
   sealRulesetState,
 } from "./rulesetStateCrypto";
 
+import type { SubtreePortableHooks } from "./subtreeState";
+
 export interface RulesetStateServices {
   db: PicoDb;
   rsRegistry: RulesetRegistry;
+  portableHooks?: SubtreePortableHooks;
+  /** Remap engine-shipped /krl/ URLs to this host (optional; engine provides). */
+  resolveBundledRulesetUrl?: (url: string) => string;
+  /** Create child for import (host-provided; e.g. wrangler new_child_request). */
+  createImportChild?: (
+    pf: PicoFramework,
+    parent: Pico,
+    name: string,
+    options?: import("./subtreeState").CreateImportChildOptions
+  ) => Promise<{ familyEci: string; child: Pico }>;
 }
 
 async function listEntVars(

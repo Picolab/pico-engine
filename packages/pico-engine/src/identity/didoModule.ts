@@ -12,6 +12,11 @@
 import { krl } from "krl-stdlib";
 import { IdentityService } from "./IdentityService";
 import { IdentityError } from "./errors";
+import type {
+  SubtreeImportOptions,
+  SubtreeImportResult,
+} from "pico-engine-core";
+import type { RelocateWebvhOptions } from "./webvhRelocation";
 
 const QUERY_TIMEOUT = 10000;
 
@@ -383,6 +388,88 @@ export default function initDidoModule(identity: IdentityService) {
       }
       return identity.completePortableMove(this.rsCtx.pico().id, opts);
     }),
+
+    exportPortableSubtree: krl.Function(
+      ["subtreeRootPicoId", "secret"],
+      async function (subtreeRootPicoId: string, secret: string) {
+        return identity.exportPortableSubtree(
+          this.rsCtx.pico().id,
+          subtreeRootPicoId,
+          secret
+        );
+      }
+    ),
+
+    summarizePortableSubtreeExport: krl.Function(
+      ["blob", "secret"],
+      function (blob: string, secret: string) {
+        return identity.summarizePortableSubtreeExport(blob, secret);
+      }
+    ),
+
+    importPortableSubtree: krl.Function(
+      ["blob", "secret", "options"],
+      async function (
+        blob: string,
+        secret: string,
+        options: Record<string, unknown> = {}
+      ) {
+        const opts: RelocateWebvhOptions = {};
+        if (typeof options.baseUrl === "string") {
+          opts.baseUrl = options.baseUrl;
+        }
+        if (options.renewIngress === true) {
+          opts.renewIngress = true;
+        }
+        if (Object.keys(opts).length === 0) {
+          opts.renewIngress = true;
+        }
+        const importOpts: SubtreeImportOptions = {};
+        if (typeof options.parentChannelEci === "string") {
+          importOpts.parentChannelEci = options.parentChannelEci;
+        }
+        if (typeof options.bootstrapDisplayName === "string") {
+          let name = options.bootstrapDisplayName.trim();
+          if (
+            name.length >= 2 &&
+            name.startsWith('"') &&
+            name.endsWith('"')
+          ) {
+            name = name.slice(1, -1).trim();
+          }
+          if (name.length > 0) {
+            importOpts.bootstrapDisplayName = name;
+          }
+        }
+        return identity.importPortableSubtree(
+          this.rsCtx.pico().id,
+          blob,
+          secret,
+          opts,
+          importOpts
+        );
+      }
+    ),
+
+    finalizePortableImport: krl.Function(
+      ["importResult", "options"],
+      async function (
+        importResult: SubtreeImportResult,
+        options: Record<string, unknown> = {}
+      ) {
+        const opts: RelocateWebvhOptions = {};
+        if (typeof options.baseUrl === "string") {
+          opts.baseUrl = options.baseUrl;
+        }
+        if (options.renewIngress === true) {
+          opts.renewIngress = true;
+        }
+        if (Object.keys(opts).length === 0) {
+          opts.renewIngress = true;
+        }
+        return identity.finalizePortableImport(importResult, opts);
+      }
+    ),
   };
 
   return module;

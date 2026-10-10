@@ -12,7 +12,7 @@ import {
 } from "./bundledKrl";
 import { PicoEngineCore } from "pico-engine-core";
 import { PicoFramework } from "pico-framework";
-import { AuthError, AuthService } from "./auth";
+import { AuthCookieNames, AuthError, AuthService, authCookieNames } from "./auth";
 import {
   OAuthError,
   OAuthService,
@@ -27,9 +27,6 @@ import { registerWebvhRoutes } from "./identity/webvhRoutes";
 import { registerDidcommIngressRoutes } from "./identity/didcommIngressRoutes";
 
 const engineVersion = require("../package.json").version;
-
-const SESSION_COOKIE = "pico-session";
-const CEREMONY_COOKIE = "pico-ceremony";
 
 function localhostChannelBypassEnabled(): boolean {
   return process.env.PICO_ENGINE_ALLOW_LOCALHOST_C !== "0";
@@ -88,6 +85,11 @@ export function server(
 ): Express {
   const pf = core.picoFramework;
   const app = express();
+  function cookies(): AuthCookieNames {
+    return auth
+      ? authCookieNames(auth.rp().origin)
+      : authCookieNames("http://localhost:3000");
+  }
 
   app.use(function(req, res, next) {
     // /auth routes need a specific credentialed CORS origin (below), not "*".
@@ -158,7 +160,7 @@ export function server(
   }
 
   if (auth) {
-    registerAuthRoutes(app, auth);
+    registerAuthRoutes(app, auth, cookies);
   }
 
   function isEciInRootTree(rootPicoId: string, eci: string): boolean {
@@ -188,7 +190,7 @@ export function server(
       next();
       return;
     }
-    const token = parseCookies(req)[SESSION_COOKIE] || "";
+    const token = parseCookies(req)[cookies().session] || "";
     auth
       .getSession(token)
       .then((session) => {
@@ -264,7 +266,14 @@ export function server(
   }
 
   if (oauth) {
-    registerOAuthRoutes(app, oauth, auth, requireAuthSession, parseCookies);
+    registerOAuthRoutes(
+      app,
+      oauth,
+      auth,
+      requireAuthSession,
+      parseCookies,
+      cookies
+    );
   }
 
   app.get("/api/oauth/mesh-enabled", requireAuthSession, function (_req, res) {
@@ -360,7 +369,7 @@ export function server(
       res.json(base);
       return;
     }
-    const token = parseCookies(req)[SESSION_COOKIE] || "";
+    const token = parseCookies(req)[cookies().session] || "";
     auth
       .needsAuthMigration()
       .then((needsAuthMigration) => {
@@ -585,9 +594,13 @@ export function server(
   return app;
 }
 
-function registerAuthRoutes(app: Express, auth: AuthService) {
+function registerAuthRoutes(
+  app: Express,
+  auth: AuthService,
+  cookies: () => AuthCookieNames
+) {
   function setSessionCookie(res: Response, token: string, expiry: number) {
-    res.cookie(SESSION_COOKIE, token, {
+    res.cookie(cookies().session, token, {
       httpOnly: true,
       sameSite: "lax",
       secure: auth.isSecure(),
@@ -597,7 +610,7 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
   }
 
   function setCeremonyCookie(res: Response, ceremonyId: string) {
-    res.cookie(CEREMONY_COOKIE, ceremonyId, {
+    res.cookie(cookies().ceremony, ceremonyId, {
       httpOnly: true,
       sameSite: "lax",
       secure: auth.isSecure(),
@@ -607,7 +620,7 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
   }
 
   function clearCeremonyCookie(res: Response) {
-    res.clearCookie(CEREMONY_COOKIE, { path: "/" });
+    res.clearCookie(cookies().ceremony, { path: "/" });
   }
 
   // WebAuthn requires a specific, credentialed origin — never "*".
@@ -631,7 +644,7 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
   });
 
   function requireSession(req: Request, res: Response, next: express.NextFunction) {
-    const token = parseCookies(req)[SESSION_COOKIE] || "";
+    const token = parseCookies(req)[cookies().session] || "";
     auth
       .getSession(token)
       .then((session) => {
@@ -659,7 +672,7 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
   });
 
   app.post("/auth/register/verify", function (req, res, next) {
-    const ceremonyId = parseCookies(req)[CEREMONY_COOKIE] || "";
+    const ceremonyId = parseCookies(req)[cookies().ceremony] || "";
     auth
       .registerNewAccountVerify({ ceremonyId, response: req.body })
       .then(({ account, session, uiECI }) => {
@@ -686,7 +699,7 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
   });
 
   app.post("/auth/claim/verify", function (req, res, next) {
-    const ceremonyId = parseCookies(req)[CEREMONY_COOKIE] || "";
+    const ceremonyId = parseCookies(req)[cookies().ceremony] || "";
     auth
       .claimPrimaryRootVerify({ ceremonyId, response: req.body })
       .then(({ account, session, uiECI }) => {
@@ -713,7 +726,7 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
   });
 
   app.post("/auth/login/verify", function (req, res, next) {
-    const ceremonyId = parseCookies(req)[CEREMONY_COOKIE] || "";
+    const ceremonyId = parseCookies(req)[cookies().ceremony] || "";
     auth
       .loginVerify({ ceremonyId, response: req.body })
       .then(({ account, session }) => {
@@ -729,18 +742,18 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
   });
 
   app.post("/auth/logout", function (req, res, next) {
-    const token = parseCookies(req)[SESSION_COOKIE] || "";
+    const token = parseCookies(req)[cookies().session] || "";
     auth
       .deleteSession(token)
       .then(() => {
-        res.clearCookie(SESSION_COOKIE, { path: "/" });
+        res.clearCookie(cookies().session, { path: "/" });
         res.json({ ok: true });
       })
       .catch(next);
   });
 
   app.get("/auth/session", function (req, res, next) {
-    const token = parseCookies(req)[SESSION_COOKIE] || "";
+    const token = parseCookies(req)[cookies().session] || "";
     auth
       .whoami(token)
       .then((who) => res.json(who))
@@ -760,7 +773,7 @@ function registerAuthRoutes(app: Express, auth: AuthService) {
 
   app.post("/auth/credentials/verify", requireSession, function (req, res, next) {
     const session = (req as any).picoSession;
-    const ceremonyId = parseCookies(req)[CEREMONY_COOKIE] || "";
+    const ceremonyId = parseCookies(req)[cookies().ceremony] || "";
     auth
       .addCredentialVerify({
         ceremonyId,
@@ -812,7 +825,8 @@ function registerOAuthRoutes(
     res: Response,
     next: express.NextFunction
   ) => void,
-  parseCookiesFn: (req: Request) => { [name: string]: string }
+  parseCookiesFn: (req: Request) => { [name: string]: string },
+  cookies: () => AuthCookieNames
 ) {
   function requireOAuthSession(
     req: Request,
@@ -823,7 +837,7 @@ function registerOAuthRoutes(
       res.status(503).json({ error: "Authentication is not configured" });
       return;
     }
-    const token = parseCookiesFn(req)[SESSION_COOKIE] || "";
+    const token = parseCookiesFn(req)[cookies().session] || "";
     auth
       .getSession(token)
       .then((session) => {
@@ -869,7 +883,7 @@ function registerOAuthRoutes(
           res.status(503).send("Authentication is not configured");
           return;
         }
-        const token = parseCookiesFn(req)[SESSION_COOKIE] || "";
+        const token = parseCookiesFn(req)[cookies().session] || "";
         const session = await auth.getSession(token);
         if (!session) {
           const returnPath = req.originalUrl || "/oauth/authorize";
@@ -892,7 +906,7 @@ function registerOAuthRoutes(
       res.status(503).send("Authentication is not configured");
       return;
     }
-    const token = parseCookiesFn(req)[SESSION_COOKIE] || "";
+    const token = parseCookiesFn(req)[cookies().session] || "";
     auth
       .getSession(token)
       .then((session) => {

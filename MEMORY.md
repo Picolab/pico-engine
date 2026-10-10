@@ -1538,6 +1538,58 @@ ent:things{picoID}{"name"} := changedName;        // PARSE ERROR — chained pat
 ```
 Prefer path assignment over `.put()`.
 
+### Prefer callbacks over scheduling (deterministic orchestration)
+
+**Default:** chain multi-step setup with **events and callbacks**, not `schedule`.
+
+Scheduling is a last resort (delays, cron, retries with backoff). Callbacks are deterministic:
+the next step runs when the upstream work actually finishes, with explicit attrs (`rcn`,
+`thing_eci`, `community_eci`, etc.) instead of guessing after N seconds.
+
+**Why scheduling bites us in KRL demos:**
+- Stale scheduled events survive across runs and fire at the wrong time.
+- `schedule … at time:add(…, {"seconds": expr})` can silently become `time:0` and loop.
+- Timers cannot know when Manifold subscription or child creation is truly done.
+
+**KRL execution order (same ruleset):**
+- Multiple `raise` / `schedule` statements in one postlude are all enqueued, in **source order**
+  (not lexicographic on the statement text).
+- When several rules in the **same ruleset** select the same event, they run in **rule-name
+  lexicographic order** — deterministic.
+- What is **not** deterministic: two rules in **different rulesets** that both select the same
+  event — order is undefined.
+- Split raises across rules only when you need a **callback** or a different **select** (e.g.
+  `fired` vs `else` after an action condition), not to work around a single-postlude limit.
+
+**Preferred patterns:**
+- Manifold delegation: pass `callback_eci` + `rcn` on `create_thing` / `new_community`; listen
+  for `community:thing_completed` and `community:community_completed` (see manifold-api).
+- Same-pico coordination: multiple `raise`s in one postlude, or separate rules on the same
+  event when ordering between them matters (name rules accordingly).
+- Cross-pico work: `event:send` to the subscription **Tx** ECI, not the family bootstrap ECI.
+
+Use `schedule:clear()` on setup/cleanup reset paths when timers are unavoidable.
+
+### Do not call `ctx` from application rulesets
+
+**Rule:** Developers — and demo/teaching KRL we want others to copy — should **never** call
+`ctx:*` directly. Wrangler is the public surface for pico lifecycle (channels, children,
+rulesets, queries over family channels, etc.).
+
+The `ctx` module is an engine escape hatch added during the Node port. It bypasses the
+event-driven model Classic KRL intended: actions/`every` for outward effects, postlude for
+intra-pico coordination. Using `ctx:newChannel` or `ctx:query` in application rulesets teaches
+the wrong pattern even when it parses and runs.
+
+**If wrangler doesn't expose what you need:** explore *why* — missing event, missing function,
+or a wrangler gap to fix — rather than reaching through `ctx`.
+
+**Known exception (temporary):** `demos/io.picolabs.club_gear_demo.krl` uses `ctx:newChannel`
+in setup because synchronous channel creation was needed before Manifold raises, and the
+wrangler `new_channel_request` async path left `callback_eci` null. Acceptable for the demo
+for now; a wrangler-first setup (channel-ready callback or equivalent) would be the right
+long-term fix.
+
 ### Wrangler 1.0 child deletion
 ```krl
 raise wrangler event "child_deletion_request" attributes { "eci": picoID }

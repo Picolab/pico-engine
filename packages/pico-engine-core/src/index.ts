@@ -20,3 +20,18 @@ export {
   formatEventOutput,
   CoreEventOutput,
 };
+
+export {
+  exportSubtree,
+  importSubtree,
+  importIntoExistingChild,
+  subtreeRootBootstrapName,
+  normalizePortableExportBlobArg,
+  summarizeSubtreeExportBlob,
+  type CreateImportChildOptions,
+  type SubtreeExportPayload,
+  type SubtreeImportResult,
+  type SubtreeImportOptions,
+  type SubtreePortableHooks,
+} from "./subtreeState";
+export type { RulesetStateServices } from "./rulesetState";

@@ -6,7 +6,12 @@ import type { Server } from "http";
 import { PicoEngineCore, RulesetRegistry } from "pico-engine-core";
 import { PicoDbKey, PicoFramework } from "pico-framework";
 import { AuthService, WebAuthnAdapter, makeWebAuthnAdapter } from "./auth";
-import { IdentityStore, IdentityService, initDidoModule } from "./identity";
+import {
+  IdentityStore,
+  IdentityService,
+  initDidoModule,
+  createSubtreePortableHooks,
+} from "./identity";
 import { registerWebvhRoutes } from "./identity/webvhRoutes";
 import { OAuthService, initOAuthModule } from "./oauth";
 import {
@@ -17,6 +22,8 @@ import {
 import { openClassicLevelWithRecovery } from "./levelDb";
 import { provisionRoot, uiECIForRoot } from "./provisionRoot";
 import { createRulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
+import { resolveBundledKrlUrl } from "./bundledKrl";
+import { wranglerSubtreeImportServices } from "./subtreeWrangler";
 import { server } from "./server";
 const charwise = require("charwise");
 const safeJsonCodec = require("level-json-coerce-null");
@@ -172,18 +179,49 @@ export async function startEngine(
     },
   });
   const pf = core.picoFramework;
+  core.resolveBundledRulesetUrl = resolveBundledKrlUrl;
+  core.subtreeImportServices = wranglerSubtreeImportServices(core.rsRegistry);
   const identity = new IdentityStore({ db: pf.db });
   let identityService!: IdentityService;
-  identityService = new IdentityService({
-    store: identity,
-    getBaseUrl: () => core.base_url || base_url || "",
-    pf,
-  });
-  core.onPicoCreated = async (picoId, ctx) => {
+  const onPicoCreated = async (
+    picoId: string,
+    ctx: { isRoot: boolean; parentPicoId: string }
+  ) => {
     if (core.base_url) {
       await identityService.ensureWebvhDid(picoId, { isRoot: ctx.isRoot });
     }
   };
+  identityService = new IdentityService({
+    store: identity,
+    getBaseUrl: () => core.base_url || base_url || "",
+    pf,
+    rsRegistry: core.rsRegistry,
+    resolveBundledRulesetUrl: resolveBundledKrlUrl,
+    reloadImportedSchedules: (picoIds) => core.reloadImportedSchedules(picoIds),
+    firePicoImported: async (result) => {
+      const importedRoot = pf.getPico(result.newRootPicoId);
+      if (!importedRoot) {
+        return;
+      }
+      await importedRoot.event({
+        eci: result.newRootEci,
+        domain: "wrangler",
+        name: "pico_imported",
+        data: {
+          attrs: {
+            oldRootPicoId: result.oldRootPicoId,
+            newRootPicoId: result.newRootPicoId,
+            eciMap: result.eciMap,
+            picoIdMap: result.picoIdMap,
+            portableIdentity: true,
+          },
+        },
+        time: Date.now(),
+      });
+    },
+  });
+  core.onPicoCreated = onPicoCreated;
+  core.subtreePortableHooks = createSubtreePortableHooks(identity, pf);
   core.modules["dido"] = initDidoModule(identityService);
 
   try {

@@ -131,7 +131,7 @@ Copy is intentional: import does **not** delete the source subtree; remove it ma
    - Generic (no Manifold registration): `raise portable_subtree event "import" attributes { "blob", "secret" }` on a pico that has `io.picolabs.portable_subtree`.
 6. **Clean up** — delete the old subtree on the source when no longer needed.
 
-**Cross-engine club gear demo (`docker-compose.cross-engine.yml`):** donor Engine A uses gitignored `io.picolabs.club_gear_demo` only to build the club and export bike #7; recipient Engine B uses standard Manifold bootstrap + steps 4–5 only (no demo ruleset). Optional `io.picolabs.ride_coordinator_demo` on B opens a Layer 2 subscription to the moved bike; the **owner approves** the pending subscription on the thing pico (`pending_subscription_approval` with the inbound `Id`) — Manifold things do not use subscription auto-accept.
+**Cross-engine club gear demo (`docker-compose.cross-engine.yml`):** donor Engine A uses gitignored `io.picolabs.club_gear_demo` to build the club mesh; export bike #7 with **`io.picolabs.manifold_portable_thing`** (`enable_portable_thing`, then `exportPortableThing`). Recipient Engine B uses standard Manifold bootstrap + import only (no club_gear_demo). Optional `io.picolabs.ride_coordinator_demo` on B opens a Layer 2 subscription to the moved bike; the **owner approves** the pending subscription on the thing pico (`pending_subscription_approval` with the inbound `Id`) — Manifold things do not use subscription auto-accept.
 
 **Relationships after import (expectations):**
 

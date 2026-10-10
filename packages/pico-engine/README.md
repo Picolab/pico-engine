@@ -148,7 +148,7 @@ The CLI handles **SIGTERM** and **SIGINT** by closing the HTTP server and both d
 ```yaml
 services:
   pico-engine:
-    image: picolabs/pico-engine:1.6.4
+    image: picolabs/pico-engine:1.7.0
     ports:
       - "3001:3000"
     environment:

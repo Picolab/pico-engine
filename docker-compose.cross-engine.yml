@@ -1,10 +1,39 @@
-# EXPERIMENTAL — bridge-network Docker is a poor fit for cross-engine demos
-# (localhost in DIDs is not reachable container-to-container; passkeys vs
-# host.docker.internal conflict). Prefer two host processes — see
-# docs/guides/layer2-subscriptions.md § Cross-engine on one machine.
+# Two pico-engine containers for cross-engine demos (e.g. 1.7 portable move).
 #
-# Build:  docker compose -f docker-compose.cross-engine.yml build
-# Run:    docker compose -f docker-compose.cross-engine.yml up -d
+# Browse the UI at http://localhost:3001 and http://localhost:3002.
+#
+# PICO_ENGINE_BASE_URL uses host.docker.internal so containers can fetch each
+# other's did:webvh logs. Passkeys use PICO_ENGINE_RP_ID / PICO_ENGINE_ORIGIN
+# (localhost) because WebAuthn RP ID must match the browser origin.
+#
+# Build image locally (once):
+#   docker build -f Dockerfile.local \
+#     --build-context pico-framework=../pico-framework \
+#     -t picolabs/pico-engine:1.7.0 .
+#
+# Or via compose:
+#   docker compose -f docker-compose.cross-engine.yml build
+#
+# Run:
+#   docker compose -f docker-compose.cross-engine.yml up -d
+#
+# Engine A: http://localhost:3001
+# Engine B: http://localhost:3002
+#
+# Demo KRL (repo demos/, gitignored) at /var/pico-demos — donor/coordinator only:
+#   Engine A Manifold: file:///var/pico-demos/io.picolabs.club_gear_demo.krl
+#   Engine B mesh root (optional): file:///var/pico-demos/io.picolabs.ride_coordinator_demo.krl
+#
+# Portable move (bike #7) — rebuild image after pico-engine-core changes:
+#   docker compose -f docker-compose.cross-engine.yml build --no-cache
+#
+#   Engine A — Manifold bootstrap + club_gear_demo setup → enable_portable_thing →
+#     manifold_portable_thing:exportPortableThing(bikePicoId or bikeEci from demoState(), secret).
+#     Use the returned blob, name, donorQueryEci as plain strings.
+#   Engine B — Manifold bootstrap; flush manifold-api KRL (manifold_pico, manifold_portable_thing,
+#     community). On Manifold app channel: enable_portable_thing, then import_portable_thing.
+#     Success: wrangler:children() and manifold_pico:getThings() both list the bike; child computer in UI.
+#   Engine B (optional) — ride_coordinator_demo; approve pending sub on imported thing if needed.
 
 services:
   pico-engine-a:
@@ -13,13 +42,16 @@ services:
       dockerfile: Dockerfile.local
       additional_contexts:
         pico-framework: ../pico-framework
-    image: picolabs/pico-engine:1.6-dev
+    image: picolabs/pico-engine:1.7.0
     ports:
       - "3001:3000"
     volumes:
       - ./docker/pico-image-a:/var/pico-image
+      - ./demos:/var/pico-demos:ro
     environment:
       PICO_ENGINE_BASE_URL: http://host.docker.internal:3001
+      PICO_ENGINE_RP_ID: localhost
+      PICO_ENGINE_ORIGIN: http://localhost:3001
       PICO_ENGINE_ALLOW_LOCALHOST_C: "1"
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -31,13 +63,16 @@ services:
       dockerfile: Dockerfile.local
       additional_contexts:
         pico-framework: ../pico-framework
-    image: picolabs/pico-engine:1.6-dev
+    image: picolabs/pico-engine:1.7.0
     ports:
       - "3002:3000"
     volumes:
       - ./docker/pico-image-b:/var/pico-image
+      - ./demos:/var/pico-demos:ro
     environment:
       PICO_ENGINE_BASE_URL: http://host.docker.internal:3002
+      PICO_ENGINE_RP_ID: localhost
+      PICO_ENGINE_ORIGIN: http://localhost:3002
       PICO_ENGINE_ALLOW_LOCALHOST_C: "1"
     extra_hosts:
       - "host.docker.internal:host-gateway"

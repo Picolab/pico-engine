@@ -20,6 +20,7 @@ test("listEngineKrlRelativePaths includes shipped optional rulesets", (t) => {
   const paths = listEngineKrlRelativePaths();
   t.true(paths.includes("io.picolabs.wrangler.krl"));
   t.true(paths.includes("io.picolabs.oauth.krl"));
+  t.true(paths.includes("io.picolabs.portable_subtree.krl"));
   t.false(paths.some((p) => p.includes("didtestdid")));
 });
 

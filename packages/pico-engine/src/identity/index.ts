@@ -8,6 +8,20 @@ export { IdentityService, type IdentityServiceDeps } from "./IdentityService";
 export { IdentityError } from "./errors";
 export { default as initDidoModule } from "./didoModule";
 export {
+  createSubtreePortableHooks,
+  exportNodeIdentity,
+  importNodeIdentity,
+  rewriteWebvhLogForPicoId,
+  type PortableIdentityExport,
+} from "./identityPortable";
+export {
+  exportPortableSubtree,
+  importPortableSubtree,
+  finalizePortableImport,
+  type PortableMoveDeps,
+  type PortableMoveImportResult,
+} from "./portableMove";
+export {
   IDENTITY_STORAGE_KNOWN_GAP,
   type CachedDidDoc,
   type DidCommRoutes,
