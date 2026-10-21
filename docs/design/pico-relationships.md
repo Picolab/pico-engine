@@ -400,7 +400,7 @@ renames) is **deferred** unless a strong migration story appears.
 
 Optional: rename `Subscriptions.tsx` → `Relationships.tsx` (cosmetic; tab label matters more).
 
-Rebuild UI bundle after changes: `cd packages/pico-engine-ui && npm run build`.
+Rebuild UI bundle after changes: `npm run build` from the repo root.
 
 ### Wrangler event aliases
 

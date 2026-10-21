@@ -23,7 +23,7 @@ Engine and wrangler stay **domain-agnostic**. If a change needs the words "owner
 | `packages/pico-engine-core` | Executes compiled KRL; event lifecycle |
 | `packages/krl-parser` → `krl-compiler` → `krl-generator` | KRL → AST → JS; AST → KRL |
 | `packages/krl-stdlib` | KRL standard library |
-| `packages/pico-engine-ui` | Default web UI (build separately, see below) |
+| `packages/pico-engine-ui` | Default web UI (`npm run build` at repo root includes its bundle in `public/`) |
 | `packages/pico-engine/public/docs/` | **User-facing docs** (pico, pico-engine, KRL manual, discovery). `docs/MOVED` points here |
 | `docs/design/` | Design docs (schemas, identity, move, relationships, harness) |
 | `docs/release/` | Per-release plans (`1.8.md`) and notes (`1.7.0.md`) |
@@ -37,10 +37,10 @@ Sibling repos (same org, not in this tree): `manifold-api` (Manifold KRL), `sens
 ```sh
 npm run setup          # NOT `npm i` — lerna links packages
 npm start              # dev engine with watch (cd packages/pico-engine && npm start)
-npm run build          # compiles engine packages only (not the UI)
+npm run build          # all packages with a build script (parser, stdlib, core, engine, UI → public/)
 npm test               # lerna run test (ava); Node 20/22 — Node 24 breaks krl-parser timeouts
 cd packages/pico-engine && npm run test:layer2-policy   # focused suites: see package.json scripts
-cd packages/pico-engine-ui && npm run build             # copies UI bundle into pico-engine/public/
+cd packages/pico-engine-ui && npm run dev              # Vite dev server (optional; root build updates public/ bundle)
 echo 'ruleset x { … }' | npx krl-compiler               # KRL → JS on stdout (no diagnostics mode yet; 1.8 adds `krl check`)
 ```
 
@@ -82,4 +82,4 @@ Terminology: **relationships** (1.6.2+; "subscriptions" in older code and docs).
 - Keep `MEMORY.md` current when you learn an engine behavior the hard way; it is what future sessions read.
 - Don't commit or publish; leave that to the maintainer. `npm run publish` builds and publishes every package — never run it.
 - Tests are ava, serial for engine suites (`--serial`, 2–3 min timeouts). Add a focused `test:*` script when you add a suite.
-- UI changes need the separate UI build step above or they won't appear in `public/`.
+- UI changes need `npm run build` (repo root) or `npm run dev` in `pico-engine-ui` or they won't appear in `public/`.

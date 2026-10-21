@@ -25,8 +25,7 @@ RUN npm install --no-package-lock \
  && ln -s /usr/src/pico-framework packages/krl-stdlib/node_modules/pico-framework \
  && ln -s /usr/src/pico-framework packages/pico-engine-core/node_modules/pico-framework \
  && ln -s /usr/src/pico-framework packages/pico-engine/node_modules/pico-framework \
- && npm run build \
- && cd packages/pico-engine-ui && npm run build
+ && npm run build
 
 RUN npm install -g ./packages/pico-engine
 

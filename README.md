@@ -38,7 +38,7 @@ $ npm start
 
 That will start the server and run the test. `npm start` is simply an alias for `cd packages/pico-engine && npm start`
 
-**Building the UI:** `npm run build` at the repo root compiles the engine packages only. After changing `pico-engine-ui`, run `cd packages/pico-engine-ui && npm run build` to copy the bundle into `packages/pico-engine/public/`.
+**Build:** `npm run build` at the repo root builds every package that defines a `build` script (parser, stdlib, core, engine, and the UI bundle copied into `packages/pico-engine/public/`). Restart the engine after a build if it is already running.
 
 **NOTE about dependencies:** generally don't use `npm i`, rather use `npm run setup` from the root. [lerna](https://github.com/lerna/lerna) will link up the packages so when you make changes in one package, it will be used in others.
 

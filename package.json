@@ -14,7 +14,7 @@
     "start": "cd packages/pico-engine && npm start",
     "test": "lerna run test",
     "test:auth": "cd packages/pico-engine && npm run test:auth",
-    "build": "cd packages/krl-parser && npm run build && cd ../krl-stdlib && npm run build && cd ../pico-engine-core && npm run build && cd ../pico-engine && npm run build",
+    "build": "lerna run build --stream",
     "link-framework": "cd ../pico-framework && npm run build && rm -rf ../pico-engine/packages/krl-stdlib/node_modules/pico-framework ../pico-engine/packages/pico-engine-core/node_modules/pico-framework ../pico-engine/packages/pico-engine/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/krl-stdlib/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/pico-engine-core/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/pico-engine/node_modules/pico-framework && cd ../pico-engine && npm run build"
   },
   "devDependencies": {

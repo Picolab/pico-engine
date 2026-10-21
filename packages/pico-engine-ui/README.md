@@ -10,7 +10,7 @@ npm run build
 
 Compiles TypeScript, bundles with Vite, and copies `pico-engine-ui.*` into `../pico-engine/public/` for the engine to serve.
 
-The repo root `npm run build` does **not** include this step — run it here after UI changes.
+The repo root `npm run build` runs this package too (`lerna run build`). You can also run `npm run build` here alone when iterating on UI.
 
 ## Dev
 
@@ -20,7 +20,7 @@ npm run dev
 
 Runs TypeScript watch + Vite dev server. For full-stack work, also run `npm start` in `packages/pico-engine`.
 
-After UI changes without the Vite dev server, run `npm run build` and restart the engine so it serves the updated bundle from `../pico-engine/public/`.
+After UI changes without the Vite dev server, run `npm run build` (here or from the repo root) and restart the engine so it serves the updated bundle from `../pico-engine/public/`.
 
 ## Auth URL cleanup
 

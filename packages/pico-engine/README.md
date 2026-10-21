@@ -350,13 +350,7 @@ Authorization: Bearer oat_…
 
 ### Building the UI
 
-The root `npm run build` compiles the engine only. To pick up UI changes (Settings, Channels OAuth panels, etc.):
-
-```sh
-cd packages/pico-engine-ui && npm run build
-```
-
-That copies the bundle into `packages/pico-engine/public/`. Restart the engine and hard-refresh the browser.
+Repo root `npm run build` includes the UI bundle (via `lerna run build`), copied into `packages/pico-engine/public/`. Restart the engine and hard-refresh the browser after a build.
 
 For UI development, run the engine and `npm run dev` in `packages/pico-engine-ui` in separate terminals.
 

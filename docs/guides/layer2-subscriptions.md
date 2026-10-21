@@ -157,7 +157,7 @@ Bridge-network Docker containers cannot reach each other via `localhost` URLs em
 - Established / inbound / outbound lists show **name** (when set) with subscription Id; expand for `Tx_did` / `Rx_did` and Rx policy preview
 - Link to **Channels** tab for Rx policy editing
 
-Rebuild UI after engine changes: `cd packages/pico-engine-ui && npm run build`
+Rebuild UI after engine changes: `npm run build` from the repo root (includes the UI bundle).
 
 ---
 
