@@ -77,6 +77,26 @@ body {
   }
 }
 
+.ruleset-docs-modal {
+  max-width: min(720px, 100%);
+}
+
+.ruleset-docs-index summary {
+  cursor: pointer;
+  list-style: disclosure-closed inside;
+}
+
+.ruleset-docs-index[open] summary {
+  list-style: disclosure-open inside;
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 0.25rem;
+}
+
+.ruleset-docs-op,
+.ruleset-docs-query {
+  scroll-margin-top: 0.5rem;
+}
+
 .settings-section-toggle {
   padding: 0.75rem 1rem;
   text-decoration: none !important;
@@ -104,6 +124,16 @@ body {
   margin-top: -0.25rem;
 }
 
+details.testing-panel-details > summary.testing-panel-summary {
+  cursor: pointer;
+  display: list-item;
+  list-style-type: disclosure-closed;
+}
+
+details.testing-panel-details[open] > summary.testing-panel-summary {
+  list-style-type: disclosure-open;
+}
+
 .pico {
   position: absolute;
   min-width: 50px;
@@ -116,6 +146,47 @@ body {
   .pico-name-open-btn {
     color: black;
     display: block;
+  }
+
+  .split-pane {
+    width: 100%;
+    min-height: 12rem;
+  }
+
+  .split-pane-dragging {
+    user-select: none;
+    cursor: col-resize;
+  }
+
+  .split-pane-left {
+    padding-right: 0.5rem;
+  }
+
+  .split-pane-right {
+    padding-left: 0.5rem;
+  }
+
+  .split-pane-handle {
+    flex: 0 0 12px;
+    margin: 0 0.625rem;
+    cursor: col-resize;
+    position: relative;
+    background: transparent;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1px;
+      background: #ced4da;
+    }
+
+    &:hover::before {
+      background: #adb5bd;
+    }
   }
 
   .pico-resize-handle {

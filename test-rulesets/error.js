@@ -53,6 +53,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("error_handle", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("error_log", await append1($ctx, [
             await $ctx.rsCtx.getEnt("error_log"),
@@ -75,6 +76,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("continue_on_errorA", $fired);
         await $ctx.rsCtx.raiseEvent("system", "error", {
           "level": "debug",
           "data": "continue_on_errorA debug",
@@ -112,6 +114,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("continue_on_errorB", $fired);
         await $ctx.rsCtx.raiseEvent("system", "error", {
           "level": "debug",
           "data": "continue_on_errorB debug",
@@ -149,6 +152,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("stop_on_errorA", $fired);
         {
           $last();
           $ctx.rsCtx.clearSchedule();
@@ -189,6 +193,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("stop_on_errorB", $fired);
         {
           $last();
           $ctx.rsCtx.clearSchedule();
@@ -205,6 +210,18 @@ module.exports = {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = { "getErrors": getErrors2 };
+    const $rulesetKrlSource = "ruleset io.picolabs.error {\n    meta {\n        shares getErrors\n    }\n    global {\n        getErrors = function(){\n            ent:error_log;\n        }\n    }\n    rule error_handle {\n        select when system error\n        fired {\n            ent:error_log := ent:error_log.append(event:attrs)\n        }\n    }\n    rule continue_on_errorA {\n        select when error continue_on_error\n\n        send_directive(\"continue_on_errorA\");\n\n        always {\n            error debug \"continue_on_errorA debug\";\n            error info \"continue_on_errorA info\";\n            error warn \"continue_on_errorA warn\"\n        }\n    }\n    rule continue_on_errorB {\n        select when error continue_on_error\n\n        send_directive(\"continue_on_errorB\");\n\n        always {\n            error debug \"continue_on_errorB debug\";\n            error info \"continue_on_errorB info\";\n            error warn \"continue_on_errorB warn\"\n        }\n    }\n    rule stop_on_errorA {\n        select when error stop_on_error\n\n        send_directive(\"stop_on_errorA\");\n\n        always {\n            error error \"stop_on_errorA 1\";\n            error error \"stop_on_errorA 2 this should not fire b/c the first error stops execution\"\n        }\n    }\n    rule stop_on_errorB {\n        select when error stop_on_error\n\n        send_directive(\"stop_on_errorB\");\n\n        always {\n            error error \"stop_on_errorB 3 this should not fire b/c the first error clears the schedule\"\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -213,7 +230,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getErrors": async function (query, qid) {
@@ -226,8 +246,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

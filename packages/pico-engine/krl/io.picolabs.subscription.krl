@@ -5,7 +5,7 @@ ruleset io.picolabs.subscription {
       Pico-to-pico relationships (Tx/Rx). User-facing term: relationship.
       Ruleset RID io.picolabs.subscription is stable; prefer module alias relationship.
     >>
-    author "Tedrub Modulus"
+    author "Picolabs"
     use module io.picolabs.wrangler alias wrangler
     provides established, outbound, inbound, wellKnown_Rx, autoAcceptConfig, queryOnSub
     shares   established, outbound, inbound, wellKnown_Rx, autoAcceptConfig, queryOnSub
@@ -13,42 +13,7 @@ ruleset io.picolabs.subscription {
   }
 
   global{
-    __testing = __testing
-      .put("queries",__testing.get("queries").map(function(q){
-        q.delete("args")
-      }))
-      .put("events",[
-        { "domain": "wrangler", "name": "subscription",
-          "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","Tx_host","password"] },
-        { "domain": "wrangler", "name": "subscription",
-          "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","password"] },
-        { "domain": "wrangler", "name": "subscription",
-          "attrs": [ "wellKnown_Tx","password"] },
-        { "domain": "wrangler", "name": "subscription",
-          "attrs": [ "wellKnown_Tx"] },
-        { "domain": "wrangler", "name": "relationship",
-          "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","Tx_host","password","layer2","target_did"] },
-        { "domain": "wrangler", "name": "pending_subscription_approval",
-          "attrs": [ "Id" ] },
-        { "domain": "wrangler", "name": "pending_relationship_approval",
-          "attrs": [ "Id" ] },
-        { "domain": "wrangler", "name": "subscription_cancellation",
-          "attrs": [ "Id" ] },
-        { "domain": "wrangler", "name": "relationship_cancellation",
-          "attrs": [ "Id" ] },
-        { "domain": "wrangler", "name": "inbound_rejection",
-          "attrs": [ "Id" ] },
-        { "domain": "wrangler", "name": "inbound_relationship_rejection",
-          "attrs": [ "Id" ] },
-        { "domain": "wrangler", "name": "outbound_cancellation",
-          "attrs": [ "Id" ] },
-        { "domain": "wrangler", "name": "outbound_relationship_cancellation",
-          "attrs": [ "Id" ] },
-        { "domain": "wrangler", "name": "autoAcceptConfigUpdate",
-          "attrs": [ "configName", "password", "regexMap","delete" ] },
-        { "domain": "wrangler", "name": "intent_to_delete",
-          "attrs": [ "Id" ] },
-      ])
+
 /*
 ent:inbound [
   {
@@ -100,6 +65,12 @@ ent:established [
       "allow": [{"rid": ctx:rid, "name": "wellKnown_Rx"}],
       "deny": []
     }
+    /**
+     * Auto-accept rules for incoming relationship requests, keyed by config name.
+     * A request is accepted automatically when any config's entries match: each
+     * entry maps an attr name to a list of regexes tested against that attr.
+     * @returns Map "{ <configName>: { configName, password, entries: { <attr>: [regex, …] } } }"
+     */
     autoAcceptConfig = function(){
       ent:autoAcceptConfig.defaultsTo({})
     }
@@ -110,13 +81,43 @@ ent:established [
       doesntExist || passwordMatched
     }
     
-    established = function(key,value){
+    /**
+     * Established relationships, optionally only those whose field `key` equals
+     * `value` (e.g. key "Tx_role", value "manifold_thing"). Each has Id, Rx (this
+     * pico's channel), Tx (the other pico's channel), roles, name, and, for Layer 2
+     * relationships, layer2 and the peer DIDs.
+     * @param key String "field to filter on, e.g. Id, Tx_role, Rx_role"
+     * @param value Any "value the field must equal"
+     * @returns Array
+     * @example "all" {}
+     * @example "by role" { "key": "Tx_role", "value": "<their role>" }
+     */
+    established = function(key = null, value = null){
       filterOn(ent:established, key, value)
     }
-    outbound = function(key,value){//Tx_Pending
+    /**
+     * Relationship requests this pico has sent that are still waiting for the other
+     * side to approve. Optional filter as for established().
+     * @param key String "field to filter on"
+     * @param value Any "value the field must equal"
+     * @returns Array
+     * @example "all" {}
+     * @example "by id" { "key": "Id", "value": "<relationship id>" }
+     */
+    outbound = function(key = null, value = null){//Tx_Pending
       filterOn(ent:outbound, key, value)
     }
-    inbound = function(key,value){//Rx_Pending
+    /**
+     * Relationship requests other picos have sent to this one that are waiting for
+     * approval (approve with wrangler:pending_relationship_approval). Optional filter
+     * as for established().
+     * @param key String "field to filter on"
+     * @param value Any "value the field must equal"
+     * @returns Array
+     * @example "all" {}
+     * @example "by id" { "key": "Id", "value": "<relationship id>" }
+     */
+    inbound = function(key = null, value = null){//Rx_Pending
       filterOn(ent:inbound, key, value)
     }
     
@@ -127,27 +128,24 @@ ent:established [
       || ent:outbound.defaultsTo([]).length() > 0
     }
 
-    /**
-    @param array, an array of maps
-    @param [key], key in the map to filter on
-    @param [value], the value at the given key to filter on
-    @return an array of maps that contain the given key/value pair (if provided) from the array, defaulting to the original array if the key/value pair was not provided
-    */
+    // The maps in array whose field key equals value. Returns the whole array
+    // (or [] if array is null) when key or value is not given.
     filterOn = function(array, key, value){
       defaultedArray = array.defaultsTo([]);
       (key && value) => defaultedArray.filter(function(bus){ bus{key} == value}) | defaultedArray
     }
 
+    /**
+     * This pico's well-known channel: the one other picos send relationship requests
+     * to (give its id as wellKnown_Tx when requesting a relationship with this pico).
+     * @returns Map "the channel, including its id"
+     */
     wellKnown_Rx = function(){
       tags = ["wellKnown_Rx","Tx_Rx"]
       return wrangler:channels(tags).head()
     }
 
-    /**
-    @param buses, an array of subscriptions
-    @param Id, a subscription id
-    @return the index of the subscription in the array with the given id. -1 if it does not exist
-    */
+    // Index of the relationship with this Id in buses, or -1 if none has it.
     indexOfId = function(buses, Id) {
       buses.map(function(bus){
         bus{"Id"}
@@ -162,8 +160,15 @@ ent:established [
     }
 
     /**
-     * Query a function on a remote pico via an established subscription.
-     * Layer 2 subs use DIDComm / verified local dispatch; legacy subs use Tx ECI.
+     * Query a function on the pico at the other end of an established relationship.
+     * Layer 2 relationships go over DIDComm (or verified local dispatch); legacy ones
+     * query the other pico's Tx channel. Null if no relationship has that id.
+     * @param subId String "relationship id"
+     * @param rid String "ruleset id on the other pico"
+     * @param name String "shared function to call"
+     * @param args Map "arguments for the function"
+     * @returns Any "the function's result"
+     * @example "other pico's name" { "subId": "<relationship id>", "rid": "io.picolabs.wrangler", "name": "name" }
      */
     queryOnSub = function(subId, rid, name, args) {
       bus = established("Id", subId).head()
@@ -184,8 +189,11 @@ ent:established [
                 } | {};
       _roles = event:attr("Tx_host") => // add possible host
                 roles.put(["Tx_host"] , host)  | roles;
-      event:attr("Id") => // add subscription identifier
-                 _roles.put(["Id"], event:attr("Id")) | _roles.put(["Id"], random:uuid())
+      withId = event:attr("Id") => // add subscription identifier
+                 _roles.put(["Id"], event:attr("Id")) | _roles.put(["Id"], random:uuid());
+      // Manifold (and other apps) pass registry keys on wrangler:subscription; keep them on the bus.
+      picoID = event:attr("picoID");
+      picoID.isnull() == false && picoID != "" => withId.put("picoID", picoID) | withId
     }
     
     doesConfigMatch = function(config) {
@@ -249,6 +257,11 @@ ent:established [
     }
   }
   
+  /**
+   * Cancel every relationship this pico has: established ones are cancelled,
+   * inbound requests rejected, and outbound requests withdrawn, notifying the other
+   * picos. Used before deleting a pico.
+   */
   rule cancel_all_subscriptions {
     select when wrangler cancel_subscriptions
     pre {
@@ -321,6 +334,30 @@ ent:established [
   //START OF A SUBSCRIPTION'S CREATION
   //For the following comments, consider picoA sending the request to picoB
 
+  /**
+   * Request a relationship with another pico. Legacy (default): give the other
+   * pico's well-known channel as wellKnown_Tx. Layer 2: set layer2 true and give the
+   * other pico's DID as target_did; the request goes over DIDComm. The request is
+   * recorded in outbound() until the other side approves (or auto-accepts), then
+   * moves to established() and wrangler:subscription_added is raised. A request to
+   * this pico itself, or one missing wellKnown_Tx / target_did, raises
+   * self_relationship_failure, wellKnown_Tx_format_failure, or
+   * target_did_format_failure instead.
+   * @attr wellKnown_Tx String optional "legacy: the other pico's well-known channel id (its wellKnown_Rx)"
+   * @attr layer2 Boolean optional "true for a DID-based Layer 2 relationship"
+   * @attr target_did String optional "Layer 2: the other pico's DID"
+   * @attr name String optional "relationship name (random word if omitted)"
+   * @attr Rx_role String optional "this pico's role in the relationship"
+   * @attr Tx_role String optional "the other pico's role"
+   * @attr channel_type String optional "channel type for the new channel (default Tx_Rx)"
+   * @attr Tx_host String optional "legacy: the other pico's engine URL, if on a different engine"
+   * @attr password String optional "for the other pico's auto-accept config"
+   * @example "same engine" { "wellKnown_Tx": "<eci>" }
+   * @example "same engine, with roles" { "wellKnown_Tx": "<eci>", "name": "<name>", "Rx_role": "<my role>", "Tx_role": "<their role>" }
+   * @example "another engine" { "wellKnown_Tx": "<eci>", "Tx_host": "https://other.example" }
+   * @example "auto-accept password" { "wellKnown_Tx": "<eci>", "password": "<password>" }
+   * @example "Layer 2" { "layer2": true, "target_did": "<did>" }
+   */
   rule createRxBus {
     select when wrangler subscription
              or wrangler relationship
@@ -348,11 +385,15 @@ ent:established [
     }
   }//end createMySubscription rule
 
+  // `where` binds to the event it follows, so each alternative needs its own;
+  // with one trailing `where`, every wrangler:subscription matched unguarded.
   rule createRxBusLegacySelfFailure {
     select when wrangler subscription
+               where not event:attr("layer2") == true
+                 && event:attr("wellKnown_Tx") == wellKnown_Rx(){"id"}
              or wrangler relationship
-             where not event:attr("layer2") == true
-               && event:attr("wellKnown_Tx") == wellKnown_Rx(){"id"}
+               where not event:attr("layer2") == true
+                 && event:attr("wellKnown_Tx") == wellKnown_Rx(){"id"}
     fired {
       raise wrangler event "self_relationship_failure" attributes event:attrs
     }
@@ -401,9 +442,11 @@ ent:established [
 
   rule createRxBusLayer2SelfFailure {
     select when wrangler subscription
+               where event:attr("layer2") == true
+                 && event:attr("target_did") == wrangler:myDid()
              or wrangler relationship
-             where event:attr("layer2") == true
-               && event:attr("target_did") == wrangler:myDid()
+               where event:attr("layer2") == true
+                 && event:attr("target_did") == wrangler:myDid()
     fired {
       raise wrangler event "self_relationship_failure" attributes event:attrs
     }
@@ -519,6 +562,15 @@ ent:established [
     }
   }
 
+  /**
+   * Approve a pending inbound relationship request (one listed in inbound()). The
+   * requesting pico is notified, and both sides raise wrangler:subscription_added
+   * once it is established. Works for legacy and Layer 2 requests.
+   * @attr Id String optional "relationship id; or identify it by Rx or Tx instead"
+   * @attr Rx String optional "this pico's channel for the relationship"
+   * @attr Tx String optional "the other pico's channel for the relationship"
+   * @example "by id" { "Id": "<relationship id>" }
+   */
   rule approveInboundPendingSubscription {
     select when wrangler pending_subscription_approval
              or wrangler pending_relationship_approval
@@ -635,6 +687,16 @@ ent:established [
     }
   }
 
+  /**
+   * End an established relationship. It is removed on both picos, and the other
+   * pico is notified (over DIDComm for Layer 2). wrangler:subscription_removed is
+   * raised when done.
+   * @attr Id String optional "relationship id; or identify it by Rx or Tx instead"
+   * @attr Rx String optional "this pico's channel for the relationship"
+   * @attr Tx String optional "the other pico's channel for the relationship"
+   * @example "by id" { "Id": "<relationship id>" }
+   * @example "by this pico's channel" { "Rx": "<eci>" }
+   */
   rule cancelEstablished {
     select when wrangler subscription_cancellation
              or wrangler relationship_cancellation
@@ -691,6 +753,14 @@ ent:established [
     }
   }
 
+  /**
+   * Reject a pending inbound relationship request (one listed in inbound()). The
+   * requesting pico is notified and removes it from its outbound().
+   * @attr Id String optional "relationship id; or identify it by Rx or Tx instead"
+   * @attr Rx String optional "this pico's channel for the relationship"
+   * @attr Tx String optional "the other pico's channel for the relationship"
+   * @example "by id" { "Id": "<relationship id>" }
+   */
   rule cancelInbound {
     select when wrangler inbound_rejection
              or wrangler inbound_relationship_rejection
@@ -745,6 +815,15 @@ ent:established [
     }
   }
 
+  /**
+   * Withdraw a relationship request this pico sent that hasn't been approved yet
+   * (one listed in outbound()). The other pico is notified and removes it from its
+   * inbound().
+   * @attr Id String optional "relationship id; or identify it by Rx or Tx instead"
+   * @attr Rx String optional "this pico's channel for the relationship"
+   * @attr Tx String optional "the other pico's channel for the relationship"
+   * @example "by id" { "Id": "<relationship id>" }
+   */
   rule cancelOutbound {
     select when wrangler outbound_cancellation
              or wrangler outbound_relationship_cancellation
@@ -783,6 +862,20 @@ ent:established [
     }
   }
   
+  /**
+   * Send an event to the picos at the other end of established relationships,
+   * selected by relationship id and/or by role. Each match receives the event on
+   * its channel (over DIDComm for Layer 2). If nothing matches, or domain or type is
+   * missing, raises wrangler:failed_to_send_event_to_relationship instead.
+   * @attr domain String "domain of the event to send"
+   * @attr type String "type of the event to send"
+   * @attr attrs Map optional "attributes of the event to send"
+   * @attr subID String optional "send on this relationship"
+   * @attr Tx_role String optional "send on every relationship where the other pico has this role"
+   * @attr Rx_role String optional "send on every relationship where this pico has this role"
+   * @example "one relationship" { "subID": "<relationship id>", "domain": "<domain>", "type": "<type>", "attrs": {} }
+   * @example "everyone with a role" { "Tx_role": "<their role>", "domain": "<domain>", "type": "<type>", "attrs": {} }
+   */
   rule sendEventToSubCheck {
     select when wrangler send_event_on_subs
              or wrangler send_event_on_relationships
@@ -877,19 +970,19 @@ ent:established [
   }
 
   /**
-   * 
-   * event:attr("config"):
-   * {
-      configName: "name"
-      password: <password> (not in production)
-      entries: {
-        <entries>
-      }
-     }
-   * entry:
-   * 
-   * entryVar: [regEx, regEx, ...]
-   * 
+   * Add, replace, or delete an auto-accept config. An incoming relationship request
+   * is approved automatically when, for any config, one of its entries matches:
+   * an entry maps an attr name to a list of regexes, and matches when the request's
+   * attr matches any of them. Give the whole config as config, or its parts as
+   * configName, regexMap, and password. Raises wrangler:auto_accept_config_updated,
+   * or autoAcceptConfigUpdate_failure when there is no config name.
+   * @attr configName String optional "name of the config to set or delete"
+   * @attr regexMap String optional "the entries, JSON-encoded: { <attr>: [regex, …] }"
+   * @attr config Map optional "the whole config instead: { configName, password, entries }"
+   * @attr password String optional "stored with the config; not currently checked"
+   * @attr delete Boolean optional "true to delete the named config"
+   * @example "accept a role" { "config": { "configName": "<name>", "entries": { "Tx_role": ["^<role>$"] } } }
+   * @example "delete" { "configName": "<name>", "delete": true }
    */
   rule autoAcceptConfigUpdate {
     select when wrangler autoAcceptConfigUpdate

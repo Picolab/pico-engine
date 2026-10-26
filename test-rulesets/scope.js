@@ -215,6 +215,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("eventOr", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -276,6 +277,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("eventAnd", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -339,6 +341,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("eventWithin", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -385,6 +388,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("prelude_scope", $fired);
         await $ctx.rsCtx.putEnt("ent_var_name", $name$3);
         await $ctx.rsCtx.putEnt("ent_var_p0", p03);
         await $ctx.rsCtx.putEnt("ent_var_p1", p13);
@@ -416,6 +420,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("functions", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -439,6 +444,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("shadow", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -470,10 +476,31 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("recur", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "g0": g02,
+      "g1": g12,
+      "getVals": getVals2,
+      "add": add2,
+      "sum": sum2,
+      "incByN": incByN2,
+      "mapped": mapped2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.scope {\n    meta {\n        name \"testing scope\"\n        shares g0, g1, getVals, add, sum, mapped\n    }\n    global {\n        g0 = \"global 0\"\n        g1 = 1\n        getVals = function(){\n            {\n                \"name\": ent:ent_var_name,\n                \"p0\": ent:ent_var_p0,\n                \"p1\": ent:ent_var_p1\n            };\n        }\n        add = function(a, b){\n            a + b;\n        }\n        sum = function(arr){\n            arr.reduce(add, 0);\n        }\n        incByN = function(n){\n            function(a){\n                a + n;\n            };\n        }\n        mapped = [1, 2, 3].map(function(n){\n            n + g1;\n        })\n    }\n    rule eventOr {\n        select when scope eventOr0 name re#^(.*)$# setting(name0)\n            or\n            scope eventOr1 name re#^(.*)$# setting(name1)\n\n        send_directive(\"eventOr\", {\n            \"name0\": name0,\n            \"name1\": name1\n        });\n    }\n    rule eventAnd {\n        select when scope eventAnd0 name re#^(.*)$# setting(name0)\n            and\n            scope eventAnd1 name re#^(.*)$# setting(name1)\n\n        send_directive(\"eventAnd\", {\n            \"name0\": name0,\n            \"name1\": name1\n        });\n    }\n    rule eventWithin {\n        select when (\n                scope eventWithin0\n                or\n                scope eventWithin1 name re#^(.*)$# setting(name1)\n            )\n            and\n            (\n                scope eventWithin2 name re#^(.*)$# setting(name2)\n                or\n                scope eventWithin3\n            )\n            within 1 second\n\n        send_directive(\"eventWithin\", {\n            \"name1\": name1,\n            \"name2\": name2\n        });\n    }\n    rule prelude_scope {\n        select when scope prelude name re#^(.*)$# setting(name)\n\n        pre {\n            p0 = \"prelude 0\"\n            p1 = \"prelude 1\"\n        }\n\n        send_directive(\"say\", {\n            \"name\": name,\n            \"p0\": p0,\n            \"p1\": p1,\n            \"g0\": g0\n        });\n\n        always {\n            ent:ent_var_name := name;\n            ent:ent_var_p0 := p0;\n            ent:ent_var_p1 := p1\n        }\n    }\n    rule functions {\n        select when scope functions\n\n        pre {\n            g0 = \"overrided g0!\"\n            inc5 = incByN(5)\n        }\n\n        send_directive(\"say\", {\n            \"add_one_two\": add(1, 2),\n            \"inc5_3\": inc5(3),\n            \"g0\": g0\n        });\n    }\n    rule shadow {\n        select when scope shadow\n\n        pre {\n            add = add(1, 2)\n        }\n\n        send_directive(\"say\", {\"add\": add});\n    }\n    rule recur {\n        select when scope recur\n\n        pre {\n            fact = function(n){\n                n <= 1 => 1 |\n                    n * fact(n - 1);\n            }\n        }\n\n        send_directive(\"say\", {\"fact5\": fact(5)});\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -482,7 +509,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "g0": async function (query, qid) {
@@ -535,8 +565,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

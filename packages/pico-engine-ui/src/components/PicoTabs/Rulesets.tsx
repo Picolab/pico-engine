@@ -6,9 +6,16 @@ import { PicoDetails } from "../../types/PicoDetails";
 import useAsyncAction from "../../useAsyncAction";
 import useAsyncLoader from "../../useAsyncLoader";
 import ErrorStatus from "../widgets/ErrorStatus";
+import {
+  flushFailureMessage,
+  installFailureMessage,
+} from "../../installFlushErrors";
+import RulesetDocsModal from "../schema/RulesetDocsModal";
 
 interface Props {
   pico: PicoBox;
+  /** When false, Docs modal is hidden (e.g. user is on Testing) but state is kept. */
+  isTabActive?: boolean;
 }
 
 const OAUTH_RULESET_MARK = "io.picolabs.oauth";
@@ -27,13 +34,15 @@ function isRootOnlyInstallBlocked(pico: PicoBox, url: string): boolean {
   return isRootOnlyRulesetUrl(url) && !isRootPico(pico);
 }
 
-const Rulesets: React.FC<Props> = ({ pico }) => {
+const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
   const [url, setUrl] = React.useState<string>("");
   const [config, setConfig] = React.useState<string>("{}");
   const [installNotice, setInstallNotice] = React.useState<string | null>(null);
   const [expandedRulesets, setExpandedRulesets] = React.useState<{
     [rid_at_version: string]: boolean;
   }>({});
+
+  const [docsRid, setDocsRid] = React.useState<string | null>(null);
 
   function isConfigValid(): boolean {
     try {
@@ -61,17 +70,25 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     url: string;
     config: any;
   }>((params) =>
-    apiPost(
-      `/c/${params.eci}/event/engine_ui/install/query/io.picolabs.pico-engine-ui/pico`,
-      {
-        url: params.url,
-        config: params.config,
-      }
-    ).then((d) => {
-      picoDetails.setData(d);
-      setUrl("");
-      setConfig("{}");
+    apiPost(`/c/${params.eci}/event-wait/engine_ui/install`, {
+      url: params.url,
+      config: params.config,
     })
+      .then((waitBody) => {
+        const msg = installFailureMessage(waitBody);
+        if (msg) {
+          throw new Error(msg);
+        }
+        return apiPost(
+          `/c/${params.eci}/query/io.picolabs.pico-engine-ui/pico`,
+          {}
+        );
+      })
+      .then((d) => {
+        picoDetails.setData(d);
+        setUrl("");
+        setConfig("{}");
+      })
   );
 
   const uninstall = useAsyncAction<{
@@ -92,14 +109,20 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     eci: string;
     url: string;
   }>(({ eci, url }) =>
-    apiPost(
-      `/c/${eci}/event/engine_ui/flush/query/io.picolabs.pico-engine-ui/pico`,
-      {
-        url,
-      }
-    ).then((d) => {
-      picoDetails.setData(d);
-    })
+    apiPost(`/c/${eci}/event-wait/engine_ui/flush`, { url })
+      .then((waitBody) => {
+        const msg = flushFailureMessage(waitBody);
+        if (msg) {
+          throw new Error(msg);
+        }
+        return apiPost(
+          `/c/${eci}/query/io.picolabs.pico-engine-ui/pico`,
+          {}
+        );
+      })
+      .then((d) => {
+        picoDetails.setData(d);
+      })
   );
 
   React.useEffect(() => {
@@ -171,6 +194,16 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
                         : ""}
                     </span>
                   </label>
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm py-0 align-baseline ml-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setDocsRid(ruleset.rid);
+                    }}
+                  >
+                    Docs
+                  </button>
                 </div>
               </div>
               {isOpen ? (
@@ -415,6 +448,13 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
         </button>
         <ErrorStatus error={installNotice || install.error} />
       </form>
+      {docsRid && isTabActive ? (
+        <RulesetDocsModal
+          eci={pico.eci}
+          rid={docsRid}
+          onClose={() => setDocsRid(null)}
+        />
+      ) : null}
     </div>
   );
 };

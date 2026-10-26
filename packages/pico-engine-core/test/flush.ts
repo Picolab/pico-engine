@@ -15,10 +15,23 @@ test("ruleset flush", async (t) => {
   function mkKrlVersion(v: string): string {
     return `ruleset main{
       meta {
-        shares talk
+        shares talk, lastRulesetSetAction
       }
       global{
         talk = function(){return "${v}"}
+        lastRulesetSetAction = function(){ ent:lastRulesetSetAction }
+      }
+      /**
+       * Surface v${v}.
+       * @attr x String
+       */
+      rule ping {
+        select when main ping
+        if true then every { noop() }
+      }
+      rule on_ruleset_set_changed {
+        select when engine ruleset_set_changed
+        fired { ent:lastRulesetSetAction := event:attr("action") }
       }
       rule flush {
         select when main:flush
@@ -69,4 +82,7 @@ test("ruleset flush", async (t) => {
   await signal("main", "flush");
 
   t.deepEqual(await query("talk"), "v1");
+
+  await sleep(200);
+  t.is(await query("lastRulesetSetAction"), "flush");
 });

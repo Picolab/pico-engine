@@ -30,7 +30,7 @@ Engine and wrangler stay **domain-agnostic**. If a change needs the words "owner
 | `MEMORY.md` | Long-running working log: roadmap, decisions, gotchas. Source of truth for *why*; skim the TOC |
 | `test-rulesets/`, `demos/` | KRL used by tests and demos |
 
-Sibling repos (same org, not in this tree): `manifold-api` (Manifold KRL), `sensor-network`, `MCPforEXP`, `pico-framework` (lifecycle/channels/LevelDB; engine depends on `^0.8.1`).
+Sibling repos (same org, not in this tree): `manifold-api` (Manifold KRL), `sensor-network`, `MCPforEXP`, `pico-framework` (lifecycle/channels/LevelDB; engine depends on `^0.8.2` for 1.8 policy ceiling).
 
 ## Commands
 

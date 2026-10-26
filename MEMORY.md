@@ -114,7 +114,7 @@ deferred.
 | **npm** | 1.5.0 published; **1.5.1** ready to publish | Use `npm run publish` from repo root (`lerna publish from-package --yes`). Do **not** publish from repo root or `pico-engine-ui` (both `"private": true`). Publish **pico-framework@0.8.0+** first if bumped. |
 | **GitHub tags** | `v1.5.0`, `v1.5.1` local | **`git push` does not push tags.** Run `git push origin v1.5.0` (and `v1.5.1`) separately. GitHub **Releases** are created in the UI (or `gh release create`) *after* the tag is on origin. |
 | **UI version string** | From `packages/pico-engine/package.json` | Shown via `/api/ui-context` → AuthGate + Picos page footer. Bumped to **1.5.1** in commit `d135b1d7`. |
-| **pico-framework** | **0.8.1** — custom channel id, `eciIsTaken` | **Required** for pico-engine 1.6 (`^0.8.1` in package.json). Publish framework before engine. **`npm run link-framework`** is for co-development only, not deployment. |
+| **pico-framework** | **0.8.2** — policy ceiling, global denies; **0.8.1** custom channel id | **Required** for pico-engine 1.8 policy work (`^0.8.2` in package.json). Publish framework before engine. **`npm run link-framework`** is for co-development only, not deployment. |
 
 **Tag ↔ commit mapping (local):**
 
@@ -202,6 +202,8 @@ e505a1a2 Fix invite links to always show registration
 
 **Engine requirement for Manifold / HA:** pico-engine **1.5.1+**, pico-framework **0.8.0+**.
 
+**Engine hangs (Oct 2026, 1.7 demo):** Working postmortem — [`docs/design/engine-hang-postmortem-2026-10.md`](docs/design/engine-hang-postmortem-2026-10.md). Per-pico queue deadlocks are expected; **whole-process** freezes need event-loop / global scheduler / UI fan-out checks. SIGHUP soft-reset **deferred** (prefer txn timeouts + health); **SIGTERM/SIGINT** graceful shutdown already in CLI.
+
 ---
 
 ## Release plan (post-1.6.4)
@@ -209,7 +211,7 @@ e505a1a2 Fix invite links to always show registration
 | Release | Theme | Scope |
 |---------|--------|--------|
 | **1.7** | **Identity portability** | **did:peer:4** (new relationships; peer:2 backward compat); pico **move/rotation** — export/import ([`pico-move.md`](docs/design/pico-move.md) A/B) + DIDComm DID Rotation (Phase D). See [`pico-identity-libraries.md`](docs/design/pico-identity-libraries.md). |
-| **1.8** | **Mesh API + security** | **`meta.schema`** in KRL + `picoSchema()` / `schemaBindings(rid)` ([`pico-schemas.md`](docs/design/pico-schemas.md)); **channel policy fix** — deny overrides permit, pico-level ceiling ([§4](#4-channel-policy-engine-fix--permit-overrides-deny-must-fix)). |
+| **1.8** | **Mesh API + security** | Doc annotations + **engine** pico schema merge; wrangler exposes `picoSchema()` / `schemaBindings(rid)` ([`pico-schemas.md`](docs/design/pico-schemas.md)); **channel policy fix** — deny overrides permit, pico-level ceiling ([§4](#4-channel-policy-engine-fix--permit-overrides-deny-must-fix)). |
 
 **Rationale:** 1.7 finishes the identity story (standards-grade peer DIDs + relocation). 1.8 pairs
 declarative pico surface (integrators, Testing tab, discovery) with the long-standing channel-policy
@@ -228,30 +230,19 @@ after 1.8 schema; mirrors/logging build on schema `logged` flags.
 
 ## ROADMAP (deferred / future engine work)
 
-### 1. Pico schemas (events + queries + attrs) — **target 1.8**
+### 1. Pico schemas (events + queries + attrs) — **engine complete (1.8 §1)**
 
-A **pico-level schema** — aggregated from installed rulesets — describes events, queries, and
-attributes at the **pico boundary** (not per-RID). Multiple RSs may respond to one event; integrators,
-mirrors, LLM tools, and validation need one canonical surface.
+**Closure:** [`docs/design/pico-schemas-1.8.md`](docs/design/pico-schemas-1.8.md) · **Design:**
+[`docs/design/pico-schemas.md`](docs/design/pico-schemas.md).
 
-**Full design:** [`docs/design/pico-schemas.md`](docs/design/pico-schemas.md) (explore 2026-09-18).
+**Shipped:** `/** … */` annotations; compiler **`rulesetSchema`** + **`krl check`**; engine
+**`picoSchema` / `rulesetSchema` / `channelSchema` / `schemaBindings`**; wrangler delegates +
+**`schema_updated`**; Testing tab + Docs UI + history/saved; bundled platform KRL annotated;
+**`__testing`** compat alias from schema. Verify: **`npm run test:schema`**, **`npm run check:krl-schema-samples`**.
 
-**Today (imperfect):** Testing tab calls `{rid}/__testing` per ruleset. Compiler injects
-`__testing` from `meta.shares` (queries + arg names) and rule `select when` + `event:attr` heuristics
-(`krl-compiler` `eventScope.getTestingJSON()`). RSs may override with manual global `__testing`
-(wrangler hand-maintains a large block). **Discovery `bindings`** is a separate, caller-filtered
-public subset — not the full pico schema.
-
-**Known gaps:** no pico merge/dedupe; attrs untyped and incomplete; raised-but-not-selected events
-missing; `provides`-only queries omitted; duplicates; manual drift.
-
-**Target programmatic API:** `wrangler:picoSchema()`, `rulesetSchema(rid)`, `publicSchema(caller_eci)`,
-install/uninstall registration, optional validate-before-dispatch, `wrangler:schema_updated` event,
-JSON Schema export for HA/MCP.
-
-**Declarative source (decided):** **`meta.schema { events { … } queries { … } }`** in the KRL
-`meta` block — **not** the `__testing` global kludge. Compiler extract (`eventScope`) is lint-only;
-discovery `bindings()` generated from `public` schema entries via `wrangler:schemaBindings(rid)`.
+**Deferred past 1.8 engine tag:** JSON Schema export (`format: jsonschema`); copy schema docs to
+`public/docs/` + `llms-full.txt`; remove `__testing1` injection (1.9); schema **`logged`** flags
+(roadmap §2 below).
 
 **Event-only logging (original §1 scope):**
 
@@ -277,8 +268,8 @@ discovery `bindings()` generated from `public` schema entries via `wrangler:sche
 - **Cross-pico events** — subscription delivers to another pico's bus: log at source, destination,
   or both? Network mirror may need a **forest-level log** keyed by pico DID / owner subtree.
 - **Snapshots** — periodic PDS snapshot + event tail vs pure replay from genesis.
-- **Engine vs RS** — schema registry + append-only store likely **engine**; registration API via
-  wrangler + ruleset meta; replay driver TBD (`io.picolabs.mirror` RS or wrangler subsystem).
+- **Engine vs RS** — pico schema merge + registry in **engine**; wrangler exposes queries only;
+  append-only replay log likely **engine**; replay driver TBD (`io.picolabs.mirror` RS or wrangler subsystem).
 - **Literature:** event sourcing / CQRS (Greg Young, Fowler's event-sourcing essay); DDD domain
   events; snapshot + event tail for restore; causal ordering for graph structure (subscriptions
   before dependent actions).
@@ -303,13 +294,14 @@ commands).
 5. PDS enhancements enabled by default install — `meta:callingRID()` write auth, validation,
    structured log records on persist, versioned profile merges.
 
-### 4. Channel policy engine fix — permit-overrides-deny — **target 1.8**
+### 4. Channel policy engine fix — permit-overrides-deny — **engine complete (1.8 §2)**
 Affects **all** pico security relying on channel event/query policies, not just Manifold/PDS.
 Ship with **1.8** (schema release) as the mesh API + security package.
 
 **Current engine behavior (the flaw):**
-- Within one channel's policy, **permit overrides deny** — an allow rule wins even when a deny
-  rule also matches.
+- Within one channel's policy, **deny is evaluated before allow** in `pico-framework` (deny wins when
+  both match). The older "permit overrides deny" note referred to misunderstanding or another path;
+  unit tests lock deny-over-permit in 1.8.
 - Authorization is effectively the **union of all channels** on the pico. Each ECI is an
   independent capability; restrictive policies on channel A do not limit a caller who also holds
   channel B's ECI.
@@ -321,14 +313,21 @@ Ship with **1.8** (schema release) as the mesh API + security package.
 **Required changes (engine):**
 | Change | Rationale |
 |--------|-----------|
-| **Deny overrides permit** | Explicit deny wins within one channel's policy (deny-by-default) |
-| **Pico-level policy ceiling** | No channel may exceed a max policy for that pico type (owner/thing/community/registry) — channel templates enforced by engine/wrangler, not honor system |
-| **Restrict who may create channels** | App RSs shouldn't mint arbitrary channels; platform/wrangler owns sensitive channel types |
-| **Optional pico-wide deny list** | Engine-level denies applying to every ECI regardless of per-channel allow |
+| **Deny overrides permit** | Explicit deny wins within one channel's policy (deny-by-default) — **done** in framework |
+| **Pico-level policy ceiling** | Stored on each pico; enforced on `newChannel` / `putChannel` (app channels); children inherit or receive a narrower ceiling at `newPico`; platform tags (`system`, `engine`+`ui`, `didcomm`, `ingress`, `discovery`) exempt — **implemented 2026-10-23** in `pico-framework` + `ctx:newPico` / wrangler `policyCeiling` attr |
+| **Restrict who may create channels** | Addressed via **ceiling** (not a separate RS gate); see [`channel-policy-1.8.md`](docs/design/channel-policy-1.8.md) |
+| **Optional pico-wide deny list** | **`globalEventDeny` / `globalQueryDeny`** — engine config + `startEngine`; **done** |
 
-**Partial mitigation before full ceiling:** engine rule that any channel whose policy includes a
-full wildcard (`*.*` or rid/fn equivalent) **must** require a validated caller identity (DID
-signature; see §5) on every request. Shrinks blast radius of a leaked wide-open ECI.
+**Closure doc:** [`docs/design/channel-policy-1.8.md`](docs/design/channel-policy-1.8.md) · **Audit:** [`channel-policy-audit-2026-10.md`](docs/design/channel-policy-audit-2026-10.md). **Manifold-api** (deferred release): narrowed channels in tree; **`policyCeiling` on thing create** still pending. **`io.picolabs.manifold.skills_registry`** removed from bootstrap (2026-10) — archived in manifold-api; agent surfaces use **engine MCP + `channelSchema`**, not a skill-list pico ([`agent-harness-on-mesh.md`](docs/design/agent-harness-on-mesh.md)).
+
+**Operator config (1.8):** `defaultRootPolicyCeiling`, `globalEventDeny`, `globalQueryDeny`, `wildcardSkyRequireBearer` — see `config.policy-ceiling.example.json`. **`npm run test:policy`** in `packages/pico-engine`.
+
+**Partial mitigation (implemented 2026-10-23):** when **`PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER=1`**
+(opt-in; default **off** for existing meshes), channels with unrestricted allow (`*.*`) require OAuth
+bearer on **`/sky/*`**. Passkey session on **`/c/*`** when auth is enabled is unchanged; localhost
+`/c/*` bypass unchanged for dev MCP. DIDComm ingress uses JWE crypto. Internal `pf.event` /
+`ctx:query` on same engine unchanged. **Policy ceiling** (non-exempt app channels) applies regardless
+of this flag.
 
 ### 5. Pico identity: DID/DIDComm — did:peer + did:webvh (SPIFFE reconsidered; KERI reconsidered — 2026-07-10)
 
@@ -1427,8 +1426,9 @@ Layer 1 → Layer 3 (v1.5) → Layer 2.
 Resolves the earlier "layer above root" tension. **Decision/direction:** do NOT put shared infra
 in an engine-owned layer above roots. Instead:
 
-- **A Manifold *platform* runs the shared registries (tag / skills) in its OWN tree** (its own
-  root, its own child hierarchy — just another tenant, architecturally).
+- **A Manifold *platform* can run shared registries (e.g. tag) in its OWN tree** (its own
+  root, its own child hierarchy — just another tenant, architecturally). A separate **skills-list**
+  pico (`skills_registry`) was retired; curated ruleset URLs + schema/MCP replace it.
 - **Other Manifold instances (tenant roots) USE those registries via SUBSCRIPTIONS** — i.e. via
   the **conferred-rights** path (8), tagged subscriptions + policy, not via a common parent.
 
@@ -1607,19 +1607,29 @@ wrangler (event sits on the schedule and never runs).
 
 ## Engine environment variables (doc registry)
 
-> **Purpose:** canonical list for future user-facing docs (`README`, operator guide). Update this
-> table when adding new `process.env` knobs. Also mirrored in `packages/pico-engine/src/cli.ts`
-> (`--help`) and `packages/pico-engine/README.md` (Configuration).
+> **Purpose:** operator configuration. Prefer **`~/.config/pico-engine/config.json`** (or
+> `PICO_ENGINE_CONFIG` / `pico-engine -c`); see `packages/pico-engine/config.example.json`.
+> **User-facing operator guide:** [`packages/pico-engine/public/docs/pico-engine.md`](packages/pico-engine/public/docs/pico-engine.md) (canonical; ships with npm). Confluence/wiki should link or mirror from git — see § Documentation source of truth there. **Precedence:** defaults →
+> environment variables → config file → programmatic (tests). **`PORT` and `PICO_ENGINE_HOME` remain
+> supported;** config file values override them when both are set; env applies when the file omits
+> those keys (Docker/CI).
+> `pico-engine config path` prints the resolved file location. Also mirrored in `cli.ts --help`.
 
 | Variable | Default | Since | Purpose |
 |----------|---------|-------|---------|
 | `PORT` | `3000` | 1.x | HTTP listen port. |
-| `PICO_ENGINE_HOME` | `~/.pico-engine/` | 1.x | Database, logs, ruleset cache directory. |
+| `PICO_ENGINE_CONFIG` | `~/.config/pico-engine/config.json` | 1.8 | Operator settings file (port, baseUrl, security flags, optional `home`). Not wiped when you delete data dir. **One file per engine process** — duplicate `config.instances.example/` or mount `docker/config/*.json` per container. CLI: `pico-engine -c /path/to/config.json`. |
+| `PICO_ENGINE_HOME` | `~/.pico-engine/` (or config `home`) | 1.x | **Data only:** database, ruleset cache, default log file. Safe to delete for a fresh mesh; keep config elsewhere. |
 | `PICO_ENGINE_BASE_URL` | `http://localhost:$PORT` | 1.x | Public URL prefix (WebAuthn RP origin, did:webvh, links). |
 | `PICO_ENGINE_ALLOW_SELF_SIGNUP` | off (`false`) | Phase 1 | `"true"` / `"1"` = open registration after bootstrap; default invite-only. |
 | `PICO_ENGINE_ALLOW_LOCALHOST_C` | on (any value except `"0"`) | 3b.0 (2026-07-12) | Set to `"0"` to require passkey session on **`/c/*`** even from localhost. Default allows localhost without session so KRL `ctx:event` / `event` loops that POST to `host/c/…` keep working. Tests set `"0"` to simulate external callers. **Security note:** with default, any local process can hit `/c/*` without login; tighter internal token TBD. |
+| `PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER` | off (unset) | 1.8 | Set to **`"1"`** to require OAuth bearer on **`/sky/*`** for any channel whose policy includes unrestricted event or query allow (`*.*`). Default **off** so legacy open `/sky/query/{eci}/…` on wide channels keeps working; turn on for hardened production. Independent of mesh OAuth ruleset lock. |
+
+| `PICO_ENGINE_AUTO_CREATE_ROOT` | off (unset) | 1.8 | Set to **`"1"`** for integration Docker harnesses (e.g. **manifold-api** `t/`) to boot with one root pico without passkey registration. Production engines should leave unset. |
 
 **Not operator-facing:** `NODE_ENV=test` affects log formatting in tests only.
+
+**Multiple engines (same host):** give each process its own config JSON with distinct **`home`**, **`port`**, and **`baseUrl`** (and matching **`webauthn.origin`**). Examples: `packages/pico-engine/config.instances.example/engine-{a,b}.json`; run `pico-engine -c ~/.config/pico-engine/engine-a.json` in one terminal and `-c …/engine-b.json` on another. MCP: separate `mcpServers` entries, each with its own `PICO_ENGINE_CONFIG`. Docker: one mounted config per service (`docker-compose.cross-engine.yml` → `docker/config/engine-a.json` / `engine-b.json`); data volume per service stays separate even when both use `home: /var/pico-image` inside the container.
 
 **Testing / demo `PICO_ENGINE_HOME`:** always under **`/tmp`** — e.g. `/tmp/pico-engine-a` and `/tmp/pico-engine-b` for manual cross-engine demos, `/tmp/pico-engine/{cuid}` for automated tests (`packages/pico-engine/test/helpers/tmpHome.ts`). Do not use `~/.pico-engine` for tests or throwaway demos.
 
@@ -1646,7 +1656,7 @@ wrangler (event sits on the schedule and never runs).
 
 **Epic 9 (`npm run test:epic9`):** legacy ECI sub, family picoQuery, public intro, SCID tamper, DIDComm pack/unpack, layer2 E2E, OAuth eligibility. **Target 1.7:** did:peer:4, export/import + DID Rotation (move). See [Release plan](#release-plan-post-164).
 
-**Subscriptions UI:** `Subscriptions.tsx` — layer2 create, `myDid`/`publicIntro`, off-engine forest sink, cancel outbound, copy myDid. Rebuild UI after changes: `cd packages/pico-engine-ui && npm run build`.
+**Subscriptions UI:** `Subscriptions.tsx` — layer2 create, `myDid`/`publicIntro`, off-engine forest sink, cancel outbound, copy myDid. Rebuild UI after changes: `npm run build` from repo root (includes UI).
 
 ---
 

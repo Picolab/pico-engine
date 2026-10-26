@@ -7,6 +7,11 @@ import {
 } from "./channelEligibility";
 import { OAuthError } from "./errors";
 import { isChannelUnderRoot, meshRequiresOAuth as meshRequiresOAuthForEci } from "./meshOAuth";
+import {
+  channelHasUnrestrictedAllow,
+  isDidcommIngressChannel,
+  wildcardSkyRequireBearerEnabled,
+} from "../channelIdentityPolicy";
 
 const OAUTH_CHANNEL_PREFIX = "oauth-channel";
 const OAUTH_TOKEN_PREFIX = "oauth-token";
@@ -237,11 +242,14 @@ export class OAuthService {
   async skyRequiresBearer(eci: string): Promise<boolean> {
     try {
       const channel = this.lookupChannelReadOnly(eci);
-      if (
-        channel.tags.includes("didcomm") &&
-        channel.tags.includes("ingress")
-      ) {
+      if (isDidcommIngressChannel(channel)) {
         return false;
+      }
+      if (
+        wildcardSkyRequireBearerEnabled() &&
+        channelHasUnrestrictedAllow(channel)
+      ) {
+        return true;
       }
       if (isOAuthEligibleChannel(channel)) {
         return true;

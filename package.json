@@ -15,6 +15,13 @@
     "test": "lerna run test",
     "test:auth": "cd packages/pico-engine && npm run test:auth",
     "build": "lerna run build --stream",
+    "krl-schema": "node tools/krl-schema/cli.js",
+    "check:krl-schema-samples": "node tools/krl-schema/check-samples.js",
+    "krl-check": "node packages/krl-compiler/bin/krl-check",
+    "test:mcp": "cd packages/pico-engine && npm run test:mcp",
+    "test:agent": "cd packages/pico-engine-core && npx ava --serial ./test/picoSchema.ts && cd ../pico-engine && npx ava --serial ./test/ruleOutcomes.ts ./test/installFailureVisibility.ts ./test/mcpDevStdioE2e.ts --timeout=5m",
+    "generate:llms": "node tools/generate-llms-text.js",
+    "test:schema": "cd packages/krl-parser && npx ava test/docComment.ts && cd ../pico-engine-core && npx ava --serial ./test/picoSchema.ts && cd ../pico-engine && npx ava --serial ./test/uiTestingSchema.ts ./test/uiTestingHistorySaved.ts && cd ../.. && node tools/krl-schema/check-samples.js",
     "link-framework": "cd ../pico-framework && npm run build && rm -rf ../pico-engine/packages/krl-stdlib/node_modules/pico-framework ../pico-engine/packages/pico-engine-core/node_modules/pico-framework ../pico-engine/packages/pico-engine/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/krl-stdlib/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/pico-engine-core/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/pico-engine/node_modules/pico-framework && cd ../pico-engine && npm run build"
   },
   "devDependencies": {

@@ -1,0 +1,14 @@
+{
+  "home": "~/.pico-engine",
+  "port": 3000,
+  "baseUrl": "http://localhost:3000",
+  "allowSelfSignup": false,
+  "allowLocalhostChannelBypass": true,
+  "wildcardSkyRequireBearer": false,
+  "logToStdout": false,
+  "webauthn": {
+    "rpId": "localhost",
+    "origin": "http://localhost:3000",
+    "rpName": "Pico Engine"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "home": "~/.pico-engine-a",
+  "port": 3001,
+  "baseUrl": "http://localhost:3001",
+  "webauthn": {
+    "rpId": "localhost",
+    "origin": "http://localhost:3001",
+    "rpName": "Pico Engine A"
+  }
+}

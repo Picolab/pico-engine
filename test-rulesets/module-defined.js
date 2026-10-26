@@ -108,6 +108,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("store_memo", $fired);
         await $ctx.rsCtx.putEnt("memo", await $stdlib["+"]($ctx, [
           await $stdlib["+"]($ctx, [
             await $stdlib["+"]($ctx, [
@@ -125,6 +126,24 @@ module.exports = {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "privateFn": privateFn2,
+      "getName": getName2,
+      "getInfo": getInfo2,
+      "getInfoAction": getInfoAction2,
+      "sayHello": sayHello2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.module-defined {\n    meta {\n        provides getInfo, getName, getInfoAction\n        shares getInfo\n        configure using\n            configured_name = \"Bob\"\n    }\n    global {\n        privateFn = function(){\n            \"privateFn = name: \" + configured_name + \" memo: \" + ent:memo;\n        }\n        getName = function(){\n            configured_name;\n        }\n        getInfo = function(){\n            {\n                \"name\": getName(),\n                \"memo\": ent:memo,\n                \"privateFn\": privateFn()\n            };\n        }\n        getInfoAction = defaction(){\n\n            send_directive(\"getInfoAction\", getInfo());\n\n            return {\"name\": getInfo()[\"name\"]};\n        }\n        sayHello = function(name){\n            <<hello #{name}.>>;\n        }\n    }\n    rule store_memo {\n        select when module_defined store_memo memo re#^(.*)$# setting(text)\n\n        send_directive(\"store_memo\", {\n            \"name\": configured_name,\n            \"memo_to_store\": text\n        });\n\n        always {\n            ent:memo := \"[\\\"\" + text + \"\\\" by \" + configured_name + \"]\"\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -133,7 +152,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getInfo": async function (query, qid) {
@@ -146,13 +168,22 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
       },
       "provides": {
         "getInfo": getInfo2,
         "getName": getName2,
         "getInfoAction": getInfoAction2
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

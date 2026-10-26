@@ -1,0 +1,11 @@
+{
+  "name": "krl-schema",
+  "private": true,
+  "description": "CLI: ruleset discovery schema JSON from a .krl file",
+  "bin": {
+    "krl-schema": "./cli.js"
+  },
+  "dependencies": {
+    "minimist": "^1.2.5"
+  }
+}

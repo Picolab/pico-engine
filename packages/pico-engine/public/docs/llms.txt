@@ -1,0 +1,37 @@
+# Pico Engine docs (llms.txt)
+
+Machine-readable index for agents working with picos and KRL.
+
+## Start here
+
+- Local dev: `npm install -g pico-engine` then `pico-engine` (or repo `npm start`)
+- Agent loop: repo `CLAUDE.md` + `pico-engine mcp --stdio` (see packages/pico-engine/README.md)
+- Validate KRL: `krl-check` / `npm run krl-check`
+
+## Docs
+
+- Pico overview: pico-overview.md
+- Pico engine operator guide: pico-engine.md
+- Bundled rulesets: rulesets/README.md
+- KRL manual: krl/README.md
+- Contributing: contributing.md
+
+## Bundled ruleset API (generated from KRL)
+
+- io.picolabs.wrangler: rulesets/io.picolabs.wrangler.md
+- io.picolabs.pds: rulesets/io.picolabs.pds.md
+- io.picolabs.subscription: rulesets/io.picolabs.subscription.md
+- io.picolabs.pico-engine-ui: rulesets/io.picolabs.pico-engine-ui.md
+- io.picolabs.oauth: rulesets/io.picolabs.oauth.md
+- io.picolabs.portable_subtree: rulesets/io.picolabs.portable_subtree.md
+
+## Manifold (mesh framework — separate repo)
+
+Application layer on wrangler (owner, thing, community). Not shipped inside pico-engine.
+- Index: https://github.com/Picolab/manifold-api/blob/main/docs/llms.txt
+- Generated ruleset APIs: https://github.com/Picolab/manifold-api/tree/main/docs/rulesets
+
+
+## OpenAPI
+
+- Sky and channel HTTP: public/docs/openapi.yaml

@@ -13,7 +13,8 @@ module.exports = function (input, options) {
   var ast = src ? parser(src, options.parser_options) : input
 
   var compiled = compile(ast, {
-    toLoc: toLoc
+    toLoc: toLoc,
+    sourceKrl: src
   })
 
   var out = escodegen.generate({
@@ -35,7 +36,8 @@ module.exports = function (input, options) {
   var r = {
     code: out.code,
     rid: compiled.rid,
-    warnings: compiled.warnings
+    warnings: compiled.warnings,
+    rulesetSchema: compiled.rulesetSchema
   }
 
   if (options.inline_source_map) {
@@ -45,3 +47,8 @@ module.exports = function (input, options) {
   }
   return r
 }
+
+module.exports.schemaFromSource = require('./schemaFromSource')
+module.exports.check = require('./check')
+module.exports.rulesetCompileGeneration = require('./rulesetCompileGeneration')
+module.exports.compileEvalExpression = require('./compileEvalExpression')

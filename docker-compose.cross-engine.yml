@@ -2,14 +2,14 @@
 #
 # Browse the UI at http://localhost:3001 and http://localhost:3002.
 #
-# PICO_ENGINE_BASE_URL uses host.docker.internal so containers can fetch each
-# other's did:webvh logs. Passkeys use PICO_ENGINE_RP_ID / PICO_ENGINE_ORIGIN
-# (localhost) because WebAuthn RP ID must match the browser origin.
+# Per-service config: docker/config/engine-a.json and engine-b.json (mounted read-only).
+# baseUrl uses host.docker.internal so containers can fetch each other's did:webvh logs;
+# webauthn.origin uses localhost:3001/3002 because the browser hits mapped host ports.
 #
 # Build image locally (once):
 #   docker build -f Dockerfile.local \
 #     --build-context pico-framework=../pico-framework \
-#     -t picolabs/pico-engine:1.7.0 .
+#     -t picolabs/pico-engine:1.8.0 .
 #
 # Or via compose:
 #   docker compose -f docker-compose.cross-engine.yml build
@@ -42,17 +42,15 @@ services:
       dockerfile: Dockerfile.local
       additional_contexts:
         pico-framework: ../pico-framework
-    image: picolabs/pico-engine:1.7.0
+    image: picolabs/pico-engine:1.8.0
     ports:
       - "3001:3000"
     volumes:
       - ./docker/pico-image-a:/var/pico-image
+      - ./docker/config/engine-a.json:/etc/pico-engine/config.json:ro
       - ./demos:/var/pico-demos:ro
     environment:
-      PICO_ENGINE_BASE_URL: http://host.docker.internal:3001
-      PICO_ENGINE_RP_ID: localhost
-      PICO_ENGINE_ORIGIN: http://localhost:3001
-      PICO_ENGINE_ALLOW_LOCALHOST_C: "1"
+      PICO_ENGINE_CONFIG: /etc/pico-engine/config.json
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
@@ -63,17 +61,15 @@ services:
       dockerfile: Dockerfile.local
       additional_contexts:
         pico-framework: ../pico-framework
-    image: picolabs/pico-engine:1.7.0
+    image: picolabs/pico-engine:1.8.0
     ports:
       - "3002:3000"
     volumes:
       - ./docker/pico-image-b:/var/pico-image
+      - ./docker/config/engine-b.json:/etc/pico-engine/config.json:ro
       - ./demos:/var/pico-demos:ro
     environment:
-      PICO_ENGINE_BASE_URL: http://host.docker.internal:3002
-      PICO_ENGINE_RP_ID: localhost
-      PICO_ENGINE_ORIGIN: http://localhost:3002
-      PICO_ENGINE_ALLOW_LOCALHOST_C: "1"
+      PICO_ENGINE_CONFIG: /etc/pico-engine/config.json
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

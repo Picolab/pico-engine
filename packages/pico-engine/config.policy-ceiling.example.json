@@ -1,0 +1,27 @@
+{
+  "home": "~/.pico-engine",
+  "port": 3000,
+  "baseUrl": "http://localhost:3000",
+  "wildcardSkyRequireBearer": true,
+  "defaultRootPolicyCeiling": {
+    "eventPolicy": {
+      "allow": [
+        { "domain": "wrangler", "name": "*" },
+        { "domain": "engine_ui", "name": "*" },
+        { "domain": "engine", "name": "*" }
+      ],
+      "deny": []
+    },
+    "queryPolicy": {
+      "allow": [{ "rid": "*", "name": "*" }],
+      "deny": []
+    }
+  },
+  "globalEventDeny": [{ "domain": "engine", "name": "secret_ping" }],
+  "globalQueryDeny": [],
+  "webauthn": {
+    "rpId": "localhost",
+    "origin": "http://localhost:3000",
+    "rpName": "Pico Engine"
+  }
+}

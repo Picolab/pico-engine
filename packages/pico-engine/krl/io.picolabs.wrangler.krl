@@ -1,7 +1,6 @@
-/* Rules with a public facing point of entry are camelCase, internal rules are snake_case
-   For skyQuery and parent-child trees: 
-    wrangler is built so that the parent can skyQuery its children for info at any time, 
-    but children only get information from their direct parent through event-passing to prevent race conditions 
+/*
+   Rules with a public facing point of entry are camelCase, internal rules are snake_case
+   For skyQuery and parent-child trees: wrangler is built so that the parent can skyQuery its children for info at any time, but children only get information from their direct parent through event-passing to prevent race conditions 
 */
 ruleset io.picolabs.wrangler {
   meta {
@@ -12,18 +11,18 @@ ruleset io.picolabs.wrangler {
       This Ruleset/Module provides a developer interface to the pico (persistent compute object).
       When a pico is created this ruleset will be installed to provide essential services.
     >>
-    author "BYU Pico Lab"
+    author "Pico Labs"
 
     provides skyQuery, picoQuery,
     channels, createChannel, updateChannel, deleteChannel, //channel
     discoveryChannel, filterBindingsForCaller, //discovery
-    rulesetConfig, rulesetMeta, installedRIDs, //ruleset
+    rulesetConfig, rulesetMeta, installedRIDs, picoSchema, rulesetSchema, channelSchema, schemaBindings, rulesetWarnings, //ruleset / schema
     children, parent_eci, name, myself, myDid, publicIntro, establishSubscription, establishRelationship, callerDid //pico
 
     shares skyQuery, picoQuery,
     channels, //channel
     discoveryChannel, filterBindingsForCaller, //discovery
-    rulesetConfig, rulesetMeta,installedRIDs, //ruleset
+    rulesetConfig, rulesetMeta, installedRIDs, picoSchema, rulesetSchema, channelSchema, schemaBindings, rulesetWarnings, //ruleset / schema
     children, parent_eci, name, myself, myDid, publicIntro, establishSubscription, establishRelationship, callerDid, id //pico
   }
   global {
@@ -122,6 +121,7 @@ ruleset io.picolabs.wrangler {
        (status == 200 && not is_bad_response) => response_content | error.klog("error: ")
      }
      
+     // Deprecated: use picoQuery. Shared for old rulesets; not discoverable.
      skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/"", _host must include protocol(http:// or https://)
        //.../sky/query/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
        thisPico = ctx:channels.any(function(c){c{"id"}==eci})
@@ -143,6 +143,23 @@ ruleset io.picolabs.wrangler {
        response
      }
      
+     /**
+      * Query a shared function on another pico. Picos on this engine are queried
+      * directly (which also works over parent/child family channels); a DID is
+      * queried over DIDComm; picos on another engine (_host) over HTTP. Querying
+      * one of this pico's own channels is refused. On failure, returns a map with
+      * error, httpStatus, and picoQueryError.
+      * @param eci String "channel on the other pico, or its DID"
+      * @param mod String "ruleset id on the other pico"
+      * @param func String "shared function to call"
+      * @param params Map "arguments for the function"
+      * @param _host String "the other pico's engine URL, if on a different engine"
+      * @param _path String "path prefix on that engine (default /sky/cloud/)"
+      * @param _root_url String "full query URL prefix, instead of _host and _path"
+      * @returns Any "the function's result, or an error map"
+      * @example "child's name" { "eci": "<child family eci>", "mod": "io.picolabs.wrangler", "func": "name" }
+      * @example "another engine" { "eci": "<eci>", "mod": "<rid>", "func": "<function>", "params": {}, "_host": "https://other.example" }
+      */
      picoQuery = function(eci, mod, func, params,_host,_path,_root_url) { 
        isDid = eci.match(re#^did:#)
        thisPico = ctx:channels.any(function(c){c{"id"}==eci})
@@ -168,22 +185,95 @@ ruleset io.picolabs.wrangler {
       ctx:rulesets.filter(function(rs){rs{"rid"}==rid}).head()
     }
 
+    /**
+     * The configuration an installed ruleset was installed with, or null if it
+     * isn't installed.
+     * @param rid String "ruleset id"
+     * @returns Map
+     */
     rulesetConfig = function(rid) {
       rulesetByRID(rid){"config"}
     }
 
+    /**
+     * The meta block of an installed ruleset (name, description, shares, provides,
+     * …), or null if it isn't installed.
+     * @param rid String "ruleset id"
+     * @returns Map
+     */
     rulesetMeta = function(rid) {
       rulesetByRID(rid){["meta","krlMeta"]}
     }
 
+    /**
+     * Ids of the rulesets installed on this pico.
+     * @returns Array
+     */
     installedRIDs = function() {
       ctx:rulesets.map(function(rs){rs{"rid"}})
+    }
+
+    /**
+     * Everything discoverable on this pico: the annotated operations and queries of
+     * all installed rulesets, merged and grouped by event, with any attr type
+     * conflicts between rulesets. For discovery and generated tools (MCP).
+     * @returns Map "{ version, rulesets, events, queries, conflicts }"
+     */
+    picoSchema = function() {
+      ctx:picoSchema()
+    }
+
+    /**
+     * The discovery schema of one installed ruleset: its annotated operations (with
+     * their select, condition, prechecks, emits, and the other rules on the same
+     * event) and queries. What the Testing tab shows. Null if not installed.
+     * @param rid String "ruleset id"
+     * @returns Map
+     * @example "one ruleset" { "rid": "io.picolabs.pds" }
+     * @example "all installed" {}
+     */
+    rulesetSchema = function(rid = null) {
+      ctx:rulesetSchema(rid)
+    }
+
+    /**
+     * Compiler/schema warnings for an installed ruleset (from last flush/load).
+     * @param rid String "ruleset id"
+     * @returns Array
+     */
+    rulesetWarnings = function(rid) {
+      ctx:rulesetWarnings(rid)
+    }
+
+    /**
+     * The part of picoSchema() a channel allows: what a caller holding this ECI can
+     * discover and use. Use the caller's own ECI for "what can I do here?", or any
+     * channel to check what it would expose.
+     * @param eci String "channel on this pico"
+     * @returns Map
+     */
+    channelSchema = function(eci) {
+      ctx:channelSchema(eci)
+    }
+
+    // Builds the discovery bindings() shape from a ruleset schema, for rulesets that
+    // implement discovery capabilities. A KRL helper; not discoverable.
+    schemaBindings = function(rid) {
+      ctx:schemaBindings(rid)
     }
 
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
 
+    /**
+     * This pico's channels, with their tags and event and query policies. With tags,
+     * only channels whose tags are exactly those (order and case don't matter).
+     * @param tags String "comma-separated tags, or an array of tags"
+     * @returns Array
+     * @example "all" {}
+     * @example "by tags" { "tags": "discovery" }
+     */
     channels = function(tags){
       all_channels = ctx:channels
       str_tags = tags.typeof()=="Array" => tags.join(",") | tags
@@ -233,6 +323,11 @@ ruleset io.picolabs.wrangler {
       }
     }
 
+    /**
+     * This pico's discovery channel, which every pico has: integrators query it to
+     * learn what the pico can do.
+     * @returns Map "the channel, including its id"
+     */
     discoveryChannel = function() {
       channels("discovery").head()
     }
@@ -309,6 +404,8 @@ ruleset io.picolabs.wrangler {
       }
     }
 
+    // Filters a bindings() map down to what caller_eci's channel policy allows. A KRL
+    // helper for discovery rulesets; not discoverable.
     filterBindingsForCaller = function(bindings, caller_eci, rid) {
       caller_eci.isnull() => bindings |
       filterBindingsBody(bindings.defaultsTo({}), caller_eci, rid)
@@ -318,6 +415,10 @@ ruleset io.picolabs.wrangler {
 // ***                                      Picos                                           ***
 // ********************************************************************************************
 
+    /**
+     * This pico's wrangler name, id, and the ECI it was created with.
+     * @returns Map "{ name, id, eci }"
+     */
     myself = function(){
       {
         "name":ent:name,
@@ -326,12 +427,21 @@ ruleset io.picolabs.wrangler {
       }
     }
 
-    /** Portable did:webvh for this pico (Layer 2). */
+    /**
+     * This pico's portable did:webvh, the identity other picos and meshes use for
+     * Layer 2 relationships. It survives moving the pico to another engine.
+     * @returns String
+     */
     myDid = function() {
       dido:myDid()
     }
 
-    /** True when this pico accepts unsolicited intro DIDComm on its did:webvh. */
+    /**
+     * True when this pico accepts unsolicited introduction messages (Layer 2
+     * relationship requests) on its did:webvh. Change it with
+     * wrangler:set_public_intro.
+     * @returns Boolean
+     */
     publicIntro = function() {
       dido:publicIntro()
     }
@@ -340,19 +450,25 @@ ruleset io.picolabs.wrangler {
       dido:setPublicIntro(enabled)
     }
 
-    /** Layer 2: create did:peer + internal Rx for a relationship bus map. */
+    // Layer 2: create did:peer + internal Rx for a relationship bus map.
+    // Called by io.picolabs.subscription; not discoverable.
     establishSubscription = function(bus) {
       dido:establishSubscription(bus)
     }
 
-    /** Alias for establishSubscription (preferred name in new rulesets). */
+    // Alias for establishSubscription (preferred name in new rulesets).
     establishRelationship = establishSubscription
 
-    /** did:webvh of the pico that sent the current event (layer2 cross-pico delivery). */
+    // did:webvh of the pico that sent the current event (layer2 cross-pico delivery).
+    // Only meaningful inside a rule handling that event; not discoverable.
     callerDid = function() {
       event:attr("callerDid")
     }
     
+    /**
+     * This pico's children, each with its family-channel ECI, name, and parent ECI.
+     * @returns Array "[ { eci, name, parent_eci } ]"
+     */
     children = function() {
       convert = function(eci){
         pico = {}
@@ -366,21 +482,34 @@ ruleset io.picolabs.wrangler {
       wrangler_children
     }
     
+    /**
+     * The family-channel ECI of this pico's parent; null for a root pico.
+     * @returns String
+     */
     parent_eci = function() {
       ent:parent_eci
     }
   
+    /**
+     * This pico's wrangler name.
+     * @returns String
+     */
     name = function() {
       ent:name
     }
   
+    /**
+     * This pico's id.
+     * @returns String
+     */
     id = function() {
       meta:picoId
     }
 
-    /** OS bootstrap for a new child (shared by events and import queries). */
+    // OS bootstrap for a new child (shared by events and import queries).
     bootstrapNewChild = defaction(name, passthroughAttrs) {
       attrs = passthroughAttrs.defaultsTo({})
+      policyCeiling = attrs{"policyCeiling"}
       engine_ui_rid = "io.picolabs.pico-engine-ui"
       engine_ui_ruleset = function(){
         the_ruleset = ctx:rulesets
@@ -395,10 +524,13 @@ ruleset io.picolabs.wrangler {
         .map(function(c){c["id"]})
         .head()
       every {
-        ctx:newPico(rulesets=[
-          engine_ui_ruleset(),
-          { "url": ctx:rid_url, "config": {} }
-        ]) setting(newEci)
+        ctx:newPico(
+          rulesets=[
+            engine_ui_ruleset(),
+            { "url": ctx:rid_url, "config": {} }
+          ],
+          policyCeiling=policyCeiling
+        ) setting(newEci)
         ctx:eventQuery(
           eci=newEci,
           domain="engine_ui",
@@ -447,6 +579,15 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
 
   
+  /**
+   * Install a ruleset that lives next to another one: the URL is built by
+   * replacing the last part of absoluteURL with <rid>.krl (pass meta:rulesetURI to
+   * install a sibling of the calling ruleset). Continues as an install by url.
+   * @attr absoluteURL String "URL of a ruleset in the same directory"
+   * @attr rid String "id of the ruleset to install"
+   * @attr config Map optional "configuration for the installed ruleset"
+   * @example "sibling of this ruleset" { "absoluteURL": "<meta:rulesetURI>", "rid": "<rid>" }
+   */
   rule install_ruleset_relatively {
     select when wrangler install_ruleset_request
       absoluteURL re#(.+)#   // required
@@ -464,14 +605,28 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+  /**
+   * Install (or reinstall) a ruleset from a URL on this pico. The URL is fetched
+   * and compiled first, so this also picks up a new version. Raises
+   * wrangler:ruleset_installed with the installed rid.
+   * @attr url String "URL of the .krl file"
+   * @attr config Map optional "configuration for the installed ruleset"
+   * @example "from a URL" { "url": "https://example.com/krl/<rid>.krl" }
+   * @example "with config" { "url": "https://example.com/krl/<rid>.krl", "config": { "<key>": "<value>" } }
+   */
   rule install_ruleset_absolutely {
     select when wrangler install_ruleset_request
       url re#(.+)#           // required
       setting(url)
     pre {
       config = event:attr("config") || {}
+      validation = ctx:validate(url)
+      ok = validation{"ok"}
+      validate_errors = validation{"errors"}
+      validate_warnings = validation{"warnings"}
+      validate_rid = validation{"rid"}
     }
-    every {
+    if ok then every {
       ctx:flush(url=url)
       ctx:install(url=url, config=config) setting(rid)
     }
@@ -479,8 +634,18 @@ ruleset io.picolabs.wrangler {
       raise wrangler event "ruleset_installed" attributes
         event:attrs.put({"rids": [rid]})
     }
+    else {
+      raise wrangler event "ruleset_install_failed" attributes
+        {"url": url, "rid": validate_rid, "errors": validate_errors, "warnings": validate_warnings}
+    }
   }
 
+  /**
+   * Uninstall a ruleset from this pico. Refused if another installed ruleset uses
+   * it as a module. Raises wrangler:ruleset_uninstalled.
+   * @attr rid String "ruleset id"
+   * @example "by rid" { "rid": "<rid>" }
+   */
   rule uninstall_one_ruleset {
     select when wrangler uninstall_ruleset_request
       rid re#(.+)# setting(rid)
@@ -490,6 +655,10 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+  /**
+   * Re-fetch and recompile every ruleset installed on this pico, so each picks up
+   * its latest source. Raises wrangler:rulesets_flushed when done.
+   */
   rule flush_all_rulesets {
     select when wrangler rulesets_need_flushing
     foreach ctx:rulesets setting(rs)
@@ -503,6 +672,14 @@ ruleset io.picolabs.wrangler {
 // ***                                      Channels                                        ***
 // ********************************************************************************************
 
+  /**
+   * Create a channel on this pico. Raises wrangler:channel_created with the new
+   * channel (including its id).
+   * @attr tags Array "tags for the channel, e.g. [\"myapp\", \"webhook\"]"
+   * @attr eventPolicy Map "{ allow: [ { domain, name } ], deny: [ … ] }"
+   * @attr queryPolicy Map "{ allow: [ { rid, name } ], deny: [ … ] }"
+   * @example "webhook" { "tags": ["<app>", "webhook"], "eventPolicy": { "allow": [ { "domain": "<app>", "name": "*" } ], "deny": [] }, "queryPolicy": { "allow": [], "deny": [] } }
+   */
   rule createChannel {
     select when wrangler new_channel_request
     pre {
@@ -518,6 +695,10 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+  /**
+   * Delete a channel on this pico. Raises wrangler:channel_deleted.
+   * @attr eci String "the channel to delete"
+   */
   rule deleteChannel {
     select when wrangler channel_deletion_request
       eci re#^(.+)$# // required
@@ -528,6 +709,14 @@ ruleset io.picolabs.wrangler {
     }
   }
 
+  /**
+   * Replace a channel's tags and policies. Raises wrangler:channel_updated with the
+   * updated channel.
+   * @attr eci String "the channel to update"
+   * @attr tags Array "new tags"
+   * @attr eventPolicy Map "new event policy"
+   * @attr queryPolicy Map "new query policy"
+   */
   rule updateChannel {
     select when wrangler channel_update_request
     pre {
@@ -549,6 +738,18 @@ ruleset io.picolabs.wrangler {
 // ********************************************************************************************
   //-------------------- Picos initializing  ----------------------
 
+  /**
+   * Create a child pico with wrangler, PDS, and relationships installed. Raises
+   * wrangler:new_child_created here with the child's family-channel eci and uiEci.
+   * Other attrs are passed to the child, and come back to this pico in
+   * wrangler:child_initialized once the child is set up (Manifold uses this, e.g.
+   * event_name, to tell its creations apart).
+   * @attr name String "name for the child"
+   * @attr backgroundColor String optional "developer UI color, e.g. #87cefa"
+   * @attr policyCeiling Map optional "max channel policy for the child pico; must not exceed parent ceiling"
+   * @example "named" { "name": "<name>" }
+   * @example "with color" { "name": "<name>", "backgroundColor": "#ffb347" }
+   */
   rule createChild {
     select when wrangler new_child_request
       name re#.+#             // required
@@ -617,6 +818,10 @@ ruleset io.picolabs.wrangler {
     }
   }
     
+  /**
+   * Change this pico's wrangler name (what name() and myself() return).
+   * @attr name String "new name"
+   */
   rule take_note_of_name_change {
     select when wrangler name_changed
       name re#(.+)# // required
@@ -627,6 +832,11 @@ ruleset io.picolabs.wrangler {
   }
   
   //-------------------- PARENT PERSPECTIVE  ----------------------
+  /**
+   * Delete a child pico and all of its descendants. Raises wrangler:child_deleted.
+   * @attr eci String "the child's family-channel ECI (from children())"
+   * @example "by eci" { "eci": "<child family eci>" }
+   */
   rule deleteOneChild {
     select when wrangler child_deletion_request
       eci re#^(.+)$# setting(eci)
@@ -686,6 +896,20 @@ ruleset io.picolabs.wrangler {
       createChannel(["discovery"], discoveryEventPolicy(), discoveryQueryPolicy())
   }
 
+  rule schema_updated_on_ruleset_set {
+    select when engine ruleset_set_changed
+    always {
+      raise wrangler event "schema_updated" attributes event:attrs
+    }
+  }
+
+  /**
+   * Turn on or off accepting unsolicited introduction messages (Layer 2
+   * relationship requests) on this pico's did:webvh. See publicIntro().
+   * @attr enabled Boolean "true to accept introductions"
+   * @example "accept" { "enabled": true }
+   * @example "refuse" { "enabled": false }
+   */
   rule wrangler_set_public_intro {
     select when wrangler set_public_intro
     setPublicIntro(event:attr("enabled"))

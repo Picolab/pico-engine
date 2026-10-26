@@ -4,21 +4,21 @@ ruleset io.picolabs.pds {
     description <<
       Pico Data Services (PDS), a common data base structure for all rulesets to use.
     >>
-    author "PICOLABS"
+    author "Picolabs"
 
     use module io.picolabs.wrangler alias wrangler
 
     logging on
 
     provides items, get_keys,
-     profile,
-     settings, get_config_value, get_setting_data_value, config_value, settings_names,
-     getChannelEci
+      profile,
+      settings, get_config_value, get_setting_data_value, config_value, settings_names,
+      getChannelEci
 
     shares items, get_keys,
-     profile,
-     settings, get_config_value, get_setting_data_value, config_value, settings_names,
-     getChannelEci
+      profile,
+      settings, get_config_value, get_setting_data_value, config_value, settings_names,
+      getChannelEci
 
   }
 
@@ -61,7 +61,17 @@ ruleset io.picolabs.pds {
     // Default avatar: embedded SVG (no external URL dependency)
     defaultUnknownPhoto = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWNlZmYxIi8+PGNpcmNsZSBjeD0iMzIiIGN5PSIyMiIgcj0iMTEiIGZpbGw9IiM3ODkwOWMiLz48ZWxsaXBzZSBjeD0iMzIiIGN5PSI1NCIgcng9IjE4IiByeT0iMTQiIGZpbGw9IiM3ODkwOWMiLz48L3N2Zz4="
 
-    items = function (namespace, key){
+    /**
+     * Read general (namespaced) data. With no namespace, returns all of it; with a
+     * namespace, that namespace's map; with both, one value. status is "failed"
+     * when no namespace is given (the data is still returned).
+     * @param namespace String "namespace to read; omit for everything"
+     * @param key String "key within the namespace; omit for the whole namespace"
+     * @returns Map "{ status, general }"
+     * @example "one namespace" { "namespace": "<app>" }
+     * @example "one value" { "namespace": "<app>", "key": "<key>" }
+     */
+    items = function (namespace = null, key = null){
       item = function(namespace, keyvalue) {
         ent:general{[namespace, keyvalue]}
       };
@@ -77,11 +87,24 @@ ruleset io.picolabs.pds {
       };
     }
 
+    /**
+     * Keys stored in one namespace of the general data.
+     * @param namespace String
+     * @returns Array
+     */
     get_keys = function(namespace) {
       ent:general{namespace}.keys()
     }
 
-    profile = function(key){
+    /**
+     * This pico's profile: name, description, photo, email, phone, and the
+     * _created / _modified timestamps. With a key, just that field.
+     * @param key String "profile field to read; omit for the whole profile"
+     * @returns Map "{ status, profile }"
+     * @example "whole profile" {}
+     * @example "name only" { "key": "name" }
+     */
+    profile = function(key = null){
         get_profile = function(k) {
           ent:profile{k};
         };
@@ -95,6 +118,10 @@ ruleset io.picolabs.pds {
         };
     };
 
+    /**
+     * Rulesets that have stored settings here, with their display names.
+     * @returns Array "[ { setRID, setName } ]"
+     */
     settings_names = function() {
       ent:settings.keys().map(function(setRID) {
         setName = ent:settings{[setRID, "name"]};
@@ -105,7 +132,18 @@ ruleset io.picolabs.pds {
       })
     };
 
-    settings = function(Rid, Key, detail){
+    /**
+     * Read per-ruleset settings. No arguments: all settings. Rid: that ruleset's
+     * settings record ({ name, rid, data, schema }). Rid and Key: one field of the
+     * record. Rid, Key, and detail: the value of data key `detail` (Key is ignored).
+     * @param Rid String "ruleset id whose settings to read"
+     * @param Key String "field of the settings record (name, rid, data, schema)"
+     * @param detail String "key within the record's data map"
+     * @returns Map "{ status, settings }"
+     * @example "one ruleset" { "Rid": "<rid>" }
+     * @example "one data value" { "Rid": "<rid>", "Key": "data", "detail": "<key>" }
+     */
+    settings = function(Rid = null, Key = null, detail = null){
       get_setting_all = function() {
         ent:settings
       };
@@ -142,19 +180,43 @@ ruleset io.picolabs.pds {
       ent:settings{[setRID, "data", setKey]}
     };
 
+    /**
+     * One configuration value from a ruleset's settings data.
+     * @param setRID String "ruleset id"
+     * @param setKey String "data key"
+     * @returns Any
+     */
     get_setting_data_value = function(setRID, setKey) {
       setting_data_value(setRID, setKey)
     }
 
+    /**
+     * One configuration value from the calling ruleset's own settings data. Meant
+     * to be used as a module function (use module io.picolabs.pds): the ruleset is
+     * the caller's, from meta:callingRID().
+     * @param setKey String "data key"
+     * @returns Any
+     */
     config_value = function(setKey) {
       setRID = meta:callingRID();
       ent:settings{[setRID, "data", setKey]}
     };
 
+    /**
+     * Same as config_value: a value from the calling ruleset's own settings data,
+     * for use as a module function.
+     * @param setKey String "data key"
+     * @returns Any
+     */
     get_config_value = function(setKey) {
       config_value(setKey)
     }
 
+    /**
+     * The ECI of this pico's pds channel, which allows all pds events and queries.
+     * Created when this ruleset is installed.
+     * @returns String
+     */
     getChannelEci = function() {
       ent:pds_channel_eci
     }
@@ -170,6 +232,14 @@ ruleset io.picolabs.pds {
 
 //------------------------------- ent: general
 
+  /**
+   * Store one value in the general data under namespace and key, replacing any
+   * existing value. Raises pds:data_added.
+   * @attr namespace String "namespace, e.g. your app's name"
+   * @attr key String
+   * @attr value Any "value to store"
+   * @example "store a value" { "namespace": "<app>", "key": "<key>", "value": "<value>" }
+   */
   rule add_item {
     select when pds new_data_available
     pre {
@@ -185,6 +255,15 @@ ruleset io.picolabs.pds {
     }
   }
 
+  /**
+   * Merge fields into a stored map: each entry of value is written under
+   * namespace / key / field, leaving other fields alone. Raises pds:data_updated
+   * once per field.
+   * @attr namespace String
+   * @attr key String
+   * @attr value Map "fields to set on the stored map"
+   * @example "set fields" { "namespace": "<app>", "key": "<key>", "value": { "<field>": "<value>" } }
+   */
   rule update_item {
     select when pds updated_data_available
         foreach(event:attr("value") || {}) setting(avalue, akey)
@@ -200,6 +279,11 @@ ruleset io.picolabs.pds {
     }
   }
 
+  /**
+   * Delete one key from a namespace of the general data. Raises pds:data_deleted.
+   * @attr namespace String
+   * @attr key String
+   */
   rule remove_item {
     select when pds remove_old_data
     pre{
@@ -214,6 +298,10 @@ ruleset io.picolabs.pds {
     }
   }
 
+  /**
+   * Delete a whole namespace of the general data. Raises pds:namespace_deleted.
+   * @attr namespace String
+   */
   rule remove_namespace {
     select when pds remove_namespace
     pre{
@@ -227,6 +315,13 @@ ruleset io.picolabs.pds {
     }
   }
 
+  /**
+   * Replace an entire namespace of the general data with a map. Raises
+   * pds:new_map_added.
+   * @attr namespace String
+   * @attr mapvalues String "the new namespace contents, as a JSON-encoded map"
+   * @example "replace namespace" { "namespace": "<app>", "mapvalues": "{\"<key>\": \"<value>\"}" }
+   */
   rule itemed_mapped {
     select when pds map_item
     pre{
@@ -241,6 +336,19 @@ ruleset io.picolabs.pds {
     }
   }
 
+  /**
+   * Update this pico's profile. Send only the fields to change; fields not sent
+   * keep their current values. _created is set on the first update and _modified
+   * on every update. Raises pds:profile_updated with _status "success", or
+   * "failure" when no fields were sent.
+   * @attr name String optional "display name"
+   * @attr description String optional
+   * @attr photo String optional "image URL or data: URI"
+   * @attr email String optional
+   * @attr phone String optional
+   * @example "rename" { "name": "<name>" }
+   * @example "contact info" { "email": "<email>", "phone": "<phone>" }
+   */
   rule update_profile {
     select when pds updated_profile
     pre {
@@ -279,6 +387,17 @@ ruleset io.picolabs.pds {
     }
   }
 
+  /**
+   * Create or update a ruleset's settings record, and optionally set one data
+   * value in it. Raises pds:settings_added.
+   * @attr keyed_rid String "ruleset id the settings belong to"
+   * @attr name String "display name for the settings"
+   * @attr schema Array optional "settings schema, stored as given"
+   * @attr data_key String optional "data key to set"
+   * @attr value Any optional "value for data_key"
+   * @example "register settings" { "keyed_rid": "<rid>", "name": "<display name>" }
+   * @example "set one value" { "keyed_rid": "<rid>", "name": "<display name>", "data_key": "<key>", "value": "<value>" }
+   */
   rule settings_added {
     select when pds add_settings
     pre {
@@ -331,6 +450,8 @@ ruleset io.picolabs.pds {
     }
   }
 
+  // Erases all general data, the profile, and all settings with no confirmation.
+  // Deliberately not discoverable.
   rule clearPDS {
     select when pds clear_all_data
     noop()

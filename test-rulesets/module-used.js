@@ -108,6 +108,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("dflt_name", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -127,6 +128,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("conf_name", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -146,6 +148,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("dflt_info", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -165,6 +168,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("conf_info", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -181,6 +185,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("dflt_getInfoAction", $fired);
         await $ctx.rsCtx.putEnt("val", info3);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -198,6 +203,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("conf_getInfoAction", $fired);
         await $ctx.rsCtx.putEnt("val", info3);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -215,6 +221,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("sayHelloWithOperator", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -231,10 +238,27 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("uninstall", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "now": now2,
+      "getEntVal": getEntVal2,
+      "dfltName": dfltName2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.module-used {\n    meta {\n        use module io.picolabs.module-defined\n            alias my_module_dflt\n\n        use module io.picolabs.module-defined\n            alias my_module_conf\n            with\n                configured_name = \"Jim\"\n\n        shares now, getEntVal, dfltName\n    }\n    global {\n        now = function(){\n            time:now();\n        }\n        getEntVal = function(){\n            ent:val;\n        }\n        dfltName = my_module_dflt:getName()\n    }\n    rule dflt_name {\n        select when module_used dflt_name\n\n        send_directive(\"dflt_name\", {\"name\": my_module_dflt:getName()});\n    }\n    rule conf_name {\n        select when module_used conf_name\n\n        send_directive(\"conf_name\", {\"name\": my_module_conf:getName()});\n    }\n    rule dflt_info {\n        select when module_used dflt_info\n\n        send_directive(\"dflt_info\", {\"info\": my_module_dflt:getInfo()});\n    }\n    rule conf_info {\n        select when module_used conf_info\n\n        send_directive(\"conf_info\", {\"info\": my_module_conf:getInfo()});\n    }\n    rule dflt_getInfoAction {\n        select when module_used dflt_getInfoAction\n\n        my_module_dflt:getInfoAction() setting(info);\n\n        always {\n            ent:val := info\n        }\n    }\n    rule conf_getInfoAction {\n        select when module_used conf_getInfoAction\n\n        my_module_conf:getInfoAction() setting(info);\n\n        always {\n            ent:val := info\n        }\n    }\n    rule sayHelloWithOperator {\n        select when module_used sayHelloWithOperator\n\n        send_directive(\"bob\".my_module_dflt:sayHello());\n    }\n    rule uninstall {\n        select when module_used uninstall\n\n        ctx:uninstall(\"io.picolabs.module-defined\");\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -243,7 +267,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "now": async function (query, qid) {
@@ -272,8 +299,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

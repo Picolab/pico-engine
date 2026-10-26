@@ -8,7 +8,16 @@ import * as _ from "lodash";
 export function cleanDirectives(
   responses: any[]
 ): { name: string; options: { [key: string]: any } }[] {
-  return _.compact(_.flattenDeep(responses)).map((a) => {
+  const parts = responses.flatMap((response) => {
+    if (Array.isArray(response)) {
+      return response;
+    }
+    if (response && Array.isArray(response.directives)) {
+      return response.directives;
+    }
+    return [];
+  });
+  return _.compact(parts).map((a) => {
     return a && a.type === "directive"
       ? { name: a.name, options: a.options }
       : a;

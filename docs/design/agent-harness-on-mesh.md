@@ -94,7 +94,7 @@ Move state and invariants out of the context window into actors that hold them. 
 
 ## Rulesets: four tiers
 
-Picos do not all carry the same rulesets. The agent creates a pico for a purpose and installs what that purpose needs, following established patterns: Manifold's per-thing skills from the skills registry, sensor-network's `rids_to_install` by type, Fuse's typed initialization, and Wrangler prototypes.
+Picos do not all carry the same rulesets. The agent creates a pico for a purpose and installs what that purpose needs, following established patterns: Manifold's per-thing install (`io.picolabs.thing` plus a skill ruleset URL), sensor-network's `rids_to_install` by type, Fuse's typed initialization, and Wrangler prototypes.
 
 | Tier | Contents | Fixed? | Author | Installed by |
 |------|----------|--------|--------|--------------|
@@ -105,7 +105,7 @@ Picos do not all carry the same rulesets. The agent creates a pico for a purpose
 
 **Substrate.** The harness kit is the analog of `io.picolabs.thing`: the one ruleset that makes a pico legible to the reasoner. It carries no domain vocabulary, per the engine ← wrangler ← manifold layering rule in `MEMORY.md`.
 
-**Role library.** The Manifold skills registry, generalized from things to any actor the harness spawns. Each entry carries a RID, a version, a `meta.schema`, and MCP tool definitions. Because the registry is a pico, the harness *queries* it when deciding what to install — creation for a purpose is a lookup, not hardcoded knowledge. Refactoring is versioning: rulesets are URLs, picos pin versions, and the Fuse self-healing pattern (compare "should have" to "have," fix the difference) upgrades thousands of picos without a mass update.
+**Role library.** A curated set of **prototype rulesets** (task, watcher, memory, mailbox, …) the harness installs when it spawns actors for a purpose. Each prototype is a normal ruleset URL with **`meta.schema` annotations**; what an agent may invoke on a pico is **`channelSchema(eci)`** (pico schema ∩ channel policy), exposed through the **engine-native MCP** shipped in 1.8 (`query`, `raise_event`, `ruleset_schema`, …) rather than a hand-maintained skill list. The harness learns which URL to install from **docs, repo conventions, or an optional catalog pico** (open question 3) — not from a Manifold bootstrap child. The former **`io.picolabs.manifold.skills_registry`** duplicated that surface; it was **removed from bootstrap** and **archived** in `manifold-api/archive/`. Refactoring stays versioning: rulesets are URLs, picos pin versions, and the Fuse self-healing pattern (compare "should have" to "have," fix the difference) upgrades thousands of picos without a mass update.
 
 **Generated rulesets.** Once the reasoner has settled a decision — "if the crawl-space probe reads below 34°F twice in a row, text me and turn on the heater" — it writes a rule, the compiler validates it, and it installs on that one pico. The reasoner is out of the loop until the rule raises something it can't handle. This is JIT compilation of promises: settled decisions become deterministic actors; only novelty reaches the model. It is the mechanism that empties the context window, and the LLM-capabilities doc's K1–K4 items (draft, patch, explain, test) pointed the other way.
 
@@ -141,7 +141,7 @@ They are complements. A situation starts as skill-guided reasoning, recurs, stab
 
 ## The bridge
 
-The harness reaches the mesh through an **MCP server native to the engine** — a generic version of MCPforEXP's server over wrangler, discovery, and pico schemas that turns any pico's surface into tools at runtime, rather than hand-written wrappers per operation. It is useful on its own, independent of any harness: any MCP client can then work with any pico (see open question 2). The capstone judge's suggestion — generate tool definitions from API specifications — is exactly this, and it makes `wrangler:picoSchema()` the source of truth. The uniform request/response envelope and skill-gating from MCPforEXP carry over directly: a session sees only tools for rulesets installed on the pico it holds a channel to.
+The harness reaches the mesh through an **MCP server native to the engine** (1.8 **dev** and **mesh** modes in `packages/pico-engine/mcp/`) — the generalization of the BYU **MCPforEXP** capstone over wrangler, discovery, and pico schemas, turning any pico's declared surface into tools at runtime instead of hand-written Manifold wrappers. MCPforEXP remains useful for **prompt design and lessons learned** only; it is not the supported operator path. It is useful on its own, independent of any harness: any MCP client can work with any pico (see open question 2). The capstone judge's suggestion — generate tool definitions from API specifications — is exactly this, and it makes `wrangler:picoSchema()` / `channelSchema()` the source of truth. Policy **skill-gating** (only bindings allowed on the channel) matches MCPforEXP's pattern: a session sees only what the ECI's policies permit.
 
 The harness gets its own **root pico** (its actor), provisioned under the owner's passkey and reached by the harness process with OAuth (Authorization Code for the orchestrator; Client Credentials channels for narrowly scoped workers). Task, watcher, and memory picos are its children, created from prototypes.
 
@@ -167,7 +167,7 @@ Each step handles what it can and escalates the rest:
 
 ### Specialization (task type)
 
-A role in the role library declares the model class it needs, the way a Manifold skill declares its tools. Those models run whenever the role needs them, independent of the ladder:
+A role in the role library declares the model class it needs, the way its **`meta.schema`** declares events and queries for MCP. Those models run whenever the role needs them, independent of the ladder:
 
 | Role | Model class | Typical job |
 |------|-------------|-------------|
@@ -208,7 +208,7 @@ Cursor trains its in-house models on its own usage. The mesh has an owned analog
 
 | Prerequisite | Why this design needs it | Where it is designed | Status |
 |--------------|--------------------------|----------------------|--------|
-| **Pico schemas** (`meta.schema`, `wrangler:picoSchema()`, JSON Schema export) | The bridge generates MCP tools from declared surfaces; generated rulesets must declare what they add; the compiler lints them against the schema | [pico-schemas.md](./pico-schemas.md) | Explore / TODO |
+| **Pico schemas** (`meta.schema`, `wrangler:picoSchema()`, `channelSchema`, MCP tool generation) | The bridge generates MCP tools from declared surfaces; generated rulesets must declare what they add; the compiler lints them against the schema | [pico-schemas.md](./pico-schemas.md), [pico-schemas-1.8.md](./pico-schemas-1.8.md) | **Engine 1.8** (merge + queries); JSON Schema export deferred |
 | **Channel policy fix** — deny overrides permit, pico-level policy ceiling, restricted channel creation | An agent holding ECIs makes a wide-open channel fatal; generated rulesets must be unable to mint broader channels | `MEMORY.md` → ROADMAP §4 | MUST FIX, not started |
 | **Relationships, `peer` type, policy presets** | Delegation as introduction; sub-agent and cross-user permissions as typed relationships with preset Rx policy | [pico-relationships.md](./pico-relationships.md) | Rename shipped 1.6.4; `peer` type and presets TODO |
 | **Pico identity (did:webvh, did:peer, SKY over DIDComm)** | Cross-mesh collaboration between agents; `callerDid()` for provenance on proposals and generated code | [pico-identity-layer2-work.md](./pico-identity-layer2-work.md), [sky-didcomm-protocol.md](./sky-didcomm-protocol.md) | Shipped 1.6 |
@@ -218,8 +218,9 @@ Cursor trains its in-house models on its own usage. The mesh has an owned analog
 | **Selective logging, replay, mirrors** | Audit of every committed proposal; sandbox mirrors for risky sub-agents; replay across model versions | `MEMORY.md` → ROADMAP §1–3 | Sketch |
 | **Pico move / portability** | The agent's whole mesh moves between engines; vendor-independent memory | [pico-move.md](./pico-move.md) | Draft; phases A–D |
 | **Discovery channels + `filterBindingsForCaller`** | Per-caller tool exposure; skill-gating in the bridge | `packages/pico-engine/public/docs/krl/discovery.md` | Shipped 1.5 |
-| **Skills registry** | Home for the role library and prototype definitions | `manifold-api/io.picolabs.manifold.skills_registry.krl` | Exists; needs generalizing beyond things |
-| **MCP bridge reference** | Envelope, skill-gating, and prompt-design lessons | [MCPforEXP](https://github.com/picolab/MCPforEXP) (`docs/prompt-design.md`, `docs/lessons-learned.md`) | Reference implementation |
+| **Engine MCP (dev + mesh)** | Operator/agent bridge: wrangler queries, events, schema introspection, mesh listing | `packages/pico-engine/mcp/` · [`pico-engine.md`](../../packages/pico-engine/public/docs/pico-engine.md) | **Shipped 1.8** |
+| **MCPforEXP (capstone)** | Prompt design, context hygiene, early Manifold tool shapes | [MCPforEXP](https://github.com/picolab/MCPforEXP) (`docs/prompt-design.md`, `docs/lessons-learned.md`) | **Reference only** — superseded by engine MCP |
+| **Manifold skills_registry** | Per-thing skill list pico (bootstrap child) | `manifold-api/archive/io.picolabs.manifold.skills_registry.krl` | **Retired 2026-10** — use schemas + MCP instead |
 
 The first two rows gate everything else. Without schemas the bridge is hand-written wrappers again; without the policy fix, handing ECIs to a model is unsafe.
 
@@ -231,7 +232,7 @@ The first two rows gate everything else. Without schemas the bridge is hand-writ
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- |
 | **0** | Design sign-off; harness kit event vocabulary; name the domain                                                                                                     | —                                       |
 | **1** | Engine-native MCP server over wrangler + discovery (hand-listed tools acceptable; standalone deliverable); harness root pico; sleeping task picos with `needs_reasoning` / `proposal` round-trip | Discovery (shipped)                     |
-| **2** | Role library v0 (task, watcher, memory, mailbox) as prototypes in a generalized registry; delegation by minting scoped channels                                    | Channel policy fix                      |
+| **2** | Role library v0 (task, watcher, memory, mailbox) as documented prototype URLs + wrangler install; optional catalog pico; delegation by minting scoped channels   | Channel policy fix                      |
 | **3** | Tools generated from `picoSchema`; generated rulesets restricted to the harness-kit DSL, compiled and linted, installed per pico with provenance                   | Pico schemas                            |
 | **4** | Cross-mesh agents: DID relationships between harnesses with preset Rx policies; introduction flows                                                                 | `peer` type and presets; key protection |
 | **5** | Promotion pipeline (tier 4 → tier 2); mirrors as sandboxes; replay across model versions                                                                           | Logging, replay, mirrors                |

@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as readline from "readline";
 import { krlLogLevelCodeToHuman, PicoLogEntry } from "krl-stdlib";
 import * as path from "path";
+import { getEngineRuntimeSettings } from "./engineConfig";
 
 const rfs = require("rotating-file-stream");
 
@@ -50,17 +51,12 @@ function getRotatingFileStream(filePath: string): NodeJS.WritableStream {
 }
 
 export function resolveEngineLogFilePath(home: string): string | null {
-  const configured = process.env.PICO_ENGINE_LOG_FILE;
-  if (
-    configured === "0" ||
-    configured === "-" ||
-    configured === "stdout" ||
-    configured === ""
-  ) {
+  const settings = getEngineRuntimeSettings();
+  if (settings.logToStdout) {
     return null;
   }
-  if (typeof configured === "string" && configured.length > 0) {
-    return path.resolve(configured);
+  if (settings.logFile) {
+    return settings.logFile;
   }
   return path.resolve(home, "pico-engine.log");
 }
@@ -111,21 +107,19 @@ export async function getPicoLogs(
   });
 
   for await (const line of rl) {
-    // Each line in the readline input will be successively available here as
-    // `line`.
     if (line.indexOf(picoId) < 0) {
-      continue; // not my pico
+      continue;
     }
     let entry;
     try {
       entry = JSON.parse(line);
     } catch (err) {}
     if (!entry || entry.picoId !== picoId) {
-      continue; // not my pico
+      continue;
     }
     const time = new Date(entry.time);
     if (Date.now() - time.getTime() > 1000 * 60 * 60 * 12) {
-      continue; // too old
+      continue;
     }
 
     const out: PicoLogEntry = {

@@ -1,0 +1,78 @@
+openapi: 3.1.0
+info:
+  title: Pico Engine HTTP API (subset)
+  version: 1.8.0
+  description: |
+    Subset of the pico-engine surface for integrators and agents.
+    Owner UI uses passkey sessions on `/c/*`. External integrators use OAuth bearer on `/sky/*`.
+    Mesh MCP uses Streamable HTTP at `/mcp/{eci}` with the same bearer as Sky for that channel.
+servers:
+  - url: http://localhost:3000
+    description: Local dev
+paths:
+  /sky/event/{eci}/{eid}/{domain}/{type}:
+    post:
+      summary: Send an event (OAuth bearer when required)
+      parameters:
+        - { name: eci, in: path, required: true, schema: { type: string } }
+        - { name: eid, in: path, required: true, schema: { type: string } }
+        - { name: domain, in: path, required: true, schema: { type: string } }
+        - { name: type, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        "200":
+          description: Event outcome (directives, eid, ruleOutcomes when annotated, events raised in the same transaction)
+  /sky/query/{eci}/{rid}/{function}:
+    post:
+      summary: Run a query (OAuth bearer when required)
+      parameters:
+        - { name: eci, in: path, required: true, schema: { type: string } }
+        - { name: rid, in: path, required: true, schema: { type: string } }
+        - { name: function, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        "200":
+          description: Query result JSON
+  /c/{eci}/event-wait/{domain}/{name}:
+    post:
+      summary: Send event and wait for outcome (UI session or localhost)
+      parameters:
+        - { name: eci, in: path, required: true, schema: { type: string } }
+        - { name: domain, in: path, required: true, schema: { type: string } }
+        - { name: name, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+  /c/{eci}/query/{rid}/{name}:
+    post:
+      summary: Run a query on a channel
+      parameters:
+        - { name: eci, in: path, required: true, schema: { type: string } }
+        - { name: rid, in: path, required: true, schema: { type: string } }
+        - { name: name, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+  /mcp/{eci}:
+    get:
+      summary: MCP Streamable HTTP (SSE)
+      security: [{ bearerAuth: [] }]
+    post:
+      summary: MCP Streamable HTTP (JSON-RPC)
+      security: [{ bearerAuth: [] }]
+  /api/dev/local:
+    get:
+      summary: Localhost-only dev context (root UI ECI)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

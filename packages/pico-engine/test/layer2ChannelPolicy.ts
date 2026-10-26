@@ -57,6 +57,42 @@ async function setupPeerPair(
   return { peerA, peerB, rxA, rxB, webvhA, webvhB };
 }
 
+test("deny beats permit on the same channel policy", async (t) => {
+  const pe = await startIsolatedEngine({ autoCreateRootPico: true });
+  const root = pe.pf.rootPicos()[0];
+  const ch = await root.newChannel({
+    tags: ["deny-test"],
+    eventPolicy: {
+      allow: [{ domain: "*", name: "*" }],
+      deny: [{ domain: "wrangler", name: "ping" }],
+    },
+    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+  });
+
+  await t.throwsAsync(
+    () =>
+      pe.pf.event({
+        eci: ch.id,
+        domain: "wrangler",
+        name: "ping",
+        data: { attrs: {} },
+        time: 0,
+      }),
+    { message: /Denied by channel policy/ },
+  );
+
+  const eid = await pe.pf.event({
+    eci: ch.id,
+    domain: "wrangler",
+    name: "pong",
+    data: { attrs: {} },
+    time: 0,
+  });
+  t.truthy(eid);
+
+  await pe.pf.db.close();
+});
+
 test("DIDComm ingress rejects event denied by subscription Rx policy", async (t) => {
   const pe = await startIsolatedEngine({ autoCreateRootPico: true });
   const root = pe.pf.rootPicos()[0];
@@ -201,6 +237,25 @@ test("verified local crossPicoEvent respects Rx event policy", async (t) => {
     { message: /channel policy/ }
   );
 
+  await pe.pf.db.close();
+});
+
+test("subscription Rx with wildcard allow requires bearer on /sky/* when enabled", async (t) => {
+  process.env.PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER = "1";
+  const pe = await startIsolatedEngine({ autoCreateRootPico: true });
+  const root = pe.pf.rootPicos()[0];
+  const subId = cuid();
+
+  const result = await pe.identityService.establishSubscription(root.id, {
+    subscriptionId: subId,
+    remotePeerDid: "did:peer:2.placeholder",
+  });
+
+  const channel = pe.pf.getPico(root.id).channels[result.rxEci];
+  t.truthy(channel);
+  t.true(await pe.oauth.skyRequiresBearer(result.rxEci));
+
+  delete process.env.PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER;
   await pe.pf.db.close();
 });
 

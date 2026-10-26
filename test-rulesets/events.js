@@ -264,6 +264,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("set_attr", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -316,6 +317,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("set_attr2", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -336,6 +338,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("get_attr", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -359,6 +362,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("attrs_get", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -372,6 +376,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("noop", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -388,6 +393,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("noop2", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -424,6 +430,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("ifthen", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -463,6 +470,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("on_fired", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("on_fired_prev_name", my_name3);
         }
@@ -509,6 +517,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("on_choose", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("on_choose_fired", true);
         }
@@ -564,6 +573,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("on_choose_if", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("on_choose_fired", true);
         }
@@ -587,6 +597,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("on_every", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -613,6 +624,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("on_sample", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -645,6 +657,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("on_sample_if", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -674,6 +687,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("select_where", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -703,6 +717,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("where_match_0", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -732,6 +747,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("where_match_null", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -761,6 +777,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("where_match_false", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -790,6 +807,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("where_match_empty_str", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -831,6 +849,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("where_after_setting", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -872,6 +891,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("where_using_global", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -905,6 +925,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("implicit_match_0", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -938,6 +959,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("implicit_match_null", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -971,6 +993,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("implicit_match_false", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -1004,6 +1027,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("implicit_match_empty_str", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -1034,6 +1058,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("no_action", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("no_action_fired", true);
         }
@@ -1085,6 +1110,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("action_send", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -1118,6 +1144,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("store_sent_name", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("sent_attrs", $ctx.module("event")["attrs"]($ctx));
           await $ctx.rsCtx.putEnt("sent_name", my_name3);
@@ -1135,6 +1162,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("raise_basic", $fired);
         if ($fired) {
           await $ctx.rsCtx.raiseEvent("events", "event_attrs", undefined);
         }
@@ -1171,6 +1199,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("raise_set_name", $fired);
         if ($fired) {
           await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
         }
@@ -1207,6 +1236,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("raise_set_name_attr", $fired);
         if ($fired) {
           await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
         }
@@ -1244,6 +1274,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("raise_set_name_rid", $fired);
         if ($fired) {
           await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name3 });
         }
@@ -1280,6 +1311,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("raise_dynamic", $fired);
         if ($fired) {
           {
             let $parts = $ctx.krl.toString(domainType3).replace(/\s+/g, "").split(":");
@@ -1305,6 +1337,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("event_eid", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -1324,11 +1357,31 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("event_attrs", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
     null;
+    const $consoleGlobalRefs = {
+      "getOnChooseFired": getOnChooseFired2,
+      "getNoActionFired": getNoActionFired2,
+      "getSentAttrs": getSentAttrs2,
+      "getSentName": getSentName2,
+      "global0": global02,
+      "global1": global12
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.events {\n    meta {\n        shares getOnChooseFired, getNoActionFired, getSentAttrs, getSentName\n    }\n    global {\n        getOnChooseFired = function(){\n            ent:on_choose_fired;\n        }\n        getNoActionFired = function(){\n            ent:no_action_fired;\n        }\n        getSentAttrs = function(){\n            ent:sent_attrs;\n        }\n        getSentName = function(){\n            ent:sent_name;\n        }\n        global0 = \"g zero\"\n        global1 = \"g one\"\n    }\n    rule set_attr {\n        select when events bind name re#^(.*)$# setting(my_name)\n\n        send_directive(\"bound\", {\"name\": my_name});\n    }\n    rule set_attr2 {\n        select when events set_attr2\n                number re#[Nn]0*(\\d*)#\n                name re#(.*)#\n                setting(number, name)\n\n        send_directive(\"set_attr2\", {\n            \"number\": number,\n            \"name\": name\n        });\n    }\n    rule get_attr {\n        select when events get\n\n        pre {\n            thing = event:attr(\"thing\")\n        }\n\n        send_directive(\"get\", {\"thing\": thing});\n    }\n    rule attrs_get {\n        select when events attrs_get\n\n        pre {\n            thing = event:attrs.get(\"thing\")\n        }\n\n        send_directive(\"attrs_get\", {\"thing\": thing});\n    }\n    rule noop {\n        select when events noop\n    }\n    rule noop2 {\n        select when events noop2\n\n        noop();\n    }\n    rule ifthen {\n        select when events ifthen name re#^(.*)$# setting(my_name)\n\n        if my_name then\n            send_directive(\"ifthen\");\n    }\n    rule on_fired {\n        select when events on_fired name re#^(.*)$# setting(my_name)\n\n        send_directive(\"on_fired\", {\"previous_name\": ent:on_fired_prev_name});\n\n        fired {\n            ent:on_fired_prev_name := my_name\n        }\n    }\n    rule on_choose {\n        select when events on_choose thing re#^(.*)$# setting(thing)\n\n        choose thing {\n            one =>\n                send_directive(\"on_choose - one\");\n\n            two =>\n                send_directive(\"on_choose - two\");\n        }\n\n        fired {\n            ent:on_choose_fired := true\n        } else {\n            ent:on_choose_fired := false\n        }\n    }\n    rule on_choose_if {\n        select when events on_choose_if thing re#^(.*)$# setting(thing)\n\n        if event:attrs{\"fire\"} == \"yes\" then\n        choose thing {\n            one =>\n                send_directive(\"on_choose_if - one\");\n\n            two =>\n                send_directive(\"on_choose_if - two\");\n        }\n\n        fired {\n            ent:on_choose_fired := true\n        } else {\n            ent:on_choose_fired := false\n        }\n    }\n    rule on_every {\n        select when events on_every\n\n        every {\n            send_directive(\"on_every - one\");\n\n            send_directive(\"on_every - two\");\n        }\n    }\n    rule on_sample {\n        select when events on_sample\n\n        sample {\n            send_directive(\"on_sample - one\");\n\n            send_directive(\"on_sample - two\");\n\n            send_directive(\"on_sample - three\");\n        }\n    }\n    rule on_sample_if {\n        select when events on_sample_if\n\n        if event:attrs{\"fire\"} == \"yes\" then\n        sample {\n            send_directive(\"on_sample - one\");\n\n            send_directive(\"on_sample - two\");\n\n            send_directive(\"on_sample - three\");\n        }\n    }\n    rule select_where {\n        select when events select_where where event:attrs{\"something\"}.match(re#^wat#)\n\n        send_directive(\"select_where\");\n    }\n    rule where_match_0 {\n        select when events where_match_0 where event:attrs{\"something\"}.match(re#0#)\n\n        send_directive(\"where_match_0\");\n    }\n    rule where_match_null {\n        select when events where_match_null where event:attrs{\"something\"}.match(re#null#)\n\n        send_directive(\"where_match_null\");\n    }\n    rule where_match_false {\n        select when events where_match_false where event:attrs{\"something\"}.match(re#false#)\n\n        send_directive(\"where_match_false\");\n    }\n    rule where_match_empty_str {\n        select when events where_match_empty_str where event:attrs{\"something\"}.match(re##)\n\n        send_directive(\"where_match_empty_str\");\n    }\n    rule where_after_setting {\n        select when events where_after_setting a re#(.*)# setting(a) where a == \"one\"\n\n        send_directive(\"where_after_setting\");\n    }\n    rule where_using_global {\n        select when events where_using_global a re#(.*)# setting(global0) where global0 == global1\n\n        send_directive(\"where_using_global\");\n    }\n    rule implicit_match_0 {\n        select when events implicit_match_0 something re#0#\n\n        send_directive(\"implicit_match_0\");\n    }\n    rule implicit_match_null {\n        select when events implicit_match_null something re#null#\n\n        send_directive(\"implicit_match_null\");\n    }\n    rule implicit_match_false {\n        select when events implicit_match_false something re#false#\n\n        send_directive(\"implicit_match_false\");\n    }\n    rule implicit_match_empty_str {\n        select when events implicit_match_empty_str something re##\n\n        send_directive(\"implicit_match_empty_str\");\n    }\n    rule no_action {\n        select when events no_action fired re#^yes$#i\n        fired {\n            ent:no_action_fired := true\n        } else {\n            ent:no_action_fired := false\n        }\n    }\n    rule action_send {\n        select when events action_send name re#^(.*)$# setting(my_name)\n\n        ctx:event(\n            eci = event:eci,\n            domain = \"events\",\n            name = \"store_sent_name\",\n            attrs = {\n            \"name\": my_name,\n            \"empty\": [],\n            \"r\": re#hi#i\n        },\n        );\n    }\n    rule store_sent_name {\n        select when events store_sent_name name re#^(.*)$# setting(my_name)\n        fired {\n            ent:sent_attrs := event:attrs;\n            ent:sent_name := my_name\n        }\n    }\n    rule raise_basic {\n        select when events raise_basic\n        fired {\n            raise events event \"event_attrs\"\n        }\n    }\n    rule raise_set_name {\n        select when events raise_set_name name re#^(.*)$# setting(my_name)\n        fired {\n            raise events event \"store_sent_name\"\n                attributes {\"name\": my_name}\n        }\n    }\n    rule raise_set_name_attr {\n        select when events raise_set_name_attr name re#^(.*)$# setting(my_name)\n        fired {\n            raise events event \"store_sent_name\"\n                attributes {\"name\": my_name}\n        }\n    }\n    rule raise_set_name_rid {\n        select when events raise_set_name_rid name re#^(.*)$# setting(my_name)\n\n        pre {\n            rid = \"io.picolabs.events\"\n        }\n        fired {\n            raise events event \"store_sent_name\" for rid\n                attributes {\"name\": my_name}\n        }\n    }\n    rule raise_dynamic {\n        select when events raise_dynamic domainType re#^(.*)$# setting(domainType)\n        fired {\n            raise event domainType\n                attributes event:attrs\n        }\n    }\n    rule event_eid {\n        select when events event_eid\n\n        send_directive(\"event_eid\", {\"eid\": event:eid});\n    }\n    rule event_attrs {\n        select when events event_attrs\n\n        send_directive(\"event_attrs\", {\"attrs\": event:attrs});\n    }\n    rule ignored is inactive {\n        select when events ignored\n\n        send_directive(\"ignored - should not see this\");\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -1337,7 +1390,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getOnChooseFired": async function (query, qid) {
@@ -1374,8 +1430,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

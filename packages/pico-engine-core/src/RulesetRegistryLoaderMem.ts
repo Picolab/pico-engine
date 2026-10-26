@@ -2,6 +2,7 @@ import { Ruleset } from "pico-framework";
 import { CachedRuleset, RulesetRegistryLoader } from "./RulesetRegistry";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
+const rulesetCompileGeneration = require("krl-compiler/src/rulesetCompileGeneration");
 
 export function RulesetRegistryLoaderMem(
   fetchKrl: (url: string) => Promise<string>
@@ -10,6 +11,10 @@ export function RulesetRegistryLoaderMem(
 
   return {
     fetchKrl,
+
+    getCompileGeneration() {
+      return rulesetCompileGeneration();
+    },
 
     async save(data) {
       urlData[data.url] = data;
@@ -21,18 +26,25 @@ export function RulesetRegistryLoaderMem(
       hash: string
     ): Promise<{
       ruleset: Ruleset;
-      compiler: { version: string; warnings: any[] };
+      compiler: CachedRuleset["compiler"];
     }> {
       const out = krlCompiler(krl);
       if (typeof out.rid !== "string") {
         throw new Error("Compile failed, missing rid");
       }
 
-      const ruleset: Ruleset = eval(out.code);
+      const ruleset: Ruleset & { rulesetSchema?: unknown } = eval(out.code);
+      if (out.rulesetSchema && !ruleset.rulesetSchema) {
+        ruleset.rulesetSchema = out.rulesetSchema;
+      }
 
       return {
         ruleset,
-        compiler: { version: krlCompilerVersion, warnings: out.warnings },
+        compiler: {
+          version: krlCompilerVersion,
+          warnings: out.warnings,
+          compileGeneration: rulesetCompileGeneration(),
+        },
       };
     },
 

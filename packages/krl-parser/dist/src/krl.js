@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.parse = parse;
 exports.parseExpression = parseExpression;
 exports.parseRuleset = parseRuleset;
+const docComment_1 = require("./docComment");
 const ParseError_1 = require("./ParseError");
 const tdop_1 = require("./tdop");
 const ast = require("./types");
@@ -14,6 +15,61 @@ function defRule(id, rule) {
 function advance(state) {
     state.curr = (0, tdop_1.advanceBase)(rules, state.tokens, state.curr.token_i + 1);
     return state;
+}
+/** Leading `/**` token immediately before a rule or global declaration. */
+function consumeLeadingDocCommentToken(state) {
+    // advanceBase skips /**; look backward from the current token for one attached doc.
+    let i = state.curr.token_i - 1;
+    while (i >= 0) {
+        const token = state.tokens[i];
+        if (token.type === "WHITESPACE" || token.type === "LINE-COMMENT") {
+            i--;
+            continue;
+        }
+        if ((0, docComment_1.isDocCommentToken)(token)) {
+            return token;
+        }
+        break;
+    }
+    while (state.curr.token_i < state.tokens.length) {
+        const token = state.tokens[state.curr.token_i];
+        if (token.type === "WHITESPACE" ||
+            token.type === "LINE-COMMENT" ||
+            (token.type === "BLOCK-COMMENT" && !(0, docComment_1.isDocCommentToken)(token))) {
+            state.curr = (0, tdop_1.advanceBase)(rules, state.tokens, state.curr.token_i + 1);
+            continue;
+        }
+        if ((0, docComment_1.isDocCommentToken)(token)) {
+            state.curr = (0, tdop_1.advanceBase)(rules, state.tokens, state.curr.token_i + 1);
+            return token;
+        }
+        break;
+    }
+    return null;
+}
+/** Leading `/**` doc immediately before a rule or global declaration. */
+function consumeLeadingDocComment(state) {
+    const token = consumeLeadingDocCommentToken(state);
+    return token ? (0, docComment_1.parseDocComment)(token) : null;
+}
+function metaSharedGlobalNames(meta) {
+    var _a;
+    const set = new Set();
+    if (!meta) {
+        return set;
+    }
+    for (const prop of meta.properties) {
+        if (prop.key.value !== "shares" && prop.key.value !== "provides") {
+            continue;
+        }
+        const ids = (_a = prop.value) === null || _a === void 0 ? void 0 : _a.ids;
+        if (ids) {
+            for (const id of ids) {
+                set.add(id.value);
+            }
+        }
+    }
+    return set;
 }
 function chomp(state, type, src) {
     if (state.curr.token.type !== type || state.curr.token.src !== src) {
@@ -113,18 +169,29 @@ function identifierList(state) {
     }
     return ids;
 }
-function declarationList(state) {
+function declarationList(state, sharedGlobalNames = new Set()) {
     const declarations = [];
     while (state.curr.token_i < state.tokens.length) {
+        const docToken = consumeLeadingDocCommentToken(state);
         if (state.curr.token.type !== "SYMBOL" ||
             ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)) {
+            if (docToken) {
+                throw new ParseError_1.ParseError("Doc comment must immediately precede a rule or shared global declaration", docToken);
+            }
             break;
         }
         const next = (0, tdop_1.lookahead)(state, 2)[1];
         if (!next || next.type !== "RAW" || next.src !== "=") {
+            if (docToken) {
+                throw new ParseError_1.ParseError("Doc comment must immediately precede a rule or shared global declaration", docToken);
+            }
             break;
         }
-        declarations.push(declaration(state));
+        const decl = declaration(state);
+        if (docToken && sharedGlobalNames.has(decl.left.value)) {
+            decl.doc = (0, docComment_1.parseDocComment)(docToken);
+        }
+        declarations.push(decl);
         chompMaybe(state, "RAW", ";");
     }
     return declarations;
@@ -618,10 +685,11 @@ function ruleset(state) {
         version = chompString(state);
     }
     const meta = rulesetMeta(state);
+    const sharedGlobalNames = metaSharedGlobalNames(meta);
     let global = [];
     if (chompMaybe(state, "SYMBOL", "global")) {
         chomp(state, "RAW", "{");
-        global = declarationList(state);
+        global = declarationList(state, sharedGlobalNames);
         if (!chompMaybe(state, "RAW", "}")) {
             throw new ParseError_1.ParseError("Expected a declaration", state.curr.token);
         }
@@ -818,8 +886,12 @@ function rulesetIDList(state) {
     return rids;
 }
 function rulesetRule(state) {
-    const start = state.curr.token.loc.start;
+    const doc = consumeLeadingDocComment(state);
+    const start = doc ? doc.loc.start : state.curr.token.loc.start;
     if (!chompMaybe(state, "SYMBOL", "rule")) {
+        if (doc) {
+            throw new ParseError_1.ParseError("Doc comment must immediately precede a rule or shared global declaration", { type: "BLOCK-COMMENT", src: doc.raw, loc: doc.loc });
+        }
         return null;
     }
     const name = chompIdentifier(state);
@@ -923,7 +995,7 @@ function rulesetRule(state) {
     let postlude = rulePostlude(state);
     const end = state.curr.token.loc.end;
     chomp(state, "RAW", "}");
-    return {
+    const rule = {
         loc: { start, end },
         type: "Rule",
         name,
@@ -934,6 +1006,10 @@ function rulesetRule(state) {
         action_block,
         postlude
     };
+    if (doc) {
+        rule.doc = doc;
+    }
+    return rule;
 }
 function actionBlock(state) {
     let { start, end } = state.curr.token.loc;

@@ -3,9 +3,14 @@ ruleset io.picolabs.pico-engine-ui {
     version "0.0.0"
     name "pico-engine-ui"
     description "This is the only ruleset the pico-engine-ui.js needs to operate"
-    shares box, uiECI, pico, logs, testingECI, name, needsStartupLayout
+    shares box, uiECI, pico, logs, testingECI, testingHistory, testingSaved, name, needsStartupLayout
   }
   global {
+    /**
+     * The ECI of this pico's UI channel (tagged engine,ui), used by the developer
+     * UI to send engine_ui events and queries to this pico.
+     * @returns String
+     */
     uiECI = function(){
       return ctx:channels
         .filter(function(c){c["tags"].sort().join(",") == "engine,ui"})
@@ -23,15 +28,48 @@ ruleset io.picolabs.pico-engine-ui {
         .map(uiEciForChild)
         .filter(function(eci){eci})
     }
+    /**
+     * The channel the developer UI's Testing tab last selected for sending events
+     * and queries to this pico, or null.
+     * @returns String
+     */
     testingECI = function(){
       return ent:testingECI
     }
+    testingHistoryCap = 50
+    /**
+     * Recent Testing-tab sends for this pico, keyed by ruleset rid (newest first).
+     * @param rid String optional "ruleset id; omit for the full map rid → entries"
+     * @returns Map or Array
+     */
+    testingHistory = function(rid = null) {
+      rid.isnull() || rid == "" => ent:testing_history.defaultsTo({}) |
+      ent:testing_history{rid}.defaultsTo([])
+    }
+    /**
+     * Named Testing-tab requests kept on this pico, keyed by ruleset rid.
+     * @param rid String optional ruleset id; omit for the full map rid → entries
+     * @returns Map or Array
+     */
+    testingSaved = function(rid = null) {
+      rid.isnull() || rid == "" => ent:testing_saved.defaultsTo({}) |
+      ent:testing_saved{rid}.defaultsTo([])
+    }
+    /**
+     * This pico's display name in the developer UI ("Pico" if never set).
+     * @returns String
+     */
     name = function(){
       ent:name || "Pico"
     }
     needsStartupLayout = function(){
       ent:x.isnull() && ent:y.isnull()
     }
+    /**
+     * How the developer UI draws this pico: name, color, position, size, and the
+     * UI channels of its parent and children.
+     * @returns Map "{ eci, parent, children, name, backgroundColor, x, y, width, height }"
+     */
     box = function(){
       return {
         "eci": uiECI(),
@@ -45,6 +83,11 @@ ruleset io.picolabs.pico-engine-ui {
         "height": ent:height || 90
       }
     }
+    /**
+     * This pico's channels (with their policies) and installed rulesets, plus the
+     * UI channels of its parent and children. A quick way to see what a pico is.
+     * @returns Map "{ eci, parent, children, channels, rulesets }"
+     */
     pico = function(){
       return {
         "eci": uiECI(),
@@ -54,6 +97,12 @@ ruleset io.picolabs.pico-engine-ui {
         "rulesets": ctx:rulesets
       }
     }
+    /**
+     * Recent activity on this pico, grouped by transaction, newest first: each
+     * incoming event or query with the rules it selected, klog output, and errors.
+     * The developer UI's own queries are left out.
+     * @returns Array "[ { txnId, time, header, entries } ]"
+     */
     logs = function(){
       logOther = function(entry){
         entry.delete("time")
@@ -141,7 +190,12 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "engine_ui", "name": "del_channel" },
           { "domain": "engine_ui", "name": "update_channel" },
           { "domain": "engine_ui", "name": "testing_eci" },
+          { "domain": "engine_ui", "name": "testing_history_record" },
+          { "domain": "engine_ui", "name": "testing_history_clear" },
+          { "domain": "engine_ui", "name": "testing_saved_upsert" },
+          { "domain": "engine_ui", "name": "testing_saved_delete" },
           { "domain": "engine", "name": "started" },
+          { "domain": "engine", "name": "ruleset_set_changed" },
           { "domain": "wrangler", "name": "subscription" },
           { "domain": "wrangler", "name": "relationship" },
           { "domain": "wrangler", "name": "pending_subscription_approval" },
@@ -168,18 +222,23 @@ ruleset io.picolabs.pico-engine-ui {
       {
         "allow": [
           { "rid": "*", "name": "__testing" },
+          { "rid": "*", "name": "__consoleEval" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "uiECI" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "box" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "pico" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "logs" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "testingECI" },
+          { "rid": "io.picolabs.pico-engine-ui", "name": "testingHistory" },
+          { "rid": "io.picolabs.pico-engine-ui", "name": "testingSaved" },
           { "rid": "io.picolabs.pico-engine-ui", "name": "name" },
           { "rid": "io.picolabs.subscription", "name": "established" },
           { "rid": "io.picolabs.subscription", "name": "inbound" },
           { "rid": "io.picolabs.subscription", "name": "outbound" },
           { "rid": "io.picolabs.subscription", "name": "wellKnown_Rx" },
           { "rid": "io.picolabs.wrangler", "name": "myDid" },
-          { "rid": "io.picolabs.wrangler", "name": "publicIntro" }
+          { "rid": "io.picolabs.wrangler", "name": "publicIntro" },
+          { "rid": "io.picolabs.wrangler", "name": "rulesetSchema" },
+          { "rid": "io.picolabs.wrangler", "name": "picoSchema" }
         ],
         "deny": []
       }
@@ -202,6 +261,9 @@ ruleset io.picolabs.pico-engine-ui {
       )
     }
   }
+  // engine_ui events are the developer UI's private protocol and are deliberately
+  // not discoverable. Their public equivalents are wrangler events
+  // (new_child_request, install_ruleset_request, new_channel_request, …).
   rule setup {
     select when engine_ui setup
     refreshUiChannel()
@@ -359,29 +421,48 @@ ruleset io.picolabs.pico-engine-ui {
   }
   rule flush {
     select when engine_ui flush
-    ctx:flush(url=event:attrs{"url"})
+    pre {
+      url = event:attrs{"url"}
+      validation = ctx:validate(url)
+      ok = validation{"ok"}
+      validate_errors = validation{"errors"}
+      validate_warnings = validation{"warnings"}
+      validate_rid = validation{"rid"}
+    }
+    if ok then every {
+      ctx:flush(url=url)
+    }
+    fired {
+      raise engine_ui event "flush_succeeded" attributes {"url": url}
+    }
+    else {
+      raise wrangler event "ruleset_flush_failed" attributes
+        {"url": url, "rid": validate_rid, "errors": validate_errors, "warnings": validate_warnings}
+    }
   }
   rule refresh_ui_channel_after_flush {
-    select when engine_ui flush
+    select when engine_ui flush_succeeded
     pre {
       url = event:attrs{"url"} || ""
       self_flush = url.match(re#io\.picolabs\.pico-engine-ui#)
     }
     if self_flush then refreshUiChannel()
   }
+  // Reinstall the flushed ruleset on this pico so the new KRL takes effect.
+  // The rid comes from the installed ruleset whose url matches: the UI sends the
+  // url from pico(){"rulesets"}, so it is exactly the installed ruleset's url.
+  // (Previously the rid was parsed out of the url, which never matched —
+  // substr(0, 11) is "io.picolabs" without the dot — and truncated dotted rids.)
   rule reinstall_after_flush {
-    select when engine_ui flush
+    select when engine_ui flush_succeeded
     pre {
       url = event:attrs{"url"} || ""
-      ridMatch = url.match(re#(io\.picolabs\.[^./]+)#)
-      rid = ridMatch => ridMatch[1] | null
-      should_reinstall = rid
-        && rid.substr(0, 11) == "io.picolabs."
-        && url
-        && (wrangler:installedRIDs() >< rid)
+      rid = ctx:rulesets
+        .filter(function(rs){ rs{"url"} == url })
+        .head(){"rid"}
     }
-    if not should_reinstall then noop()
-    notfired {
+    if url && rid then noop()
+    fired {
       raise wrangler event "install_ruleset_request" attributes {"rid": rid, "url": url}
     }
   }
@@ -411,6 +492,71 @@ ruleset io.picolabs.pico-engine-ui {
     select when engine_ui testing_eci
     always {
       ent:testingECI := event:attrs{"eci"}
+    }
+  }
+
+  rule testing_history_record {
+    select when engine_ui testing_history_record
+    pre {
+      rid = event:attrs{"rid"}
+      entry = event:attrs{"entry"}
+      prior = ent:testing_history{rid}.defaultsTo([])
+      merged = [entry].append(prior)
+    }
+    if rid && entry then noop()
+    fired {
+      ent:testing_history := ent:testing_history.defaultsTo({})
+      ent:testing_history{rid} := merged.length() > testingHistoryCap
+        => merged.slice(0, testingHistoryCap) |
+        merged
+    }
+  }
+
+  rule testing_history_clear {
+    select when engine_ui testing_history_clear
+    pre {
+      rid = event:attrs{"rid"}
+      clearAll = rid.isnull() || rid == ""
+    }
+    if clearAll then noop()
+    fired {
+      ent:testing_history := {}
+    }
+    else {
+      ent:testing_history := ent:testing_history.defaultsTo({})
+      ent:testing_history{rid} := []
+    }
+  }
+
+  rule testing_saved_upsert {
+    select when engine_ui testing_saved_upsert
+    pre {
+      rid = event:attrs{"rid"}
+      entry = event:attrs{"entry"}
+      entryId = entry.get("id")
+      prior = ent:testing_saved{rid}.defaultsTo([])
+      rest = prior.filter(function(e){e.get("id") != entryId})
+      merged = [entry].append(rest)
+    }
+    if rid && entry && entryId then noop()
+    fired {
+      ent:testing_saved := ent:testing_saved.defaultsTo({})
+      ent:testing_saved{rid} := merged
+    }
+  }
+
+  rule testing_saved_delete {
+    select when engine_ui testing_saved_delete
+    pre {
+      rid = event:attrs{"rid"}
+      id = event:attrs{"id"}
+      prior = ent:testing_saved{rid}.defaultsTo([])
+      merged = prior.filter(function(e){e.get("id") != id})
+    }
+    if rid && id then noop()
+    fired {
+      ent:testing_saved := ent:testing_saved.defaultsTo({})
+      ent:testing_saved{rid} := merged
     }
   }
 }

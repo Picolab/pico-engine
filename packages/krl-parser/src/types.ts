@@ -88,11 +88,55 @@ export interface DomainIdentifier extends BaseNode {
   domain: string;
 }
 
+export interface DocTagAttr {
+  kind: "attr";
+  name: string;
+  type: string;
+  optional?: boolean;
+  description?: string;
+}
+
+export interface DocTagParam {
+  kind: "param";
+  name: string;
+  type: string;
+  description?: string;
+}
+
+export interface DocTagReturns {
+  kind: "returns";
+  type: string;
+  description?: string;
+}
+
+export interface DocTagExample {
+  kind: "example";
+  name: string;
+  data: Record<string, unknown>;
+}
+
+export type DocTag = DocTagAttr | DocTagParam | DocTagReturns | DocTagExample;
+
+export interface DocUnknownTag {
+  name: string;
+  rest: string;
+}
+
+export interface DocComment extends BaseNode {
+  type: "DocComment";
+  raw: string;
+  description: string;
+  tags: DocTag[];
+  /** `@word` lines that are not attr, param, returns, or example — ignored; compiler may warn. */
+  unknownTags?: DocUnknownTag[];
+}
+
 export interface Declaration extends BaseNode {
   type: "Declaration";
   op: "=";
   left: Identifier;
   right: Expression;
+  doc?: DocComment;
 }
 
 export interface InfixOperator extends BaseNode {
@@ -215,6 +259,7 @@ export interface Rule extends BaseNode {
   prelude: Declaration[];
   action_block: ActionBlock | null;
   postlude: RulePostlude | null;
+  doc?: DocComment;
 }
 
 export interface RuleSelect_when extends BaseNode {

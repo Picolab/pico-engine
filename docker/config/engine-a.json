@@ -1,0 +1,11 @@
+{
+  "home": "/var/pico-image",
+  "port": 3000,
+  "baseUrl": "http://host.docker.internal:3001",
+  "allowLocalhostChannelBypass": true,
+  "webauthn": {
+    "rpId": "localhost",
+    "origin": "http://localhost:3001",
+    "rpName": "Pico Engine A"
+  }
+}

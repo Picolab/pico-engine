@@ -6,6 +6,14 @@ module.exports = function (ast, comp, e, context) {
     comp.stdlibToInject[id] = ast
   }
 
+  if (
+    comp.consoleEvalMode &&
+    comp.globalRefNames &&
+    comp.globalRefNames[id]
+  ) {
+    return e('get', e('id', '$g'), e('str', id))
+  }
+
   const estree = e('id', comp.jsId(id))
 
   const scopeMeta = comp.scope.get(id)

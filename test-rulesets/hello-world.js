@@ -51,6 +51,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("say_hello", $fired);
         await $ctx.rsCtx.putEnt("said", await $stdlib["get"]($ctx, [
           $ctx.module("event")["attrs"]($ctx),
           "name"
@@ -59,6 +60,21 @@ module.exports = {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "hello": hello2,
+      "said": said2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.hello_world {\n    meta {\n        version \"0.0.0\"\n        name \"Hello World\"\n        description <<\nA first ruleset for the Quickstart\n    >>\n\n        author \"Phil Windley\"\n        shares hello, said\n    }\n    global {\n        hello = function(\n            name = \"default\",\n        ){\n            msg = \"Hello \" + name;\n            msg;\n        }\n        said = function(){\n            ent:said;\n        }\n    }\n    rule say_hello {\n        select when say hello\n        always {\n            ent:said := event:attrs{\"name\"}\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -67,7 +83,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "hello": async function (query, qid) {
@@ -88,8 +107,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

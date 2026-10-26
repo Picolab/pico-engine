@@ -1,5 +1,7 @@
 var _ = require('lodash')
 var declarationBlock = require('../utils/declarationBlock')
+var buildRulesetSchema = require('../rulesetSchema')
+var rulesetSchemaToTesting = require('../rulesetSchemaToTesting')
 
 module.exports = function (ast, comp, e) {
   var rs = {
@@ -75,6 +77,8 @@ module.exports = function (ast, comp, e) {
     esBodyRules.push(comp(rule))
   })
 
+  const rulesetSchemaJSON = buildRulesetSchema(ast, comp, shares)
+
   const testingJSON = {
     queries: [],
     events: comp.eventScope.getTestingJSON()
@@ -115,7 +119,44 @@ module.exports = function (ast, comp, e) {
       })
     }
   }
+
+  if (rulesetSchemaJSON) {
+    const fromSchema = rulesetSchemaToTesting(rulesetSchemaJSON)
+    if (fromSchema) {
+      testingJSON.events = fromSchema.events
+      testingJSON.queries = fromSchema.queries
+    }
+  }
+
   queries['__testing'] = e('fn', [], [e('return', e('id', comp.jsId('__testing')))])
+
+  queries['__consoleEval'] = e('asyncfn', ['query', 'qid'], [
+    e(';', e('call', e('id', '$ctx.setQuery'), [e('call', e('id', 'Object.assign'), [
+      e('obj', {}),
+      e('id', 'query'),
+      e('obj', { qid: e('id', 'qid') })
+    ])])),
+    {
+      type: 'TryStatement',
+      block: e('block', [
+        e('return', e('acall', e('id', '$runConsoleEval'), [
+          e('get', e('get', e('id', 'query'), e('str', 'args')), e('str', 'expr'))
+        ]))
+      ]),
+      finalizer: e('block', [
+        e(';', e('call', e('id', '$ctx.setQuery'), [e('null')]))
+      ])
+    }
+  ])
+
+  const consoleGlobalNames = []
+  if (ast.global) {
+    _.each(ast.global, function (decl) {
+      if (decl.type === 'Declaration' && decl.left.type === 'Identifier') {
+        consoleGlobalNames.push(decl.left.value)
+      }
+    })
+  }
 
   let esBody = []
   esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
@@ -129,9 +170,118 @@ module.exports = function (ast, comp, e) {
     , e('json', testingJSON)
   ))
 
+  if (rulesetSchemaJSON) {
+    rs.rulesetSchema = e('json', rulesetSchemaJSON)
+    esBody.push(e('const', '__rulesetSchema1', e('json', rulesetSchemaJSON)))
+  }
+
   esBody = esBody.concat(esBodyModules)
   esBody = esBody.concat(esBodyGlobal)
   esBody = esBody.concat(esBodyRules)
+
+  const consoleRefObj = {}
+  _.each(consoleGlobalNames, function (name) {
+    consoleRefObj[name] = e('id', comp.jsId(name))
+  })
+  esBody.push(e('const', '$consoleGlobalRefs', e('obj', consoleRefObj)))
+
+  if (comp.sourceKrl) {
+    esBody.push(e('const', '$rulesetKrlSource', e('str', comp.sourceKrl)))
+    // Injected on $ctx by the engine (cached rulesets live outside node_modules).
+    esBody.push(e('const', '$compileEvalExpression', e('get', e('id', '$ctx'), e('str', 'compileEvalExpression'))))
+    esBody.push(e('const', '$consoleEvalCache', e('new', e('id', 'Map'), [])))
+    esBody.push({
+      type: 'VariableDeclaration',
+      kind: 'const',
+      declarations: [{
+        type: 'VariableDeclarator',
+        id: { type: 'Identifier', name: '$runConsoleEval' },
+        init: {
+          type: 'ArrowFunctionExpression',
+          async: true,
+          params: [{ type: 'Identifier', name: 'expr' }],
+          body: {
+            type: 'BlockStatement',
+            body: [
+              {
+                type: 'VariableDeclaration',
+                kind: 'let',
+                declarations: [{
+                  type: 'VariableDeclarator',
+                  id: { type: 'Identifier', name: 'runner' },
+                  init: {
+                    type: 'CallExpression',
+                    callee: { type: 'MemberExpression', object: { type: 'Identifier', name: '$consoleEvalCache' }, property: { type: 'Identifier', name: 'get' } },
+                    arguments: [{ type: 'Identifier', name: 'expr' }]
+                  }
+                }]
+              },
+              {
+                type: 'IfStatement',
+                test: { type: 'UnaryExpression', operator: '!', argument: { type: 'Identifier', name: 'runner' } },
+                consequent: {
+                  type: 'BlockStatement',
+                  body: [{
+                    type: 'ExpressionStatement',
+                    expression: {
+                      type: 'AssignmentExpression',
+                      operator: '=',
+                      left: { type: 'Identifier', name: 'runner' },
+                      right: {
+                        type: 'MemberExpression',
+                        object: {
+                          type: 'CallExpression',
+                          callee: { type: 'Identifier', name: '$compileEvalExpression' },
+                          arguments: [
+                            { type: 'Identifier', name: 'expr' },
+                            {
+                              type: 'ObjectExpression',
+                              properties: [{
+                                type: 'Property',
+                                key: { type: 'Identifier', name: 'rulesetKrl' },
+                                value: { type: 'Identifier', name: '$rulesetKrlSource' },
+                                kind: 'init'
+                              }]
+                            }
+                          ]
+                        },
+                        property: { type: 'Identifier', name: 'run' }
+                      }
+                    }
+                  }, {
+                    type: 'ExpressionStatement',
+                    expression: {
+                      type: 'CallExpression',
+                      callee: { type: 'MemberExpression', object: { type: 'Identifier', name: '$consoleEvalCache' }, property: { type: 'Identifier', name: 'set' } },
+                      arguments: [{ type: 'Identifier', name: 'expr' }, { type: 'Identifier', name: 'runner' }]
+                    }
+                  }]
+                }
+              },
+              {
+                type: 'ReturnStatement',
+                argument: {
+                  type: 'AwaitExpression',
+                  argument: {
+                    type: 'CallExpression',
+                    callee: { type: 'Identifier', name: 'runner' },
+                    arguments: [
+                      { type: 'Identifier', name: '$ctx' },
+                      { type: 'Identifier', name: '$consoleGlobalRefs' }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }]
+    })
+  } else {
+    esBody.push(e('const', '$runConsoleEval', e('asyncfn', ['expr'], [
+      e('throw', e('new', e('id', 'Error'), [e('str', 'Console eval unavailable (missing ruleset source)')]))
+    ])))
+  }
 
   const returnObj = {
     event: e('asyncfn', ['event', 'eid'], [
@@ -149,7 +299,10 @@ module.exports = function (ast, comp, e) {
           e(';', e('call', e('id', '$ctx.setEvent'), [e('null')]))
         ])
       },
-      e('return', e('call', e('id', '$ctx.drainDirectives'), []))
+      e('return', e('obj', {
+        directives: e('call', e('id', '$ctx.drainDirectives'), []),
+        ruleOutcomes: e('call', e('id', '$ctx.drainRuleOutcomes'), [])
+      }))
     ]),
     query: e('obj', queries)
   }
@@ -165,6 +318,8 @@ module.exports = function (ast, comp, e) {
     }
     returnObj.provides = e('obj', provideObj)
   }
+
+  returnObj.consoleGlobalRefs = e('id', '$consoleGlobalRefs')
 
   esBody.push(e('return', e('obj', returnObj)))
 

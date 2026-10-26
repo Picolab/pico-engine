@@ -7,7 +7,9 @@ import {
   ChannelConfig,
   cleanChannelTags,
   NewPicoRuleset,
+  PolicyCeiling,
   RulesetConfig,
+  RulesetContext,
 } from "pico-framework";
 import { PicoEngineCore } from "../PicoEngineCore";
 import {
@@ -22,6 +24,19 @@ import {
 } from "../subtreeState";
 import type { RulesetStateServices } from "../rulesetState";
 import type { SubtreeImportResult } from "../subtreeState";
+import {
+  buildPicoSchema,
+  channelSchemaForEci,
+  rulesetSchemaForInstalled,
+  schemaBindingsFromRuleset,
+} from "../picoSchema";
+import {
+  normalizedRulesetUrl,
+  picoSchemaChanged,
+  raiseRulesetSetChangedFromRsCtx,
+} from "../schemaNotify";
+import { evalInRuleset as runConsoleEvalInRuleset } from "../evalInRuleset";
+import { validateKrl } from "../validateKrl";
 
 async function afterSubtreeImport(
   core: PicoEngineCore,
@@ -120,9 +135,9 @@ export default function initCtxModule(core: PicoEngineCore) {
       return this.rsCtx.pico().children;
     }),
 
-    newPico: krl.Action(["rulesets"], async function newPico(
-      rulesets
-    ): Promise<string> {
+    newPico: krl.Action(
+      ["rulesets", "policyCeiling"],
+      async function newPico(rulesets, policyCeiling): Promise<string> {
       if (!Array.isArray(rulesets)) {
         throw new TypeError("ctx:newPico expects an array of {url, config}");
       }
@@ -137,9 +152,18 @@ export default function initCtxModule(core: PicoEngineCore) {
           },
         });
       }
-      const newEci = await this.rsCtx.newPico({
-        rulesets: toInstall,
-      });
+      const newPicoConf: { rulesets: NewPicoRuleset[]; policyCeiling?: PolicyCeiling } =
+        { rulesets: toInstall };
+      if (
+        policyCeiling &&
+        typeof policyCeiling === "object" &&
+        !Array.isArray(policyCeiling) &&
+        (policyCeiling as PolicyCeiling).eventPolicy &&
+        (policyCeiling as PolicyCeiling).queryPolicy
+      ) {
+        newPicoConf.policyCeiling = policyCeiling as PolicyCeiling;
+      }
+      const newEci = await this.rsCtx.newPico(newPicoConf);
       if (core.onPicoCreated) {
         const childPico = core.picoFramework.getPico(newEci);
         await core.onPicoCreated(childPico.id, {
@@ -236,11 +260,26 @@ export default function initCtxModule(core: PicoEngineCore) {
         );
       }
       url = normalizeUrl(url);
+      const pico = core.picoFramework.getPico(this.rsCtx.pico().id);
+      if (!pico) {
+        throw new Error("Pico not found: " + this.rsCtx.pico().id);
+      }
+      const schemaBefore = buildPicoSchema(pico, core.rsRegistry);
       const rs = await core.rsRegistry.load(url);
       await this.rsCtx.install(rs.ruleset, {
         url: url,
         config: config || {},
       });
+      const schemaAfter = buildPicoSchema(pico, core.rsRegistry);
+      if (picoSchemaChanged(schemaBefore, schemaAfter)) {
+        const cached = core.rsRegistry.getCached(url);
+        await raiseRulesetSetChangedFromRsCtx(core, this.rsCtx, {
+          action: "install",
+          rid: rs.rid,
+          url: normalizedRulesetUrl(url),
+          hash: { old: null, new: cached?.hash ?? null },
+        });
+      }
       return rs.rid;
     }),
 
@@ -266,8 +305,32 @@ export default function initCtxModule(core: PicoEngineCore) {
           )} depends on it`
         );
       }
+      const installed = pico.rulesets.find((r) => r.rid === rid);
+      const rsUrl = installed?.config?.["url"];
+      const url =
+        typeof rsUrl === "string" ? normalizedRulesetUrl(rsUrl) : "";
+      const oldHash =
+        typeof rsUrl === "string"
+          ? core.rsRegistry.getCached(rsUrl)?.hash ?? null
+          : null;
+      const schemaBefore = buildPicoSchema(
+        core.picoFramework.getPico(pico.id)!,
+        core.rsRegistry
+      );
       corePico.unUse(rid);
       await this.rsCtx.uninstall(rid);
+      const schemaAfter = buildPicoSchema(
+        core.picoFramework.getPico(pico.id)!,
+        core.rsRegistry
+      );
+      if (picoSchemaChanged(schemaBefore, schemaAfter)) {
+        await raiseRulesetSetChangedFromRsCtx(core, this.rsCtx, {
+          action: "uninstall",
+          rid,
+          url,
+          hash: { old: oldHash, new: null },
+        });
+      }
     }),
 
     flush: krl.Action(["url"], async function flush(url: string) {
@@ -277,7 +340,29 @@ export default function initCtxModule(core: PicoEngineCore) {
         );
       }
       url = normalizeUrl(url);
-      await core.rsRegistry.flush(url);
+      const pfPico = core.picoFramework
+        .loadedPicos()
+        .find((p) => p.id === this.rsCtx.pico().id);
+      if (!pfPico) {
+        throw new Error("Pico not found: " + this.rsCtx.pico().id);
+      }
+      const schemaBefore = buildPicoSchema(pfPico, core.rsRegistry);
+      const oldHash = core.rsRegistry.getCached(url)?.hash ?? null;
+      core.ctxFlushPicoId = pfPico.id;
+      const crs = await core.rsRegistry.flush(url);
+      if (oldHash === crs.hash) {
+        core.ctxFlushPicoId = null;
+        return;
+      }
+      const schemaAfter = buildPicoSchema(pfPico, core.rsRegistry);
+      if (picoSchemaChanged(schemaBefore, schemaAfter)) {
+        await raiseRulesetSetChangedFromRsCtx(core, this.rsCtx, {
+          action: "flush",
+          rid: crs.rid,
+          url: normalizedRulesetUrl(url),
+          hash: { old: oldHash, new: crs.hash },
+        });
+      }
     }),
 
     exportRulesetState: krl.Function(
@@ -520,6 +605,144 @@ export default function initCtxModule(core: PicoEngineCore) {
         return false;
       }
     }),
+
+    picoSchema: krl.Function([], function picoSchema() {
+      const picoId = this.rsCtx.pico().id;
+      const pico = core.picoFramework.getPico(picoId);
+      if (!pico) {
+        throw new Error("Pico not found: " + picoId);
+      }
+      return buildPicoSchema(pico, core.rsRegistry);
+    }),
+
+    rulesetSchema: krl.Function(["rid"], function rulesetSchema(rid?: string) {
+      const picoId = this.rsCtx.pico().id;
+      const pico = core.picoFramework.getPico(picoId);
+      if (!pico) {
+        throw new Error("Pico not found: " + picoId);
+      }
+      if (rid == null) {
+        const out: { [rid: string]: unknown } = {};
+        for (const installedRid of Object.keys(pico.rulesets)) {
+          const schema = rulesetSchemaForInstalled(
+            pico,
+            installedRid,
+            core.rsRegistry
+          );
+          if (schema) out[installedRid] = schema;
+        }
+        return out;
+      }
+      if (typeof rid !== "string") {
+        throw new TypeError(
+          "Expected string for rid but got " + krl.typeOf(rid)
+        );
+      }
+      return rulesetSchemaForInstalled(pico, rid, core.rsRegistry);
+    }),
+
+    schemaBindings: krl.Function(["rid"], function schemaBindings(rid: string) {
+      if (typeof rid !== "string") {
+        throw new TypeError(
+          "Expected string for rid but got " + krl.typeOf(rid)
+        );
+      }
+      const picoId = this.rsCtx.pico().id;
+      const pico = core.picoFramework.getPico(picoId);
+      if (!pico) {
+        throw new Error("Pico not found: " + picoId);
+      }
+      const schema = rulesetSchemaForInstalled(pico, rid, core.rsRegistry);
+      if (!schema) {
+        return { version: 1, queries: [], events: [] };
+      }
+      return schemaBindingsFromRuleset(schema);
+    }),
+
+    channelSchema: krl.Function(["eci"], function channelSchema(eci: string) {
+      if (typeof eci !== "string") {
+        throw new TypeError(
+          "Expected string for eci but got " + krl.typeOf(eci)
+        );
+      }
+      const picoId = this.rsCtx.pico().id;
+      const pico = core.picoFramework.getPico(picoId);
+      if (!pico) {
+        throw new Error("Pico not found: " + picoId);
+      }
+      return channelSchemaForEci(
+        pico,
+        core.rsRegistry,
+        (channelEci) => core.picoFramework.lookupChannel(channelEci),
+        eci
+      );
+    }),
+
+    validate: krl.Function(
+      ["sourceOrUrl"],
+      async function validate(sourceOrUrl: string) {
+        if (typeof sourceOrUrl !== "string") {
+          throw new TypeError(
+            "Expected string for sourceOrUrl but got " + krl.typeOf(sourceOrUrl)
+          );
+        }
+        return validateKrl(sourceOrUrl, core.rsRegistry);
+      }
+    ),
+
+    rulesetWarnings: krl.Function(["rid"], function rulesetWarnings(rid: string) {
+      if (typeof rid !== "string") {
+        throw new TypeError(
+          "Expected string for rid but got " + krl.typeOf(rid)
+        );
+      }
+      const pico = this.rsCtx.pico();
+      let url: string | undefined;
+      for (const rs of pico.rulesets) {
+        if (rs.rid === rid) {
+          url = rs.config.url;
+          break;
+        }
+      }
+      if (!url) {
+        return [];
+      }
+      if (typeof url !== "string") {
+        return [];
+      }
+      const cached = core.rsRegistry.getCached(url);
+      const warnings = cached?.compiler?.warnings;
+      if (!Array.isArray(warnings)) {
+        return [];
+      }
+      return warnings.map((w: { message?: string; loc?: { start?: { line?: number; column?: number } } }) => ({
+        message: w.message || "",
+        line: w.loc?.start?.line,
+        column: w.loc?.start?.column,
+      }));
+    }),
+
+    /** Owner console: evaluate a KRL expression in another installed ruleset's scope. */
+    evalInRuleset: krl.Function(
+      ["rid", "expr"],
+      async function evalInRuleset(rid: string, expr: string) {
+        if (typeof rid !== "string" || typeof expr !== "string") {
+          throw new TypeError("evalInRuleset expects (rid, expr) strings");
+        }
+        const query = this.getQuery();
+        const eci = query?.eci;
+        if (!eci) {
+          throw new Error("evalInRuleset requires query context");
+        }
+        return runConsoleEvalInRuleset(
+          core,
+          this.rsCtx.pico().id,
+          eci,
+          rid,
+          expr
+        );
+      }
+    ),
 
   };
 

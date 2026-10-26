@@ -15,7 +15,10 @@ test('compiler', util.promisify(function (t, cb) {
 
     var basenames = _.uniq(_.map(files, function (file) {
       return path.basename(path.basename(file, '.krl'), '.js')
-    }))
+    })).filter(function (basename) {
+      return fs.existsSync(path.join(filesDir, basename + '.js')) &&
+        fs.existsSync(path.join(filesDir, basename + '.krl'))
+    })
 
     λ.each(basenames, function (basename, next) {
       var jsFile = path.join(filesDir, basename) + '.js'
@@ -57,6 +60,193 @@ test('compiler', util.promisify(function (t, cb) {
     }, cb)
   })
 }))
+
+test('rulesetSchema stub in compiled output', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { name "T" description "Test RS" shares ping }',
+    '  global {',
+    '    /** Pong query. @returns String */',
+    '    ping = function() { "pong" }',
+    '  }',
+    '  /** Opens the app.',
+    '   * @attr id String */',
+    '  rule open { select when app open }',
+    '}'
+  ].join('\n')
+  var out = compiler(src)
+  t.true(out.code.indexOf('__rulesetSchema1') !== -1)
+  t.true(out.code.indexOf('"rule": "open"') !== -1)
+  t.true(out.code.indexOf('"name": "ping"') !== -1)
+  t.true(out.code.indexOf('Opens the app') !== -1)
+})
+
+test('rulesetSchema emits and prechecks on annotated rules', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { shares canGo }',
+    '  global { canGo = function() { true } }',
+    '  /** Ping. */',
+    '  rule ping {',
+    '    select when test ping',
+    '    if canGo() then every {',
+    '      event:send({',
+    '        "eci": event:attr("callback_eci"),',
+    '        "domain": "community",',
+    '        "type": "pong"',
+    '      });',
+    '    }',
+    '    fired { raise wrangler event "done" attributes event:attrs }',
+    '  }',
+    '}'
+  ].join('\n')
+  var op = require('./src/schemaFromSource')(src).rulesetSchema.operations[0]
+  t.deepEqual(op.prechecks, [{ fn: 'canGo', args: {} }])
+  t.true(op.emits.some(function (e) {
+    return e.via === 'send' && e.domain === 'community' && e.type === 'pong' &&
+      e.replyTo === 'callback_eci'
+  }))
+  t.true(op.emits.some(function (e) {
+    return e.via === 'raise' && e.domain === 'wrangler' && e.type === 'done' &&
+      e.when.some(function (w) { return w.branch === 'fired' })
+  }))
+})
+
+test('rulesetSchema prechecks omit non-shared functions in condition', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  global { isAThing = function(id) { true } }',
+    '  /** Update. */',
+    '  rule update {',
+    '    select when test update',
+    '    pre { picoID = event:attr("picoID") }',
+    '    if picoID && isAThing(picoID) then every { noop() }',
+    '  }',
+    '}'
+  ].join('\n')
+  var op = require('./src/schemaFromSource')(src).rulesetSchema.operations[0]
+  t.deepEqual(op.prechecks, [])
+  t.true(op.condition.indexOf('isAThing') !== -1)
+})
+
+test('rulesetSchema prechecks map pre bindings to event attrs', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { shares isAThing }',
+    '  global { isAThing = function(picoID) { true } }',
+    '  /** Update. */',
+    '  rule update {',
+    '    select when test update',
+    '    pre { picoID = event:attr("picoID") }',
+    '    if picoID && isAThing(picoID) then every { noop() }',
+    '  }',
+    '}'
+  ].join('\n')
+  var op = require('./src/schemaFromSource')(src).rulesetSchema.operations[0]
+  t.deepEqual(op.prechecks, [{
+    fn: 'isAThing',
+    args: { picoID: { attr: 'picoID' } }
+  }])
+})
+
+test('rulesetSchema meta description unwraps chevron strings', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta {',
+    '    description <<The hub.',
+    '      More detail.>>',
+    '    shares ping',
+    '  }',
+    '  global { /** q */ ping = function() { 1 } }',
+    '}'
+  ].join('\n')
+  var out = require('./src/schemaFromSource')(src)
+  t.is(out.rulesetSchema.description, 'The hub.\nMore detail.')
+  t.false(out.rulesetSchema.description.includes('<<'))
+})
+
+test('rulesetSchema rid_version from meta or draft default', function (t) {
+  var out = require('./src/schemaFromSource')(
+    'ruleset io.test { meta { version "2.1.0" shares ping } global { /** q */ ping = function() { 1 } } }'
+  )
+  t.is(out.rulesetSchema.rid_version, '2.1.0')
+  var draft = require('./src/schemaFromSource')(
+    'ruleset io.test { meta { shares ping } global { /** q */ ping = function() { 1 } } }'
+  )
+  t.is(draft.rulesetSchema.rid_version, 'draft')
+})
+
+test('krl check reports unused @attr', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  /**',
+    '   * Bad.',
+    '   * @attr missing String',
+    '   */',
+    '  rule r { select when test ping if true then every { noop() } }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.true(out.warnings.some(function (w) {
+    return w.message.indexOf('@attr missing') !== -1
+  }))
+})
+
+test('krl check ignores /** on unshared helper (JSDoc @returns does not fail compile)', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  global {',
+    '    /** Hidden helper. @returns String */',
+    '    helper = function() { "x" }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.false(out.warnings.some(function (w) {
+    return w.message.indexOf('helper') !== -1 &&
+      w.message.indexOf('shares or provides') !== -1
+  }))
+})
+
+test('krl check no warn when annotated function is in provides', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { provides helper }',
+    '  global {',
+    '    /** Module export. @returns String */',
+    '    helper = function() { "x" }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.false(out.warnings.some(function (w) {
+    return w.message.indexOf('helper') !== -1 &&
+      w.message.indexOf('shares or provides') !== -1
+  }))
+})
+
+test('krl check errors on bad @param', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { shares f }',
+    '  global {',
+    '    /** @param nope String @returns Any */',
+    '    f = function() { null }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.false(out.ok)
+})
+
+test('rulesetSchema omitted when no annotations', function (t) {
+  var src = 'ruleset io.test { rule r { select when a b } }'
+  var out = compiler(src)
+  t.is(out.code.indexOf('__rulesetSchema1'), -1)
+})
 
 test('compiler errors', function (t) {
   var tstFail = function (src, errorMsg) {
@@ -274,4 +464,214 @@ test('type inference action vs function', function (t) {
     }
   }
   `), { message: 'Not a function: Action' })
+})
+
+test('rulesetSchema alsoSelectedBy includes unannotated rules and or alternatives', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  /** Main. */',
+    '  rule main {',
+    '    select when app open or app close',
+    '    if true then every { noop() }',
+    '  }',
+    '  rule helperOpen { select when app open if false then every { noop() } }',
+    '  rule helperClose { select when app close if false then every { noop() } }',
+    '}'
+  ].join('\n')
+  var op = require('./src/schemaFromSource')(src).rulesetSchema.operations[0]
+  t.is(op.alsoSelectedBy.length, 2)
+  t.true(op.alsoSelectedBy.some(function (p) { return p.rule === 'helperOpen' }))
+  t.true(op.alsoSelectedBy.some(function (p) { return p.rule === 'helperClose' }))
+})
+
+test('rulesetSchema select attr patterns become constraints', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  /** Install. @attr url String */',
+    '  rule install { select when wrangler install url re#(.+)# if true then every { noop() } }',
+    '}'
+  ].join('\n')
+  var op = require('./src/schemaFromSource')(src).rulesetSchema.operations[0]
+  t.deepEqual(op.entry[0].constraints, [{ attr: 'url', op: 'pattern', pattern: '(.+)' }])
+})
+
+test('rulesetSchema @attr optional wins over select pattern required', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  /**',
+    '   * Child.',
+    '   * @attr color String optional',
+    '   */',
+    '  rule child { select when wrangler child color re#.*# if true then every { noop() } }',
+    '}'
+  ].join('\n')
+  var op = require('./src/schemaFromSource')(src).rulesetSchema.operations[0]
+  var color = op.attrs.find(function (a) { return a.name === 'color' })
+  t.false(color.required)
+})
+
+test('rulesetSchema prechecks skip shared calls used as values in condition', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { shares wellKnown_Rx }',
+    '  global { wellKnown_Rx = function() { { "id": "x" } } }',
+    '  /** Rx. */',
+    '  rule rx {',
+    '    select when wrangler subscription',
+    '    if event:attr("x") != wellKnown_Rx(){"id"} then every { noop() }',
+    '  }',
+    '}'
+  ].join('\n')
+  var op = require('./src/schemaFromSource')(src).rulesetSchema.operations[0]
+  t.deepEqual(op.prechecks, [])
+})
+
+test('krl check accepts event:attrs{key} and event:attrs forward as attr reads', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  /**',
+    '   * Channel.',
+    '   * @attr name String',
+    '   */',
+    '  rule ch {',
+    '    select when wrangler channel',
+    '    if event:attrs{"name"} then every { noop() }',
+    '    fired { raise wrangler event "done" attributes event:attrs }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.false(out.warnings.some(function (w) {
+    return w.message.indexOf('@attr name') !== -1
+  }))
+})
+
+test('krl check @attr read only in alsoSelectedBy sibling is not unused', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  /**',
+    '   * Main.',
+    '   * @attr target_did String optional',
+    '   */',
+    '  rule main {',
+    '    select when app open or app close',
+    '    if true then every { noop() }',
+    '  }',
+    '  rule layer2 {',
+    '    select when app open or app close',
+    '    pre { target_did = event:attr("target_did") }',
+    '    if target_did then every { noop() }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.false(out.warnings.some(function (w) {
+    return w.message.indexOf('target_did') !== -1 && w.message.indexOf('not read') !== -1
+  }))
+})
+
+test('__testing compat alias uses rulesetSchema when annotated', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { shares ping }',
+    '  global { /** q @returns Any */ ping = function() { 1 } }',
+    '  /** Send ping. @attr msg String */',
+    '  rule send { select when test ping if event:attr("msg") then every { noop() } }',
+    '}'
+  ].join('\n')
+  var schema = require('./src/schemaFromSource')(src).rulesetSchema
+  var testing = require('./src/rulesetSchemaToTesting')(schema)
+  t.is(testing.events.length, 1)
+  t.is(testing.events[0].domain, 'test')
+  t.is(testing.queries[0].name, 'ping')
+  t.deepEqual(testing.events[0].attrs, ['msg'])
+  var out = compiler(src)
+  t.true(out.code.indexOf('"domain": "test"') !== -1)
+  t.true(out.code.indexOf('"attrs": ["msg"]') !== -1)
+})
+
+test('rulesetSchema includes @example on operations and queries', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { shares lookup }',
+    '  global {',
+    '    /**',
+    '     * Lookup.',
+    '     * @param key String',
+    '     * @returns Any',
+    '     * @example "by role" { "key": "Tx_role", "value": "manifold_thing" }',
+    '     */',
+    '    lookup = function(key, value) { null }',
+    '  }',
+    '  /**',
+    '   * Open.',
+    '   * @attr name String',
+    '   * @example "minimal" { "name": "test" }',
+    '   */',
+    '  rule open {',
+    '    select when app open',
+    '    if event:attr("name") then every { noop() }',
+    '  }',
+    '}'
+  ].join('\n')
+  var schema = require('./src/schemaFromSource')(src).rulesetSchema
+  t.deepEqual(schema.operations[0].examples, [{ name: 'minimal', attrs: { name: 'test' } }])
+  t.deepEqual(schema.queries[0].examples, [{
+    name: 'by role',
+    args: { key: 'Tx_role', value: 'manifold_thing' }
+  }])
+})
+
+test('krl check warns on unknown doc tag', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  /**',
+    '   * Open.',
+    '   * @deprecated use other',
+    '   */',
+    '  rule open { select when app open if true then every { noop() } }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.true(out.warnings.some(function (w) {
+    return w.message.indexOf('@deprecated') !== -1 && w.message.indexOf('ignored') !== -1
+  }))
+})
+
+test('krl check warns on @example key not in attrs', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  /**',
+    '   * Open.',
+    '   * @attr name String',
+    '   * @example "bad" { "nope": "x" }',
+    '   */',
+    '  rule open { select when app open if true then every { noop() } }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.true(out.warnings.some(function (w) {
+    return w.message.indexOf('nope') !== -1 && w.message.indexOf('@example') !== -1
+  }))
+})
+
+test('rulesetSchema shared alias query uses target params', function (t) {
+  var src = [
+    'ruleset io.test {',
+    '  meta { shares establishRelationship }',
+    '  global {',
+    '    establishSubscription = function(key, value) { null }',
+    '    /** Alias API. @param key String @param value String @returns Any */',
+    '    establishRelationship = establishSubscription',
+    '  }',
+    '}'
+  ].join('\n')
+  var q = require('./src/schemaFromSource')(src).rulesetSchema.queries[0]
+  t.is(q.name, 'establishRelationship')
+  t.is(q.args.length, 2)
+  t.is(q.args[0].name, 'key')
 })

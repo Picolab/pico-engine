@@ -219,6 +219,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("foo", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -239,6 +240,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("bar", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -259,6 +261,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("bar_setting", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("setting_val", val3);
         }
@@ -281,6 +284,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("chooser", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -312,6 +316,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("ifAnotB", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -351,6 +356,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("returns", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("setting_val", [
             await $stdlib["get"]($ctx, [
@@ -418,6 +424,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("scope", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("setting_val", [
             await $stdlib["get"]($ctx, [
@@ -440,6 +447,27 @@ module.exports = {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "add": add2,
+      "foo": foo2,
+      "bar": bar2,
+      "getSettingVal": getSettingVal2,
+      "chooser": chooser2,
+      "ifAnotB": ifAnotB2,
+      "echoAction": echoAction2,
+      "complexAction": complexAction2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.defaction {\n    meta {\n        shares getSettingVal, add\n    }\n    global {\n        add = function(a, b){\n            {\n                \"type\": \"directive\",\n                \"name\": \"add\",\n                \"options\": {\"resp\": a + b}\n            };\n        }\n        foo = defaction(a){\n            b = 2;\n\n            send_directive(\"foo\", {\n                \"a\": a,\n                \"b\": b + 3\n            });\n        }\n        bar = defaction(\n            one,\n            two = add(1, 1){[\"options\", \"resp\"]},\n            three = \"3 by default\",\n        ){\n\n            send_directive(\"bar\", {\n                \"a\": one,\n                \"b\": two,\n                \"c\": three\n            }) setting(dir);\n\n            return dir;\n        }\n        getSettingVal = function(){\n            ent:setting_val;\n        }\n        chooser = defaction(val){\n\n            choose val {\n                asdf =>\n                    foo(val);\n\n                fdsa =>\n                    bar(val, \"ok\", \"done\");\n            }\n        }\n        ifAnotB = defaction(a, b){\n\n            if a && not b then\n            every {\n                send_directive(\"yes a\");\n\n                send_directive(\"not b\");\n            }\n        }\n        echoAction = defaction(a, b, c){\n\n            noop();\n\n            return [a, b, c];\n        }\n        complexAction = defaction(a, b){\n            c = 100;\n            d = c + b;\n\n            if c > 0 then\n                send_directive(\"wat:\" + a, {\"b\": b}) setting(dir);\n\n            return dir[\"name\"] + \" \" + d;\n        }\n    }\n    rule foo {\n        select when defa foo\n\n        foo(\"bar\");\n    }\n    rule bar {\n        select when defa bar\n\n        bar(\n            \"baz\",\n            two = \"qux\",\n            three = \"quux\",\n        );\n    }\n    rule bar_setting {\n        select when defa bar_setting\n\n        bar(\n            \"baz\",\n            two = \"qux\",\n            three = \"quux\",\n        ) setting(val);\n\n        fired {\n            ent:setting_val := val\n        }\n    }\n    rule chooser {\n        select when defa chooser\n\n        chooser(event:attrs{\"val\"});\n    }\n    rule ifAnotB {\n        select when defa ifAnotB\n\n        ifAnotB(event:attrs{\"a\"} == \"true\", event:attrs{\"b\"} == \"true\");\n    }\n    rule returns {\n        select when defa returns\n\n        every {\n            echoAction(\"where\", \"in\", \"the\") setting(abc);\n\n            complexAction(abc[0] + abc[1] + abc[2], 333) setting(d);\n        }\n\n        fired {\n            ent:setting_val := [abc[0], abc[1], abc[2], d]\n        }\n    }\n    rule scope {\n        select when defa scope\n\n        pre {\n            something = defaction(){\n\n                noop();\n\n                return \"did something!\";\n            }\n            send_directive = defaction(){\n\n                noop() setting(foo);\n\n                return \"send wat? noop returned: \" + foo;\n            }\n            echoAction = defaction(){\n\n                noop();\n\n                return [\"aint\", \"no\", \"echo\"];\n            }\n        }\n\n        every {\n            echoAction(\"where\", \"in\", \"the\") setting(abc);\n\n            something() setting(d);\n\n            send_directive() setting(e);\n        }\n\n        fired {\n            ent:setting_val := [abc[0], abc[1], abc[2], d, e]\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -448,7 +476,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getSettingVal": async function (query, qid) {
@@ -469,8 +500,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

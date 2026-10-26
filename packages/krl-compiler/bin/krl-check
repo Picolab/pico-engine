@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+
+var fs = require('fs')
+var args = require('minimist')(process.argv.slice(2), {
+  boolean: ['help', 'version', 'json', 'schema'],
+  alias: { h: 'help', v: 'version' },
+  default: { json: false, schema: false }
+})
+
+if (args.help) {
+  console.log('USAGE')
+  console.log('    krl-check [--json] [--schema] [--help, -h] [file.krl]')
+  console.log()
+  console.log('DESCRIPTION')
+  console.log('    Parse and compile KRL with schema annotation lint.')
+  console.log('    Exits 0 when there are no errors; warnings go to stderr.')
+  console.log('    With no file, reads KRL from stdin.')
+  process.exit(0)
+}
+
+if (args.version) {
+  console.log('v' + require('../package.json').version)
+  process.exit(0)
+}
+
+var check = require('../src/check')
+
+function readSrc (cb) {
+  if (args._[0]) {
+    fs.readFile(args._[0], 'utf8', function (err, data) {
+      if (err) {
+        console.error(err.message)
+        process.exit(1)
+      }
+      cb(data.replace(/\r\n?/g, '\n'), args._[0])
+    })
+    return
+  }
+  var src = ''
+  process.stdin.on('data', function (data) {
+    src += data.toString()
+  })
+  process.stdin.on('end', function () {
+    cb(src.replace(/\r\n?/g, '\n'), undefined)
+  })
+}
+
+readSrc(function (src, filepath) {
+  var out = check(src, {
+    filepath: filepath,
+    parser_options: { filename: filepath }
+  })
+  if (args.json || args.schema) {
+    var payload = args.schema
+      ? { ok: out.ok, rid: out.rid, rulesetSchema: out.rulesetSchema, errors: out.errors, warnings: out.warnings }
+      : out
+    process.stdout.write(JSON.stringify(payload, null, 2) + '\n')
+    process.exit(out.ok ? 0 : 1)
+    return
+  }
+  out.errors.forEach(function (e) {
+    console.error('error: ' + e.message)
+  })
+  out.warnings.forEach(function (w) {
+    console.warn('warning: ' + w.message)
+  })
+  process.exit(out.ok ? 0 : 1)
+})

@@ -11,6 +11,7 @@ import { resolveBundledKrlUrl } from "./bundledKrl";
 import { openClassicLevelWithRecovery } from "./levelDb";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
+const rulesetCompileGeneration = require("krl-compiler/src/rulesetCompileGeneration");
 const charwise = require("charwise");
 const safeJsonCodec = require("level-json-coerce-null");
 
@@ -33,7 +34,12 @@ interface DbUrlRuleset {
   compiler: {
     version: string;
     warnings: any[];
+    compileGeneration?: string;
   };
+}
+
+function compileGenerationDir(): string {
+  return rulesetCompileGeneration().replace(/[^a-zA-Z0-9._-]+/g, "_");
 }
 
 export interface RulesetRegistryLoaderFsHandle {
@@ -62,11 +68,11 @@ export async function createRulesetRegistryLoaderFs(
     hash: string
   ): Promise<{
     ruleset: Ruleset;
-    compiler: { version: string; warnings: any[] };
+    compiler: DbUrlRuleset["compiler"];
   }> {
     const jsFile = path.resolve(
       rulesetDir,
-      krlCompilerVersion,
+      compileGenerationDir(),
       hash.substr(0, 2),
       hash.substr(2, 2),
       hash + ".js"
@@ -97,14 +103,23 @@ export async function createRulesetRegistryLoaderFs(
 
     const ruleset: Ruleset = require(jsFile);
 
+    const compileGeneration = rulesetCompileGeneration();
     return {
       ruleset,
-      compiler: { version: krlCompilerVersion, warnings: compileWarnings },
+      compiler: {
+        version: krlCompilerVersion,
+        warnings: compileWarnings,
+        compileGeneration,
+      },
     };
   }
 
   const loader: RulesetRegistryLoader = {
     fetchKrl,
+
+    getCompileGeneration() {
+      return rulesetCompileGeneration();
+    },
 
     async save({ ruleset, ...rest }) {
       let toWrite: DbUrlRuleset = rest;

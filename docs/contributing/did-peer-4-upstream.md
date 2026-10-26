@@ -1,6 +1,6 @@
 # Contribute did:peer:4 TypeScript to DIF
 
-**Status:** planned (parallel to 1.7 — **not** on the 1.7 critical path)  
+**Status:** **green light** from DIF ([issue #11](https://github.com/decentralized-identity/did-peer-4/issues/11), maintainer dbluhm, Oct 2026) — draft PR next  
 **Owner:** Picolab / pico-engine team  
 **Target repo:** [`decentralized-identity/did-peer-4`](https://github.com/decentralized-identity/did-peer-4)  
 **Source in pico-engine:** `packages/pico-engine/src/identity/peerDid4.ts` (spike, commit `0bcee109`)
@@ -37,17 +37,27 @@ Offering the TS port upstream:
 
 | # | Task | Status |
 |---|------|--------|
-| 1 | Open DIF issue (draft in [`contrib/did-peer-4-typescript/ISSUE-DRAFT.md`](../../contrib/did-peer-4-typescript/ISSUE-DRAFT.md)) | ☐ |
-| 2 | Maintainer feedback on layout (`typescript/` vs `packages/ts/`) | ☐ |
-| 3 | Extract core from `peerDid4.ts` into PR scaffold | ☐ |
-| 4 | Port Python tests: `test_did_peer_4.py`, `test_input_doc.py`, `test_valid.py`, README examples | ☐ |
-| 5 | Browser-neutral hash (optional `Uint8Array` + injectable SHA-256 vs Node `crypto`) | ☐ |
-| 6 | vitest + GitHub Actions in PR branch | ☐ |
+| 1 | Open DIF issue (draft in [`contrib/did-peer-4-typescript/ISSUE-DRAFT.md`](../../contrib/did-peer-4-typescript/ISSUE-DRAFT.md)) | ✅ [#11](https://github.com/decentralized-identity/did-peer-4/issues/11) |
+| 2 | Maintainer feedback on layout | ✅ **`typescript/`** at repo root; npm name maintainer-neutral; **share JSON fixtures** with Python tests |
+| 3 | Extract core from `peerDid4.ts` into PR scaffold | ✅ synced in `contrib/did-peer-4-typescript/src/peerDid4.ts` |
+| 4 | Port Python tests + **shared JSON vectors** | ✅ `vectors.test.ts`, `examples.test.ts`, `fixtures/vectors/`, vendored `fixtures/examples/` for offline dev |
+| 5 | Browser-neutral hash (optional `Uint8Array` + injectable SHA-256 vs Node `crypto`) | ☐ (defer; Node `crypto` in v1 PR) |
+| 6 | vitest + GitHub Actions in PR branch | ✅ local vitest; workflow template in `contrib/.../.github/workflows/typescript.yml` |
 | 7 | DCO sign-off on commits (Apache-2.0) | ☐ |
-| 8 | Submit PR to DIF | ☐ |
+| 8 | Submit PR to DIF | ✅ [PR #12](https://github.com/decentralized-identity/did-peer-4/pull/12) (`windley:feat/typescript-implementation`) |
 | 9 | After merge: decide npm publish path; pico-engine may depend on published package | ☐ |
 
 **Estimate:** 2–4 focused days after issue approval.
+
+### Maintainer decisions (issue #11)
+
+| Question | Answer |
+|----------|--------|
+| Layout | **`typescript/`** subdirectory in `did-peer-4` |
+| npm package name | No maintainer preference — propose **`did-peer-4`** (matches repo; `package.json` in contrib already uses this) |
+| Cross-language tests | **Yes** — extract/share JSON fixtures from Python examples for TS vitest |
+
+**Suggested follow-up on #11:** thank maintainer; confirm draft PR will add `typescript/` from pico-engine spike; mention Apache-2.0 + DCO; offer to align export names with Python module where practical.
 
 ---
 

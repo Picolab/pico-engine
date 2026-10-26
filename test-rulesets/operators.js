@@ -152,6 +152,24 @@ module.exports = {
       ]);
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    const $consoleGlobalRefs = {
+      "nothing": nothing2,
+      "some_string": some_string2,
+      "results": results2,
+      "returnMapAfterKlog": returnMapAfterKlog2,
+      "returnArrayAfterKlog": returnArrayAfterKlog2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.operators {\n    meta {\n        shares results, returnMapAfterKlog, returnArrayAfterKlog\n    }\n    global {\n        nothing = null\n        some_string = \"foo\"\n        results = {\n            \"str_as_num\": \"100.25\".as(\"Number\"),\n            \"num_as_str\": 1.05.as(\"String\"),\n            \"regex_as_str\": re#blah#i.as(\"String\"),\n            \"isnull\": [\n                1.isnull(),\n                some_string.isnull(),\n                nothing.isnull()\n            ],\n            \"typeof\": [\n                1.typeof(),\n                some_string.typeof(),\n                \"hi\".typeof(),\n                [1, 2].typeof(),\n                {\"a\": 1}.typeof(),\n                re#foo#.typeof(),\n                nothing.typeof(),\n                null.typeof()\n            ],\n            \"75.chr()\": 75.chr(),\n            \"0.range(10)\": 0.range(10),\n            \"10.sprintf\": 10.sprintf(\"< %d>\"),\n            \".capitalize()\": \"Hello World\".capitalize(),\n            \".decode()\": \"[3, 4, 5]\".decode(),\n            \".extract\": \"This is a string\".extract(re#(s.+).*(.ing)#),\n            \".lc()\": \"Hello World\".lc(),\n            \".match true\": \"Something\".match(re#^S.*g$#),\n            \".match false\": \"Someone\".match(re#^S.*g$#),\n            \".ord()\": \"Hello\".ord(),\n            \".replace\": \"Hello William!\".replace(re#will#i, \"Bill\"),\n            \".split\": \"a;b;c\".split(re#;#),\n            \".sprintf\": \"Jim\".sprintf(\"Hello %s!\"),\n            \".substr(5)\": \"This is a string\".substr(5),\n            \".substr(5, 4)\": \"This is a string\".substr(5, 4),\n            \".substr(5, -5)\": \"This is a string\".substr(5, -5),\n            \".substr(25)\": \"This is a string\".substr(25),\n            \".uc()\": \"Hello World\".uc()\n        }\n        returnMapAfterKlog = function(){\n            {\"a\": 1}.klog(\"hi:\");\n        }\n        returnArrayAfterKlog = function(){\n            [1, 2].klog(\"hi:\");\n        }\n    }\n\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -160,7 +178,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "results": async function (query, qid) {
@@ -189,8 +210,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

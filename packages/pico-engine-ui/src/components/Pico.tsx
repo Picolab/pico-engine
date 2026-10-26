@@ -24,28 +24,43 @@ function returnTabLink(pico: PicoBox, label: string, tab?: string) {
   );
 }
 
-function renderTabsBody(pico: PicoBox, openTab?: string) {
+/** Keep tab panels mounted so local state survives Rulesets ↔ Testing switches. */
+function PicoTabPanels({ pico, openTab }: { pico: PicoBox; openTab?: string }) {
   const tab = typeof openTab === "string" ? openTab.toLowerCase().trim() : "";
+  const active =
+    tab === "rulesets" ||
+    tab === "channels" ||
+    tab === "logging" ||
+    tab === "testing" ||
+    tab === "subscriptions" ||
+    tab === "relationships"
+      ? tab
+      : "about";
 
-  switch (tab) {
-    case "rulesets":
-      return <Rulesets pico={pico} />;
-
-    case "channels":
-      return <Channels pico={pico} />;
-
-    case "logging":
-      return <Logging pico={pico} />;
-
-    case "testing":
-      return <Testing pico={pico} />;
-
-    case "subscriptions":
-    case "relationships":
-      return <Relationships pico={pico} />;
-  }
-
-  return <About pico={pico} />;
+  return (
+    <>
+      <div hidden={active !== "about"}>
+        <About pico={pico} />
+      </div>
+      <div hidden={active !== "rulesets"}>
+        <Rulesets pico={pico} isTabActive={active === "rulesets"} />
+      </div>
+      <div hidden={active !== "channels"}>
+        <Channels pico={pico} />
+      </div>
+      <div hidden={active !== "logging"}>
+        <Logging pico={pico} />
+      </div>
+      <div hidden={active !== "testing"}>
+        <Testing pico={pico} />
+      </div>
+      <div
+        hidden={active !== "relationships" && active !== "subscriptions"}
+      >
+        <Relationships pico={pico} />
+      </div>
+    </>
+  );
 }
 
 interface Props {
@@ -130,7 +145,7 @@ const Pico: React.FC<Props> = (props) => {
             </ul>
           </div>
           <div className="card-body bg-white overflow-auto">
-            {renderTabsBody(pico, openTab)}
+            <PicoTabPanels pico={pico} openTab={openTab} />
           </div>
         </React.Fragment>
       ) : (

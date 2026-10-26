@@ -26,10 +26,12 @@ import { IdentityService } from "./identity/IdentityService";
 import { registerWebvhRoutes } from "./identity/webvhRoutes";
 import { registerDidcommIngressRoutes } from "./identity/didcommIngressRoutes";
 
+import { getEngineRuntimeSettings } from "./engineConfig";
+
 const engineVersion = require("../package.json").version;
 
 function localhostChannelBypassEnabled(): boolean {
-  return process.env.PICO_ENGINE_ALLOW_LOCALHOST_C !== "0";
+  return getEngineRuntimeSettings().allowLocalhostChannelBypass;
 }
 
 function mergeGetPost(req: Request) {
@@ -386,6 +388,27 @@ export function server(
       .catch(next);
   });
 
+  /** Localhost-only context for dev MCP (stdio) and other local tooling. */
+  app.get("/api/dev/local", function (req, res) {
+    if (!localhostChannelBypassEnabled() || !isLocalhostRequest(req)) {
+      res.status(403).json({ error: "localhost only" });
+      return;
+    }
+    const roots = pf.rootPicos();
+    const rootPico = roots[0];
+    const rootUiEci = rootPico ? uiECIForRoot(pf, rootPico.id) : null;
+    let baseUrl = core.base_url;
+    if (!baseUrl) {
+      baseUrl = `${req.protocol}://${req.get("host") || "localhost"}`;
+    }
+    res.json({
+      version: engineVersion,
+      hasRoots: roots.length > 0,
+      rootUiEci,
+      baseUrl: baseUrl.replace(/\/$/, ""),
+    });
+  });
+
   app.all("/api/flush", requireAuthSession, function (req, res, next) {
     const attrs = mergeGetPost(req);
     const url = attrs["url"];
@@ -552,6 +575,17 @@ export function server(
   // Legacy alias; prefer /sky/query/ per Sky Query API docs.
   app.all("/sky/cloud/:eci/:rid/:function", requireSkyBearerIfOAuth, handleSkyQuery);
 
+  // Mesh MCP (Streamable HTTP, OAuth bearer scoped to :eci)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { registerMeshMcpRoutes } = require("../mcp/meshHttp.js") as {
+    registerMeshMcpRoutes: (
+      app: Express,
+      core: PicoEngineCore,
+      oauth?: OAuthService
+    ) => void;
+  };
+  registerMeshMcpRoutes(app, core, oauth);
+
   app.use(function (
     err: any,
     req: express.Request,
@@ -567,7 +601,12 @@ export function server(
       return;
     }
     let message = err + "";
-    console.error(err);
+    const policyNoise =
+      process.env.NODE_ENV === "test" &&
+      /not allowed by channel policy/i.test(message);
+    if (!policyNoise) {
+      console.error(err);
+    }
     if (err?.krl_compiler?.loc?.start) {
       message +=
         " [at line " +

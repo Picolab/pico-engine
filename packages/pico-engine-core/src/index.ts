@@ -35,3 +35,19 @@ export {
   type SubtreePortableHooks,
 } from "./subtreeState";
 export type { RulesetStateServices } from "./rulesetState";
+export {
+  validateKrl,
+  validateKrlSource,
+  type ValidateKrlResult,
+} from "./validateKrl";
+export {
+  buildPicoSchema,
+  rulesetSchemaForInstalled,
+  schemaBindingsFromRuleset,
+  channelSchemaForEci,
+  filterPicoSchemaForChannel,
+  mergePicoSchema,
+  type PicoSchema,
+  type RulesetSchema,
+  type DiscoveryBindings,
+} from "./picoSchema";

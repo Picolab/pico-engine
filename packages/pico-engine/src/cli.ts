@@ -1,10 +1,42 @@
 import { PicoEngine, PicoEngineConfiguration, startEngine } from "./index";
+import { applyConfigCliArgs, resolveEngineSettings } from "./engineConfig";
 const version = require("../package.json").version;
 
+let argv: string[];
+try {
+  argv = applyConfigCliArgs(process.argv.slice(2));
+} catch (err) {
+  console.error(err instanceof Error ? err.message : err);
+  process.exit(1);
+}
+
+if (argv[0] === "mcp") {
+  import("./runMcp")
+    .then(({ runMcpCli }) => runMcpCli(argv))
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
+} else if (argv[0] === "config" && argv[1] === "path") {
+  const { resolveEngineConfigFilePath, defaultEngineConfigFilePath } =
+    require("./engineConfig");
+  const target = resolveEngineConfigFilePath();
+  console.log(target);
+  if (target === defaultEngineConfigFilePath()) {
+    console.error(
+      "(default; copy packages/pico-engine/config.example.json here to customize)",
+    );
+  }
+  process.exit(0);
+} else {
+  startPicoEngineCli();
+}
+
+function startPicoEngineCli() {
 const args: {
   help: boolean;
   version: boolean;
-} = require("minimist")(process.argv.slice(2), {
+} = require("minimist")(argv, {
   boolean: ["help", "version"],
   alias: {
     help: "h",
@@ -19,66 +51,48 @@ if (args.help) {
   console.log(`
 USAGE
 
-    pico-engine [--version] [--help|-h]
+    pico-engine [--config|-c <path>] [--version] [--help|-h]
+    pico-engine [--config|-c <path>] config path
+    pico-engine [--config|-c <path>] mcp --stdio
 
-Environment Variables:
+Multiple engines on one machine: use a separate config file per process (unique
+home, port, baseUrl). Examples: packages/pico-engine/config.instances.example/
+and docker/config/ for compose.
 
-    PORT - The port the http server should listen on. By default it's 3000
-    PICO_ENGINE_HOME - Where the database and other files should be stored. By default it's ~/.pico-engine/
-    PICO_ENGINE_BASE_URL - The public url prefix to reach this engine. By default it's http://localhost:$PORT
-    PICO_ENGINE_RP_ID - WebAuthn relying party id (defaults to hostname of PICO_ENGINE_BASE_URL)
-    PICO_ENGINE_ORIGIN - WebAuthn origin, scheme://host[:port] (defaults to origin of PICO_ENGINE_BASE_URL)
-    PICO_ENGINE_ALLOW_SELF_SIGNUP - Set to "true" or "1" to allow anyone to register a new account
-        after the engine is bootstrapped. Default is false (login only; bootstrap and invite still work).
-    PICO_ENGINE_ALLOW_LOCALHOST_C - Set to "0" to require passkey session on /c/* even from localhost.
-        Default (unset) allows localhost without session for in-engine ctx:event HTTP loops. See MEMORY.md.
+Configuration (preferred):
+
+    ~/.config/pico-engine/config.json
+    (or --config / PICO_ENGINE_CONFIG to another file path)
+
+    See packages/pico-engine/config.example.json (and config.policy-ceiling.example.json for 1.8 policy fields).
+    Precedence: defaults → environment variables → config file → tests/API overrides.
+    (Config file wins over PORT and PICO_ENGINE_HOME when both are set; env fills gaps the file omits.)
+
+Environment (optional; Docker/CI when not set in config file):
+
+    PORT - HTTP listen port
+    PICO_ENGINE_CONFIG - Path to config JSON (default ~/.config/pico-engine/config.json)
+    PICO_ENGINE_HOME - Data directory (DB, ruleset cache); overridden by config "home" when present
+    PICO_ENGINE_BASE_URL - Public URL (WebAuthn, did:webvh)
+    PICO_ENGINE_RP_ID / PICO_ENGINE_ORIGIN - WebAuthn (or use webauthn block in config file)
+    PICO_ENGINE_ALLOW_SELF_SIGNUP - "true"/"1" or "false"/"0"
+    PICO_ENGINE_ALLOW_LOCALHOST_C - "0" disables localhost /c/* bypass (see config allowLocalhostChannelBypass)
+    PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER - "1" enables wildcard /sky/* bearer requirement
+    PICO_ENGINE_LOG_FILE - Log path, or stdout/- / 0 for console only
 `);
   process.exit(0);
 }
 
-const env: PicoEngineConfiguration = {};
-
-if (process.env.PORT) {
-  const port = parseInt(process.env.PORT, 10);
-  if (port > 0) {
-    env.port = port;
-  }
-}
-
-if (
-  typeof process.env.PICO_ENGINE_HOME === "string" &&
-  process.env.PICO_ENGINE_HOME.length > 0
-) {
-  env.home = process.env.PICO_ENGINE_HOME;
-}
-
-if (
-  typeof process.env.PICO_ENGINE_BASE_URL === "string" &&
-  process.env.PICO_ENGINE_BASE_URL.length > 0
-) {
-  env.base_url = process.env.PICO_ENGINE_BASE_URL;
-}
-
-if (
-  typeof process.env.PICO_ENGINE_RP_ID === "string" &&
-  process.env.PICO_ENGINE_RP_ID.length > 0
-) {
-  env.rpID = process.env.PICO_ENGINE_RP_ID;
-}
-
-if (
-  typeof process.env.PICO_ENGINE_ORIGIN === "string" &&
-  process.env.PICO_ENGINE_ORIGIN.length > 0
-) {
-  env.origin = process.env.PICO_ENGINE_ORIGIN;
-}
-
-const allowSelfSignupEnv = process.env.PICO_ENGINE_ALLOW_SELF_SIGNUP;
-if (allowSelfSignupEnv === "true" || allowSelfSignupEnv === "1") {
-  env.allowSelfSignup = true;
-} else if (allowSelfSignupEnv === "false" || allowSelfSignupEnv === "0") {
-  env.allowSelfSignup = false;
-}
+const settings = resolveEngineSettings({});
+const env: PicoEngineConfiguration = {
+  home: settings.home,
+  port: settings.port,
+  base_url: settings.baseUrl,
+  rpID: settings.rpID,
+  rpName: settings.rpName,
+  origin: settings.origin,
+  allowSelfSignup: settings.allowSelfSignup,
+};
 
 function installGracefulShutdown(engine: PicoEngine) {
   let shuttingDown = false;
@@ -112,3 +126,4 @@ startEngine(env)
     console.error(err);
     process.exit(1);
   });
+}

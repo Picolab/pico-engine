@@ -12,6 +12,7 @@ package-lock.json
 yarn.lock
 .ok
 .vscode
+.cursor/mcp.json
 agent.html
 build
 pico-engine.ish

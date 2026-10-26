@@ -40,6 +40,22 @@ module.exports = {
       return await $ctx.krl.assertFunction(infiniteRecursion2)($ctx, []);
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    const $consoleGlobalRefs = {
+      "hello": hello2,
+      "null_val": null_val2,
+      "infiniteRecursion": infiniteRecursion2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.test-error-messages {\n    meta {\n        description <<\nThis is a ruleset that will compile, but does things\nthe wrong way to test how they are handled at runtime\n        >>\n\n        shares hello, null_val, infiniteRecursion\n    }\n    global {\n        hello = function(obj){\n            \"Hello \" + obj;\n        }\n        null_val = null\n        infiniteRecursion = function(){\n            infiniteRecursion();\n        }\n    }\n\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -48,7 +64,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "hello": async function (query, qid) {
@@ -77,8 +96,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

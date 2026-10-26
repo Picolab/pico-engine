@@ -43,10 +43,23 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("action", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = { "qFn": qFn2 };
+    const $rulesetKrlSource = "ruleset io.picolabs.js-module {\n    meta {\n        shares qFn\n    }\n    global {\n        qFn = function(a){\n            myJsModule:fun0(a, b = 2);\n        }\n    }\n    rule action {\n        select when js_module action\n\n        every {\n            myJsModule:act(100, b = 30) setting(val);\n\n            send_directive(\"resp\", {\"val\": val});\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -55,7 +68,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "qFn": async function (query, qid) {
@@ -68,8 +84,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

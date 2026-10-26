@@ -37,6 +37,25 @@ module.exports = {
     const e2 = "static";
     const f2 = "";
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    const $consoleGlobalRefs = {
+      "a": a2,
+      "b": b2,
+      "c": c2,
+      "d": d2,
+      "e": e2,
+      "f": f2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.chevron {\n    meta {\n        description <<\nHello Chevrons!\n        >>\n\n        shares d\n    }\n    global {\n        a = 1\n        b = 2\n        c = \"<h1>some<b>html</b></h1>\"\n        d = <<\n            hi #{a} + #{b} = #{1 + 2}\n            #{c}\n        >>\n        e = <<static>>\n        f = <<>>\n    }\n\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -45,7 +64,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "d": async function (query, qid) {
@@ -58,8 +80,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

@@ -21,6 +21,17 @@ export interface Directive {
   };
 }
 
+export type RuleOutcomeStatus = "fired" | "not_fired" | "not_selected";
+
+/** Per annotated rule after an event (1.8 rule outcome reporting). */
+export interface RuleOutcome {
+  rid: string;
+  rule: string;
+  status: RuleOutcomeStatus;
+  /** Present when status is not_selected (from ruleset schema). */
+  select?: string;
+}
+
 export interface PicoLogEntry {
   level: string;
   time: string;
@@ -55,6 +66,19 @@ export interface KrlCtx {
   addDirective(name: string, options: { [name: string]: any }): Directive;
   drainDirectives(): Directive[];
 
+  /** Record selected rule finished (fired or condition false). */
+  recordRuleOutcome(rule: string, fired: boolean): void;
+  drainRuleOutcomes(): RuleOutcome[];
+
   // compiler lib
   krl: typeof krl;
+
+  /** Engine-injected KRL console compiler (not available in KRL modules). */
+  compileEvalExpression?: (
+    expr: string,
+    opts: { rulesetKrl: string }
+  ) => {
+    warnings: unknown[];
+    run: ($ctx: KrlCtx, $g: Record<string, unknown>) => Promise<unknown>;
+  };
 }

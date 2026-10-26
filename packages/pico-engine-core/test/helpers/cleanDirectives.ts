@@ -6,5 +6,14 @@ import { Directive } from "krl-stdlib";
 import * as _ from "lodash";
 
 export function cleanDirectives(responses: any[]): Directive[] {
-  return _.compact(_.flattenDeep(responses));
+  const parts = responses.flatMap((response) => {
+    if (Array.isArray(response)) {
+      return response;
+    }
+    if (response && Array.isArray(response.directives)) {
+      return response.directives;
+    }
+    return [];
+  });
+  return _.compact(parts);
 }

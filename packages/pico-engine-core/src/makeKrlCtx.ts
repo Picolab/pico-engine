@@ -4,6 +4,7 @@ import {
   Directive,
   krl,
   KrlCtx,
+  RuleOutcome,
 } from "krl-stdlib";
 import { RulesetContext } from "pico-framework";
 import { PicoEngineCore } from "./PicoEngineCore";
@@ -24,6 +25,7 @@ export function makeKrlCtx(
   let currentRuleName: string | null = null;
 
   let directives: Directive[] = [];
+  let ruleOutcomes: RuleOutcome[] = [];
 
   const krlCtx: KrlCtx = {
     rsCtx, // the basic pico+ruleset context from pico-framework
@@ -96,9 +98,24 @@ export function makeKrlCtx(
       return tmp;
     },
 
+    recordRuleOutcome(rule: string, fired: boolean) {
+      ruleOutcomes.push({
+        rid: rsCtx.ruleset.rid,
+        rule,
+        status: fired ? "fired" : "not_fired",
+      });
+    },
+    drainRuleOutcomes() {
+      const tmp = ruleOutcomes;
+      ruleOutcomes = [];
+      return tmp;
+    },
+
     ///////////////////////////////////////////////////////////////////////////
     // compiler lib
     krl,
+
+    compileEvalExpression: require("krl-compiler").compileEvalExpression,
   };
   return krlCtx;
 }

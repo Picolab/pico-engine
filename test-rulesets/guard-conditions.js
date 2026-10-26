@@ -69,6 +69,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("foo", $fired);
         if (await match1($ctx, [
             b3,
             new RegExp("foo", "")
@@ -106,6 +107,7 @@ module.exports = {
             $ctx.log.debug("fired");
           else
             $ctx.log.debug("not fired");
+          $ctx.recordRuleOutcome("bar", $fired);
           if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
             await $ctx.rsCtx.putEnt("b", x3);
         }
@@ -132,12 +134,25 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("on_final_no_foreach", $fired);
         if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
           await $ctx.rsCtx.putEnt("b", x3);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = { "getB": getB2 };
+    const $rulesetKrlSource = "ruleset io.picolabs.guard-conditions {\n    meta {\n        shares getB\n    }\n    global {\n        getB = function(){\n            ent:b;\n        }\n    }\n    rule foo {\n        select when foo a b re#^(.*)$# setting(b)\n\n        send_directive(\"foo\", {\"b\": b});\n\n        always {\n            ent:b := b if b.match(re#foo#)\n        }\n    }\n    rule bar {\n        select when bar a\n        foreach [1, 2, 3] setting(x)\n\n        send_directive(\"bar\", {\n            \"x\": x,\n            \"b\": ent:b\n        });\n\n        always {\n            ent:b := x on final\n        }\n    }\n    rule on_final_no_foreach {\n        select when on_final_no_foreach a\n\n        pre {\n            x = event:attrs{\"x\"}\n        }\n\n        send_directive(\"on_final_no_foreach\", {\"x\": x});\n\n        always {\n            ent:b := x on final\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -146,7 +161,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getB": async function (query, qid) {
@@ -159,8 +177,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

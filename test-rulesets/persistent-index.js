@@ -97,6 +97,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("setfoo", $fired);
         await $ctx.rsCtx.putEnt("foo", $ctx.module("event")["attrs"]($ctx));
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -119,6 +120,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("putfoo", $fired);
         await $ctx.rsCtx.putEnt("foo", await $stdlib.set($ctx, [
           await $ctx.rsCtx.getEnt("foo"),
           key3,
@@ -141,6 +143,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("delfoo", $fired);
         await $ctx.rsCtx.putEnt("foo", await $stdlib.delete($ctx, [
           await $ctx.rsCtx.getEnt("foo"),
           key3
@@ -158,6 +161,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("nukefoo", $fired);
         await $ctx.rsCtx.delEnt("foo");
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -172,6 +176,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("putbaz", $fired);
         await $ctx.rsCtx.putEnt("baz", await $stdlib.set($ctx, [
           await $ctx.rsCtx.getEnt("baz"),
           [
@@ -193,6 +198,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("setmaplist", $fired);
         await $ctx.rsCtx.putEnt("maplist", [
           { "id": "one" },
           { "id": "two" },
@@ -211,6 +217,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("putmaplist", $fired);
         await $ctx.rsCtx.putEnt("maplist", await $stdlib.set($ctx, [
           await $ctx.rsCtx.getEnt("maplist"),
           [
@@ -223,6 +230,23 @@ module.exports = {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "getFoo": getFoo2,
+      "getFooKey": getFooKey2,
+      "getBaz": getBaz2,
+      "getMaplist": getMaplist2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.persistent-index {\n    meta {\n        shares getFoo, getFooKey, getBaz, getMaplist\n    }\n    global {\n        getFoo = function(){\n            ent:foo;\n        }\n        getFooKey = function(key){\n            ent:foo{key};\n        }\n        getBaz = function(){\n            ent:baz;\n        }\n        getMaplist = function(){\n            ent:maplist;\n        }\n    }\n    rule setfoo {\n        select when pindex setfoo\n        always {\n            ent:foo := event:attrs\n        }\n    }\n    rule putfoo {\n        select when pindex putfoo\n\n        pre {\n            key = event:attrs{\"key\"}\n            value = event:attrs{\"value\"}\n        }\n        always {\n            ent:foo{key} := value\n        }\n    }\n    rule delfoo {\n        select when pindex delfoo\n\n        pre {\n            key = event:attrs{\"key\"}\n        }\n        always {\n            clear ent:foo{key}\n        }\n    }\n    rule nukefoo {\n        select when pindex nukefoo\n        always {\n            clear ent:foo\n        }\n    }\n    rule putbaz {\n        select when pindex putbaz\n        always {\n            ent:baz{[\"one\", \"two\"]} := \"three\"\n        }\n    }\n    rule setmaplist {\n        select when pindex setmaplist\n        always {\n            ent:maplist := [{\"id\": \"one\"}, {\"id\": \"two\"}, {\"id\": \"three\"}]\n        }\n    }\n    rule putmaplist {\n        select when pindex putmaplist\n        always {\n            ent:maplist{[1, \"other\"]} := \"thing\"\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -231,7 +255,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getFoo": async function (query, qid) {
@@ -268,8 +295,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

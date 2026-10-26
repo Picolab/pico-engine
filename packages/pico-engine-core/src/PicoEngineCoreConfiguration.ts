@@ -1,6 +1,11 @@
 import { krl, KrlLogger, PicoLogEntry } from "krl-stdlib";
 import { RulesetRegistryLoader } from "./RulesetRegistry";
-import { PicoDb } from "pico-framework";
+import {
+  EventPolicyRule,
+  PicoDb,
+  PolicyCeiling,
+  QueryPolicyRule,
+} from "pico-framework";
 
 /**
  * Configuration options that may be set by the user
@@ -47,6 +52,15 @@ export interface PicoEngineCoreConfiguration {
    * Set true in tests that expect the historical auto-created root.
    */
   autoCreateRootPico?: boolean;
+
+  /** Default max channel policy for root picos (1.8 policy ceiling). */
+  defaultRootPolicyCeiling?: PolicyCeiling;
+
+  /** Engine-wide event denies applied on every channel (1.8). */
+  globalEventDeny?: EventPolicyRule[];
+
+  /** Engine-wide query denies applied on every channel (1.8). */
+  globalQueryDeny?: QueryPolicyRule[];
 
   /**
    * Called after ctx:newPico creates a child pico (Epic 3+ identity provisioning).

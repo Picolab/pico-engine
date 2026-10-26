@@ -4,6 +4,17 @@
 
 An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) hosted on node.js
 
+## Quick start
+
+```sh
+npm install -g pico-engine
+pico-engine
+```
+
+Open `http://localhost:3000` — a root pico and UI channel are created on first run. Operator settings (port, data dir, policy ceiling) live in **`~/.config/pico-engine/config.json`**; copy [`config.example.json`](config.example.json). See [`public/docs/pico-engine.md`](public/docs/pico-engine.md).
+
+**Agents (local dev):** [`CLAUDE.md`](../../CLAUDE.md) at repo root + `pico-engine mcp --stdio` (stdio MCP to the same engine). Machine-readable docs: [`public/docs/llms.txt`](public/docs/llms.txt).
+
 ## Getting Started
 
 ### Installing
@@ -148,7 +159,7 @@ The CLI handles **SIGTERM** and **SIGINT** by closing the HTTP server and both d
 ```yaml
 services:
   pico-engine:
-    image: picolabs/pico-engine:1.7.0
+    image: picolabs/pico-engine:1.8.0
     ports:
       - "3001:3000"
     environment:

@@ -86,6 +86,7 @@ module.exports = {
             $ctx.log.debug("fired");
           else
             $ctx.log.debug("not fired");
+          $ctx.recordRuleOutcome("basic", $fired);
         }
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -120,6 +121,7 @@ module.exports = {
             $ctx.log.debug("fired");
           else
             $ctx.log.debug("not fired");
+          $ctx.recordRuleOutcome("map", $fired);
         }
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -162,6 +164,7 @@ module.exports = {
               $ctx.log.debug("fired");
             else
               $ctx.log.debug("not fired");
+            $ctx.recordRuleOutcome("nested", $fired);
           }
         }
       } finally {
@@ -214,6 +217,7 @@ module.exports = {
                 $ctx.log.debug("fired");
               else
                 $ctx.log.debug("not fired");
+              $ctx.recordRuleOutcome("scope", $fired);
             }
           }
         }
@@ -262,6 +266,7 @@ module.exports = {
               $ctx.log.debug("fired");
             else
               $ctx.log.debug("not fired");
+            $ctx.recordRuleOutcome("final", $fired);
             if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
               await $ctx.rsCtx.raiseEvent("foreach", "final_raised", {
                 "x": x3,
@@ -297,6 +302,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("final_raised", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -341,12 +347,25 @@ module.exports = {
               $ctx.log.debug("fired");
             else
               $ctx.log.debug("not fired");
+            $ctx.recordRuleOutcome("key_vs_index", $fired);
           }
         }
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = { "doubleThis": doubleThis2 };
+    const $rulesetKrlSource = "ruleset io.picolabs.foreach {\n    meta {\n        name \"testing foreach\"\n    }\n    global {\n        doubleThis = function(arr){\n            [arr, arr];\n        }\n    }\n    rule basic {\n        select when foreach basic\n        foreach [1, 2, 3] setting(x)\n\n        send_directive(\"basic\", {\"x\": x});\n    }\n    rule map {\n        select when foreach map\n        foreach {\n            \"a\": 1,\n            \"b\": 2,\n            \"c\": 3\n        } setting(v, k)\n\n        send_directive(\"map\", {\n            \"k\": k,\n            \"v\": v\n        });\n    }\n    rule nested {\n        select when foreach nested\n        foreach [1, 2, 3] setting(x)\n            foreach [\"a\", \"b\", \"c\"] setting(y)\n\n        send_directive(\"nested\", {\n            \"x\": x,\n            \"y\": y\n        });\n    }\n    rule scope {\n        select when foreach scope\n        foreach doubleThis([1, 2, 3]) setting(arr)\n            foreach arr setting(foo)\n                foreach 0.range(foo) setting(bar)\n\n        pre {\n            baz = foo * bar\n        }\n\n        send_directive(\"scope\", {\n            \"foo\": foo,\n            \"bar\": bar,\n            \"baz\": baz\n        });\n    }\n    rule final {\n        select when foreach final\n        foreach event:attrs{\"x\"}.split(\",\") setting(x)\n            foreach event:attrs{\"y\"}.split(\",\") setting(y)\n\n        send_directive(\"final\", {\n            \"x\": x,\n            \"y\": y\n        });\n\n        always {\n            raise foreach event \"final_raised\"\n                attributes {\n                    \"x\": x,\n                    \"y\": y\n                } on final\n        }\n    }\n    rule final_raised {\n        select when foreach final_raised\n\n        send_directive(\"final_raised\", {\n            \"x\": event:attrs{\"x\"},\n            \"y\": event:attrs{\"y\"}\n        });\n    }\n    rule key_vs_index {\n        select when foreach key_vs_index\n        foreach {\n            \"foo\": \"bar\",\n            \"baz\": \"qux\"\n        } setting(a, k)\n            foreach [\"one\", \"two\", \"three\"] setting(b, i)\n\n        send_directive(\"key_vs_index\", {\n            \"a\": a,\n            \"k\": k,\n            \"b\": b,\n            \"i\": i\n        });\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -355,13 +374,25 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

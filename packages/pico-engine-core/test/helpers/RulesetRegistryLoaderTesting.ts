@@ -18,6 +18,10 @@ export function RulesetRegistryLoaderTesting(rulesets: {
       return "fake";
     },
 
+    getCompileGeneration() {
+      return "test";
+    },
+
     async save(data) {
       urlData[data.url] = data;
     },

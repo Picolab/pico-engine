@@ -56,6 +56,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("reset_order", $fired);
         await $ctx.rsCtx.putEnt("order", []);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -73,6 +74,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("foo_or_bar", $fired);
         await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
           "2 - foo_or_bar"
@@ -93,6 +95,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("foo", $fired);
         await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
           "2 - foo"
@@ -113,6 +116,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("bar", $fired);
         await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
           "2 - bar"
@@ -121,6 +125,18 @@ module.exports = {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = { "getOrder": getOrder2 };
+    const $rulesetKrlSource = "ruleset io.picolabs.execution-order2 {\n    meta {\n        shares getOrder\n    }\n    global {\n        getOrder = function(){\n            ent:order;\n        }\n    }\n    rule reset_order {\n        select when execution_order reset_order\n\n        send_directive(\"2 - reset_order\");\n\n        always {\n            ent:order := []\n        }\n    }\n    rule foo_or_bar {\n        select when execution_order foo\n            or\n            execution_order bar\n\n        send_directive(\"2 - foo_or_bar\");\n\n        always {\n            ent:order := ent:order.append(\"2 - foo_or_bar\")\n        }\n    }\n    rule foo {\n        select when execution_order foo\n\n        send_directive(\"2 - foo\");\n\n        always {\n            ent:order := ent:order.append(\"2 - foo\")\n        }\n    }\n    rule bar {\n        select when execution_order bar\n\n        send_directive(\"2 - bar\");\n\n        always {\n            ent:order := ent:order.append(\"2 - bar\")\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -129,7 +145,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getOrder": async function (query, qid) {
@@ -142,8 +161,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

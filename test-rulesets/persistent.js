@@ -93,6 +93,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("store_my_name", $fired);
         await $ctx.rsCtx.putEnt("name", my_name3);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -133,6 +134,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("store_user_firstname", $fired);
         await $ctx.rsCtx.putEnt("user", { "lastname": "McCoy" });
         await $ctx.rsCtx.putEnt("user", await $stdlib.set($ctx, [
           await $ctx.rsCtx.getEnt("user"),
@@ -155,11 +157,28 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("clear_user", $fired);
         await $ctx.rsCtx.delEnt("user");
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "getName": getName2,
+      "getUser": getUser2,
+      "getUserFirstname": getUserFirstname2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.persistent {\n    meta {\n        shares getName, getUser, getUserFirstname\n    }\n    global {\n        getName = function(){\n            ent:name;\n        }\n        getUser = function(){\n            ent:user;\n        }\n        getUserFirstname = function(){\n            ent:user{[\"firstname\"]};\n        }\n    }\n    rule store_my_name {\n        select when store name name re#^(.*)$# setting(my_name)\n\n        send_directive(\"store_name\", {\"name\": my_name});\n\n        always {\n            ent:name := my_name\n        }\n    }\n    rule store_user_firstname {\n        select when store user_firstname firstname re#^(.*)$# setting(firstname)\n\n        send_directive(\"store_user_firstname\", {\"name\": firstname});\n\n        always {\n            ent:user := {\"lastname\": \"McCoy\"};\n            ent:user{[\"firstname\"]} := firstname\n        }\n    }\n    rule clear_user {\n        select when store clear_user\n\n        send_directive(\"clear_user\");\n\n        always {\n            clear ent:user\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -168,7 +187,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getName": async function (query, qid) {
@@ -197,8 +219,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

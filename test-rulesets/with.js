@@ -56,6 +56,22 @@ module.exports = {
       });
     });
     const $rs = new $ctx.krl.SelectWhen.SelectWhen();
+    const $consoleGlobalRefs = {
+      "add": add2,
+      "inc": inc2,
+      "foo": foo2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.with {\n    meta {\n        shares add, inc, foo\n    }\n    global {\n        add = function(a, b){\n            a + b;\n        }\n        inc = function(n){\n            add(1, b = n);\n        }\n        foo = function(a){\n            add(\n                b = a,\n                a = a * 2,\n            );\n        }\n    }\n\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -64,7 +80,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "add": async function (query, qid) {
@@ -93,8 +112,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

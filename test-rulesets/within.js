@@ -65,6 +65,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("foo", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -86,6 +87,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("bar", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -104,6 +106,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("baz", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -139,10 +142,23 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("qux", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {};
+    const $rulesetKrlSource = "ruleset io.picolabs.within {\n    rule foo {\n        select when foo a\n            before\n            foo b\n            within 5 minutes\n\n        send_directive(\"foo\");\n    }\n    rule bar {\n        select when bar a\n            before\n            bar b\n            within 1 + 3 second\n\n        send_directive(\"bar\");\n    }\n    rule baz {\n        select when baz a\n            or\n            (\n                baz b\n                and\n                baz c\n            )\n            within 1 year\n\n        send_directive(\"baz\");\n    }\n    rule qux {\n        select when repeat 3 (\n            qux a b re#c#\n        )\n            within 2 seconds\n\n        send_directive(\"qux\");\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -151,13 +167,25 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

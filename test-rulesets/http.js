@@ -170,6 +170,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("http_get", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
         }
@@ -209,6 +210,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("http_post", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -233,6 +235,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("http_post_action", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -257,6 +260,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("http_post_setting", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
         }
@@ -285,6 +289,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("http_autorase", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -305,6 +310,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("http_post_event_handler", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("last_post_event", resp3);
         }
@@ -312,6 +318,25 @@ module.exports = {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "getResp": getResp2,
+      "getLastPostEvent": getLastPostEvent2,
+      "fmtResp": fmtResp2,
+      "doPost": doPost2,
+      "fnGet": fnGet2,
+      "fnPost": fnPost2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.http {\n    meta {\n        shares getResp, getLastPostEvent, fnGet, fnPost\n    }\n    global {\n        getResp = function(){\n            ent:resp;\n        }\n        getLastPostEvent = function(){\n            ent:last_post_event;\n        }\n        fmtResp = function(r){\n            r.set(\"content\", r[\"content\"].decode())\n                .delete([\"content_length\"])\n                .delete([\"headers\", \"content-length\"])\n                .delete([\"headers\", \"date\"])\n                .delete([\"content\", \"headers\", \"content-length\"]);\n        }\n        doPost = defaction(base_url, to, msg){\n\n            http:post(base_url + \"/msg.json\", from = {\n                \"To\": to,\n                \"Msg\": msg\n            });\n        }\n        fnGet = function(url, qs){\n            http:get(url, qs = qs);\n        }\n        fnPost = function(url, json){\n            http:post(url, json = json);\n        }\n    }\n    rule http_get {\n        select when http_test get\n\n        pre {\n            url = event:attrs{\"url\"}\n        }\n\n        http:get(\n            url,\n            qs = {\"foo\": \"bar\"},\n            headers = {\"baz\": \"quix\"},\n        ) setting(resp);\n\n        fired {\n            ent:resp := fmtResp(resp)\n        }\n    }\n    rule http_post {\n        select when http_test post\n\n        pre {\n            url = event:attrs{\"url\"}\n        }\n\n        every {\n            http:post(url, json = {\n                \"foo\": \"bar\",\n                \"baz\": doPost\n            }) setting(resp);\n\n            send_directive(\"resp.content.body\", resp[\"content\"].decode()[\"body\"].decode());\n        }\n    }\n    rule http_post_action {\n        select when http_test post_action\n\n        pre {\n            url = event:attrs{\"url\"}\n        }\n\n        doPost(url, \"bob\", \"foobar\");\n    }\n    rule http_post_setting {\n        select when http_test post_setting\n\n        pre {\n            url = event:attrs{\"url\"}\n        }\n\n        http:post(\n            url,\n            qs = {\"foo\": \"bar\"},\n            form = {\"baz\": \"qux\"},\n        ) setting(resp);\n\n        fired {\n            ent:resp := fmtResp(resp)\n        }\n    }\n    rule http_autorase {\n        select when http_test autoraise\n\n        pre {\n            url = event:attrs{\"url\"}\n        }\n\n        http:post(\n            url,\n            qs = {\"foo\": \"bar\"},\n            form = {\"baz\": \"qux\"},\n            autoraise = \"foobar\",\n        );\n    }\n    rule http_post_event_handler {\n        select when http post\n\n        pre {\n            resp = fmtResp(event:attrs)\n        }\n\n        send_directive(\"http_post_event_handler\", {\"attrs\": resp});\n\n        fired {\n            ent:last_post_event := resp\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -320,7 +345,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getResp": async function (query, qid) {
@@ -357,8 +385,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

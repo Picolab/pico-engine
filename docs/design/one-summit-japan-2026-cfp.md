@@ -202,15 +202,16 @@ One-liner for the slide: *“Not Gmail-in-the-cloud—run your engine, join your
 
 **Working title:** *Talk to Your Edge Mesh: MCP, Manifold, and Intent-Based Pico Operations*
 
-**Pitch:** Operators shouldn’t need Sky URLs, ECIs, or KRL event names to manage a mesh. **MCPforEXP** is a reference **conversational interface**: natural language → MCP tools → Manifold events/queries (create things, journal notes, tags, list mesh). Combined with **skills registry**, **discovery**, and **passkey-authenticated root pico**, this is a practical pattern for intent-based edge operations—not a chatbot bolted onto a REST API.
+**Pitch:** Operators shouldn’t need Sky URLs, ECIs, or KRL event names to manage a mesh. **pico-engine 1.8** ships **native MCP** (dev + mesh modes): natural language or IDE agents → schema-derived tools → wrangler events/queries on whichever pico the channel permits. **`channelSchema` / discovery** gate what each session sees; **passkey-authenticated root pico** anchors tenancy. **MCPforEXP** (BYU capstone) proved the UX and prompt patterns; the engine generalizes that beyond Manifold-specific wrappers.
 
 **Demo / evidence today:**
 
-- Chat-driven thing creation, journal, SafeAndMine flows
-- Prompt design for referential language (“tag it”, “that thing”) — `MCPforEXP/docs/prompt-design.md`
+- Engine MCP: `query`, `raise_event`, `list_picos`, schema introspection (`packages/pico-engine/mcp/`)
+- Manifold flows via mesh MCP or wrangler on owner/thing picos (create things, journal, tags)
+- Prompt design for referential language — still **`MCPforEXP/docs/prompt-design.md`** (reference)
 - Root → Owner → Manifold channel discovery (same pattern as HA)
 
-**Repos:** MCPforEXP, manifold-api, pico-engine
+**Repos:** pico-engine (primary), manifold-api, MCPforEXP (reference)
 
 ---
 

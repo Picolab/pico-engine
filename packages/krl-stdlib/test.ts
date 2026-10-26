@@ -47,6 +47,10 @@ async function mkCallLib(onLogLine?: (str: string) => void) {
     drainDirectives() {
       return [];
     },
+    recordRuleOutcome() {},
+    drainRuleOutcomes() {
+      return [];
+    },
     krl,
   };
   return function callLib(op: string, ...args: any[]) {

@@ -1,5 +1,6 @@
 - [Welcome](/)
-- [Persistent Compute Objects](/pico)
+- [Persistent Compute Objects](/pico-overview)
 - [Pico Engine](/pico-engine)
+- [Bundled rulesets](/rulesets/)
 - [KRL Manual](/krl/)
 - [Contributing](contributing)

@@ -34,6 +34,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("all", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -58,6 +59,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("set_watcher", $fired);
         await $ctx.rsCtx.putEnt("watcher", await $stdlib["get"]($ctx, [
           $ctx.module("event")["attrs"]($ctx),
           "domain"
@@ -86,10 +88,23 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("watcher", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {};
+    const $rulesetKrlSource = "ruleset io.picolabs.select_where {\n    rule all {\n        select where true\n\n        send_directive(\"all\", {\n            \"domain\": event:domain,\n            \"name\": event:name,\n            \"attrs\": event:attrs\n        });\n    }\n    rule set_watcher {\n        select where (event:domain == \"set\") && (event:name == \"watcher\")\n        always {\n            ent:watcher := event:attrs{\"domain\"}\n        }\n    }\n    rule watcher {\n        select where event:domain == ent:watcher\n\n        send_directive(\"watcher matched!\");\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -98,13 +113,25 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

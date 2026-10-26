@@ -54,7 +54,8 @@ function isKrlLoc (loc) {
   return _.isPlainObject(loc) && _.has(loc, 'start') && _.has(loc, 'end')
 }
 
-module.exports = function (ast, options) {
+/** Shared KRL → ESTree compile driver (rulesets, console expressions, schema). */
+function createCompileSession (options) {
   options = options || {}
 
   var toLoc = options.toLoc || _.noop
@@ -108,12 +109,15 @@ module.exports = function (ast, options) {
   }
 
   var scope = SymbolTableStack()
-  // inject stdlib into the root scope
   Object.keys(krlStdlib.stdlib).forEach(id => {
     scope.set(id, { type: krlStdlib.krl.typeOf(krlStdlib.stdlib[id]) })
   })
-  scope.set('__testing', { type: 'Map' })// defined in root scope so it can be shadowed in global
-  scope.push()// new scope for user's KRL code
+  scope.set('__testing', { type: 'Map' })
+  scope.push()
+
+  if (typeof options.seedScope === 'function') {
+    options.seedScope(scope)
+  }
 
   var stdlibToInject = {}
   var eventScope = (function () {
@@ -150,13 +154,15 @@ module.exports = function (ast, options) {
     }
   }())
 
+  var sourceKrl = options.sourceKrl || null
+
   var compile = function compile (ast, context) {
     if (_.isArray(ast)) {
       return _.map(ast, function (a) {
         return compile(a)
       })
     } else if (!ast || !_.has(ast, 'type')) {
-      throw krlError(ast.loc, 'Invalid ast node: ' + JSON.stringify(ast))
+      throw krlError(ast && ast.loc, 'Invalid ast node: ' + JSON.stringify(ast))
     } else if (!_.has(compByType, ast.type)) {
       throw krlError(ast.loc, 'Unsupported ast node type: ' + ast.type)
     }
@@ -171,6 +177,9 @@ module.exports = function (ast, options) {
     comp.scope = scope
     comp.eventScope = eventScope
     comp.stdlibToInject = stdlibToInject
+    comp.sourceKrl = sourceKrl
+    comp.consoleEvalMode = options.consoleEvalMode
+    comp.globalRefNames = options.globalRefNames
     comp.jsId = function (id) {
       if (!comp.scope.has(id)) {
         throw comp.error(ast.loc, 'Undefined id: ' + id)
@@ -192,6 +201,17 @@ module.exports = function (ast, options) {
     return estree
   }
 
+  return {
+    compile,
+    warnings,
+    stdlibToInject,
+    scope
+  }
+}
+
+function compileRulesetAst (ast, options) {
+  var session = createCompileSession(options)
+
   var rid
   if (ast && ast.type === 'Ruleset') {
     if (ast.rid && ast.rid.type === 'RulesetID') {
@@ -199,12 +219,58 @@ module.exports = function (ast, options) {
     }
   }
 
-  var estree = compile(ast)
+  var estree = session.compile(ast)
   estree = _.isArray(estree) ? estree : []
+
+  var rulesetSchema = null
+  if (ast && ast.type === 'Ruleset') {
+    var buildRulesetSchema = require('./rulesetSchema')
+    var shares = []
+    if (ast.meta) {
+      _.each(ast.meta.properties, function (prop) {
+        if (prop.key.value === 'shares' && prop.value && prop.value.ids) {
+          _.each(prop.value.ids, function (id) {
+            shares.push(id)
+          })
+        }
+      })
+    }
+    rulesetSchema = buildRulesetSchema(ast, session.compile, shares)
+    require('./annotationLint')(ast, session.compile, rulesetSchema)
+  }
 
   return {
     rid,
     estree,
-    warnings
+    warnings: session.warnings,
+    rulesetSchema
+  }
+}
+
+module.exports = compileRulesetAst
+
+/** Compile a single expression AST with the same driver as ruleset bodies. */
+module.exports.compileExpressionAst = function (exprAst, options) {
+  var session = createCompileSession(options)
+  return {
+    estree: session.compile(exprAst),
+    warnings: session.warnings,
+    stdlibToInject: session.stdlibToInject,
+    scope: session.scope
+  }
+}
+
+/** Console: optional `name = expr;` bindings, then one expression (same as a rule pre + value). */
+module.exports.compileConsoleProgram = function (declarations, exprAst, options) {
+  var session = createCompileSession(options)
+  var declEstree = _.map(declarations, function (d) {
+    return session.compile(d)
+  })
+  return {
+    declEstree: declEstree,
+    estree: session.compile(exprAst),
+    warnings: session.warnings,
+    stdlibToInject: session.stdlibToInject,
+    scope: session.scope
   }
 }

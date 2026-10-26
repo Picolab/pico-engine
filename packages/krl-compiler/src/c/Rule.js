@@ -60,6 +60,10 @@ function Rule (ast, comp, e) {
       e('str', 'not fired')
     ]))
   ))
+  ruleBody.push(e(';', e('call', e('id', '$ctx.recordRuleOutcome'), [
+    e('str', ast.name.value),
+    e('id', '$fired')
+  ])))
 
   if (ast.postlude) {
     ruleBody = ruleBody.concat(comp(ast.postlude))

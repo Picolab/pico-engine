@@ -4,7 +4,13 @@ import * as makeDir from "make-dir";
 import * as path from "path";
 import type { Server } from "http";
 import { PicoEngineCore, RulesetRegistry } from "pico-engine-core";
-import { PicoDbKey, PicoFramework } from "pico-framework";
+import {
+  EventPolicyRule,
+  PicoDbKey,
+  PicoFramework,
+  PolicyCeiling,
+  QueryPolicyRule,
+} from "pico-framework";
 import { AuthService, WebAuthnAdapter, makeWebAuthnAdapter } from "./auth";
 import {
   IdentityStore,
@@ -25,10 +31,13 @@ import { createRulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { resolveBundledKrlUrl } from "./bundledKrl";
 import { wranglerSubtreeImportServices } from "./subtreeWrangler";
 import { server } from "./server";
+import {
+  installEngineRuntimeSettings,
+  resolveEngineSettings,
+} from "./engineConfig";
 const charwise = require("charwise");
 const safeJsonCodec = require("level-json-coerce-null");
 
-const homeDir = require("home-dir");
 const version = require("../package.json").version;
 
 /**
@@ -106,6 +115,15 @@ export interface PicoEngineConfiguration {
    * Tests may set this to true.
    */
   autoCreateRootPico?: boolean;
+
+  /** Default max channel policy for root picos (1.8 policy ceiling). */
+  defaultRootPolicyCeiling?: PolicyCeiling;
+
+  /** Engine-wide event denies on every channel ECI (1.8). */
+  globalEventDeny?: EventPolicyRule[];
+
+  /** Engine-wide query denies on every channel ECI (1.8). */
+  globalQueryDeny?: QueryPolicyRule[];
 }
 
 export interface PicoEngine {
@@ -116,6 +134,7 @@ export interface PicoEngine {
   base_url: string;
 
   pf: PicoFramework;
+  core: PicoEngineCore;
   /** UI channel for the session root; null when no roots exist yet at boot. */
   uiECI: string | null;
   rsRegistry: RulesetRegistry;
@@ -128,24 +147,46 @@ export interface PicoEngine {
   shutdown(): Promise<void>;
 }
 
+/** Integration harnesses (e.g. manifold-api Docker tests): boot with one root, no passkey. */
+function autoCreateRootFromEnv(): boolean | undefined {
+  const v = process.env.PICO_ENGINE_AUTO_CREATE_ROOT;
+  if (typeof v !== "string" || v.trim().length === 0) {
+    return undefined;
+  }
+  const s = v.trim().toLowerCase();
+  if (s === "1" || s === "true" || s === "yes") {
+    return true;
+  }
+  if (s === "0" || s === "false" || s === "no") {
+    return false;
+  }
+  return undefined;
+}
+
 export async function startEngine(
   configuration: PicoEngineConfiguration = {}
 ): Promise<PicoEngine> {
-  let home = configuration.home;
-  let port = configuration.port;
-  let base_url = configuration.base_url;
+  const settings = resolveEngineSettings({
+    home: configuration.home,
+    port: configuration.port,
+    base_url: configuration.base_url,
+    rpID: configuration.rpID,
+    rpName: configuration.rpName,
+    origin: configuration.origin,
+    allowSelfSignup: configuration.allowSelfSignup,
+    defaultRootPolicyCeiling: configuration.defaultRootPolicyCeiling,
+    globalEventDeny: configuration.globalEventDeny,
+    globalQueryDeny: configuration.globalQueryDeny,
+  });
+  installEngineRuntimeSettings(settings);
 
-  if (typeof home !== "string") {
-    const envHome = process.env.PICO_ENGINE_HOME;
-    if (
-      typeof envHome === "string" &&
-      envHome.length > 0 &&
-      process.env.NODE_ENV === "test"
-    ) {
-      home = envHome;
-    } else {
-      home = homeDir(".pico-engine") as string;
-    }
+  const home = settings.home;
+  let port = configuration.port ?? settings.port;
+  const baseUrlFromCaller = configuration.base_url;
+  /** Filled after listen when using port 0 or when config baseUrl port does not match. */
+  let base_url: string | undefined = baseUrlFromCaller;
+  if (base_url == null && port > 0) {
+    base_url = settings.baseUrl;
   }
   await makeDir(home);
 
@@ -170,7 +211,15 @@ export async function startEngine(
     log,
     modules: configuration.modules,
     useEventInputTime: configuration.useEventInputTime,
-    autoCreateRootPico: configuration.autoCreateRootPico ?? false,
+    autoCreateRootPico:
+      configuration.autoCreateRootPico ??
+      autoCreateRootFromEnv() ??
+      false,
+    defaultRootPolicyCeiling:
+      configuration.defaultRootPolicyCeiling ??
+      settings.defaultRootPolicyCeiling,
+    globalEventDeny: configuration.globalEventDeny ?? settings.globalEventDeny,
+    globalQueryDeny: configuration.globalQueryDeny ?? settings.globalQueryDeny,
     getPicoLogs(picoId) {
       if (!logFilePath) {
         return Promise.resolve([]);
@@ -250,7 +299,8 @@ export async function startEngine(
     rpID: configuration.rpID,
     rpName: configuration.rpName,
     origin: configuration.origin,
-    allowSelfSignup: configuration.allowSelfSignup ?? false,
+    allowSelfSignup:
+      configuration.allowSelfSignup ?? settings.allowSelfSignup,
     flushBootstrapUrl: async (url) => {
       const flushed = await rsRegistry.flush(url);
       return { rid: flushed.rid };
@@ -311,6 +361,11 @@ export async function startEngine(
   });
   if (typeof base_url !== "string") {
     base_url = `http://localhost:${port}`;
+  } else if (
+    baseUrlFromCaller == null &&
+    (configuration.port === 0 || port !== settings.port)
+  ) {
+    base_url = `http://localhost:${port}`;
   }
   core.base_url = base_url;
 
@@ -357,6 +412,7 @@ export async function startEngine(
     base_url,
 
     pf,
+    core,
     uiECI,
     rsRegistry,
     auth,

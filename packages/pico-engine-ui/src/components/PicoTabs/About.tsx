@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { apiGet, apiPost, apiSavePicoBox, getAllPicoBoxes } from "../../api";
 import picoPageStore from "../../stores/picoPageStore";
 import { PicoBox } from "../../types/PicoBox";
+import { PicoSchema } from "../../types/PicoSchema";
 import useAsyncAction from "../../useAsyncAction";
+import PicoSurfacePanel from "./PicoSurfacePanel";
 
 function getRefVal(ref: React.MutableRefObject<HTMLInputElement | null>) {
   return ref.current && ref.current.value;
@@ -21,6 +23,23 @@ const About: React.FC<Props> = ({ pico }) => {
   const input_add_backgroundColor = React.useRef<HTMLInputElement | null>(null);
 
   var [association, setAssociation] = React.useState(new Map());
+  const [picoSchema, setPicoSchema] = React.useState<PicoSchema | null>(null);
+  const [picoSchemaLoad, setPicoSchemaLoad] = React.useState<{
+    waiting?: boolean;
+    error?: string | null;
+  }>({});
+
+  React.useEffect(() => {
+    setPicoSchemaLoad({ waiting: true, error: null });
+    apiPost(`/c/${pico.eci}/query/io.picolabs.wrangler/picoSchema`, {}, false)
+      .then((data) => {
+        setPicoSchema(data as PicoSchema);
+        setPicoSchemaLoad({});
+      })
+      .catch((err) => {
+        setPicoSchemaLoad({ error: String(err) });
+      });
+  }, [pico.eci]);
 
   React.useEffect(() => {
     //Creates a map of eci to name for children and parent.
@@ -190,6 +209,18 @@ const About: React.FC<Props> = ({ pico }) => {
           Add
         </button>
       </form>
+
+      <hr className="mt-4" />
+      <h3 className="mt-3">Discovery surface</h3>
+      <p className="text-muted small">
+        Annotated events and queries merged across installed rulesets (
+        <code>picoSchema()</code>).
+      </p>
+      <PicoSurfacePanel
+        schema={picoSchema}
+        loading={!!picoSchemaLoad.waiting}
+        error={picoSchemaLoad.error || null}
+      />
     </div>
   );
 };

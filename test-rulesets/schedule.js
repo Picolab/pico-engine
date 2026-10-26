@@ -88,6 +88,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("clear_log", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("log", []);
         }
@@ -107,6 +108,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("push_log", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("log", await append1($ctx, [
             await $ctx.rsCtx.getEnt("log"),
@@ -129,6 +131,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("in_5min", $fired);
         if ($fired) {
           var foo3 = await $ctx.module("schedule")["at"]($ctx, {
             "eci": $event.eci,
@@ -167,6 +170,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("every_1min", $fired);
         if ($fired) {
           var foo3 = await $ctx.module("schedule")["repeat"]($ctx, {
             "eci": $event.eci,
@@ -205,6 +209,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("rm_from_schedule", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -218,6 +223,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("dynamic_at", $fired);
         if ($fired) {
           var foo3 = await $ctx.module("schedule")["at"]($ctx, {
             "eci": $event.eci,
@@ -255,6 +261,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("dynamic_repeat", $fired);
         if ($fired) {
           var foo3 = await $ctx.module("schedule")["repeat"]($ctx, {
             "eci": $event.eci,
@@ -283,6 +290,21 @@ module.exports = {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {
+      "getLog": getLog2,
+      "listScheduled": listScheduled2
+    };
+    const $rulesetKrlSource = "ruleset io.picolabs.schedule {\n    meta {\n        shares getLog, listScheduled\n    }\n    global {\n        getLog = function(){\n            ent:log;\n        }\n        listScheduled = function(){\n            schedule:list();\n        }\n    }\n    rule clear_log {\n        select when schedule clear_log\n\n        send_directive(\"clear_log\");\n\n        fired {\n            ent:log := []\n        }\n    }\n    rule push_log {\n        select when schedule push_log\n\n        send_directive(\"push_log\");\n\n        fired {\n            ent:log := ent:log.append(event:attrs)\n        }\n    }\n    rule in_5min {\n        select when schedule in_5min\n\n        send_directive(\"in_5min\");\n\n        fired {\n            schedule schedule event \"push_log\"\n                at time:add(time:now(), {\"minutes\": 5})\n                attributes {\n                    \"from\": \"in_5min\",\n                    \"name\": event:attrs{\"name\"}\n                }\n                setting(foo);\n            ent:log := ent:log.append({\"scheduled in_5min\": foo})\n        }\n    }\n    rule every_1min {\n        select when schedule every_1min\n\n        send_directive(\"every_1min\");\n\n        fired {\n            schedule schedule event \"push_log\"\n                repeat \"* */1 * * * *\"\n                attributes {\n                    \"from\": \"every_1min\",\n                    \"name\": event:attrs{\"name\"}\n                }\n                setting(foo);\n            ent:log := ent:log.append({\"scheduled every_1min\": foo})\n        }\n    }\n    rule rm_from_schedule {\n        select when schedule rm_from_schedule\n\n        schedule:remove(event:attrs{\"id\"});\n    }\n    rule dynamic_at {\n        select when schedule dynamic_at\n        fired {\n            schedule event event:attrs{\"dn\"}\n                at event:attrs{\"at\"}\n                attributes {\n                    \"from\": \"dynamic_at\",\n                    \"name\": event:attrs{\"name\"}\n                }\n                setting(foo);\n            ent:log := ent:log.append({\"scheduled dynamic_at\": foo})\n        }\n    }\n    rule dynamic_repeat {\n        select when schedule dynamic_repeat\n        fired {\n            schedule event event:attrs{\"dn\"}\n                repeat event:attrs{\"timespec\"}\n                attributes {\n                    \"from\": \"dynamic_repeat\",\n                    \"name\": event:attrs{\"name\"}\n                }\n                setting(foo);\n            ent:log := ent:log.append({\"scheduled dynamic_repeat\": foo})\n        }\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -291,7 +313,10 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "getLog": async function (query, qid) {
@@ -312,8 +337,17 @@ module.exports = {
         },
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

@@ -52,6 +52,10 @@ export function makeKrlCtxKrlModule(
       return host.addDirective(name, options);
     },
     drainDirectives: () => [], // not used since krl modules are not installed
+    recordRuleOutcome(rule, fired) {
+      host.recordRuleOutcome(rule, fired);
+    },
+    drainRuleOutcomes: () => [],
 
     ///////////////////////////////////////////////////////////////////////////
     // compiler lib

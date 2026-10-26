@@ -12,6 +12,8 @@ export interface CachedRuleset {
   compiler: {
     version: string;
     warnings: any[];
+    /** When set, must match loader generation or flush recompiles (see krl-compiler). */
+    compileGeneration?: string;
   };
   ruleset: Ruleset;
 }
@@ -19,13 +21,16 @@ export interface CachedRuleset {
 export interface RulesetRegistryLoader {
   fetchKrl(url: string): Promise<string>;
 
+  /** Compiler/parser generation for ruleset cache invalidation. */
+  getCompileGeneration(): string;
+
   compileAndLoad(
     url: string,
     krl: string,
     hash: string
   ): Promise<{
     ruleset: Ruleset;
-    compiler: { version: string; warnings: any[] };
+    compiler: CachedRuleset["compiler"];
   }>;
 
   save(data: CachedRuleset): Promise<void>;
@@ -43,7 +48,14 @@ export class RulesetRegistry {
 
   constructor(
     private regLoader: RulesetRegistryLoader,
-    public onRulesetLoaded?: (crs: CachedRuleset) => void
+    public onRulesetLoaded?: (crs: CachedRuleset) => void,
+    /** Before cache is updated for a flush / registerInline (hash changed). */
+    public onBeforeRulesetContentUpdate?: (url: string) => void,
+    /** KRL content at url changed (flush / registerInline), not initial cache load. */
+    public onRulesetContentUpdated?: (
+      crs: CachedRuleset,
+      oldHash: string | null
+    ) => void | Promise<void>
   ) {
     this.load = pMemoize((url: string) => this.loadBase(url), {
       maxAge: 100,
@@ -72,7 +84,9 @@ export class RulesetRegistry {
     shasum.update(krl);
     const hash = shasum.digest("hex");
 
-    if (this.rulesetCache[url]?.hash === hash) {
+    const oldHash = this.rulesetCache[url]?.hash ?? null;
+
+    if (this.isCachedContentCurrent(url, hash)) {
       return this.rulesetCache[url];
     }
 
@@ -99,20 +113,48 @@ export class RulesetRegistry {
     };
 
     await this.regLoader.save(toSave);
-    this.setCachedRuleset(toSave);
+    if (this.onBeforeRulesetContentUpdate) {
+      this.onBeforeRulesetContentUpdate(url);
+    }
+    this.setCachedRuleset(toSave, true, oldHash);
     return toSave;
   }
 
-  private setCachedRuleset(rs: CachedRuleset) {
+  /** Same KRL hash but compiler/parser generation changed → recompile on flush. */
+  private isCachedContentCurrent(url: string, hash: string): boolean {
+    const cached = this.rulesetCache[url];
+    if (!cached || cached.hash !== hash) {
+      return false;
+    }
+    return (
+      cached.compiler.compileGeneration ===
+      this.regLoader.getCompileGeneration()
+    );
+  }
+
+  private setCachedRuleset(
+    rs: CachedRuleset,
+    contentUpdated?: boolean,
+    oldHash?: string | null
+  ) {
     this.rulesetCache[rs.url] = rs;
     if (this.onRulesetLoaded) {
       this.onRulesetLoaded(rs);
     }
+    if (contentUpdated && this.onRulesetContentUpdated) {
+      const crs = rs;
+      const prevHash = oldHash ?? null;
+      const notify = this.onRulesetContentUpdated;
+      setImmediate(() => {
+        void notify(crs, prevHash);
+      });
+    }
   }
 
   private async loadBase(url: string): Promise<CachedRuleset> {
-    if (this.rulesetCache[url]) {
-      return this.rulesetCache[url];
+    const cached = this.rulesetCache[url];
+    if (cached && this.isCachedContentCurrent(url, cached.hash)) {
+      return cached;
     }
     const data = await this.regLoader.attemptLoad(url);
     if (data) {
@@ -129,7 +171,9 @@ export class RulesetRegistry {
     shasum.update(krl);
     const hash = shasum.digest("hex");
 
-    if (this.rulesetCache[url]?.hash === hash) {
+    const oldHash = this.rulesetCache[url]?.hash ?? null;
+
+    if (this.isCachedContentCurrent(url, hash)) {
       return this.rulesetCache[url];
     }
 
@@ -156,7 +200,10 @@ export class RulesetRegistry {
     };
 
     await this.regLoader.save(toSave);
-    this.setCachedRuleset(toSave);
+    if (this.onBeforeRulesetContentUpdate) {
+      this.onBeforeRulesetContentUpdate(url);
+    }
+    this.setCachedRuleset(toSave, true, oldHash);
     return toSave;
   }
 }

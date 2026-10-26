@@ -44,6 +44,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("foo", $fired);
         if ($fired) {
           if (await $stdlib["=="]($ctx, [
               await $stdlib["get"]($ctx, [
@@ -70,6 +71,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("bar", $fired);
         if ($fired) {
           if (await $stdlib["=="]($ctx, [
               await $stdlib["get"]($ctx, [
@@ -96,6 +98,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("baz", $fired);
         if ($fired) {
           return $last();
         }
@@ -115,10 +118,23 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("qux", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {};
+    const $rulesetKrlSource = "ruleset io.picolabs.last {\n    meta {\n        name \"testing postlude `last` statement\"\n    }\n    rule foo {\n        select when last all\n\n        send_directive(\"foo\");\n\n        fired {\n            last if event:attrs{\"stop\"} == \"foo\"\n        }\n    }\n    rule bar {\n        select when last all\n\n        send_directive(\"bar\");\n\n        fired {\n            last if event:attrs{\"stop\"} == \"bar\"\n        }\n    }\n    rule baz {\n        select when last all\n\n        send_directive(\"baz\");\n\n        fired {\n            last\n        }\n    }\n    rule qux {\n        select when last all\n\n        send_directive(\"qux\");\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -127,13 +143,25 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };

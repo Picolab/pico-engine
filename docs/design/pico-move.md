@@ -144,6 +144,28 @@ Copy is intentional: import does **not** delete the source subtree; remove it ma
 
 Import hydrates all ruleset `ent` vars (including relationship buses) and re-applies subscription/thing entity after wrangler bootstrap finishes, so community links on the **bike pico** are not dropped silently.
 
+### Export metadata — engine version (TODO)
+
+Today the encrypted payload only carries a **blob format** version (`SubtreeExportPayload.version === 1`), plus `exportedAt`. It does **not** record the exporting **pico-engine semver** (or pico-framework version). Import checks format `1` and decrypts; it does **not** refuse imports from older/newer engines.
+
+**We should record and check engine version** on portable export/import (and ideally on ruleset-state blobs too):
+
+| Field (proposed) | Example | Use |
+|------------------|---------|-----|
+| `engineVersion` | `1.7.0` | From `packages/pico-engine/package.json` at export time |
+| `frameworkVersion` | `0.8.1` | From resolved `pico-framework` (compatibility gate) |
+| `portableFeatures` | `["identity-snapshot","peer:4","webvh-relocate"]` | Optional capability flags when semver alone is coarse |
+
+**Import policy (proposed):**
+
+- **Same major** (e.g. 1.x → 1.y): allow with warnings in `summarizeExportBlob` if exporter &lt; importer minor (missing rotate hooks).
+- **Exporter &gt; importer** (e.g. 1.7 blob → 1.6 engine): **reject** with clear error (identity snapshot, peer:4, portable hooks not understood).
+- **Exporter &lt; importer** (e.g. 1.6 → 1.7): allow if blob lacks identity block; warn if Layer 2 buses need peer:4 upgrade paths.
+
+Rationale: portable move **1.7** depends on engine primitives (identity store export, SKY rotate, `completePortableMove`) that **1.6.x cannot import faithfully**. Without a version stamp, failures look like hangs, bad subscriptions, or silent wrong peer algo — not “wrong engine.”
+
+**Surface:** set fields in `exportSubtree` / `exportRulesetState`; validate in `importSubtree` / `importRulesetState` and in `summarizeSubtreeExportBlob` for operators before import.
+
 ---
 
 ## Security notes (interim phase)

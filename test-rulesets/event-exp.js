@@ -324,6 +324,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("before", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -340,6 +341,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("after", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -373,6 +375,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("then", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -389,6 +392,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("and", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -405,6 +409,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("or", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -421,6 +426,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("between", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -437,6 +443,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("not_between", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -453,6 +460,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("and_or", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -469,6 +477,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("or_and", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -485,6 +494,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("before_n", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -501,6 +511,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("after_n", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -517,6 +528,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("then_n", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -533,6 +545,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("and_n", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -549,6 +562,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("or_n", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -565,6 +579,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("any", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -581,6 +596,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("count", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -614,6 +630,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("repeat", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -656,6 +673,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("count_max", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -698,6 +716,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("repeat_min", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -740,6 +759,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("repeat_sum", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -782,6 +802,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("repeat_avg", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -824,6 +845,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("repeat_push", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -896,6 +918,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("repeat_push_multi", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -956,6 +979,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("repeat_sum_multi", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -972,6 +996,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("or_duppath", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -988,6 +1013,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("notbet_duppath", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -1004,6 +1030,7 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("ab_or_b", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
@@ -1020,10 +1047,23 @@ module.exports = {
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
+        $ctx.recordRuleOutcome("ab_or_ca", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
       }
     });
+    const $consoleGlobalRefs = {};
+    const $rulesetKrlSource = "ruleset io.picolabs.event-exp {\n    rule before {\n        select when ee_before a\n            before\n            ee_before b\n\n        send_directive(\"before\");\n    }\n    rule after {\n        select when ee_after a\n            after\n            ee_after b\n\n        send_directive(\"after\");\n    }\n    rule then {\n        select when ee_then a\n            then\n            ee_then b name re#bob#\n\n        send_directive(\"then\");\n    }\n    rule and {\n        select when ee_and a\n            and\n            ee_and b\n\n        send_directive(\"and\");\n    }\n    rule or {\n        select when ee_or a\n            or\n            ee_or b\n\n        send_directive(\"or\");\n    }\n    rule between {\n        select when ee_between a between(\n            ee_between b,\n            ee_between c\n        )\n\n        send_directive(\"between\");\n    }\n    rule not_between {\n        select when ee_not_between a not between(\n            ee_not_between b,\n            ee_not_between c\n        )\n\n        send_directive(\"not between\");\n    }\n    rule and_or {\n        select when (\n                ee_andor a\n                and\n                ee_andor b\n            )\n            or\n            ee_andor c\n\n        send_directive(\"(a and b) or c\");\n    }\n    rule or_and {\n        select when ee_orand a\n            and\n            (\n                ee_orand b\n                or\n                ee_orand c\n            )\n\n        send_directive(\"a and (b or c)\");\n    }\n    rule before_n {\n        select when before(\n            ee_before_n a,\n            ee_before_n b,\n            ee_before_n c\n        )\n\n        send_directive(\"before_n\");\n    }\n    rule after_n {\n        select when after(\n            ee_after_n a,\n            ee_after_n b,\n            ee_after_n c\n        )\n\n        send_directive(\"after_n\");\n    }\n    rule then_n {\n        select when then(\n            ee_then_n a,\n            ee_then_n b,\n            ee_then_n c\n        )\n\n        send_directive(\"then_n\");\n    }\n    rule and_n {\n        select when and(\n            ee_and_n a,\n            ee_and_n b,\n            ee_and_n c\n        )\n\n        send_directive(\"and_n\");\n    }\n    rule or_n {\n        select when or(\n            ee_or_n a,\n            ee_or_n b,\n            ee_or_n c,\n            ee_or_n d\n        )\n\n        send_directive(\"or_n\");\n    }\n    rule any {\n        select when any 2 (\n            ee_any a,\n            ee_any b,\n            ee_any c,\n            ee_any d\n        )\n\n        send_directive(\"any\");\n    }\n    rule count {\n        select when count 3 (\n            ee_count a\n        )\n\n        send_directive(\"count\");\n    }\n    rule repeat {\n        select when repeat 3 (\n            ee_repeat a name re#bob#\n        )\n\n        send_directive(\"repeat\");\n    }\n    rule count_max {\n        select when count 3 (\n            ee_count_max a b re#(\\d+)#\n        ) max(m)\n\n        send_directive(\"count_max\", {\"m\": m});\n    }\n    rule repeat_min {\n        select when repeat 3 (\n            ee_repeat_min a b re#(\\d+)#\n        ) min(m)\n\n        send_directive(\"repeat_min\", {\"m\": m});\n    }\n    rule repeat_sum {\n        select when repeat 3 (\n            ee_repeat_sum a b re#(\\d+)#\n        ) sum(m)\n\n        send_directive(\"repeat_sum\", {\"m\": m});\n    }\n    rule repeat_avg {\n        select when repeat 3 (\n            ee_repeat_avg a b re#(\\d+)#\n        ) avg(m)\n\n        send_directive(\"repeat_avg\", {\"m\": m});\n    }\n    rule repeat_push {\n        select when repeat 3 (\n            ee_repeat_push a b re#(\\d+)#\n        ) push(m)\n\n        send_directive(\"repeat_push\", {\"m\": m});\n    }\n    rule repeat_push_multi {\n        select when repeat 5 (\n            ee_repeat_push_multi a\n                a re#(\\d+)#\n                b re#(\\d+) (.*)#\n        ) push(a, b, c, d)\n\n        send_directive(\"repeat_push_multi\", {\n            \"a\": a,\n            \"b\": b,\n            \"c\": c,\n            \"d\": d\n        });\n    }\n    rule repeat_sum_multi {\n        select when repeat 3 (\n            ee_repeat_sum_multi a\n                a re#(\\d+)#\n                b re#(\\d+)#\n        ) sum(a, b)\n\n        send_directive(\"repeat_sum_multi\", {\n            \"a\": a,\n            \"b\": b\n        });\n    }\n    rule or_duppath {\n        select when (\n                ee_or_duppath a\n                before\n                ee_or_duppath a\n            )\n            or\n            ee_or_duppath a\n\n        send_directive(\"(a before a) or a\");\n    }\n    rule notbet_duppath {\n        select when ee_notbet_duppath a not between(\n            ee_notbet_duppath b,\n            ee_notbet_duppath a\n        )\n\n        send_directive(\"a not between (b, a)\");\n    }\n    rule ab_or_b {\n        select when (\n                ee_ab_or_b a\n                and\n                ee_ab_or_b b\n            )\n            or\n            ee_ab_or_b b\n\n        send_directive(\"(a and b) or b\");\n    }\n    rule ab_or_ca {\n        select when (\n                ee_ab_or_ca a\n                and\n                ee_ab_or_ca b\n            )\n            or\n            (\n                ee_ab_or_ca c\n                and\n                ee_ab_or_ca a\n            )\n\n        send_directive(\"(a and b) or (c and a)\");\n    }\n}\n";
+    const $compileEvalExpression = $ctx["compileEvalExpression"];
+    const $consoleEvalCache = new Map();
+    const $runConsoleEval = async expr => {
+      let runner = $consoleEvalCache.get(expr);
+      if (!runner) {
+        runner = $compileEvalExpression(expr, { rulesetKrl: $rulesetKrlSource }).run;
+        $consoleEvalCache.set(expr, runner);
+      }
+      return await runner($ctx, $consoleGlobalRefs);
+    };
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -1032,13 +1072,25 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
-        return $ctx.drainDirectives();
+        return {
+          "directives": $ctx.drainDirectives(),
+          "ruleOutcomes": $ctx.drainRuleOutcomes()
+        };
       },
       "query": {
         "__testing": function () {
           return __testing1;
+        },
+        "__consoleEval": async function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return await $runConsoleEval(query["args"]["expr"]);
+          } finally {
+            $ctx.setQuery(null);
+          }
         }
-      }
+      },
+      "consoleGlobalRefs": $consoleGlobalRefs
     };
   }
 };
