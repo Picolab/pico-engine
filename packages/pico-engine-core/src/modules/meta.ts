@@ -1,6 +1,10 @@
 import { krl } from "krl-stdlib";
 import { PicoEngineCore } from "../PicoEngineCore";
-import { rulesetSchemaFromRuleset, type RulesetSchema } from "../picoSchema";
+import {
+  getCachedRulesetForUrl,
+  rulesetSchemaFromRuleset,
+  type RulesetSchema,
+} from "../picoSchema";
 
 export default function initMetaModule(core: PicoEngineCore) {
   const meta: krl.Module = {
@@ -55,7 +59,9 @@ export default function initMetaModule(core: PicoEngineCore) {
     schema: krl.Property(function schema() {
       const url = this.rsCtx.ruleset.config["url"];
       const cached =
-        typeof url === "string" ? core.rsRegistry.getCached(url) : null;
+        typeof url === "string"
+          ? getCachedRulesetForUrl(core.rsRegistry, url)
+          : null;
       const fromCache = cached
         ? rulesetSchemaFromRuleset(
             cached.ruleset as { rulesetSchema?: RulesetSchema }

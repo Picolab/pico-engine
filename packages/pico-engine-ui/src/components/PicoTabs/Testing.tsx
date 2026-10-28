@@ -390,10 +390,10 @@ const Testing: React.FC<Props> = ({ pico }) => {
           <>
           <h3>Testing</h3>
           <div className="mt-3 mb-3">
-            <form className="form-inline flex-wrap">
-              <label className="mr-2">ECI:</label>
+            <div className="form-group mb-2">
+              <label className="small mb-1 d-block">ECI</label>
               <select
-                className="form-control form-control-sm mr-3 mb-1 text-mono"
+                className="form-control form-control-sm text-mono"
                 value={testingECI}
                 onChange={(e) => {
                   setTestingECI(e.target.value);
@@ -414,9 +414,11 @@ const Testing: React.FC<Props> = ({ pico }) => {
                   );
                 })}
               </select>
-              <label className="mr-2">Ruleset:</label>
+            </div>
+            <div className="form-group mb-0">
+              <label className="small mb-1 d-block">Ruleset</label>
               <select
-                className="form-control form-control-sm mb-1 text-mono"
+                className="form-control form-control-sm text-mono"
                 value={selectedRid}
                 onChange={(e) => setSelectedRid(e.target.value)}
               >
@@ -426,7 +428,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
                   </option>
                 ))}
               </select>
-            </form>
+            </div>
           </div>
 
           <div className="border rounded p-2 mb-3 bg-light">

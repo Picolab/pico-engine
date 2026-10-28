@@ -5,6 +5,27 @@ import {
   Pico,
 } from "pico-framework";
 import { CachedRuleset, RulesetRegistry } from "./RulesetRegistry";
+import { normalizeRulesetUrl } from "./rulesetPortable";
+
+/** Registry cache lookup using installed config url (raw + normalized). */
+export function getCachedRulesetForUrl(
+  rsRegistry: RulesetRegistry,
+  url: string
+): CachedRuleset | null {
+  let cached = rsRegistry.getCached(url);
+  if (cached) {
+    return cached;
+  }
+  try {
+    const normalized = normalizeRulesetUrl(url);
+    if (normalized !== url) {
+      cached = rsRegistry.getCached(normalized);
+    }
+  } catch {
+    return null;
+  }
+  return cached ?? null;
+}
 
 export interface RulesetSchemaAttr {
   name: string;
@@ -158,7 +179,7 @@ export function rulesetSchemaForInstalled(
   if (!installed) return null;
   const url = installed.config?.["url"];
   if (typeof url !== "string") return null;
-  const cached = rsRegistry.getCached(url);
+  const cached = getCachedRulesetForUrl(rsRegistry, url);
   if (!cached) return null;
   return rulesetSchemaFromRuleset(cached.ruleset as { rulesetSchema?: RulesetSchema });
 }

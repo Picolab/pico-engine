@@ -16,6 +16,7 @@ const KRL = `ruleset console_test {
     n = 17
     getN = function() { n }
     getMap = function() { {"a": 1, "b": 2} }
+    getRows = function() { [{"name": "alpha"}, {"name": "beta"}] }
   }
   rule noop {
     select when console_test noop
@@ -90,6 +91,20 @@ test("console eval reads globals and ent", async (t) => {
   );
   t.false(r.ok);
   t.regex(r.error || "", /not allowed/i);
+
+  r = await evalInRulesetDirect(
+    picoId,
+    "console_test",
+    'getRows().map(function(row){ row{"name"} })'
+  );
+  t.true(r.ok);
+
+  r = await evalInRulesetDirect(
+    picoId,
+    "console_test",
+    'pick = function(row){ row{"name"} }; getRows().map(pick)'
+  );
+  t.true(r.ok);
 
   const viaQuery = await core.picoFramework.query({
     eci,

@@ -13,9 +13,10 @@ function getRefVal(ref: React.MutableRefObject<HTMLInputElement | null>) {
 
 interface Props {
   pico: PicoBox;
+  isTabActive?: boolean;
 }
 
-const About: React.FC<Props> = ({ pico }) => {
+const About: React.FC<Props> = ({ pico, isTabActive = true }) => {
   const input_name = React.useRef<HTMLInputElement | null>(null);
   const input_backgroundColor = React.useRef<HTMLInputElement | null>(null);
 
@@ -30,6 +31,9 @@ const About: React.FC<Props> = ({ pico }) => {
   }>({});
 
   React.useEffect(() => {
+    if (!isTabActive) {
+      return;
+    }
     setPicoSchemaLoad({ waiting: true, error: null });
     apiPost(`/c/${pico.eci}/query/io.picolabs.wrangler/picoSchema`, {}, false)
       .then((data) => {
@@ -39,7 +43,7 @@ const About: React.FC<Props> = ({ pico }) => {
       .catch((err) => {
         setPicoSchemaLoad({ error: String(err) });
       });
-  }, [pico.eci]);
+  }, [pico.eci, isTabActive]);
 
   React.useEffect(() => {
     //Creates a map of eci to name for children and parent.

@@ -126,6 +126,9 @@ export class RulesetRegistry {
     if (!cached || cached.hash !== hash) {
       return false;
     }
+    if (typeof cached.ruleset?.init !== "function") {
+      return false;
+    }
     return (
       cached.compiler.compileGeneration ===
       this.regLoader.getCompileGeneration()

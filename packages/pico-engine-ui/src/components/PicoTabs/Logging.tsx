@@ -50,20 +50,36 @@ const LogGroupUi: React.FC<{ group: LogEntryGroup }> = ({ group }) => {
 
 interface Props {
   pico: PicoBox;
+  isTabActive?: boolean;
 }
 
-export default function Logging({ pico }: Props) {
+export default function Logging({ pico, isTabActive = true }: Props) {
   const picoLogs = useAsyncLoader<LogEntryGroup[]>([], () => getLogs(pico.eci));
 
   React.useEffect(() => {
-    picoLogs.load();
-  }, [pico.eci]);
+    if (isTabActive) {
+      picoLogs.load();
+    }
+  }, [pico.eci, isTabActive]);
 
   return (
     <div className="pico-logging-tab">
-      <h3>Logging</h3>
+      <div className="d-flex align-items-center mb-2">
+        <h3 className="mb-0 mr-2">Logging</h3>
+        <button
+          type="button"
+          className="btn btn-outline-secondary btn-sm"
+          disabled={picoLogs.waiting}
+          onClick={() => picoLogs.load()}
+        >
+          {picoLogs.waiting ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
+      <p className="small text-muted mb-2">
+        Reload log entries without refreshing the browser (keeps demo traffic out
+        of a full page reload).
+      </p>
       <ErrorStatus error={picoLogs.error} />
-      {picoLogs.waiting && "Loading..."}
 
       {picoLogs.data.map((group) => {
         return <LogGroupUi key={group.txnId} group={group} />;

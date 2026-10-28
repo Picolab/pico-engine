@@ -18,7 +18,6 @@ var FORBIDDEN = {
   Action: 'actions are not allowed in the console',
   ActionBlock: 'action blocks are not allowed in the console',
   DefAction: 'defactions are not allowed in the console',
-  Function: 'defining functions is not allowed in the console',
   Declaration: 'declarations are not allowed in the console',
   Rule: 'rules are not allowed in the console',
   Ruleset: 'rulesets are not allowed in the console'
@@ -104,9 +103,8 @@ function parseConsoleSource (exprSource) {
         e2.krl_compiler = { loc: s.loc || null }
         throw e2
       }
-      if (s.right.type === 'Function' || s.right.type === 'Action' ||
-          s.right.type === 'DefAction') {
-        var e3 = new Error('Defining functions or actions in the console is not allowed')
+      if (s.right.type === 'Action' || s.right.type === 'DefAction') {
+        var e3 = new Error('Defining actions in the console is not allowed')
         e3.krl_compiler = { loc: s.loc || null }
         throw e3
       }

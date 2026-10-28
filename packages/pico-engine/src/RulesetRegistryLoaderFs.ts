@@ -80,9 +80,24 @@ export async function createRulesetRegistryLoaderFs(
 
     let compileWarnings: any[] = [];
 
-    if (await fsExist(jsFile)) {
-      // already compiled
-    } else {
+    let needCompile = !(await fsExist(jsFile));
+    if (!needCompile) {
+      const cached = requireRulesetModule(jsFile);
+      if (cached) {
+        const compileGeneration = rulesetCompileGeneration();
+        return {
+          ruleset: cached,
+          compiler: {
+            version: krlCompilerVersion,
+            warnings: compileWarnings,
+            compileGeneration,
+          },
+        };
+      }
+      needCompile = true;
+    }
+
+    if (needCompile) {
       const out = krlCompiler(krl, {
         parser_options: {
           filename: getUrlFilename(url),
@@ -101,7 +116,12 @@ export async function createRulesetRegistryLoaderFs(
       });
     }
 
-    const ruleset: Ruleset = require(jsFile);
+    const ruleset = requireRulesetModule(jsFile);
+    if (!ruleset) {
+      throw new Error(
+        `Compiled ruleset is missing init (corrupt cache file). Delete ${jsFile} and flush again: ${url}`
+      );
+    }
 
     const compileGeneration = rulesetCompileGeneration();
     return {
@@ -181,6 +201,30 @@ async function fetchKrl(url: string): Promise<string> {
   }
   const krl = await res.text();
   return krl;
+}
+
+function requireRulesetModule(jsFile: string): Ruleset | null {
+  try {
+    delete require.cache[require.resolve(jsFile)];
+  } catch {
+    return null;
+  }
+  let ruleset: Ruleset;
+  try {
+    ruleset = require(jsFile) as Ruleset;
+  } catch {
+    return null;
+  }
+  if (typeof ruleset?.init !== "function") {
+    try {
+      delete require.cache[require.resolve(jsFile)];
+      fs.unlinkSync(jsFile);
+    } catch {
+      /* best effort */
+    }
+    return null;
+  }
+  return ruleset;
 }
 
 function fsExist(filePath: string): Promise<boolean> {

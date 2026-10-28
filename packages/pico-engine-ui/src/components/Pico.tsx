@@ -40,7 +40,7 @@ function PicoTabPanels({ pico, openTab }: { pico: PicoBox; openTab?: string }) {
   return (
     <>
       <div hidden={active !== "about"}>
-        <About pico={pico} />
+        <About pico={pico} isTabActive={active === "about"} />
       </div>
       <div hidden={active !== "rulesets"}>
         <Rulesets pico={pico} isTabActive={active === "rulesets"} />
@@ -49,7 +49,7 @@ function PicoTabPanels({ pico, openTab }: { pico: PicoBox; openTab?: string }) {
         <Channels pico={pico} />
       </div>
       <div hidden={active !== "logging"}>
-        <Logging pico={pico} />
+        <Logging pico={pico} isTabActive={active === "logging"} />
       </div>
       <div hidden={active !== "testing"}>
         <Testing pico={pico} />
