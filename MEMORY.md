@@ -226,6 +226,16 @@ after 1.8 schema; mirrors/logging build on schema `logged` flags.
 |-------|----------|--------|
 | **did-peer-4 upstream** | **P2** — parallel to 1.7 | Contribute TS port to DIF [`did-peer-4`](https://github.com/decentralized-identity/did-peer-4). Issue draft + PR scaffold in [`contrib/did-peer-4-typescript/`](contrib/did-peer-4-typescript/); checklist [`docs/contributing/did-peer-4-upstream.md`](docs/contributing/did-peer-4-upstream.md). **~2–4 days** after maintainer feedback. Pico-engine keeps in-tree copy until upstream merge/npm. |
 
+### Security & dependency hygiene (Dependabot, Nov 2026)
+
+Weekly digest **2026-10-27 – 2026-11-03** (Picolab/pico-engine). Triage: production runtime vs dev-only.
+
+| Priority | Item | Notes |
+|----------|------|--------|
+| **P2 — security** | **Zod array DoS** ([Dependabot #21](https://github.com/Picolab/pico-engine/security/dependabot/21), GHSA-mrhx-c7xc-m3w5) | Runtime **`zod` ^3** in `packages/pico-engine` — MCP mesh tool args via `mcp/schemaToZod.js`. Untrusted callers + unbounded `z.array()` → OOM. **Work:** add `.max(n)` on generated array shapes where input is not trusted; cap MCP/HTTP body size; plan **zod 3 → ≥4.6.6** when convenient. **Verify:** mesh MCP exposure on hosted engines (OAuth-scoped only vs open). |
+| **P3 — chore** | **Vite dev toolchain** ([#12–#20](https://github.com/Picolab/pico-engine/security/dependabot)) | **`pico-engine-ui`** devDependency only — not in Docker/production bundle after `vite build`. **Work:** bump **Vite 5 → patched 6.x** (≥6.4.4 per advisories) + `@vitejs/plugin-react-swc`; `npm run build` + UI smoke test. Dev-server issues need `--host` / network exposure; local `localhost` demo risk is low. |
+| **P3 — hygiene** | **Dependabot dismissals** | After Vite bump, dismiss or close dev-only **launch-editor** alerts (Windows/WSL/Vim “open in editor”) with rationale: dev dependency, macOS primary, dev server not exposed on production. |
+
 ---
 
 ## ROADMAP (deferred / future engine work)
@@ -614,6 +624,10 @@ commits; local backend (Gemma/Ollama sidecar) default; cloud opt-in only.
 
 **Phasing:** complete + audit (P1) → extract/classify + async (P2) → memory + delegation (P3) →
 KRL copilot (P4).
+
+### 10. Pico views with XMLUI — **design (2026-11-04)**
+
+A view is a shared function returning XMLUI markup, tagged `@view`. Engine change kept minimal: vendored XMLUI runtime, one `/c/:eci/ui/*` route forwarding paths to `io.picolabs.xmlui:file`, `@view` in annotations/schema, ship the ruleset. Shell, navigation (from `channelSchema`), helper components live in the shipped `io.picolabs.xmlui` ruleset. Prior art: classic KRL web actions; Bruce Conrad's PicoStack/PLAN (`.html` queries, `html.plan`, per-app channels). First consumer: IIWF CRM client views. **Design:** [`docs/design/pico-views-xmlui.md`](docs/design/pico-views-xmlui.md).
 
 ### 6. PDS enhancements (post default-install)
 PDS is now engine-default (1.4.0). Enhancements that the stable contract enables:
@@ -1069,6 +1083,16 @@ No anonymous/`uiECI`-as-admin access.
 - `AuthService.allowSelfSignup()` exposed for the UI gate.
 
 **UI changes (`packages/pico-engine-ui`, rebuild → `packages/pico-engine/public/`):**
+- **`npm run build` / `tsc` TS2786 (Routes/Link not valid JSX):** root `node_modules/@types/react@19` from
+  orphaned **xmlui/radix** hoists while the UI uses React 18. Fix: repo root pins `@types/react@18` in
+  `devDependencies`; bootstrap **nohoists** `react*` / `react-router*` into `pico-engine-ui`; UI
+  `tsconfig.json` sets `typeRoots` to `./node_modules/@types`. If it persists: `npm prune` at repo root,
+  then `npm run bootstrap` and `cd packages/pico-engine-ui && npm run build`.
+- **`vite: command not found` in `pico-engine-ui` build:** hoisted `vite` lived under root `node_modules`;
+  `npm prune` removed it but left a **broken** `packages/pico-engine-ui/node_modules/.bin/vite` symlink.
+  Bootstrap **nohoists** `vite` / `@vitejs/*` into the UI package. Recovery:
+  `cd packages/pico-engine-ui && npm install --no-package-lock && npm run build` (or `npm run bootstrap`
+  from root after pulling).
 - New: `App.tsx`, `AuthGate.tsx`, `authApi.ts`; `@simplewebauthn/browser` for ceremonies.
 - **Zero roots → register ONLY** (no login toggle).
 - **Has roots, not authenticated → login** (+ register when `allowSelfSignup`).
@@ -1620,11 +1644,12 @@ wrangler (event sits on the schedule and never runs).
 | `PORT` | `3000` | 1.x | HTTP listen port. |
 | `PICO_ENGINE_CONFIG` | `~/.config/pico-engine/config.json` | 1.8 | Operator settings file (port, baseUrl, security flags, optional `home`). Not wiped when you delete data dir. **One file per engine process** — duplicate `config.instances.example/` or mount `docker/config/*.json` per container. CLI: `pico-engine -c /path/to/config.json`. |
 | `PICO_ENGINE_HOME` | `~/.pico-engine/` (or config `home`) | 1.x | **Data only:** database, ruleset cache, default log file. Safe to delete for a fresh mesh; keep config elsewhere. |
+| `PICO_ENGINE_LOG_FILE` | `$PICO_ENGINE_HOME/pico-engine.log` | 1.x | Log file path, or **`stdout`** / **`-`** / **`0`** / empty for **stdout only** (CloudWatch-friendly). When stdout-only, the engine **mirrors** structured JSON lines to **`$PICO_ENGINE_HOME/pico-engine.log`** so the Developer UI **Logging** tab and `ctx:logs` still work (same rotating writer as file mode). **Config dual:** `logFile` in `config.json` (same strings). |
+| `PICO_ENGINE_LOG_MIRROR` | on (`true`) | 1.8 | When **`logToStdout`** is true, **`false`** / **`0`** disables the mirror file above (e.g. EFS + Fargate: avoid NFS log churn). **Config dual:** **`logMirror`** boolean in **`~/.config/pico-engine/config.json`** (see `packages/pico-engine/config.example.json`). Precedence: defaults → env → **config file** → programmatic. |
 | `PICO_ENGINE_BASE_URL` | `http://localhost:$PORT` | 1.x | Public URL prefix (WebAuthn RP origin, did:webvh, links). |
 | `PICO_ENGINE_ALLOW_SELF_SIGNUP` | off (`false`) | Phase 1 | `"true"` / `"1"` = open registration after bootstrap; default invite-only. |
 | `PICO_ENGINE_ALLOW_LOCALHOST_C` | on (any value except `"0"`) | 3b.0 (2026-07-12) | Set to `"0"` to require passkey session on **`/c/*`** even from localhost. Default allows localhost without session so KRL `ctx:event` / `event` loops that POST to `host/c/…` keep working. Tests set `"0"` to simulate external callers. **Security note:** with default, any local process can hit `/c/*` without login; tighter internal token TBD. |
 | `PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER` | off (unset) | 1.8 | Set to **`"1"`** to require OAuth bearer on **`/sky/*`** for any channel whose policy includes unrestricted event or query allow (`*.*`). Default **off** so legacy open `/sky/query/{eci}/…` on wide channels keeps working; turn on for hardened production. Independent of mesh OAuth ruleset lock. |
-
 | `PICO_ENGINE_AUTO_CREATE_ROOT` | off (unset) | 1.8 | Set to **`"1"`** for integration Docker harnesses (e.g. **manifold-api** `t/`) to boot with one root pico without passkey registration. Production engines should leave unset. |
 
 **Not operator-facing:** `NODE_ENV=test` affects log formatting in tests only.
@@ -1681,6 +1706,7 @@ wrangler (event sits on the schedule and never runs).
 ---
 
 ## Cross-references
+- **Dependabot / npm security backlog (2026-11):** [§ Security & dependency hygiene](#security--dependency-hygiene-dependabot-nov-2026) above · [`docs/release/1.8.md`](docs/release/1.8.md) *Post-1.8 maintenance backlog*
 - **Pico schemas (events/queries/attrs, 2026-09-18):**
   [`docs/design/pico-schemas.md`](docs/design/pico-schemas.md)
 - **Pico LLM capabilities (KRL-first backlog, 2026-09-18):**

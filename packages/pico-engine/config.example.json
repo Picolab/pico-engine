@@ -6,6 +6,7 @@
   "allowLocalhostChannelBypass": true,
   "wildcardSkyRequireBearer": false,
   "logToStdout": false,
+  "logMirror": true,
   "webauthn": {
     "rpId": "localhost",
     "origin": "http://localhost:3000",

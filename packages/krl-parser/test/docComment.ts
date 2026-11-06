@@ -43,6 +43,32 @@ test("parseDocComment description and tags", t => {
   });
 });
 
+test("parseDocComment @view title and optional path", t => {
+  const tok = tokenizer(`/** Pick a color.
+   * @view "Favorite color" /color
+   */`).find(x => x.type === "BLOCK-COMMENT")!;
+  const doc = parseDocComment(tok);
+  t.is(doc.tags.length, 1);
+  t.deepEqual(doc.tags[0], {
+    kind: "view",
+    title: "Favorite color",
+    path: "/color",
+  });
+});
+
+test("parseDocComment @view title only", t => {
+  const tok = tokenizer(`/** Hello view.
+   * @view "Hello"
+   */`).find(x => x.type === "BLOCK-COMMENT")!;
+  const doc = parseDocComment(tok);
+  t.deepEqual(doc.tags[0], {
+    kind: "view",
+    title: "Hello",
+    path: undefined,
+  });
+  t.is(doc.unknownTags, undefined);
+});
+
 test("unknown doc tag is ignored and recorded", t => {
   const tok = tokenizer(`/** Note.
    * @atr foo

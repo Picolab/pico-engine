@@ -121,17 +121,34 @@ Rationale: keeps packs small and avoids stale forks of rulesets that have a cano
 
 Copy is intentional: import does **not** delete the source subtree; remove it manually after peers have cut over.
 
-1. **Source engine** — on the parent of the subtree to copy, install `io.picolabs.portable_subtree` (Rulesets tab → engine KRL catalog, or `/krl/io.picolabs.portable_subtree.krl`).
-2. **Export** — from a channel on that parent, query:
-   - `io.picolabs.portable_subtree:exportSubtree(subtreeRootPicoId, secret)` → encrypted blob string.
-3. **Transfer** the blob to the destination (paste, file, HTTP — your choice; not built into wrangler yet).
-4. **Destination engine** — adopt under a parent that provides the services the subtree expects. For a **thing pico on someone’s Manifold**, use normal Manifold bootstrap (owner → Manifold app pico already exists); opt in once with `raise manifold event "enable_portable_thing"` (installs engine `io.picolabs.portable_subtree` + `io.picolabs.manifold_portable_thing` from manifold-api).
-5. **Import** — on the Manifold app channel:
-   - `raise manifold event "import_portable_thing" attributes { "blob", "secret", "name", "donorQueryEci", "renewIngress" }` → `import_portable_thing_done` (includes `thingQueryEci` when `donorQueryEci` is set).
-   - Generic (no Manifold registration): `raise portable_subtree event "import" attributes { "blob", "secret" }` on a pico that has `io.picolabs.portable_subtree`.
+1. **Source engine** — on the parent of the subtree to copy, install `io.picolabs.portable_subtree` (Rulesets tab → engine KRL catalog, or `/krl/io.picolabs.portable_subtree.krl`). For **Manifold things**, install `io.picolabs.manifold_portable_thing` on the Manifold app pico and run `enable_portable_thing` once if not already enabled.
+2. **Export**
+   - **Generic subtree:** query `io.picolabs.portable_subtree:exportSubtree(subtreeRootPicoId, secret)` → encrypted blob string; transfer blob + secret separately.
+   - **Manifold thing (recommended):** query `io.picolabs.manifold_portable_thing:exportPortableThing(subtreeRootPicoId, secret)` on a channel on the Manifold app pico (or any ECI on the thing). Returns a map with `blob`, `name`, `donorQueryEci`, `subtreeRootPicoId`, `thingFamilyPicoID`, optional `renewIngress`, and a nested `export_package` duplicate of those fields. **The secret is never included in this JSON** — you must remember it or store it out of band for import.
+3. **Transfer** the export to the destination (paste from Sky query / Testing tab, file, HTTP — not built into wrangler yet).
+4. **Destination engine** — adopt under a parent that provides the services the subtree expects. For a **thing pico on someone’s Manifold**, use normal Manifold bootstrap (owner → Manifold app pico already exists); opt in once with `raise manifold event "enable_portable_thing"` (installs engine `io.picolabs.portable_subtree` + `io.picolabs.manifold_portable_thing` from manifold-api). Flush `io.picolabs.manifold_portable_thing` after pulling manifold-api updates.
+5. **Import — Manifold thing (two attributes, do not edit the export JSON)**
+
+   Paste the **entire** `exportPortableThing` query result (or only the inner `export_package` object) into one attribute; pass the **same secret** used at export in a second attribute. Do not add `secret` to the JSON and do not strip or reformat fields unless the UI requires valid JSON in one box.
+
+   ```krl
+   raise manifold event "import_portable_thing" attributes {
+     "export_package": <paste export JSON unchanged — Map or JSON string>,
+     "secret": "<same secret used at export>"
+   }
+   ```
+
+   | Attribute | Role |
+   |-----------|------|
+   | `export_package` | Full query result or inner object; parser accepts map or string and unwraps nested `export_package` if present |
+   | `secret` | Encryption secret only; **always** from this attribute, never from inside `export_package` |
+
+   On success: `manifold:import_portable_thing_done` (and `lastImport()`); includes remapped `thingQueryEci` when the export carried `donorQueryEci`. **Legacy:** flat `blob` + `secret` (+ optional `name`, etc.) on the same event still works.
+
+   **Generic (no Manifold registration):** `raise portable_subtree event "import" attributes { "blob", "secret" }` on a pico that has `io.picolabs.portable_subtree`.
 6. **Clean up** — delete the old subtree on the source when no longer needed.
 
-**Cross-engine club gear demo (`docker-compose.cross-engine.yml`):** donor Engine A uses gitignored `io.picolabs.club_gear_demo` to build the club mesh; export bike #7 with **`io.picolabs.manifold_portable_thing`** (`enable_portable_thing`, then `exportPortableThing`). Recipient Engine B uses standard Manifold bootstrap + import only (no club_gear_demo). Optional `io.picolabs.ride_coordinator_demo` on B opens a Layer 2 subscription to the moved bike; the **owner approves** the pending subscription on the thing pico (`pending_subscription_approval` with the inbound `Id`) — Manifold things do not use subscription auto-accept.
+**Cross-engine club gear demo (`docker-compose.cross-engine.yml`):** donor Engine A uses gitignored `io.picolabs.club_gear_demo` to build the club mesh; export bike #7 with **`exportPortableThing`**, then on Engine B paste **`export_package`** + **`secret`** into `import_portable_thing` (standard Manifold bootstrap only — no club_gear_demo on B). Optional `io.picolabs.ride_coordinator_demo` on B opens a Layer 2 subscription to the moved bike; the **owner approves** the pending subscription on the thing pico (`pending_subscription_approval` with the inbound `Id`) — Manifold things do not use subscription auto-accept.
 
 **Relationships after import (expectations):**
 

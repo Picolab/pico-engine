@@ -50,6 +50,10 @@ function getRotatingFileStream(filePath: string): NodeJS.WritableStream {
   return logStreams[filePath];
 }
 
+/**
+ * Primary log sink: file path when logging to a file, or null when operator chose
+ * stdout-only (`logToStdout` / `PICO_ENGINE_LOG_FILE=stdout`).
+ */
 export function resolveEngineLogFilePath(home: string): string | null {
   const settings = getEngineRuntimeSettings();
   if (settings.logToStdout) {
@@ -61,13 +65,50 @@ export function resolveEngineLogFilePath(home: string): string | null {
   return path.resolve(home, "pico-engine.log");
 }
 
+/**
+ * Path read by `getPicoLogs` / Developer UI Logging tab (JSON lines with `picoId`).
+ * When stdout-only, mirrors to `$PICO_ENGINE_HOME/pico-engine.log` unless
+ * `logMirror` is false (config `logMirror`, or `PICO_ENGINE_LOG_MIRROR=0`).
+ */
+export function resolvePicoLogsReadPath(home: string): string | null {
+  const settings = getEngineRuntimeSettings();
+  if (settings.logToStdout) {
+    if (settings.logMirror === false) {
+      return null;
+    }
+    return path.resolve(home, "pico-engine.log");
+  }
+  if (settings.logFile) {
+    return settings.logFile;
+  }
+  return path.resolve(home, "pico-engine.log");
+}
+
 export function makeEngineLogWriter(
-  filePath: string | null
+  filePath: string | null,
+  home: string
 ): (line: string) => void {
-  if (!filePath) {
+  if (filePath) {
+    return makeRotatingFileLogWriter(filePath);
+  }
+  const mirrorPath = resolvePicoLogsReadPath(home);
+  if (!mirrorPath) {
     return stdoutOnlyLogWriter();
   }
-  return makeRotatingFileLogWriter(filePath);
+  const fileStream = getRotatingFileStream(mirrorPath);
+  const isTest = process.env.NODE_ENV === "test";
+  return (line: string) => {
+    if (!isTest) {
+      process.stdout.write(line);
+    }
+    fileStream.write(line, (err?: Error | null) => {
+      if (err) {
+        process.stderr.write(
+          `pico-engine log file write failed (${mirrorPath}): ${err.message}\n`
+        );
+      }
+    });
+  };
 }
 
 export function makeRotatingFileLogWriter(

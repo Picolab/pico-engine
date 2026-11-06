@@ -54,6 +54,7 @@ module.exports = function rulesetSchemaToTesting (schema) {
 
   const queries = []
   for (const q of schema.queries || []) {
+    if (q.view) continue
     const argNames = (q.args || []).map(function (a) { return a.name })
     const examples = q.examples || []
     if (examples.length === 0) {

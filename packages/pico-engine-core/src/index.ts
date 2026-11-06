@@ -40,6 +40,7 @@ export {
   validateKrlSource,
   type ValidateKrlResult,
 } from "./validateKrl";
+export { isRoutineQueryError } from "./queryErrors";
 export {
   buildPicoSchema,
   rulesetSchemaForInstalled,

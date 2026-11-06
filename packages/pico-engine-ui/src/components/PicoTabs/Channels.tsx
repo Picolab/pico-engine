@@ -18,6 +18,7 @@ import {
   ViewQueryPolicy,
 } from "../widgets/ChannelPolicies";
 import ErrorStatus from "../widgets/ErrorStatus";
+import TabPageHeader from "../widgets/TabPageHeader";
 import {
   suggestChannelId,
   validateChannelIdInput,
@@ -677,7 +678,11 @@ const Channels: React.FC<Props> = ({ pico }) => {
 
   return (
     <div>
-      <h3>Channels</h3>
+      <TabPageHeader
+        title="Channels"
+        waiting={waiting}
+        onRefresh={() => picoDetails.load()}
+      />
       <ErrorStatus error={picoDetails.error} />
       <ErrorStatus error={delChannel.error} />
       <ErrorStatus error={updateChannel.error} />

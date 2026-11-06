@@ -237,6 +237,7 @@ function compileRulesetAst (ast, options) {
     }
     rulesetSchema = buildRulesetSchema(ast, session.compile, shares)
     require('./annotationLint')(ast, session.compile, rulesetSchema)
+    require('./viewMarkupLint')(ast, session.compile, rulesetSchema)
   }
 
   return {

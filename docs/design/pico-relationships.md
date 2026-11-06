@@ -316,6 +316,22 @@ until Sunday” over `wrangler:relationship` + Fleet events.
 presents friendly mesh constructs; Fuse-style scenarios work without engine knowing “vehicle” or
 “fleet.”
 
+### First role schema in practice: IIWF CRM (2026-11)
+
+Fleet is still a sketch; the first real role schema is the IIW Foundation CRM (`IIW-Foundation/crm`, `docs/design/iiwf-crm.md` §6.5 and §6.9). It applies the layering above to people rather than vehicles:
+
+| Element | CRM choice |
+|---------|------------|
+| Who forms relationships | Each user has their **own mesh** (passkey on their root pico) and a client pico that forms one relationship with the CRM mesh. The CRM mesh has no user accounts |
+| Where they terminate | A single **gateway pico** (Staff) rather than each internal pico; it holds the user list, applies role templates, routes allowed events/queries inward, and attributes them (`callerDid()` → `actor`) |
+| Roles (`Rx_role`) | `viewer`, `operator`, `approver` — CRM vocabulary, in the CRM's own ruleset, mapped to Rx policy templates |
+| Formation | Introduction pattern: the gateway issues an invitation with a role; the client pico accepts |
+| Lifecycle | Change role = re-apply a template on the same edge; offboard = cancel the relationship |
+| Agents | Two policy layers: the gateway sets the person's ceiling; the person's client pico exposes a narrower channel to their agent (queries + proposals, no commits) |
+| Credentials | Personal credentials (a user's Gmail) stay in the user's mesh; organizational ones stay in the CRM mesh |
+
+Generic pieces this suggests for Manifold: a **member gateway** (invitations, role → template, routing, attribution, revoke) and a **client-mesh bootstrap** (one step from passkey sign-in to an accepted invitation). Both stay free of CRM vocabulary; the CRM supplies the role names and templates.
+
 ### ReBAC phasing (revised)
 
 | Phase | Scope |
@@ -516,6 +532,7 @@ Legacy wrangler events remain supported. **Lifecycle API events** (1.6.4+): rule
 | **Ruleset RID** | `io.picolabs.relationship` wrapper — only if alias module proves insufficient |
 | **Entity rename** | `ent:relationships` in subscription ruleset — migration story required |
 | **Multi-party** | Co-owners via multiple pairwise relationships (same substrate; Fuse two-owners pattern) |
+| **Member gateway (Manifold)** | Generic gateway pico for people's relationships with role templates; first instance is the IIWF CRM Staff pico — [§ First role schema in practice](#first-role-schema-in-practice-iiwf-crm-2026-11) |
 | **Delegated admin** | Admin rights delegatable via relationship + policy preset — not shared passkeys; [delegated-admin-relationship.md](./delegated-admin-relationship.md) |
 | **VC-conferred relations** | Credentials attach relations to existing edges |
 | **DIDComm Discover Features** | Pre-intro protocol/goal-code disclosure — community goal-codes — [sky-didcomm-protocol.md §17](./sky-didcomm-protocol.md#17-didcomm-discover-features-planned) |
@@ -527,5 +544,6 @@ Legacy wrangler events remain supported. **Lifecycle API events** (1.6.4+): rule
 - [MEMORY.md § Subscriptions are relationships](../../MEMORY.md)
 - [Subscriptions (Confluence)](https://picolabs.atlassian.net/wiki/spaces/docs/pages/4032102406/Subscriptions) — formation/routing detail (title may become Relationships)
 - [Identity System (Confluence)](https://picolabs.atlassian.net/wiki/spaces/docs/pages/3962044419/Identity+System)
+- IIWF CRM design (`IIW-Foundation/crm` → `docs/design/iiwf-crm.md` §6.9) — users as per-person meshes reaching an org mesh through role-bearing relationships
 - [pico-move.md](./pico-move.md) — relationships survive move via did:webvh SCID + did:peer rotation
 - [sky-didcomm-protocol.md §17](./sky-didcomm-protocol.md#17-didcomm-discover-features-planned) — DIDComm Discover Features (pre-intro; not integrator discovery channel)

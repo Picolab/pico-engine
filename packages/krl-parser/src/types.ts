@@ -115,7 +115,18 @@ export interface DocTagExample {
   data: Record<string, unknown>;
 }
 
-export type DocTag = DocTagAttr | DocTagParam | DocTagReturns | DocTagExample;
+export interface DocTagView {
+  kind: "view";
+  title: string;
+  path?: string;
+}
+
+export type DocTag =
+  | DocTagAttr
+  | DocTagParam
+  | DocTagReturns
+  | DocTagExample
+  | DocTagView;
 
 export interface DocUnknownTag {
   name: string;
@@ -127,7 +138,7 @@ export interface DocComment extends BaseNode {
   raw: string;
   description: string;
   tags: DocTag[];
-  /** `@word` lines that are not attr, param, returns, or example — ignored; compiler may warn. */
+  /** `@word` lines that are not attr, param, returns, example, or view — ignored; compiler may warn. */
   unknownTags?: DocUnknownTag[];
 }
 

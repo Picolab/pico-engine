@@ -160,6 +160,19 @@ ruleset io.picolabs.wrangler {
       * @example "child's name" { "eci": "<child family eci>", "mod": "io.picolabs.wrangler", "func": "name" }
       * @example "another engine" { "eci": "<eci>", "mod": "<rid>", "func": "<function>", "params": {}, "_host": "https://other.example" }
       */
+     /**
+      * Query through a channel on this pico (policy applies). Used by view file()
+      * to render components on the same channel as the browser request.
+      * @param eci String "channel on this pico"
+      * @param rid String "ruleset id"
+      * @param name String "shared function"
+      * @param params Map "query arguments"
+      * @returns Any
+      */
+     channelQuery = function(eci, rid, name, params) {
+       ctx:query(eci, rid, name, params.defaultsTo({}))
+     }
+
      picoQuery = function(eci, mod, func, params,_host,_path,_root_url) { 
        isDid = eci.match(re#^did:#)
        thisPico = ctx:channels.any(function(c){c{"id"}==eci})
@@ -523,6 +536,13 @@ ruleset io.picolabs.wrangler {
         .filter(function(c){c["tags"].sort().join(",") == "engine,ui"})
         .map(function(c){c["id"]})
         .head()
+      childBoxAttrs = {
+        "name": name,
+        "parentUiEci": parentUiEci
+      }
+      boxAttrs = attrs{"backgroundColor"}.match(re#^\#[0-9A-F]{6}$#i)
+        => childBoxAttrs.put("backgroundColor", attrs{"backgroundColor"})
+        | childBoxAttrs
       every {
         ctx:newPico(
           rulesets=[
@@ -548,10 +568,7 @@ ruleset io.picolabs.wrangler {
           eci=newUiECI,
           domain="engine_ui",
           name="box",
-          attrs={
-            "name": name,
-            "parentUiEci": parentUiEci
-          }
+          attrs=boxAttrs
         )
       }
       return {"eci": newEci, "uiEci": newUiECI}

@@ -11,6 +11,8 @@ export interface PicoRuleset {
   rid: string;
   config: any;
   url: string;
+  /** From ctx:rulesets — rulesets with @view functions only (1.8+). */
+  viewCount?: number;
   meta: RulesetCtxInfoMeta | null;
 }
 

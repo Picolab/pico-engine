@@ -10,7 +10,7 @@ import {
   listEngineKrlSources,
   resolveEngineKrlFile,
 } from "./bundledKrl";
-import { PicoEngineCore } from "pico-engine-core";
+import { isRoutineQueryError, PicoEngineCore } from "pico-engine-core";
 import { PicoFramework } from "pico-framework";
 import { AuthCookieNames, AuthError, AuthService, authCookieNames } from "./auth";
 import {
@@ -22,11 +22,22 @@ import {
   rootHasOAuthMeshRuleset,
 } from "./oauth";
 import { uiECIForRoot } from "./provisionRoot";
+import { channelSchemaForEci } from "pico-engine-core";
+import {
+  contentTypeForUiPath,
+  isXmluiCodeBehindPath,
+  isXmluiSpaClientRoute,
+  parseComponentXmluiPath,
+  viewQueryNameForComponent,
+  XMLUI_EMPTY_CODE_BEHIND,
+} from "./xmluiRuntime";
 import { IdentityService } from "./identity/IdentityService";
 import { registerWebvhRoutes } from "./identity/webvhRoutes";
 import { registerDidcommIngressRoutes } from "./identity/didcommIngressRoutes";
 
 import { getEngineRuntimeSettings } from "./engineConfig";
+import { resolveEngineLogFilePath, resolvePicoLogsReadPath } from "./logging";
+import { stageKrlContent } from "./stageKrl";
 
 const engineVersion = require("../package.json").version;
 
@@ -129,6 +140,10 @@ export function server(
   });
   app.use(function (req, res, next) {
     if (req.path === "/oauth/authorize" || req.path === "/oauth/approve") {
+      return helmet({ contentSecurityPolicy: false })(req, res, next);
+    }
+    // XMLUI view shells use small inline scripts (__PUBLIC_PATH, startApp).
+    if (req.path === "/ui" || req.path.startsWith("/ui/")) {
       return helmet({ contentSecurityPolicy: false })(req, res, next);
     }
     return defaultHelmet(req, res, next);
@@ -278,6 +293,25 @@ export function server(
     );
   }
 
+  app.get("/api/ui-sky-context", function (req, res, next) {
+    const eci =
+      typeof req.query.eci === "string" ? req.query.eci.trim() : "";
+    if (!eci) {
+      res.status(400).json({ error: "eci query parameter required" });
+      return;
+    }
+    if (!oauth) {
+      res.json({ bearerRequired: false });
+      return;
+    }
+    oauth
+      .skyRequiresBearer(eci)
+      .then((bearerRequired) => {
+        res.json({ bearerRequired });
+      })
+      .catch(next);
+  });
+
   app.get("/api/oauth/mesh-enabled", requireAuthSession, function (_req, res) {
     const roots = pf.rootPicos();
     const meshOAuthEnabled =
@@ -336,6 +370,23 @@ export function server(
       res.json({ sources: listEngineKrlSources(baseUrl.replace(/\/$/, "")) });
     } catch (err) {
       next(err);
+    }
+  });
+
+  app.post("/api/stage-krl", function (req, res, next) {
+    try {
+      const content = req.body?.content;
+      const filename =
+        typeof req.body?.filename === "string" ? req.body.filename : "staged.krl";
+      if (typeof content !== "string" || content.length > 2_000_000) {
+        res.status(400).json({ error: "content required (max 2MB)" });
+        return;
+      }
+      const url = stageKrlContent(content, filename);
+      res.json({ url });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(400).json({ error: message });
     }
   });
 
@@ -401,11 +452,30 @@ export function server(
     if (!baseUrl) {
       baseUrl = `${req.protocol}://${req.get("host") || "localhost"}`;
     }
+    const settings = getEngineRuntimeSettings();
+    const primaryLogFile = resolveEngineLogFilePath(settings.home);
+    const picoLogsReadPath = resolvePicoLogsReadPath(settings.home);
+    const mirrorDisabled = settings.logToStdout && settings.logMirror === false;
     res.json({
       version: engineVersion,
       hasRoots: roots.length > 0,
       rootUiEci,
       baseUrl: baseUrl.replace(/\/$/, ""),
+      logging: {
+        home: settings.home,
+        logToStdout: settings.logToStdout,
+        logMirror: settings.logMirror,
+        logFileSetting: settings.logFile ?? null,
+        primaryLogFile,
+        /** File `getPicoLogs` reads (mirrors under stdout-only unless PICO_ENGINE_LOG_MIRROR=0). */
+        picoLogsReadPath,
+        picoLogsForDeveloperUi: picoLogsReadPath !== null,
+        logMirrorDisabled: mirrorDisabled,
+        hint:
+          picoLogsReadPath === null
+            ? "Logging tab is off: stdout-only logging with logMirror false (config logMirror or PICO_ENGINE_LOG_MIRROR=0). Enable logMirror or set PICO_ENGINE_LOG_FILE to a file path."
+            : "Logging tab reads JSON lines from picoLogsReadPath (last ~12h per pico). Stdout-only mode mirrors structured lines to $PICO_ENGINE_HOME/pico-engine.log when logMirror is true (default).",
+      },
     });
   });
 
@@ -571,6 +641,129 @@ export function server(
       .catch(next);
   });
 
+  const XMLUI_FILE_RID = "io.picolabs.xmlui";
+
+  function respondXmluiQueryFailure(
+    err: unknown,
+    res: Response,
+    next: express.NextFunction
+  ): boolean {
+    if (!isRoutineQueryError(err)) {
+      return false;
+    }
+    const message = err + "";
+    if (!res.headersSent) {
+      if (/channel policy/i.test(message)) {
+        res.status(403).type("text/plain").end(message);
+      } else {
+        res.status(404).type("text/plain").end("Not found");
+      }
+    }
+    return true;
+  }
+
+  async function serveXmluiFile(
+    req: Request,
+    res: Response,
+    next: express.NextFunction,
+    eci: string,
+    appRid: string,
+    filePath: string
+  ) {
+    const rel = (filePath || "index.html").replace(/^\/+/, "") || "index.html";
+    try {
+      if (isXmluiCodeBehindPath(rel)) {
+        res
+          .status(200)
+          .setHeader("Content-Type", contentTypeForUiPath(rel))
+          .end(XMLUI_EMPTY_CODE_BEHIND);
+        return;
+      }
+
+      let data: unknown;
+      const componentName = appRid ? parseComponentXmluiPath(rel) : null;
+      if (componentName) {
+        const { pico } = pf.lookupChannel(eci);
+        const channelSchema = channelSchemaForEci(
+          pico,
+          core.rsRegistry,
+          (channelEci) => pf.lookupChannel(channelEci),
+          eci
+        );
+        const viewFn = viewQueryNameForComponent(
+          channelSchema.queries,
+          appRid,
+          componentName
+        );
+        if (!viewFn) {
+          res.status(404).type("text/plain").end("Not found");
+          return;
+        }
+        data = await core.query({
+          eci,
+          rid: appRid,
+          name: viewFn,
+          args: {},
+        });
+      } else {
+        data = await core.query({
+          eci,
+          rid: XMLUI_FILE_RID,
+          name: "file",
+          args: { rid: appRid, path: rel },
+        });
+      }
+      if (data == null && appRid && isXmluiSpaClientRoute(rel)) {
+        data = await core.query({
+          eci,
+          rid: XMLUI_FILE_RID,
+          name: "file",
+          args: { rid: appRid, path: "index.html" },
+        });
+      }
+      if (data == null) {
+        res.status(404).type("text/plain").end("Not found");
+        return;
+      }
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "error" in (data as Record<string, unknown>)
+      ) {
+        const message = String((data as Record<string, unknown>).error);
+        res.status(404).type("text/plain").end(message);
+        return;
+      }
+      const servedPath =
+        rel === "index.html" || !isXmluiSpaClientRoute(rel) ? rel : "index.html";
+      const contentType = contentTypeForUiPath(servedPath);
+      res.setHeader("Content-Type", contentType);
+      if (contentType.startsWith("application/json") && typeof data === "object") {
+        res.json(data);
+        return;
+      }
+      res.end(typeof data === "string" ? data : JSON.stringify(data));
+    } catch (err) {
+      if (respondXmluiQueryFailure(err, res, next)) {
+        return;
+      }
+      next(err);
+    }
+  }
+
+  app.get("/ui/:eci", function (req, res, next) {
+    void serveXmluiFile(req, res, next, req.params.eci, "", "index.html");
+  });
+
+  app.get("/ui/:eci/:rid", function (req, res, next) {
+    void serveXmluiFile(req, res, next, req.params.eci, req.params.rid, "index.html");
+  });
+
+  app.get("/ui/:eci/:rid/*", function (req, res, next) {
+    const rest = (req.params as { 0?: string })[0] || "index.html";
+    void serveXmluiFile(req, res, next, req.params.eci, req.params.rid, rest);
+  });
+
   app.all("/sky/query/:eci/:rid/:function", requireSkyBearerIfOAuth, handleSkyQuery);
   // Legacy alias; prefer /sky/query/ per Sky Query API docs.
   app.all("/sky/cloud/:eci/:rid/:function", requireSkyBearerIfOAuth, handleSkyQuery);
@@ -603,7 +796,8 @@ export function server(
     let message = err + "";
     const policyNoise =
       process.env.NODE_ENV === "test" &&
-      /not allowed by channel policy/i.test(message);
+      (isRoutineQueryError(err) ||
+        /not allowed by channel policy/i.test(message));
     if (!policyNoise) {
       console.error(err);
     }

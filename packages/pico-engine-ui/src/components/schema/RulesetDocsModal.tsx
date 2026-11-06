@@ -74,7 +74,14 @@ const RulesetDocsModal: React.FC<Props> = ({ eci, rid, onClose }) => {
             <div className="alert alert-warning mb-0">{error}</div>
           ) : schema ? (
             <RulesetDocsContent schema={schema} picoEci={eci} />
-          ) : null}
+          ) : (
+            <p className="text-muted mb-0">
+              No discovery schema for <code>{rid}</code> on this pico (
+              <code>rulesetSchema</code> returned null). Install the ruleset on
+              this pico, or use Flush on the Rulesets tab if it was recently
+              updated.
+            </p>
+          )}
         </div>
       </div>
     </div>

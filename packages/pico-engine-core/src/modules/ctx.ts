@@ -77,6 +77,8 @@ export interface RulesetCtxInfo {
   config: RulesetConfig | null;
   url: string;
   meta: RulesetCtxInfoMeta | null;
+  /** Number of shared functions with @view (from rulesetSchema); 0 if no schema or no views. */
+  viewCount: number;
 }
 
 export interface RulesetCtxInfoMeta {
@@ -231,10 +233,17 @@ export default function initCtxModule(core: PicoEngineCore) {
 
       for (const rs of pico.rulesets) {
         const cached = core.rsRegistry.getCached(rs.config.url);
+        const schema = (cached?.ruleset as { rulesetSchema?: { queries?: Array<{ view?: unknown }> } })
+          ?.rulesetSchema;
+        const viewCount =
+          schema && Array.isArray(schema.queries)
+            ? schema.queries.filter((q) => q && q.view != null).length
+            : 0;
         results.push({
           rid: rs.rid,
           url: rs.config.url,
           config: rs.config.config,
+          viewCount,
           meta: cached
             ? {
                 krl: cached.krl,

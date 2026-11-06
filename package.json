@@ -8,7 +8,7 @@
     "out": "lerna clean --yes && lerna exec -- npm i && rm -rf packages/*/package-lock.json && lerna exec --bail=false -- npm out",
     "clean": "lerna clean --yes",
     "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json packages/*/package-lock.json && npm run setup -s",
-    "bootstrap": "lerna bootstrap --hoist --no-ci --nohoist=browserify --nohoist=@types/* --nohoist=pico-framework --nohoist=@simplewebauthn/*",
+    "bootstrap": "lerna bootstrap --hoist --no-ci --nohoist=browserify --nohoist=@types/* --nohoist=react --nohoist=react-dom --nohoist=react-router --nohoist=react-router-dom --nohoist=vite --nohoist=@vitejs/* --nohoist=pico-framework --nohoist=@simplewebauthn/*",
     "setup": "npm i --no-package-lock && npm run bootstrap",
     "publish": "npm run build && lerna publish from-package --yes",
     "start": "cd packages/pico-engine && npm start",
@@ -25,6 +25,8 @@
     "link-framework": "cd ../pico-framework && npm run build && rm -rf ../pico-engine/packages/krl-stdlib/node_modules/pico-framework ../pico-engine/packages/pico-engine-core/node_modules/pico-framework ../pico-engine/packages/pico-engine/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/krl-stdlib/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/pico-engine-core/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/pico-engine/node_modules/pico-framework && cd ../pico-engine && npm run build"
   },
   "devDependencies": {
+    "@types/react": "18.3.27",
+    "@types/react-dom": "18.3.7",
     "lerna": "^3.22.1"
   },
   "dependencies": {

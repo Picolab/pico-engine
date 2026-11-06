@@ -65,7 +65,9 @@
     "test:relationship-self": "ava reset-cache && ava --serial ./test/relationshipSelf.ts --timeout=2m",
     "test:relationship-lifecycle": "ava reset-cache && ava --serial ./test/relationshipLifecycle.ts --timeout=2m",
     "test:epic9": "ava reset-cache && ava --serial ./test/epic9Matrix.ts --timeout=3m",
-    "test:peer-did4": "ava reset-cache && ava --serial ./test/peerDid4.ts --timeout=2m"
+    "test:peer-did4": "ava reset-cache && ava --serial ./test/peerDid4.ts --timeout=2m",
+    "test:views": "ava reset-cache && ava --serial ./test/xmluiSpike.ts ./test/xmluiRoutes.ts ./test/xmluiLauncher.ts ./test/xmluiConfig.ts ./test/xmluiViewSchema.ts ./test/xmluiViewPolicy.ts ./test/xmluiViewsOAuth.ts ./test/xmluiS2Demos.ts --timeout=2m",
+    "vendor:xmlui": "node scripts/copy-xmlui-runtime.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
@@ -111,7 +113,8 @@
     "onchange": "^7.1.0",
     "scriptsp": "^1.1.1",
     "ts-node": "^10.4.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "xmlui": "^0.12.7"
   },
   "ava": {
     "extensions": [

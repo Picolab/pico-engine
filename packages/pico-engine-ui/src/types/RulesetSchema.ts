@@ -25,6 +25,7 @@ export interface RulesetSchemaQuery {
   description?: string;
   args?: RulesetSchemaAttr[];
   returns?: string;
+  view?: { title?: string; path?: string };
   examples?: Array<{ name: string; args: Record<string, unknown> }>;
 }
 

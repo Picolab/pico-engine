@@ -136,6 +136,24 @@ function parseExampleTag(rest: string, token: Token): DocTag {
   };
 }
 
+function parseViewTag(rest: string, token: Token): DocTag {
+  const trimmed = rest.trimStart();
+  const quoted = parseQuotedString(trimmed);
+  if (!quoted) {
+    throw new ParseError('@view requires a quoted title', token);
+  }
+  let path: string | undefined;
+  const pathRest = quoted.rest.trim();
+  if (pathRest.length > 0) {
+    const pathToken = pathRest.split(/\s+/)[0];
+    if (!pathToken.startsWith("/")) {
+      throw new ParseError("@view path must start with /", token);
+    }
+    path = pathToken;
+  }
+  return { kind: "view", title: quoted.value, path };
+}
+
 function parseReturnsTag(rest: string, token: Token): DocTag {
   const parts = splitRest(rest);
   if (parts.length === 0) {
@@ -199,6 +217,9 @@ export function parseDocComment(token: Token): DocComment {
           break;
         case "example":
           tags.push(parseExampleTag(rest, token));
+          break;
+        case "view":
+          tags.push(parseViewTag(rest, token));
           break;
         default:
           unknownTags.push({ name: tagName, rest });

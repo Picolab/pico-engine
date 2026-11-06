@@ -14,6 +14,8 @@
     "allowJs": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    /* Use this package's @types (React 18). Root hoists @types/react@19 from unrelated deps. */
+    "typeRoots": ["./node_modules/@types"],
 
     /* Linting */
     "strict": true,

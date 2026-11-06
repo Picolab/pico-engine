@@ -73,6 +73,7 @@ export interface RulesetSchema {
     args?: unknown[];
     returns?: string;
     examples?: RulesetSchemaQueryExample[];
+    view?: { title: string; path?: string };
   }>;
 }
 
@@ -117,6 +118,7 @@ export interface PicoSchema {
     args?: unknown[];
     returns?: string;
     examples?: RulesetSchemaQueryExample[];
+    view?: { title: string; path?: string };
   }>;
   conflicts: PicoSchemaConflict[];
 }
@@ -232,6 +234,7 @@ export function mergePicoSchema(
         args: q.args,
         returns: q.returns,
         examples: q.examples,
+        view: q.view,
       });
     }
 

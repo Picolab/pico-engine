@@ -11,6 +11,11 @@ export function makeKrlCtxKrlModule(
   const picoId = pico.id;
 
   let corePico = core.addPico(picoId);
+  const hostUserRid = host.rsCtx.ruleset.rid;
+
+  function activeHost(): KrlCtx {
+    return corePico.getActiveHostKrlCtx(picoId, hostUserRid) || host;
+  }
 
   const krlCtx: KrlCtx = {
     rsCtx, // the basic pico+ruleset context from pico-framework
@@ -25,12 +30,19 @@ export function makeKrlCtxKrlModule(
     },
 
     ///////////////////////////////////////////////////////////////////////////
-    // current event/query is not applicable for krl modules
-    getEvent: () => null,
+    // Module code runs in the module ruleset ctx; meta:eci / meta:rid for the
+    // host app still come from the host's active query or event.
+    getEvent() {
+      return activeHost().getEvent();
+    },
     setEvent(event) {},
-    getCurrentRuleName: () => null,
+    getCurrentRuleName() {
+      return activeHost().getCurrentRuleName();
+    },
     setCurrentRuleName(ruleName) {},
-    getQuery: () => null,
+    getQuery() {
+      return activeHost().getQuery();
+    },
     setQuery(query) {},
 
     ///////////////////////////////////////////////////////////////////////////

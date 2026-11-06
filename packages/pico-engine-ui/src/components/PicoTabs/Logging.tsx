@@ -3,6 +3,7 @@ import { PicoBox } from "../../types/PicoBox";
 import { apiGet } from "../../api";
 import useAsyncLoader from "../../useAsyncLoader";
 import ErrorStatus from "../widgets/ErrorStatus";
+import TabPageHeader from "../widgets/TabPageHeader";
 
 interface LogEntryGroup {
   txnId: string;
@@ -64,21 +65,12 @@ export default function Logging({ pico, isTabActive = true }: Props) {
 
   return (
     <div className="pico-logging-tab">
-      <div className="d-flex align-items-center mb-2">
-        <h3 className="mb-0 mr-2">Logging</h3>
-        <button
-          type="button"
-          className="btn btn-outline-secondary btn-sm"
-          disabled={picoLogs.waiting}
-          onClick={() => picoLogs.load()}
-        >
-          {picoLogs.waiting ? "Refreshing…" : "Refresh"}
-        </button>
-      </div>
-      <p className="small text-muted mb-2">
-        Reload log entries without refreshing the browser (keeps demo traffic out
-        of a full page reload).
-      </p>
+      <TabPageHeader
+        title="Logging"
+        waiting={picoLogs.waiting}
+        onRefresh={() => picoLogs.load()}
+        hint="Reload log entries without refreshing the browser (keeps demo traffic out of a full page reload)."
+      />
       <ErrorStatus error={picoLogs.error} />
 
       {picoLogs.data.map((group) => {

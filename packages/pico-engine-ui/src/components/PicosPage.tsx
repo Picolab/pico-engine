@@ -94,6 +94,14 @@ const PicosPage: React.FC<Props> = () => {
         <div className="mt-2">
           <button
             type="button"
+            className="btn btn-sm btn-outline-secondary mr-2"
+            disabled={picoPage.loading}
+            onClick={() => picoPageStore.fetchAll()}
+          >
+            {picoPage.loading ? "Refreshing…" : "Refresh"}
+          </button>
+          <button
+            type="button"
             className="btn btn-sm btn-outline-secondary"
             onClick={() => setSettingsOpen(true)}
           >

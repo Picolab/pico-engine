@@ -19,6 +19,7 @@ import useAsyncLoader from "../../useAsyncLoader";
 import SchemaEventTryForm from "../schema/SchemaEventTryForm";
 import SchemaQueryTryForm from "../schema/SchemaQueryTryForm";
 import ErrorStatus from "../widgets/ErrorStatus";
+import TabPageHeader from "../widgets/TabPageHeader";
 import CopyToClipboardButton from "../widgets/CopyToClipboardButton";
 import SplitPane from "../widgets/SplitPane";
 import {
@@ -65,6 +66,33 @@ function entrySendLabel(op: RulesetSchemaOperation): string {
   return parts.length ? parts.join(", ") : op.rule;
 }
 
+/** Cache key must include pico ECI — the same RID on another pico has different schema. */
+function testingSchemaCacheKey(eci: string, rid: string) {
+  return `${eci}:${rid}`;
+}
+
+/** Remember ruleset dropdown per pico (UI channel ECI), same persistence idea as SplitPane. */
+function testingSelectedRidStorageKey(uiEci: string) {
+  return `pico-engine-ui-testing-rid:${uiEci}`;
+}
+
+function readStoredTestingRid(uiEci: string): string | null {
+  try {
+    const v = localStorage.getItem(testingSelectedRidStorageKey(uiEci));
+    return v && v.length ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredTestingRid(uiEci: string, rid: string) {
+  try {
+    localStorage.setItem(testingSelectedRidStorageKey(uiEci), rid);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 const Testing: React.FC<Props> = ({ pico }) => {
   const [searchParams] = useSearchParams();
   const tryParams = parseTestingTryParams("?" + searchParams.toString());
@@ -82,9 +110,10 @@ const Testing: React.FC<Props> = ({ pico }) => {
   const [testResult, setTestResult] = React.useState<string | null>(null);
 
   const [testingSchema, setTestingSchema] = React.useState<{
-    [rid: string]: {
+    [cacheKey: string]: {
       waiting?: boolean;
       error?: string | null;
+      schemaNote?: string;
       schema?: TestingSchema;
       rulesetSchema?: RulesetSchema | null;
     };
@@ -120,11 +149,19 @@ const Testing: React.FC<Props> = ({ pico }) => {
     }
   }
 
+  function refreshTesting() {
+    void picoDetails.load();
+    void getTestingECI.load();
+    void refreshHistory();
+    void refreshSaved();
+    setTestingSchema({});
+  }
+
   React.useEffect(() => {
     picoDetails.load();
     getTestingECI.load();
     setTestingSchema({});
-    setSelectedRid("");
+    setSelectedRid(readStoredTestingRid(pico.eci) || "");
     refreshHistory();
     refreshSaved();
   }, [pico.eci]);
@@ -134,12 +171,21 @@ const Testing: React.FC<Props> = ({ pico }) => {
     if (!list.length) return;
     if (tryParams?.rid && list.some((r) => r.rid === tryParams.rid)) {
       setSelectedRid(tryParams.rid);
+      writeStoredTestingRid(pico.eci, tryParams.rid);
       return;
     }
-    if (!selectedRid || !list.some((r) => r.rid === selectedRid)) {
-      setSelectedRid(list[0].rid);
+    if (selectedRid && list.some((r) => r.rid === selectedRid)) {
+      return;
     }
-  }, [picoDetails.data, tryParams?.rid, selectedRid]);
+    const stored = readStoredTestingRid(pico.eci);
+    if (stored && list.some((r) => r.rid === stored)) {
+      setSelectedRid(stored);
+      return;
+    }
+    const fallback = list[0].rid;
+    setSelectedRid(fallback);
+    writeStoredTestingRid(pico.eci, fallback);
+  }, [pico.eci, picoDetails.data, tryParams?.rid, selectedRid]);
 
   React.useEffect(() => {
     if (getTestingECI.data) {
@@ -149,13 +195,15 @@ const Testing: React.FC<Props> = ({ pico }) => {
 
   React.useEffect(() => {
     if (!selectedRid) return;
-    if (testingSchema[selectedRid] !== undefined) return;
+    const cacheKey = testingSchemaCacheKey(pico.eci, selectedRid);
+    if (testingSchema[cacheKey] !== undefined) return;
     getTestingSchema(selectedRid);
   }, [selectedRid, pico.eci, testingSchema]);
 
   React.useEffect(() => {
     if (!tryParams?.rid || tryParams.rid !== selectedRid) return;
-    const block = testingSchema[selectedRid];
+    const block =
+      testingSchema[testingSchemaCacheKey(pico.eci, selectedRid)];
     if (!block?.rulesetSchema && !block?.schema) return;
 
     let scrollId: string | null = null;
@@ -330,40 +378,55 @@ const Testing: React.FC<Props> = ({ pico }) => {
   }
 
   async function getTestingSchema(rid: string) {
+    const cacheKey = testingSchemaCacheKey(pico.eci, rid);
     setTestingSchema((prev) => ({
       ...prev,
-      [rid]: { waiting: true, error: null },
+      [cacheKey]: { waiting: true, error: null },
     }));
     try {
       let schema: TestingSchema | null = null;
       let rulesetSchema: RulesetSchema | null = null;
+      let schemaNote: string | undefined;
       try {
         const rsSchema = (await apiPost(
           `/c/${pico.eci}/query/io.picolabs.wrangler/rulesetSchema`,
           { rid },
           false
         )) as RulesetSchema | null;
-        if (rsSchema && (rsSchema.operations?.length || rsSchema.queries?.length)) {
+        if (rsSchema === null) {
+          schemaNote =
+            "rulesetSchema returned null on this pico (ruleset not installed here, or flush/reinstall to refresh compiled schema).";
+        } else if (
+          !(rsSchema.operations?.length || rsSchema.queries?.length)
+        ) {
+          schemaNote =
+            "This ruleset has no discovery annotations (no annotated operations or shared queries).";
+        } else {
           rulesetSchema = rsSchema;
           schema = rulesetSchemaToTesting(rsSchema);
         }
-      } catch {
-        // wrangler missing or rulesetSchema unavailable
+      } catch (err) {
+        schemaNote = `rulesetSchema query failed: ${err}`;
       }
       if (!schema) {
-        schema = await apiGet(`/c/${pico.eci}/query/${rid}/__testing`);
+        try {
+          schema = await apiGet(`/c/${pico.eci}/query/${rid}/__testing`);
+        } catch {
+          // legacy __testing optional
+        }
       }
       setTestingSchema((prev) => ({
         ...prev,
-        [rid]: {
+        [cacheKey]: {
           schema: schema || undefined,
           rulesetSchema: rulesetSchema || undefined,
+          schemaNote,
         },
       }));
     } catch (err) {
       setTestingSchema((prev) => ({
         ...prev,
-        [rid]: { error: err + "" },
+        [cacheKey]: { error: err + "" },
       }));
     }
   }
@@ -379,7 +442,9 @@ const Testing: React.FC<Props> = ({ pico }) => {
       })) ||
     [];
 
-  const testing = selectedRid ? testingSchema[selectedRid] || null : null;
+  const testing = selectedRid
+    ? testingSchema[testingSchemaCacheKey(pico.eci, selectedRid)] || null
+    : null;
 
   return (
     <div>
@@ -388,7 +453,16 @@ const Testing: React.FC<Props> = ({ pico }) => {
         defaultLeftRatio={0.55}
         left={
           <>
-          <h3>Testing</h3>
+          <TabPageHeader
+            title="Testing"
+            waiting={
+              picoDetails.waiting ||
+              getTestingECI.waiting ||
+              historyLoading ||
+              savedLoading
+            }
+            onRefresh={refreshTesting}
+          />
           <div className="mt-3 mb-3">
             <div className="form-group mb-2">
               <label className="small mb-1 d-block">ECI</label>
@@ -420,7 +494,11 @@ const Testing: React.FC<Props> = ({ pico }) => {
               <select
                 className="form-control form-control-sm text-mono"
                 value={selectedRid}
-                onChange={(e) => setSelectedRid(e.target.value)}
+                onChange={(e) => {
+                  const rid = e.target.value;
+                  setSelectedRid(rid);
+                  writeStoredTestingRid(pico.eci, rid);
+                }}
               >
                 {rulesets.map((rs) => (
                   <option key={rs.rid} value={rs.rid}>
@@ -742,8 +820,11 @@ const Testing: React.FC<Props> = ({ pico }) => {
                 <div className="text-muted small">Loading testing forms…</div>
               ) : (
                 <div className="text-muted small">
+                  {testing?.schemaNote ? (
+                    <p className="text-warning mb-2">{testing.schemaNote}</p>
+                  ) : null}
                   No testing forms for this ruleset (no annotations and no
-                  __testing).
+                  legacy __testing query).
                 </div>
               )}
             </div>

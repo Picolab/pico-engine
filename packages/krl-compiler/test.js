@@ -193,6 +193,47 @@ test('krl check reports unused @attr', function (t) {
   }))
 })
 
+test('krl check warns on invalid XML in @view heredoc', function (t) {
+  var src = [
+    'ruleset io.test.views {',
+    '  meta { name "V" shares page }',
+    '  global {',
+    '    /**',
+    '     * Broken tag',
+    '     * @view "Page"',
+    '     */',
+    '    page = function() { <<<Component><Text>x</Text> >> }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.true(out.warnings.some(function (w) {
+    return w.message.indexOf('view markup:') !== -1 &&
+      w.message.indexOf('XML') !== -1
+  }))
+})
+
+test('krl check warns on ent: in view markup beesting', function (t) {
+  var src = [
+    'ruleset io.test.views2 {',
+    '  meta { name "V2" shares page }',
+    '  global {',
+    '    /**',
+    '     * Bad data',
+    '     * @view "Page"',
+    '     */',
+    '    page = function() { <<<Component><Text>#{ ent:foo }</Text></Component> >> }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.true(out.warnings.some(function (w) {
+    return w.message.indexOf('entity state') !== -1 || w.message.indexOf('ent:') !== -1
+  }))
+})
+
 test('krl check ignores /** on unshared helper (JSDoc @returns does not fail compile)', function (t) {
   var src = [
     'ruleset io.test {',

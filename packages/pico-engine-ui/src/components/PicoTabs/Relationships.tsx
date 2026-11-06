@@ -16,6 +16,7 @@ import {
   ViewQueryPolicy,
 } from "../widgets/ChannelPolicies";
 import ErrorStatus from "../widgets/ErrorStatus";
+import TabPageHeader from "../widgets/TabPageHeader";
 
 function getRefVal(ref: React.MutableRefObject<HTMLInputElement | null>) {
   return ref.current && ref.current.value;
@@ -704,7 +705,11 @@ const Relationships: React.FC<Props> = ({ pico }) => {
 
   return (
     <div>
-      <h3>Relationships</h3>
+      <TabPageHeader
+        title="Relationships"
+        waiting={picoDetails.waiting}
+        onRefresh={refreshAll}
+      />
       <ErrorStatus error={picoDetails.error} />
 
       <IdentityPanel

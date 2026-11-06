@@ -24,6 +24,7 @@ import {
   getPicoLogs,
   makeEngineLogWriter,
   resolveEngineLogFilePath,
+  resolvePicoLogsReadPath,
 } from "./logging";
 import { openClassicLevelWithRecovery } from "./levelDb";
 import { provisionRoot, uiECIForRoot } from "./provisionRoot";
@@ -193,7 +194,7 @@ export async function startEngine(
   const logFilePath = resolveEngineLogFilePath(home);
   const log = configuration.log
     ? configuration.log
-    : makeKrlLogger(makeEngineLogWriter(logFilePath));
+    : makeKrlLogger(makeEngineLogWriter(logFilePath, home));
 
   const db = await openClassicLevelWithRecovery<PicoDbKey, any>(
     path.resolve(home, "db"),
@@ -221,10 +222,11 @@ export async function startEngine(
     globalEventDeny: configuration.globalEventDeny ?? settings.globalEventDeny,
     globalQueryDeny: configuration.globalQueryDeny ?? settings.globalQueryDeny,
     getPicoLogs(picoId) {
-      if (!logFilePath) {
+      const readPath = resolvePicoLogsReadPath(home);
+      if (!readPath) {
         return Promise.resolve([]);
       }
-      return getPicoLogs(logFilePath, picoId);
+      return getPicoLogs(readPath, picoId);
     },
   });
   const pf = core.picoFramework;

@@ -101,6 +101,15 @@ function docReturns (doc) {
   return r ? r.type : 'Any'
 }
 
+function docView (doc) {
+  if (!doc || !doc.tags) return undefined
+  const v = doc.tags.find(function (t) { return t.kind === 'view' })
+  if (!v) return undefined
+  const out = { title: v.title }
+  if (v.path) out.path = v.path
+  return out
+}
+
 function docRuleExamples (doc) {
   if (!doc || !doc.tags) return []
   return doc.tags
@@ -229,6 +238,8 @@ module.exports = function buildRulesetSchema (ast, comp, shares) {
       args: docQueryArgs(dec.doc, fn, comp),
       returns: docReturns(dec.doc)
     }
+    const view = docView(dec.doc)
+    if (view) qOut.view = view
     if (qExamples.length) qOut.examples = qExamples
     queries.push(qOut)
   }

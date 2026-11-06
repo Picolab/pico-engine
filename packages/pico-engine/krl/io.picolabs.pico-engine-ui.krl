@@ -291,12 +291,15 @@ ruleset io.picolabs.pico-engine-ui {
     pre {
       uiEci = event:attr("uiEci")
       familyEci = event:attr("eci")
+      requestedColor = event:attrs{"backgroundColor"}
       childIndex = childLayoutIndex(familyEci)
       gridCol = childIndex % 4
       gridRow = (childIndex - childIndex % 4) / 4
       layoutX = ent:x.defaultsTo(100) + 48 + gridCol * 143
       layoutY = ent:y.defaultsTo(100) + 48 + gridRow * 108
-      layoutColor = childPalette[childIndex % childPalette.length]
+      layoutColor = requestedColor.match(re#^\#[0-9A-F]{6}$#i)
+        => requestedColor
+        | childPalette[childIndex % childPalette.length]
     }
     if uiEci && familyEci then
       ctx:event(
@@ -326,7 +329,9 @@ ruleset io.picolabs.pico-engine-ui {
       gridRow = (childIndex - childIndex % 4) / 4
       layoutX = ent:x.defaultsTo(100) + 48 + gridCol * 143
       layoutY = ent:y.defaultsTo(100) + 48 + gridRow * 108
-      layoutColor = childPalette[childIndex % childPalette.length]
+      childBox = ctx:query(uiEci, ctx:rid, "box")
+      layoutColor = childBox{"backgroundColor"}
+        .defaultsTo(childPalette[childIndex % childPalette.length])
     }
     if uiEci && ctx:query(uiEci, ctx:rid, "needsStartupLayout") then
       ctx:event(

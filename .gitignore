@@ -1,4 +1,6 @@
-/demos/
+# Track only demos/xmlui/*.krl; ignore sibling demo trees under /demos/
+/demos/*
+!/demos/xmlui/
 
 node_modules
 /lerna-debug.log

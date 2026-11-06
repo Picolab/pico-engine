@@ -78,7 +78,8 @@ Environment (optional; Docker/CI when not set in config file):
     PICO_ENGINE_ALLOW_SELF_SIGNUP - "true"/"1" or "false"/"0"
     PICO_ENGINE_ALLOW_LOCALHOST_C - "0" disables localhost /c/* bypass (see config allowLocalhostChannelBypass)
     PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER - "1" enables wildcard /sky/* bearer requirement
-    PICO_ENGINE_LOG_FILE - Log path, or stdout/- / 0 for console only
+    PICO_ENGINE_LOG_FILE - Log path, or stdout/- / 0 for console-only
+    PICO_ENGINE_LOG_MIRROR - "true"/"1" or "false"/"0" (mirror JSON lines to \$PICO_ENGINE_HOME/pico-engine.log when stdout-only; default on)
 `);
   process.exit(0);
 }

@@ -32,6 +32,12 @@ export interface EngineSettings {
   logToStdout: boolean;
   /** Absolute log file path; ignored when logToStdout is true. */
   logFile?: string;
+  /**
+   * When `logToStdout` is true: also write structured JSON lines to
+   * `$PICO_ENGINE_HOME/pico-engine.log` so `ctx:logs` / Developer UI Logging work.
+   * Set false on EFS/Fargate to avoid mirror file churn (`PICO_ENGINE_LOG_MIRROR=0`).
+   */
+  logMirror: boolean;
   /** Max channel policy for root picos when none stored on the pico (1.8). */
   defaultRootPolicyCeiling?: PolicyCeiling;
   /** Deny rules applied on every ECI before per-channel policy (1.8). */
@@ -52,6 +58,7 @@ export interface EngineSettingsOverrides {
   wildcardSkyRequireBearer?: boolean;
   logToStdout?: boolean;
   logFile?: string;
+  logMirror?: boolean;
   defaultRootPolicyCeiling?: PolicyCeiling;
   globalEventDeny?: EventPolicyRule[];
   globalQueryDeny?: QueryPolicyRule[];
@@ -79,6 +86,7 @@ export function defaultEngineSettings(): EngineSettings {
     allowLocalhostChannelBypass: true,
     wildcardSkyRequireBearer: false,
     logToStdout: false,
+    logMirror: true,
   };
 }
 
@@ -183,6 +191,9 @@ function parseConfigFile(raw: string): Partial<EngineSettings> {
   if (typeof o.logToStdout === "boolean") {
     out.logToStdout = o.logToStdout;
   }
+  if (typeof o.logMirror === "boolean") {
+    out.logMirror = o.logMirror;
+  }
   if (typeof o.logFile === "string" && o.logFile.length > 0) {
     if (o.logFile === "stdout" || o.logFile === "-") {
       out.logToStdout = true;
@@ -277,6 +288,10 @@ export function settingsFromEnv(): Partial<EngineSettings> {
   } else if (typeof logFile === "string" && logFile.length > 0) {
     out.logFile = path.resolve(expandHome(logFile));
   }
+  const logMirror = parseBoolEnv(process.env.PICO_ENGINE_LOG_MIRROR);
+  if (logMirror !== undefined) {
+    out.logMirror = logMirror;
+  }
 
   return out;
 }
@@ -324,6 +339,9 @@ export function resolveEngineSettings(
   }
   if (programmatic.logFile !== undefined) {
     fromProgrammatic.logFile = programmatic.logFile;
+  }
+  if (programmatic.logMirror !== undefined) {
+    fromProgrammatic.logMirror = programmatic.logMirror;
   }
   if (programmatic.defaultRootPolicyCeiling !== undefined) {
     fromProgrammatic.defaultRootPolicyCeiling =

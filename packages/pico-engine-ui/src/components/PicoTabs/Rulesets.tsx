@@ -6,11 +6,20 @@ import { PicoDetails } from "../../types/PicoDetails";
 import useAsyncAction from "../../useAsyncAction";
 import useAsyncLoader from "../../useAsyncLoader";
 import ErrorStatus from "../widgets/ErrorStatus";
+import TabPageHeader from "../widgets/TabPageHeader";
 import {
   flushFailureMessage,
   installFailureMessage,
 } from "../../installFlushErrors";
 import RulesetDocsModal from "../schema/RulesetDocsModal";
+import { RulesetSchema } from "../../types/RulesetSchema";
+
+type ViewPickerState = {
+  rid: string;
+  rulesetSchema: RulesetSchema | null;
+  loading: boolean;
+  error: string | null;
+};
 
 interface Props {
   pico: PicoBox;
@@ -43,6 +52,16 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
   }>({});
 
   const [docsRid, setDocsRid] = React.useState<string | null>(null);
+  const [browseError, setBrowseError] = React.useState<string | null>(null);
+  const [viewPicker, setViewPicker] = React.useState<ViewPickerState | null>(
+    null
+  );
+  const [viewChannelEci, setViewChannelEci] = React.useState<string>(pico.eci);
+  const krlFileInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    setViewChannelEci(pico.eci);
+  }, [pico.eci]);
 
   function isConfigValid(): boolean {
     try {
@@ -55,6 +74,29 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
 
   function isReadyToInstall(): boolean {
     return url.trim().length > 0 && isConfigValid();
+  }
+
+  async function onKrlFileSelected(file: File | undefined) {
+    if (!file) {
+      return;
+    }
+    setBrowseError(null);
+    try {
+      const content = await file.text();
+      const staged = await apiPost("/api/stage-krl", {
+        content,
+        filename: file.name,
+      });
+      if (staged?.url) {
+        setUrl(staged.url);
+      }
+    } catch (err) {
+      setBrowseError(err instanceof Error ? err.message : String(err));
+    } finally {
+      if (krlFileInputRef.current) {
+        krlFileInputRef.current.value = "";
+      }
+    }
   }
 
   const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
@@ -130,6 +172,41 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
     krlSources.load();
   }, [pico.eci]);
 
+  function refreshRulesets() {
+    void picoDetails.load();
+    void krlSources.load();
+  }
+
+  async function openViewPicker(rid: string) {
+    setViewPicker({ rid, rulesetSchema: null, loading: true, error: null });
+    try {
+      const rs = (await apiPost(
+        `/c/${pico.eci}/query/io.picolabs.wrangler/rulesetSchema`,
+        { rid },
+        false
+      )) as RulesetSchema | null;
+      const viewCount = (rs?.queries || []).filter((q) => q.view).length;
+      if (!rs || viewCount === 0) {
+        setViewPicker({
+          rid,
+          rulesetSchema: rs,
+          loading: false,
+          error:
+            "This ruleset has no @view functions in its compiled schema. Add @view to shared functions, then flush or reinstall.",
+        });
+        return;
+      }
+      setViewPicker({ rid, rulesetSchema: rs, loading: false, error: null });
+    } catch (err) {
+      setViewPicker({
+        rid,
+        rulesetSchema: null,
+        loading: false,
+        error: String(err),
+      });
+    }
+  }
+
   const installedRids = new Set(
     (picoDetails.data?.rulesets || []).map((ruleset) => ruleset.rid)
   );
@@ -158,9 +235,20 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
     tryInstall(source.url, JSON.parse(config));
   }
 
+  const appChannels =
+    (picoDetails.data &&
+      picoDetails.data.channels.filter((channel) => {
+        return channel.familyChannelPicoID === null;
+      })) ||
+    [];
+
   return (
     <div>
-      <h3>Installed Rulesets</h3>
+      <TabPageHeader
+        title="Rulesets"
+        waiting={picoDetails.waiting || krlSources.waiting}
+        onRefresh={refreshRulesets}
+      />
       <ErrorStatus error={picoDetails.error} />
       {picoDetails.data && picoDetails.data.rulesets.length > 0 ? (
         picoDetails.data.rulesets.map((ruleset) => {
@@ -204,6 +292,19 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
                   >
                     Docs
                   </button>
+                  {(ruleset.viewCount ?? 0) > 0 ? (
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm py-0 align-baseline ml-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        void openViewPicker(ruleset.rid);
+                      }}
+                      disabled={picoDetails.waiting}
+                    >
+                      View
+                    </button>
+                  ) : null}
                 </div>
               </div>
               {isOpen ? (
@@ -417,14 +518,42 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
       >
         <div className="form-group">
           <label htmlFor="new-rs-url">URL</label>
+          <div className="input-group">
+            <input
+              id="new-rs-url"
+              className="form-control"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              disabled={picoDetails.waiting || install.waiting}
+              placeholder="https://… or file://… or Browse for a local .krl file"
+            />
+            <div className="input-group-append">
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                disabled={picoDetails.waiting || install.waiting}
+                onClick={() => krlFileInputRef.current?.click()}
+              >
+                Browse…
+              </button>
+            </div>
+          </div>
           <input
-            id="new-rs-url"
-            className="form-control"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            disabled={picoDetails.waiting || install.waiting}
-            placeholder="https://… or file://… or pick from the table above"
+            ref={krlFileInputRef}
+            type="file"
+            accept=".krl"
+            className="d-none"
+            aria-hidden
+            tabIndex={-1}
+            onChange={(e) => {
+              void onKrlFileSelected(e.target.files?.[0]);
+            }}
           />
+          <small className="form-text text-muted">
+            Browse reads the file in your browser and stages it on the engine
+            host as a temporary file:// URL (for local development).
+          </small>
+          <ErrorStatus error={browseError} />
         </div>
         <div className="form-group">
           <label htmlFor="new-rs-config">Config</label>
@@ -454,6 +583,97 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
           rid={docsRid}
           onClose={() => setDocsRid(null)}
         />
+      ) : null}
+      {viewPicker ? (
+        <div
+          className="modal show d-block"
+          tabIndex={-1}
+          role="dialog"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.45)" }}
+          onClick={() => setViewPicker(null)}
+        >
+          <div
+            className="modal-dialog modal-dialog-centered"
+            role="document"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title text-mono">
+                  Open view — {viewPicker.rid}
+                </h5>
+                <button
+                  type="button"
+                  className="close"
+                  aria-label="Close"
+                  onClick={() => setViewPicker(null)}
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div className="modal-body">
+                <p className="small text-muted">
+                  XMLUI apps load at{" "}
+                  <code>
+                    /ui/&lt;eci&gt;/{viewPicker.rid}/
+                  </code>
+                  . Choose a channel whose query policy allows the view queries
+                  you need.{" "}
+                  <a
+                    href="/docs/pico-views-xmlui.md"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Pico views (XMLUI)
+                  </a>
+                </p>
+                {viewPicker.loading ? (
+                  <p className="small text-muted mb-0">Loading schema…</p>
+                ) : viewPicker.error ? (
+                  <p className="text-danger small mb-0">{viewPicker.error}</p>
+                ) : (
+                  <>
+                    <div className="form-group mb-2">
+                      <label className="small mb-1 d-block">Channel (ECI)</label>
+                      <select
+                        className="form-control form-control-sm text-mono"
+                        value={viewChannelEci}
+                        onChange={(e) => setViewChannelEci(e.target.value)}
+                      >
+                        {appChannels.map((channel) => {
+                          const label =
+                            channel.id +
+                            " " +
+                            channel.tags.map((tag) => `#${tag}`).join(" ");
+                          return (
+                            <option key={channel.id} value={channel.id}>
+                              {label}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                    <div className="small text-muted mb-2">
+                      <strong>@view</strong> pages:{" "}
+                      {(viewPicker.rulesetSchema?.queries || [])
+                        .filter((q) => q.view)
+                        .map((q) => q.name)
+                        .join(", ")}
+                    </div>
+                    <a
+                      className="btn btn-primary btn-sm"
+                      href={`/ui/${viewChannelEci}/${encodeURIComponent(viewPicker.rid)}/`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Open in new tab
+                    </a>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );

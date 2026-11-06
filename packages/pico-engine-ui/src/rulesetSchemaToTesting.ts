@@ -12,6 +12,7 @@ export function rulesetSchemaToTesting(schema: {
   }>;
   queries?: Array<{
     name: string;
+    view?: { title?: string; path?: string };
     args?: Array<{ name: string }>;
     examples?: Array<{
       name: string;
@@ -73,6 +74,7 @@ export function rulesetSchemaToTesting(schema: {
 
   const queries: NonNullable<TestingSchema["queries"]> = [];
   for (const q of schema.queries || []) {
+    if (q.view) continue;
     const argNames = (q.args || []).map((a) => a.name);
     const examples = q.examples || [];
     if (examples.length === 0) {

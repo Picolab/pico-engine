@@ -210,6 +210,7 @@ Example templates: [`config.example.json`](../../config.example.json), [`config.
 | `wildcardSkyRequireBearer` | boolean | Require OAuth bearer on `/sky/*` for channels with unrestricted `*.*` allow rules. Default `false` (1.8 opt-in hardening). |
 | `logToStdout` | boolean | Log to stdout instead of a file. Use on Fargate (set `logToStdout: true` in config). |
 | `logFile` | string | Absolute log path when `logToStdout` is false. Values `stdout`, `-`, or `0` force stdout. |
+| `logMirror` | boolean | When `logToStdout` is true: also mirror structured JSON to `$PICO_ENGINE_HOME/pico-engine.log` for `ctx:logs` and the Logging tab (default true). Set false on EFS+Fargate. Env: `PICO_ENGINE_LOG_MIRROR`. |
 | `defaultRootPolicyCeiling` | object | Max channel policy for new root picos (`eventPolicy` / `queryPolicy`). See policy example file. |
 | `globalEventDeny` | array | Extra deny rules applied on **every** ECI before channel policy (e.g. block `engine:secret_ping`). |
 | `globalQueryDeny` | array | Same for queries. |

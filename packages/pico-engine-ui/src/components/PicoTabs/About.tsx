@@ -5,6 +5,7 @@ import picoPageStore from "../../stores/picoPageStore";
 import { PicoBox } from "../../types/PicoBox";
 import { PicoSchema } from "../../types/PicoSchema";
 import useAsyncAction from "../../useAsyncAction";
+import TabPageHeader from "../widgets/TabPageHeader";
 import PicoSurfacePanel from "./PicoSurfacePanel";
 
 function getRefVal(ref: React.MutableRefObject<HTMLInputElement | null>) {
@@ -30,10 +31,9 @@ const About: React.FC<Props> = ({ pico, isTabActive = true }) => {
     error?: string | null;
   }>({});
 
-  React.useEffect(() => {
-    if (!isTabActive) {
-      return;
-    }
+  const picoPage = picoPageStore.use();
+
+  function loadPicoSchema() {
     setPicoSchemaLoad({ waiting: true, error: null });
     apiPost(`/c/${pico.eci}/query/io.picolabs.wrangler/picoSchema`, {}, false)
       .then((data) => {
@@ -43,21 +43,36 @@ const About: React.FC<Props> = ({ pico, isTabActive = true }) => {
       .catch((err) => {
         setPicoSchemaLoad({ error: String(err) });
       });
+  }
+
+  function refreshAssociation() {
+    const arr = [...pico.children];
+    if (pico.parent) {
+      arr.push(pico.parent);
+    }
+    for (const eci of arr) {
+      getAllPicoBoxes(eci).then((resp) => {
+        setAssociation((prev) => new Map(prev).set(eci, resp[0].name));
+      });
+    }
+  }
+
+  function refreshAbout() {
+    void picoPageStore.fetchAll();
+    loadPicoSchema();
+    refreshAssociation();
+  }
+
+  React.useEffect(() => {
+    if (!isTabActive) {
+      return;
+    }
+    loadPicoSchema();
   }, [pico.eci, isTabActive]);
 
   React.useEffect(() => {
-    //Creates a map of eci to name for children and parent.
-    let arr = [...pico.children]
-    if(pico.parent) {
-      arr.push(pico.parent)
-    }
-    arr.map((eci) => {
-      let promise = getAllPicoBoxes(eci);
-      promise.then((resp)=>{
-        setAssociation(new Map(association.set(eci, resp[0].name)))
-      })
-    });
-  }, [pico.children])
+    refreshAssociation();
+  }, [pico.children, pico.parent]);
 
   const savePico = useAsyncAction<{
     eci: string;
@@ -94,7 +109,11 @@ const About: React.FC<Props> = ({ pico, isTabActive = true }) => {
 
   return (
     <div>
-      <h3>Pico</h3>
+      <TabPageHeader
+        title="About"
+        waiting={picoPage.loading || !!picoSchemaLoad.waiting}
+        onRefresh={refreshAbout}
+      />
       {pico.parent ? (
         <div>
           <b className="text-muted">Parent:</b>{" "}

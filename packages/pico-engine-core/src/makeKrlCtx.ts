@@ -47,6 +47,11 @@ export function makeKrlCtx(
         event ? { ...logCtxBase, txnId: event.eid } : logCtxBase
       );
       currentEvent = event;
+      corePico.setActiveHostKrlCtx(
+        picoId,
+        rsCtx.ruleset.rid,
+        event ? krlCtx : null
+      );
     },
     getCurrentRuleName() {
       return currentRuleName;
@@ -62,6 +67,11 @@ export function makeKrlCtx(
         query ? { ...logCtxBase, txnId: query.qid } : logCtxBase
       );
       currentQuery = query;
+      corePico.setActiveHostKrlCtx(
+        picoId,
+        rsCtx.ruleset.rid,
+        query ? krlCtx : null
+      );
     },
 
     ///////////////////////////////////////////////////////////////////////////

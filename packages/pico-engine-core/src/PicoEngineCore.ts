@@ -31,6 +31,7 @@ import {
   annotatedRuleOutcomesForEvent,
   collectRuntimeRuleOutcomes,
 } from "./ruleOutcomes";
+import { isRoutineQueryError } from "./queryErrors";
 
 const version = require("../package.json").version;
 
@@ -169,7 +170,13 @@ export class PicoEngineCore {
               payload.column = err.where.col;
               payload.filename = err.where.filename;
             }
-            log.error("txnError", payload);
+            const routine =
+              ev.txn.kind === "query" && isRoutineQueryError(err);
+            if (routine && process.env.NODE_ENV === "test") {
+              log.debug("txnError", payload);
+            } else if (!routine) {
+              log.error("txnError", payload);
+            }
             break;
           }
           case "eventScheduleAdded": {

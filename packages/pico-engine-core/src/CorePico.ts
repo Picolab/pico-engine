@@ -8,6 +8,30 @@ import { CachedRuleset } from "./RulesetRegistry";
 export class CorePico {
   private moduleInitStack: string[] = [];
 
+  /** Host app KrlCtx active during query/event (key: `${picoId}:${userRid}`). */
+  private activeHostKrlCtx = new Map<string, KrlCtx>();
+
+  private activeHostKey(picoId: string, userRid: string) {
+    return `${picoId}:${userRid}`;
+  }
+
+  setActiveHostKrlCtx(
+    picoId: string,
+    userRid: string,
+    ctx: KrlCtx | null
+  ): void {
+    const key = this.activeHostKey(picoId, userRid);
+    if (ctx) {
+      this.activeHostKrlCtx.set(key, ctx);
+    } else {
+      this.activeHostKrlCtx.delete(key);
+    }
+  }
+
+  getActiveHostKrlCtx(picoId: string, userRid: string): KrlCtx | undefined {
+    return this.activeHostKrlCtx.get(this.activeHostKey(picoId, userRid));
+  }
+
   dependencies: {
     [rid: string]: {
       krlCtx: KrlCtx;

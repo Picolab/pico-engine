@@ -70,6 +70,7 @@ test("installEngineRuntimeSettings drives security flags", (t) => {
     allowLocalhostChannelBypass: false,
     wildcardSkyRequireBearer: true,
     logToStdout: false,
+    logMirror: true,
   });
   const { wildcardSkyRequireBearerEnabled } = require("../src/channelIdentityPolicy");
   t.true(wildcardSkyRequireBearerEnabled());

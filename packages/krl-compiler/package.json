@@ -41,6 +41,7 @@
     "escodegen": "^2.0.0",
     "estree-builder": "^1.10.0",
     "estree-loc": "^2.0.0",
+    "fast-xml-parser": "^4.5.7",
     "krl-generator": "^1.6.0",
     "krl-parser": "^1.6.0",
     "krl-stdlib": "^1.6.0",
