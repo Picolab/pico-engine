@@ -302,7 +302,7 @@ Additional nice-to-haves:
 | **Identity design (source of truth)** | `MEMORY.md` — §5 (DID/DIDComm), §9 (passkeys), “SPIFFE reconsidered”, three-plane model |
 | Pico move / portability | `docs/design/pico-move.md` |
 | Identity libraries | `docs/design/pico-identity-libraries.md` |
-| Discovery (KRL) | `packages/pico-engine/public/docs/krl/discovery.md` |
+| Discovery (KRL) | `docs/krl/discovery.md` |
 | HA hub MEMORY | `manifold-home-assistant/MEMORY.md` |
 | Sensor companion MEMORY | `sensor-network/MEMORY.md` |
 | MCP prompt design | `MCPforEXP/docs/prompt-design.md` |

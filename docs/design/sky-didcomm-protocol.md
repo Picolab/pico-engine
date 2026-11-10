@@ -585,7 +585,7 @@ Type URIs are versioned in the path (`/sky/1.0/`). A future `/sky/1.1/` namespac
 
 | Mechanism | Plane | Question | Implementation |
 |-----------|-------|----------|----------------|
-| **Discovery channel** | Integrator (HTTP/OAuth) | What queries/events can I use on this pico? | `discovery capabilities` → `discovery capability` directives — see [discovery.md](../packages/pico-engine/public/docs/krl/discovery.md) |
+| **Discovery channel** | Integrator (HTTP/OAuth) | What queries/events can I use on this pico? | `discovery capabilities` → `discovery capability` directives — see [discovery.md](../krl/discovery.md) |
 | **did:webvh resolution** | Identity | Who is this pico? Where is its log? | `GET /picos/{picoId}/did.jsonl`, `wrangler:myDid()` |
 | **DIDComm Discover Features 2.0** | Pico↔pico (DIDComm) | What **protocols and goal codes** does this **agent** support? | **Planned** — this section |
 
@@ -674,7 +674,7 @@ No ruleset participation required for v1; KRL authors do not implement discover-
 - [ ] Build disclose payload from SKY type URIs + `publicIntro`
 - [ ] Pack/unpack reply as DIDComm message to requester
 - [ ] Test: query to did:webvh ingress → disclose includes SKY intro URI
-- [ ] Document distinction from integrator [discovery.md](../packages/pico-engine/public/docs/krl/discovery.md)
+- [ ] Document distinction from integrator [discovery.md](../krl/discovery.md)
 
 **Estimated effort:** similar to trust-ping routing (~small; not a new subsystem).
 
@@ -684,4 +684,4 @@ No ruleset participation required for v1; KRL authors do not implement discover-
 
 - [pico-identity-layer2-work.md](./pico-identity-layer2-work.md) — epics and decisions
 - [pico-identity-libraries.md](./pico-identity-libraries.md) — `@veramo/did-comm`, didwebvh-ts
-- [discovery.md](../packages/pico-engine/public/docs/krl/discovery.md) — integrator discovery (HTTP/OAuth; not SKY)
+- [discovery.md](../krl/discovery.md) — integrator discovery (HTTP/OAuth; not SKY)

@@ -217,8 +217,8 @@ Cursor trains its in-house models on its own usage. The mesh has an owned analog
 | **LLM primitives in KRL** | The inward-facing half and step 2 of the escalation ladder: local inference sidecar, `llm:classify` / `llm:extract` on picos while the harness plans; shared audit and budget events | [pico-llm-capabilities.md](./pico-llm-capabilities.md) | Brainstorm |
 | **Selective logging, replay, mirrors** | Audit of every committed proposal; sandbox mirrors for risky sub-agents; replay across model versions | `MEMORY.md` → ROADMAP §1–3 | Sketch |
 | **Pico move / portability** | The agent's whole mesh moves between engines; vendor-independent memory | [pico-move.md](./pico-move.md) | Draft; phases A–D |
-| **Discovery channels + `filterBindingsForCaller`** | Per-caller tool exposure; skill-gating in the bridge | `packages/pico-engine/public/docs/krl/discovery.md` | Shipped 1.5 |
-| **Engine MCP (dev + mesh)** | Operator/agent bridge: wrangler queries, events, schema introspection, mesh listing | `packages/pico-engine/mcp/` · [`pico-engine.md`](../../packages/pico-engine/public/docs/pico-engine.md) | **Shipped 1.8** |
+| **Discovery channels + `filterBindingsForCaller`** | Per-caller tool exposure; skill-gating in the bridge | `docs/krl/discovery.md` | Shipped 1.5 |
+| **Engine MCP (dev + mesh)** | Operator/agent bridge: wrangler queries, events, schema introspection, mesh listing | `packages/pico-engine/mcp/` · [`pico-engine.md`](../pico-engine.md) | **Shipped 1.8** |
 | **MCPforEXP (capstone)** | Prompt design, context hygiene, early Manifold tool shapes | [MCPforEXP](https://github.com/picolab/MCPforEXP) (`docs/prompt-design.md`, `docs/lessons-learned.md`) | **Reference only** — superseded by engine MCP |
 | **Manifold skills_registry** | Per-thing skill list pico (bootstrap child) | `manifold-api/archive/io.picolabs.manifold.skills_registry.krl` | **Retired 2026-10** — use schemas + MCP instead |
 

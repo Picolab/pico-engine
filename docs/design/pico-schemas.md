@@ -582,7 +582,7 @@ Replace ~30-line hand `__testing` global in `io.picolabs.wrangler.krl` with `/**
 | **U5** | Channel policy editor shows which allowed events are annotated operations (informational only: unannotated events are legitimate, just not discoverable) |
 | **U6** | **Docs view (done in UI).** **Docs** next to each installed RID on the Rulesets tab opens a modal reference from live `rulesetSchema(rid)`; layout/wording matches `krl-schema --format markdown` ("Acts when", "May emit (possible, not guaranteed)", "Other rules on the same event"). Unannotated rulesets explain opt-in and link to `/docs/#/krl/discovery` |
 | **U7** | **Try it (done in UI).** Docs is reference-only: **Try it** / **Try in Testing** links open the Testing tab (`?rid=&rule|query=&example=`) with shared `SchemaFormField`, `SchemaEventTryForm`, `SchemaQueryTryForm` |
-| **U8** | **Docs site.** Generate a Markdown reference page per bundled ruleset into `packages/pico-engine/public/docs/` (rendered by the existing docsify site) and into `llms-full.txt`; a CI check regenerates them and fails on a diff |
+| **U8** | **Docs site.** Generate a Markdown reference page per bundled ruleset into `docs/` (rendered by the existing docsify site) and into `llms-full.txt`; a CI check regenerates them and fails on a diff |
 | **U9** | **Testing tab history and saved requests** (1.8; see [live-pico-ui.md](./live-pico-ui.md)). Stored in the pico (`io.picolabs.pico-engine-ui` entity, keyed by rid), with each entry's outcome from rule outcome reporting. Promotion path: history → saved request (this pico) → `@example` (the ruleset source, for everyone; and with doctests, a regression check) |
 
 ---

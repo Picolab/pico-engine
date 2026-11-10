@@ -1,6 +1,6 @@
 # Pico views with XMLUI
 
-**Status:** shipped in 1.9.0. The user guide is [`packages/pico-engine/public/docs/pico-views.md`](../../packages/pico-engine/public/docs/pico-views.md). This file is the design record (drafted 2026-11-04). The route that shipped is `/ui/{eci}/{rid}/`, not `/c/:eci/ui/`.
+**Status:** shipped in 1.9.0. The user guide is [`docs/pico-views.md`](../pico-views.md). This file is the design record (drafted 2026-11-04). The route that shipped is `/ui/{eci}/{rid}/`, not `/c/:eci/ui/`.
 **Audience:** engine and wrangler contributors; anyone building UIs for picos (PLAN, Manifold, the IIWF CRM)
 **Related:** [`pico-schemas.md`](pico-schemas.md) (annotations, `channelSchema`), [`channel-policy-1.8.md`](channel-policy-1.8.md), [`pico-relationships.md`](pico-relationships.md) (per-user meshes for the IIWF CRM)
 
@@ -687,7 +687,7 @@ No open questions remain; the spike (S0) checks the XMLUI details the examples a
 | **S0 Spike** | Hand-written shell + `Main.xmlui` served from a test ruleset via `.html` and a temporary route; Fav Color and the Hello example as XMLUI views | Both work end to end; heredoc, URL, and XMLUI attribute questions answered; what `use module` needs when `io.picolabs.xmlui` isn't installed yet |
 | **S1 Engine** | E1–E4 | `GET /ui/{eci}/{rid}/` renders an app on a test pico, with and without mesh OAuth; ava suite `test:views` |
 | **S2 Ruleset** | `io.picolabs.xmlui`: `file`, shell, navigation from `channelSchema`, markup helpers, `create_app_channel` | Examples 1–3 and 5 run as written; the thermostat viewer channel hides Settings; the launcher lists the three apps on a channel that can see them |
-| **S3 Tooling** | Developer UI "View" link; `krl check` XML validation and interpolation warning; docs page under `public/docs/` | A new view can be written, checked, and opened without leaving the developer UI |
+| **S3 Tooling** | Developer UI "View" link; `krl check` XML validation and interpolation warning; docs page under `docs/` | A new view can be written, checked, and opened without leaving the developer UI |
 | **S4 Adoption** | IIWF CRM client views (example 4); a Manifold dashboard view | Used by a real app |
 
 ## References

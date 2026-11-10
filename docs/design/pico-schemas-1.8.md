@@ -25,7 +25,7 @@
 | Item | Notes |
 |------|--------|
 | **JSON Schema export** | `picoSchema({ format: "jsonschema" })` — P4 in design; mesh MCP / HA |
-| **Public docs site U8** | Copy generated markdown from `tools/krl-schema/samples/` into `public/docs/` + `llms-full.txt` CI (samples gate exists; site copy optional for 1.8.0) |
+| **Public docs site U8** | Copy generated markdown from `tools/krl-schema/samples/` into `docs/` + `llms-full.txt` CI (samples gate exists; site copy optional for 1.8.0) |
 | **Remove `__testing1` injection** | 1.9 |
 | **Doctests** | Stretch (`krl doctest`) |
 | **Manifold-api annotations** | Separate repo / release |
