@@ -349,7 +349,7 @@ const RulesetDocsContent: React.FC<Props> = ({ schema, picoEci }) => {
         </p>
         <p className="mb-0">
           See{" "}
-          <a href="https://picolab.github.io/pico-engine/#/krl/discovery" target="_blank" rel="noreferrer">
+          <a href="https://docs.picolabs.io/#/krl/discovery" target="_blank" rel="noreferrer">
             KRL discovery
           </a>{" "}
           in the engine docs.

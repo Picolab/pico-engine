@@ -641,7 +641,7 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
                   . Choose a channel whose query policy allows the view queries
                   you need.{" "}
                   <a
-                    href="https://picolab.github.io/pico-engine/#/pico-views-xmlui"
+                    href="https://docs.picolabs.io/#/pico-views-xmlui"
                     target="_blank"
                     rel="noreferrer"
                   >

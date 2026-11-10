@@ -24,7 +24,7 @@ Engine and wrangler stay **domain-agnostic**. If a change needs the words "owner
 | `packages/krl-parser` → `krl-compiler` → `krl-generator` | KRL → AST → JS; AST → KRL |
 | `packages/krl-stdlib` | KRL standard library |
 | `packages/pico-engine-ui` | Default web UI (`npm run build` at repo root includes its bundle in `public/`) |
-| `docs/` (top level) | **User-facing docs** (pico, pico-engine, KRL manual, discovery): Docsify site published to GitHub Pages (https://picolab.github.io/pico-engine/). `docs/design`, `docs/release`, `docs/guides` are developer docs alongside it. The dev MCP server's doc resources are copied into the package at `npm pack` (`packages/pico-engine/scripts/bundle-docs.js`) |
+| `docs/` (top level) | **User-facing docs** (pico, pico-engine, KRL manual, discovery): Docsify site published to GitHub Pages (https://docs.picolabs.io/). `docs/design`, `docs/release`, `docs/guides` are developer docs alongside it. The dev MCP server's doc resources are copied into the package at `npm pack` (`packages/pico-engine/scripts/bundle-docs.js`) |
 | `docs/design/` | Design docs (schemas, identity, move, relationships, harness) |
 | `docs/release/` | Per-release plans (`1.8.md`) and notes (`1.7.0.md`) |
 | `MEMORY.md` | Long-running working log: roadmap, decisions, gotchas. Source of truth for *why*; skim the TOC |
