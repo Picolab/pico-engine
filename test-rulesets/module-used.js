@@ -105,9 +105,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "dflt_name" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "dflt_name" });
         $ctx.recordRuleOutcome("dflt_name", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -125,9 +125,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "conf_name" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "conf_name" });
         $ctx.recordRuleOutcome("conf_name", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -145,9 +145,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "dflt_info" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "dflt_info" });
         $ctx.recordRuleOutcome("dflt_info", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -165,9 +165,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "conf_info" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "conf_info" });
         $ctx.recordRuleOutcome("conf_info", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -182,9 +182,9 @@ module.exports = {
           var info3 = await $ctx.krl.assertAction($ctx.module("my_module_dflt")["getInfoAction"])($ctx, []);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "dflt_getInfoAction" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "dflt_getInfoAction" });
         $ctx.recordRuleOutcome("dflt_getInfoAction", $fired);
         await $ctx.rsCtx.putEnt("val", info3);
       } finally {
@@ -200,9 +200,9 @@ module.exports = {
           var info3 = await $ctx.krl.assertAction($ctx.module("my_module_conf")["getInfoAction"])($ctx, []);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "conf_getInfoAction" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "conf_getInfoAction" });
         $ctx.recordRuleOutcome("conf_getInfoAction", $fired);
         await $ctx.rsCtx.putEnt("val", info3);
       } finally {
@@ -218,9 +218,9 @@ module.exports = {
           await send_directive1($ctx, [await $ctx.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"])($ctx, ["bob"])]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "sayHelloWithOperator" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "sayHelloWithOperator" });
         $ctx.recordRuleOutcome("sayHelloWithOperator", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -235,9 +235,9 @@ module.exports = {
           await $ctx.krl.assertAction($ctx.module("ctx")["uninstall"])($ctx, ["io.picolabs.module-defined"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "uninstall" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "uninstall" });
         $ctx.recordRuleOutcome("uninstall", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);

@@ -216,9 +216,9 @@ module.exports = {
           await foo2($ctx, ["bar"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "foo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "foo" });
         $ctx.recordRuleOutcome("foo", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -237,9 +237,9 @@ module.exports = {
           });
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "bar" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "bar" });
         $ctx.recordRuleOutcome("bar", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -258,9 +258,9 @@ module.exports = {
           });
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "bar_setting" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "bar_setting" });
         $ctx.recordRuleOutcome("bar_setting", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("setting_val", val3);
@@ -281,9 +281,9 @@ module.exports = {
             ])]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "chooser" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "chooser" });
         $ctx.recordRuleOutcome("chooser", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -313,9 +313,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "ifAnotB" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "ifAnotB" });
         $ctx.recordRuleOutcome("ifAnotB", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -353,9 +353,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "returns" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "returns" });
         $ctx.recordRuleOutcome("returns", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("setting_val", [
@@ -421,9 +421,9 @@ module.exports = {
           var e3 = await send_directive3($ctx, []);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "scope" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "scope" });
         $ctx.recordRuleOutcome("scope", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("setting_val", [

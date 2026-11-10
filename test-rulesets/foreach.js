@@ -83,9 +83,9 @@ module.exports = {
             ]);
           }
           if ($fired)
-            $ctx.log.debug("fired");
+            $ctx.log.debug("fired", { "rule_name": "basic" });
           else
-            $ctx.log.debug("not fired");
+            $ctx.log.debug("not fired", { "rule_name": "basic" });
           $ctx.recordRuleOutcome("basic", $fired);
         }
       } finally {
@@ -118,9 +118,9 @@ module.exports = {
             ]);
           }
           if ($fired)
-            $ctx.log.debug("fired");
+            $ctx.log.debug("fired", { "rule_name": "map" });
           else
-            $ctx.log.debug("not fired");
+            $ctx.log.debug("not fired", { "rule_name": "map" });
           $ctx.recordRuleOutcome("map", $fired);
         }
       } finally {
@@ -161,9 +161,9 @@ module.exports = {
               ]);
             }
             if ($fired)
-              $ctx.log.debug("fired");
+              $ctx.log.debug("fired", { "rule_name": "nested" });
             else
-              $ctx.log.debug("not fired");
+              $ctx.log.debug("not fired", { "rule_name": "nested" });
             $ctx.recordRuleOutcome("nested", $fired);
           }
         }
@@ -214,9 +214,9 @@ module.exports = {
                 ]);
               }
               if ($fired)
-                $ctx.log.debug("fired");
+                $ctx.log.debug("fired", { "rule_name": "scope" });
               else
-                $ctx.log.debug("not fired");
+                $ctx.log.debug("not fired", { "rule_name": "scope" });
               $ctx.recordRuleOutcome("scope", $fired);
             }
           }
@@ -263,9 +263,9 @@ module.exports = {
               ]);
             }
             if ($fired)
-              $ctx.log.debug("fired");
+              $ctx.log.debug("fired", { "rule_name": "final" });
             else
-              $ctx.log.debug("not fired");
+              $ctx.log.debug("not fired", { "rule_name": "final" });
             $ctx.recordRuleOutcome("final", $fired);
             if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
               await $ctx.rsCtx.raiseEvent("foreach", "final_raised", {
@@ -299,9 +299,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "final_raised" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "final_raised" });
         $ctx.recordRuleOutcome("final_raised", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -344,9 +344,9 @@ module.exports = {
               ]);
             }
             if ($fired)
-              $ctx.log.debug("fired");
+              $ctx.log.debug("fired", { "rule_name": "key_vs_index" });
             else
-              $ctx.log.debug("not fired");
+              $ctx.log.debug("not fired", { "rule_name": "key_vs_index" });
             $ctx.recordRuleOutcome("key_vs_index", $fired);
           }
         }

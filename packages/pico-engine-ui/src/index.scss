@@ -226,6 +226,85 @@ details.testing-panel-details[open] > summary.testing-panel-summary {
     pre {
       margin-bottom: 0;
     }
+
+    .split-pane {
+      height: calc(100vh - 12rem);
+      min-height: 16rem;
+    }
+
+    .log-filters label {
+      font-size: 0.875rem;
+    }
+
+    .log-txn + .log-txn {
+      border-top: 1px solid #e9ecef;
+      margin-top: 0.35rem;
+      padding-top: 0.35rem;
+    }
+
+    .log-txn-nested {
+      margin-left: 0.75rem;
+      border-left: 2px solid #d0d7de;
+    }
+
+    .log-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 0.85rem;
+      text-align: left;
+      padding: 0.1rem 0.35rem;
+      cursor: pointer;
+    }
+
+    .log-row:hover,
+    .log-row-selected {
+      background: #e7f1ff;
+    }
+
+    .log-row-error {
+      color: #842029;
+    }
+
+    .log-row-time {
+      flex: 0 0 4.5rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .log-row-label {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .log-row-aside {
+      flex: 0 0 auto;
+      font-size: 0.75rem;
+      color: #6c757d;
+    }
+
+    .log-chip {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0 0.3rem;
+      border-radius: 0.2rem;
+      background: #f1f3f5;
+      color: #495057;
+      font-size: 0.7rem;
+    }
+
+    .log-json {
+      padding-left: 1rem;
+      list-style: disc;
+    }
+
+    .log-inspector {
+      font-size: 0.9rem;
+    }
   }
 }
 

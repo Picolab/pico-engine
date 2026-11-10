@@ -21,7 +21,7 @@ import {
 import { registerWebvhRoutes } from "./identity/webvhRoutes";
 import { OAuthService, initOAuthModule } from "./oauth";
 import {
-  getPicoLogs,
+  picoLogEntries,
   makeEngineLogWriter,
   resolveEngineLogFilePath,
   resolvePicoLogsReadPath,
@@ -222,11 +222,7 @@ export async function startEngine(
     globalEventDeny: configuration.globalEventDeny ?? settings.globalEventDeny,
     globalQueryDeny: configuration.globalQueryDeny ?? settings.globalQueryDeny,
     getPicoLogs(picoId) {
-      const readPath = resolvePicoLogsReadPath(home);
-      if (!readPath) {
-        return Promise.resolve([]);
-      }
-      return getPicoLogs(readPath, picoId);
+      return Promise.resolve(picoLogEntries(picoId));
     },
   });
   const pf = core.picoFramework;

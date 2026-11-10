@@ -42,6 +42,11 @@ export {
 } from "./validateKrl";
 export { isRoutineQueryError } from "./queryErrors";
 export {
+  assembleLogTransactions,
+  type LogTransaction,
+  type RawLogEntry,
+} from "./logTransactions";
+export {
   buildPicoSchema,
   rulesetSchemaForInstalled,
   schemaBindingsFromRuleset,

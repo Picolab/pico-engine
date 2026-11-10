@@ -1,4 +1,4 @@
-import { krl, KrlLogger, PicoLogEntry } from "krl-stdlib";
+import { krl, KrlLogger, PicoLogEntry, RuleOutcome } from "krl-stdlib";
 import {
   PicoEvent,
   PicoFramework,
@@ -6,7 +6,11 @@ import {
   RulesetContext,
 } from "pico-framework";
 import { CorePico } from "./CorePico";
-import { CoreEventOutput, formatEventOutput } from "./formatEventOutput";
+import {
+  collectDirectives,
+  CoreEventOutput,
+  formatEventOutput,
+} from "./formatEventOutput";
 import { makeKrlCtx } from "./makeKrlCtx";
 import initCtxModule from "./modules/ctx";
 import module_event from "./modules/event";
@@ -32,8 +36,78 @@ import {
   collectRuntimeRuleOutcomes,
 } from "./ruleOutcomes";
 import { isRoutineQueryError } from "./queryErrors";
+import { installPolicyLogging, logQueuedPolicy } from "./policyDecision";
 
 const version = require("../package.json").version;
+
+/** Keep a query return value from dominating the log file. */
+const QUERY_RESULT_LOG_LIMIT = 32_000;
+
+/** Same list an event response reports, including rules that were not selected. */
+function ruleOutcomesForLog(
+  core: PicoEngineCore,
+  ev: {
+    data: unknown;
+    txn:
+      | { kind: "query" }
+      | { kind: "event"; event: { eci: string; domain: string; name: string } };
+  }
+): RuleOutcome[] {
+  if (ev.txn.kind !== "event") return [];
+  const data = ev.data as { responses?: unknown } | null;
+  const responses =
+    data && typeof data === "object" && Array.isArray(data.responses)
+      ? data.responses
+      : [];
+  const runtime = collectRuntimeRuleOutcomes(responses);
+  try {
+    const pico = core.picoFramework.getPico(ev.txn.event.eci);
+    return annotatedRuleOutcomesForEvent(
+      pico,
+      core.rsRegistry,
+      ev.txn.event.domain,
+      ev.txn.event.name,
+      runtime
+    );
+  } catch {
+    return runtime;
+  }
+}
+
+function directivesForLog(data: unknown): unknown {
+  const responses =
+    data &&
+    typeof data === "object" &&
+    Array.isArray((data as { responses?: unknown }).responses)
+      ? (data as { responses: unknown[] }).responses
+      : [];
+  const list = collectDirectives(responses).map((directive) => ({
+    name: directive.name,
+    options: directive.options || {},
+    rid: directive.meta?.rid,
+    rule: directive.meta?.rule_name || undefined,
+  }));
+  if (!list.length) return undefined;
+  return queryResultForLog(list);
+}
+
+function queryResultForLog(data: unknown): unknown {
+  if (data === undefined) return null;
+  let text: string;
+  try {
+    const encoded = JSON.stringify(data);
+    if (typeof encoded !== "string") return null;
+    text = encoded;
+  } catch {
+    return { _unloggable: true };
+  }
+  if (text.length <= QUERY_RESULT_LOG_LIMIT) return data;
+  return {
+    _truncated: true,
+    bytes: text.length,
+    preview: text.slice(0, 2000),
+  };
+}
 
 export class PicoEngineCore {
   readonly version: string = version;
@@ -123,6 +197,7 @@ export class PicoEngineCore {
               txnId: ev.txn.id,
               txn: ev.txn,
             });
+            logQueuedPolicy(this, ev.picoId, ev.txn);
             break;
           case "txnStart":
             if (
@@ -135,9 +210,22 @@ export class PicoEngineCore {
             }
             log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
             break;
-          case "txnDone":
-            log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
+          case "txnDone": {
+            const payload: Record<string, unknown> = {
+              picoId: ev.picoId,
+              txnId: ev.txn.id,
+            };
+            if (ev.txn.kind === "query") {
+              payload.result = queryResultForLog(ev.data);
+            } else if (ev.txn.kind === "event") {
+              const outcomes = ruleOutcomesForLog(this, ev);
+              if (outcomes.length) payload.ruleOutcomes = outcomes;
+              const directives = directivesForLog(ev.data);
+              if (directives !== undefined) payload.directives = directives;
+            }
+            log.debug(ev.type, payload);
             break;
+          }
           case "txnError": {
             const err = ev.error as Error & {
               krl_compiler?: { loc?: { start?: { line?: number; column?: number } } };
@@ -241,6 +329,7 @@ export class PicoEngineCore {
       }
     }
     this.base_url = conf.base_url;
+    installPolicyLogging(this);
   }
 
   async start() {

@@ -80,6 +80,7 @@ Environment (optional; Docker/CI when not set in config file):
     PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER - "1" enables wildcard /sky/* bearer requirement
     PICO_ENGINE_LOG_FILE - Log path, or stdout/- / 0 for console-only
     PICO_ENGINE_LOG_MIRROR - "true"/"1" or "false"/"0" (mirror JSON lines to \$PICO_ENGINE_HOME/pico-engine.log when stdout-only; default on)
+    PICO_ENGINE_LOG_RING - how many recent transactions per pico the Logging tab keeps in memory (default 200; cleared on restart)
 `);
   process.exit(0);
 }

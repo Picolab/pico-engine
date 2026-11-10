@@ -94,9 +94,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "setfoo" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "setfoo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "setfoo" });
         $ctx.recordRuleOutcome("setfoo", $fired);
         await $ctx.rsCtx.putEnt("foo", $ctx.module("event")["attrs"]($ctx));
       } finally {
@@ -117,9 +117,9 @@ module.exports = {
         ]);
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "putfoo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "putfoo" });
         $ctx.recordRuleOutcome("putfoo", $fired);
         await $ctx.rsCtx.putEnt("foo", await $stdlib.set($ctx, [
           await $ctx.rsCtx.getEnt("foo"),
@@ -140,9 +140,9 @@ module.exports = {
         ]);
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "delfoo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "delfoo" });
         $ctx.recordRuleOutcome("delfoo", $fired);
         await $ctx.rsCtx.putEnt("foo", await $stdlib.delete($ctx, [
           await $ctx.rsCtx.getEnt("foo"),
@@ -158,9 +158,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "nukefoo" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "nukefoo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "nukefoo" });
         $ctx.recordRuleOutcome("nukefoo", $fired);
         await $ctx.rsCtx.delEnt("foo");
       } finally {
@@ -173,9 +173,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "putbaz" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "putbaz" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "putbaz" });
         $ctx.recordRuleOutcome("putbaz", $fired);
         await $ctx.rsCtx.putEnt("baz", await $stdlib.set($ctx, [
           await $ctx.rsCtx.getEnt("baz"),
@@ -195,9 +195,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "setmaplist" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "setmaplist" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "setmaplist" });
         $ctx.recordRuleOutcome("setmaplist", $fired);
         await $ctx.rsCtx.putEnt("maplist", [
           { "id": "one" },
@@ -214,9 +214,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "putmaplist" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "putmaplist" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "putmaplist" });
         $ctx.recordRuleOutcome("putmaplist", $fired);
         await $ctx.rsCtx.putEnt("maplist", await $stdlib.set($ctx, [
           await $ctx.rsCtx.getEnt("maplist"),

@@ -26,9 +26,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "say_hello" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "say_hello" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "say_hello" });
         $ctx.recordRuleOutcome("say_hello", $fired);
         await $ctx.rsCtx.putEnt("said", await $stdlib["get"]($ctx, [
           $ctx.module("event")["attrs"]($ctx),

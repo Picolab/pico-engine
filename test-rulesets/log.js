@@ -19,9 +19,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "levels" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "levels" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "levels" });
         $ctx.recordRuleOutcome("levels", $fired);
         if ($fired) {
           $ctx.log.info("hello default");

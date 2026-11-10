@@ -14,26 +14,36 @@ export interface CoreEventOutput {
   ruleOutcomes?: RuleOutcome[];
 }
 
+export function collectDirectives(responses: unknown[]): Directive[] {
+  const directives: Directive[] = [];
+  for (const response of responses) {
+    const parts = Array.isArray(response)
+      ? response
+      : response &&
+          typeof response === "object" &&
+          Array.isArray((response as { directives?: unknown }).directives)
+        ? (response as { directives: unknown[] }).directives
+        : [];
+    for (const part of parts) {
+      if (
+        part &&
+        typeof part === "object" &&
+        (part as { type?: unknown }).type === "directive"
+      ) {
+        directives.push(part as Directive);
+      }
+    }
+  }
+  return directives;
+}
+
 export function formatEventOutput(resp: {
   eid: string;
   responses: any[];
   ruleOutcomes?: RuleOutcome[];
   raisedEvents?: PicoEvent[];
 }): CoreEventOutput {
-  const directives: Directive[] = [];
-
-  for (const response of resp.responses) {
-    const parts = Array.isArray(response)
-      ? response
-      : response && Array.isArray(response.directives)
-        ? response.directives
-        : [];
-    for (const part of parts) {
-      if (part && part.type === "directive") {
-        directives.push(part);
-      }
-    }
-  }
+  const directives = collectDirectives(resp.responses);
 
   const out: CoreEventOutput = {
     eid: resp.eid,

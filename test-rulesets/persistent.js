@@ -90,9 +90,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "store_my_name" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "store_my_name" });
         $ctx.recordRuleOutcome("store_my_name", $fired);
         await $ctx.rsCtx.putEnt("name", my_name3);
       } finally {
@@ -131,9 +131,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "store_user_firstname" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "store_user_firstname" });
         $ctx.recordRuleOutcome("store_user_firstname", $fired);
         await $ctx.rsCtx.putEnt("user", { "lastname": "McCoy" });
         await $ctx.rsCtx.putEnt("user", await $stdlib.set($ctx, [
@@ -154,9 +154,9 @@ module.exports = {
           await send_directive1($ctx, ["clear_user"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "clear_user" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "clear_user" });
         $ctx.recordRuleOutcome("clear_user", $fired);
         await $ctx.rsCtx.delEnt("user");
       } finally {

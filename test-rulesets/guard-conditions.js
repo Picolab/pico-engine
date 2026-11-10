@@ -66,9 +66,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "foo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "foo" });
         $ctx.recordRuleOutcome("foo", $fired);
         if (await match1($ctx, [
             b3,
@@ -104,9 +104,9 @@ module.exports = {
             ]);
           }
           if ($fired)
-            $ctx.log.debug("fired");
+            $ctx.log.debug("fired", { "rule_name": "bar" });
           else
-            $ctx.log.debug("not fired");
+            $ctx.log.debug("not fired", { "rule_name": "bar" });
           $ctx.recordRuleOutcome("bar", $fired);
           if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
             await $ctx.rsCtx.putEnt("b", x3);
@@ -131,9 +131,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "on_final_no_foreach" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "on_final_no_foreach" });
         $ctx.recordRuleOutcome("on_final_no_foreach", $fired);
         if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
           await $ctx.rsCtx.putEnt("b", x3);

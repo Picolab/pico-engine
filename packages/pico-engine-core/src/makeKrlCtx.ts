@@ -9,6 +9,27 @@ import {
 import { RulesetContext } from "pico-framework";
 import { PicoEngineCore } from "./PicoEngineCore";
 
+/** Keep one entity value from dominating the log. */
+const ENT_LOG_LIMIT = 2048;
+
+function valueForEntLog(value: unknown): unknown {
+  if (value === undefined) return null;
+  let text: string;
+  try {
+    const encoded = JSON.stringify(value);
+    if (typeof encoded !== "string") return null;
+    text = encoded;
+  } catch {
+    return { _unloggable: true };
+  }
+  if (text.length <= ENT_LOG_LIMIT) return value;
+  return {
+    _truncated: true,
+    bytes: text.length,
+    preview: text.slice(0, ENT_LOG_LIMIT),
+  };
+}
+
 export function makeKrlCtx(
   core: PicoEngineCore,
   rsCtx: RulesetContext
@@ -127,5 +148,32 @@ export function makeKrlCtx(
 
     compileEvalExpression: require("krl-compiler").compileEvalExpression,
   };
+
+  const putEnt = rsCtx.putEnt.bind(rsCtx);
+  const delEnt = rsCtx.delEnt.bind(rsCtx);
+  rsCtx.putEnt = async (name, value) => {
+    const before = await rsCtx.getEnt(name);
+    await putEnt(name, value);
+    const deleted = value === null || value === undefined;
+    log.debug("ent write", {
+      name,
+      before: valueForEntLog(before),
+      after: deleted ? null : valueForEntLog(value),
+      deleted: deleted || undefined,
+      rule_name: currentRuleName || undefined,
+    });
+  };
+  rsCtx.delEnt = async (name) => {
+    const before = await rsCtx.getEnt(name);
+    await delEnt(name);
+    log.debug("ent write", {
+      name,
+      before: valueForEntLog(before),
+      after: null,
+      deleted: true,
+      rule_name: currentRuleName || undefined,
+    });
+  };
+
   return krlCtx;
 }

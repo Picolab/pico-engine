@@ -31,9 +31,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "all" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "all" });
         $ctx.recordRuleOutcome("all", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -56,9 +56,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "set_watcher" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "set_watcher" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "set_watcher" });
         $ctx.recordRuleOutcome("set_watcher", $fired);
         await $ctx.rsCtx.putEnt("watcher", await $stdlib["get"]($ctx, [
           $ctx.module("event")["attrs"]($ctx),
@@ -85,9 +85,9 @@ module.exports = {
           await send_directive1($ctx, ["watcher matched!"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "watcher" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "watcher" });
         $ctx.recordRuleOutcome("watcher", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);

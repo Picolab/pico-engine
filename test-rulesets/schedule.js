@@ -85,9 +85,9 @@ module.exports = {
           await send_directive1($ctx, ["clear_log"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "clear_log" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "clear_log" });
         $ctx.recordRuleOutcome("clear_log", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("log", []);
@@ -105,9 +105,9 @@ module.exports = {
           await send_directive1($ctx, ["push_log"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "push_log" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "push_log" });
         $ctx.recordRuleOutcome("push_log", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("log", await append1($ctx, [
@@ -128,9 +128,9 @@ module.exports = {
           await send_directive1($ctx, ["in_5min"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "in_5min" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "in_5min" });
         $ctx.recordRuleOutcome("in_5min", $fired);
         if ($fired) {
           var foo3 = await $ctx.module("schedule")["at"]($ctx, {
@@ -167,9 +167,9 @@ module.exports = {
           await send_directive1($ctx, ["every_1min"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "every_1min" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "every_1min" });
         $ctx.recordRuleOutcome("every_1min", $fired);
         if ($fired) {
           var foo3 = await $ctx.module("schedule")["repeat"]($ctx, {
@@ -206,9 +206,9 @@ module.exports = {
             ])]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "rm_from_schedule" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "rm_from_schedule" });
         $ctx.recordRuleOutcome("rm_from_schedule", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -220,9 +220,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "dynamic_at" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "dynamic_at" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "dynamic_at" });
         $ctx.recordRuleOutcome("dynamic_at", $fired);
         if ($fired) {
           var foo3 = await $ctx.module("schedule")["at"]($ctx, {
@@ -258,9 +258,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "dynamic_repeat" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "dynamic_repeat" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "dynamic_repeat" });
         $ctx.recordRuleOutcome("dynamic_repeat", $fired);
         if ($fired) {
           var foo3 = await $ctx.module("schedule")["repeat"]($ctx, {

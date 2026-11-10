@@ -50,9 +50,9 @@ module.exports = {
         $ctx.log.debug("rule selected", { "rule_name": "error_handle" });
         var $fired = true;
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "error_handle" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "error_handle" });
         $ctx.recordRuleOutcome("error_handle", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("error_log", await append1($ctx, [
@@ -73,9 +73,9 @@ module.exports = {
           await send_directive1($ctx, ["continue_on_errorA"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "continue_on_errorA" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "continue_on_errorA" });
         $ctx.recordRuleOutcome("continue_on_errorA", $fired);
         await $ctx.rsCtx.raiseEvent("system", "error", {
           "level": "debug",
@@ -111,9 +111,9 @@ module.exports = {
           await send_directive1($ctx, ["continue_on_errorB"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "continue_on_errorB" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "continue_on_errorB" });
         $ctx.recordRuleOutcome("continue_on_errorB", $fired);
         await $ctx.rsCtx.raiseEvent("system", "error", {
           "level": "debug",
@@ -149,9 +149,9 @@ module.exports = {
           await send_directive1($ctx, ["stop_on_errorA"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "stop_on_errorA" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "stop_on_errorA" });
         $ctx.recordRuleOutcome("stop_on_errorA", $fired);
         {
           $last();
@@ -190,9 +190,9 @@ module.exports = {
           await send_directive1($ctx, ["stop_on_errorB"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "stop_on_errorB" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "stop_on_errorB" });
         $ctx.recordRuleOutcome("stop_on_errorB", $fired);
         {
           $last();

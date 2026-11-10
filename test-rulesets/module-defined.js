@@ -105,9 +105,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "store_memo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "store_memo" });
         $ctx.recordRuleOutcome("store_memo", $fired);
         await $ctx.rsCtx.putEnt("memo", await $stdlib["+"]($ctx, [
           await $stdlib["+"]($ctx, [

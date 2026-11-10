@@ -167,9 +167,9 @@ module.exports = {
           });
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "http_get" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "http_get" });
         $ctx.recordRuleOutcome("http_get", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
@@ -207,9 +207,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "http_post" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "http_post" });
         $ctx.recordRuleOutcome("http_post", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -232,9 +232,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "http_post_action" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "http_post_action" });
         $ctx.recordRuleOutcome("http_post_action", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -257,9 +257,9 @@ module.exports = {
           });
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "http_post_setting" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "http_post_setting" });
         $ctx.recordRuleOutcome("http_post_setting", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("resp", await fmtResp2($ctx, [resp3]));
@@ -286,9 +286,9 @@ module.exports = {
           });
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "http_autorase" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "http_autorase" });
         $ctx.recordRuleOutcome("http_autorase", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -307,9 +307,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "http_post_event_handler" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "http_post_event_handler" });
         $ctx.recordRuleOutcome("http_post_event_handler", $fired);
         if ($fired) {
           await $ctx.rsCtx.putEnt("last_post_event", resp3);

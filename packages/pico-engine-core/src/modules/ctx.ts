@@ -1,5 +1,5 @@
 import fetch from "cross-fetch";
-import { krl } from "krl-stdlib";
+import { krl, KrlCtx } from "krl-stdlib";
 import * as normalizeUrl from "normalize-url";
 import {
   allowsEventPolicy,
@@ -23,6 +23,40 @@ import {
   summarizeSubtreeExportBlob as summarizeSubtreeExportBlobImpl,
 } from "../subtreeState";
 import type { RulesetStateServices } from "../rulesetState";
+
+/** Trace id of the rule or query that is making a same-engine call. */
+function callerTrace(ctx: KrlCtx): { traceId?: string; parentTxn?: string } {
+  const event = ctx.getEvent();
+  if (event?.eid) {
+    const fromAttr = event.data?.attrs?.__eid;
+    return {
+      traceId: typeof fromAttr === "string" && fromAttr ? fromAttr : event.eid,
+      parentTxn: event.eid,
+    };
+  }
+  const query = ctx.getQuery();
+  if (query?.qid) {
+    const fromArgs = query.args?.__eid;
+    return {
+      traceId: typeof fromArgs === "string" && fromArgs ? fromArgs : query.qid,
+      parentTxn: query.qid,
+    };
+  }
+  return {};
+}
+
+function withTrace(ctx: KrlCtx, args: unknown): Record<string, unknown> {
+  const base: Record<string, unknown> =
+    args && typeof args === "object" && !Array.isArray(args)
+      ? { ...(args as Record<string, unknown>) }
+      : {};
+  const { traceId, parentTxn } = callerTrace(ctx);
+  if (traceId && typeof base.__eid !== "string") base.__eid = traceId;
+  if (parentTxn && typeof base.__parent_txn !== "string") {
+    base.__parent_txn = parentTxn;
+  }
+  return base;
+}
 import type { SubtreeImportResult } from "../subtreeState";
 import {
   buildPicoSchema,
@@ -36,6 +70,7 @@ import {
   raiseRulesetSetChangedFromRsCtx,
 } from "../schemaNotify";
 import { evalInRuleset as runConsoleEvalInRuleset } from "../evalInRuleset";
+import { assembleLogTransactions } from "../logTransactions";
 import { validateKrl } from "../validateKrl";
 
 async function afterSubtreeImport(
@@ -576,17 +611,31 @@ export default function initCtxModule(core: PicoEngineCore) {
       name,
       args = {}
     ) {
+      const stamped = withTrace(this, args);
+      if (typeof stamped.__eid === "string") {
+        this.log.debug("query out", {
+          targetEci: eci,
+          targetRid: rid,
+          targetName: name,
+          traceId: stamped.__eid,
+          parentTxn: stamped.__parent_txn,
+        });
+      }
       return this.rsCtx.query({
         eci,
         rid,
         name,
-        args,
+        args: stamped,
       });
     }),
 
     logs: krl.Function([], async function logs() {
+      return this.getPicoLogs();
+    }),
+
+    logTransactions: krl.Function([], async function logTransactions() {
       const entries = await this.getPicoLogs();
-      return entries;
+      return assembleLogTransactions(entries);
     }),
 
     allowsEvent: krl.Function(["eci", "domain", "name"], function allowsEvent(

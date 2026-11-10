@@ -14,6 +14,10 @@
  *
  * (`latestReadingsForView` is empty until `ent:sensors_relationship_id` is set.)
  *
+ * The data pico's `readingAt` is a UTC string and `timestamp` is epoch milliseconds.
+ * This ruleset ignores that string and formats `timestamp` as Mountain Standard Time
+ * (UTC−7) before the table renders it.
+ *
  * Open: Developer UI → View, or `/ui/<view-app-eci>/com.example.temperature_sensors_view/`
  */
 ruleset com.example.temperature_sensors_view {
@@ -28,12 +32,32 @@ ruleset com.example.temperature_sensors_view {
     sensors_rid = "com.example.temperature_sensors"
 
     /**
-     * Readings from the data pico via `ent:sensors_relationship_id` and subscription `queryOnSub`.
+     * Format a UTC epoch-millisecond timestamp as Mountain Standard Time.
+     * `time:new` returns an ISO-8601 UTC string. Subtracting the offset first
+     * makes the date and clock in that string the MST reading time.
+     * @param timestamp Number milliseconds since the Unix epoch
+     * @returns String "YYYY-MM-DD HH:MM:SS MST"
+     */
+    readingAtMst = function(timestamp) {
+      // Mountain Standard Time is a fixed seven hours behind UTC.
+      mst_offset_ms = 7 * 60 * 60 * 1000
+      iso = time:new(timestamp - mst_offset_ms)
+      date = iso.split("T")[0]
+      clock = iso.split("T")[1].split(".")[0]
+      date + " " + clock + " MST"
+    }
+
+    /**
+     * Readings from the data pico, with `readingAt` rewritten to MST.
      * @returns Array
      */
     latestReadingsForView = function() {
-      ent:sensors_relationship_id.isnull() => [] |
-      sub:queryOnSub(ent:sensors_relationship_id, sensors_rid, "latestReadings", {})
+      readings = ent:sensors_relationship_id.isnull() => [] |
+        sub:queryOnSub(ent:sensors_relationship_id, sensors_rid, "latestReadings", {})
+      readings.isnull() => readings |
+        readings.typeof() == "Array" => readings.map(function(row) {
+          row.put("readingAt", readingAtMst(row{"timestamp"}))
+        }) | readings
     }
 
     /**
@@ -42,11 +66,11 @@ ruleset com.example.temperature_sensors_view {
     dashboard = function() {
       <<<Component name="Dashboard">
   #{ui:query("readings", "latestReadingsForView", {"rid": meta:rid})}
-  <Card title="Latest temperatures" subtitle="Data pico via relationship Tx (com.example.temperature_sensors)" />
+  <Card title="Latest temperatures" subtitle="UTC timestamps from the data pico, shown here as MST" />
   <Table data="{readings}">
     <Column bindTo="name" header="Sensor" />
     <Column bindTo="lastTemperature" header="Temp (F)" />
-    <Column bindTo="readingAt" header="Reading at" />
+    <Column bindTo="readingAt" header="Reading at (MST)" />
     <Column bindTo="timestamp" header="Timestamp (ms)" />
   </Table>
 </Component>

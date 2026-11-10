@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiGet, apiPost } from "../../api";
 import { KrlSource } from "../../types/KrlSource";
 import { PicoBox } from "../../types/PicoBox";
@@ -44,6 +45,8 @@ function isRootOnlyInstallBlocked(pico: PicoBox, url: string): boolean {
 }
 
 const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
+  const [searchParams] = useSearchParams();
+  const focusRid = searchParams.get("rid") || "";
   const [url, setUrl] = React.useState<string>("");
   const [config, setConfig] = React.useState<string>("{}");
   const [installNotice, setInstallNotice] = React.useState<string | null>(null);
@@ -171,6 +174,24 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
     picoDetails.load();
     krlSources.load();
   }, [pico.eci]);
+
+  const rulesetRids = (picoDetails.data?.rulesets || [])
+    .map((ruleset) => ruleset.rid)
+    .join("\n");
+
+  React.useEffect(() => {
+    if (!focusRid || !isTabActive) return;
+    if (!rulesetRids.split("\n").includes(focusRid)) return;
+    setExpandedRulesets((prev) =>
+      prev[focusRid] ? prev : { ...prev, [focusRid]: true }
+    );
+    const timer = window.setTimeout(() => {
+      document.getElementById(`id-rid-${focusRid}`)?.scrollIntoView({
+        block: "start",
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [focusRid, isTabActive, rulesetRids]);
 
   function refreshRulesets() {
     void picoDetails.load();

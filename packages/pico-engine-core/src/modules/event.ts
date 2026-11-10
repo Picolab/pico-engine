@@ -1,6 +1,59 @@
 import fetch from "cross-fetch";
 import { CurrentPicoEvent, krl, KrlCtx } from "krl-stdlib";
 
+const SEND_ATTR_LIMIT = 2048;
+
+function attrsForSendLog(attrs: unknown): Record<string, unknown> {
+  if (!attrs || typeof attrs !== "object" || Array.isArray(attrs)) return {};
+  const copy: Record<string, unknown> = { ...(attrs as Record<string, unknown>) };
+  delete copy._headers;
+  delete copy.__eid;
+  delete copy.__parent_txn;
+  let text: string;
+  try {
+    const encoded = JSON.stringify(copy);
+    if (typeof encoded !== "string") return {};
+    text = encoded;
+  } catch {
+    return { _unloggable: true };
+  }
+  if (text.length <= SEND_ATTR_LIMIT) return copy;
+  return {
+    _truncated: true,
+    bytes: text.length,
+    preview: text.slice(0, 500),
+  };
+}
+
+function logSend(
+  ctx: KrlCtx,
+  fields: {
+    transport: "local" | "http" | "didcomm";
+    domain: string;
+    name: string;
+    attrs: unknown;
+    targetEci?: string;
+    targetDid?: string;
+    host?: string;
+    childTxn?: string;
+  }
+): void {
+  ctx.log.debug("send", {
+    transport: fields.transport,
+    targetEci: fields.targetEci,
+    targetDid: fields.targetDid,
+    host: fields.host,
+    childTxn: fields.childTxn,
+    rule_name: ctx.getCurrentRuleName() || undefined,
+    event: {
+      eci: fields.targetEci,
+      domain: fields.domain,
+      name: fields.name,
+      data: { attrs: attrsForSendLog(fields.attrs) },
+    },
+  });
+}
+
 function eventProperty<T = any>(
   fn: (event: CurrentPicoEvent) => T
 ): (ctx: KrlCtx) => T | null {
@@ -55,6 +108,13 @@ const event: krl.Module = {
                 attrs,
               },
             ]);
+            logSend(this, {
+              transport: "didcomm",
+              domain,
+              name,
+              attrs,
+              targetDid: did,
+            });
             return;
           }
           eci = sub.Tx;
@@ -68,6 +128,13 @@ const event: krl.Module = {
               attrs,
             },
           ]);
+          logSend(this, {
+            transport: "didcomm",
+            domain,
+            name,
+            attrs,
+            targetDid: options.did,
+          });
           return;
         }
       }
@@ -80,6 +147,14 @@ const event: krl.Module = {
       }
       if (host) {
         const url = `${host}/c/${eci}/event/${domain}/${name}`;
+        logSend(this, {
+          transport: "http",
+          domain,
+          name,
+          attrs,
+          targetEci: eci,
+          host,
+        });
 
         fetch(url, {
           method: "POST",
@@ -101,6 +176,14 @@ const event: krl.Module = {
         time: 0,
       }).catch((err) => {
         this.log.error(err + ""); // TODO better handling
+      });
+      logSend(this, {
+        transport: "local",
+        domain,
+        name,
+        attrs,
+        targetEci: eci,
+        childTxn: typeof eid === "string" ? eid : undefined,
       });
 
       return eid;

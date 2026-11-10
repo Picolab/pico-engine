@@ -98,83 +98,13 @@ ruleset io.picolabs.pico-engine-ui {
       }
     }
     /**
-     * Recent activity on this pico, grouped by transaction, newest first: each
-     * incoming event or query with the rules it selected, klog output, and errors.
-     * The developer UI's own queries are left out.
-     * @returns Array "[ { txnId, time, header, entries } ]"
+     * Recent activity on this pico, newest first. Each transaction is a list of
+     * steps (`in`, `rule`, `raise`, `klog`, `log`, `error`, `done`) assembled
+     * from the engine log. The Logging tab hides engine rulesets in the browser.
+     * @returns Array "[ { txnId, kind, start, durationMs, outcome, steps } ]"
      */
     logs = function(){
-      logOther = function(entry){
-        entry.delete("time")
-          .delete("level")
-          .delete("msg")
-          .delete("txnId")
-          .encode()
-      }
-      logQuery = function(query){
-        args = query.get("args").delete("_headers") || {}
-        <<QUERY #{query.get("eci")} #{query.get("rid")}/#{query.get("name")} #{args.encode()}>>
-      }
-      logEvent = function(event){
-        attrs = event.get(["data","attrs"]).delete("_headers") || {}
-        <<EVENT #{event.get("eci")} #{event.get("domain")}:#{event.get("name")} #{attrs.encode()}>>
-      }
-      logFirst = function(entry){
-        txn = entry.get("txn")
-        kind = txn.get("kind")
-        kind == "query" => logQuery(txn.get("query")) |
-        kind == "event" => logEvent(txn.get("event")) |
-        logOther(entry)
-      }
-      logDetails = function(entry){
-        msg = entry.get("msg")
-        msg == "txnQueued" => logFirst(entry) |
-        msg == "event added to schedule" => entry.get("event").encode() |
-        msg == "rule selected" => <<#{entry.get("rid")} : #{entry.get("rule_name")}>> |
-        entry.get("level") == "klog" => entry.get("val").encode() || "null" |
-        msg.match(re#fired$#) => "" |
-        logOther(entry)
-      }
-      episode_line = function(x,i){
-        level = x{"level"}.uc();
-        x{"time"}.split("T")[1] +
-          " [" +
-          level +
-          "] "+
-          x{"msg"} +
-          " " +
-          logDetails(x)
-      };
-      entryMap = function(a,e){
-        // a.head() is array of entries; a[1] is whether last entry is eats
-        // a[2] is domain:name of the event
-        eats = e{"msg"} == "event added to schedule"
-        event_dt = eats => e{["event","domain"]} + ":" + e{["event","name"]}
-                         | ""
-        a[1] && eats && a[2]==event_dt
-          => [a.head(),true,event_dt] // omit a duplicate eats
-           | [a.head().append(episode_line(e)),eats,event_dt]
-      }
-      episodes = ctx:logs()
-        .collect(function(e){e.get("txnId")})
-      episodes.keys()
-        .map(function(k){
-          episode = episodes.get(k)
-          entries = episode
-            .reduce(entryMap,[[],false,""]).head()
-          return {
-            "txnId": k,
-            "time": episode.head().get("time"),
-            "header": entries.head().split(re# txnQueued #)[1],
-            "entries": entries,
-          }
-        })
-        .filter(function(g){
-          g{"header"}.match(re#^QUERY .*io.picolabs.pico-engine-ui/#) => false |
-          g{"header"}.match(re#^QUERY .*io.picolabs.subscription/established#) => false |
-          true
-        })
-        .reverse()
+      ctx:logTransactions()
     }
     uiChannelEventPolicy = function() {
       {

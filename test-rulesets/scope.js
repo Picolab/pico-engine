@@ -212,9 +212,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "eventOr" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "eventOr" });
         $ctx.recordRuleOutcome("eventOr", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -274,9 +274,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "eventAnd" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "eventAnd" });
         $ctx.recordRuleOutcome("eventAnd", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -338,9 +338,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "eventWithin" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "eventWithin" });
         $ctx.recordRuleOutcome("eventWithin", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -385,9 +385,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "prelude_scope" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "prelude_scope" });
         $ctx.recordRuleOutcome("prelude_scope", $fired);
         await $ctx.rsCtx.putEnt("ent_var_name", $name$3);
         await $ctx.rsCtx.putEnt("ent_var_p0", p03);
@@ -417,9 +417,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "functions" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "functions" });
         $ctx.recordRuleOutcome("functions", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -441,9 +441,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "shadow" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "shadow" });
         $ctx.recordRuleOutcome("shadow", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);
@@ -473,9 +473,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "recur" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "recur" });
         $ctx.recordRuleOutcome("recur", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);

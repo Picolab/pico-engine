@@ -54,10 +54,12 @@ function Rule (ast, comp, e) {
 
   ruleBody.push(e('if', e('id', '$fired'),
     e(';', e('call', e('id', '$ctx.log.debug'), [
-      e('str', 'fired')
+      e('str', 'fired'),
+      e('obj', { rule_name: e('str', ast.name.value) })
     ])),
     e(';', e('call', e('id', '$ctx.log.debug'), [
-      e('str', 'not fired')
+      e('str', 'not fired'),
+      e('obj', { rule_name: e('str', ast.name.value) })
     ]))
   ))
   ruleBody.push(e(';', e('call', e('id', '$ctx.recordRuleOutcome'), [

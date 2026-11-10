@@ -24,9 +24,9 @@ module.exports = {
           await send_directive1($ctx, ["last2 foo"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "foo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "foo" });
         $ctx.recordRuleOutcome("foo", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);

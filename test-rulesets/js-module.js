@@ -40,9 +40,9 @@ module.exports = {
           ]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "action" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "action" });
         $ctx.recordRuleOutcome("action", $fired);
       } finally {
         $ctx.setCurrentRuleName(null);

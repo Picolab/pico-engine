@@ -10,7 +10,12 @@ import {
   listEngineKrlSources,
   resolveEngineKrlFile,
 } from "./bundledKrl";
-import { isRoutineQueryError, PicoEngineCore } from "pico-engine-core";
+import {
+  assembleLogTransactions,
+  isRoutineQueryError,
+  PicoEngineCore,
+  RawLogEntry,
+} from "pico-engine-core";
 import { PicoFramework } from "pico-framework";
 import { AuthCookieNames, AuthError, AuthService, authCookieNames } from "./auth";
 import {
@@ -36,7 +41,12 @@ import { registerWebvhRoutes } from "./identity/webvhRoutes";
 import { registerDidcommIngressRoutes } from "./identity/didcommIngressRoutes";
 
 import { getEngineRuntimeSettings } from "./engineConfig";
-import { resolveEngineLogFilePath, resolvePicoLogsReadPath } from "./logging";
+import {
+  picoLogEntries,
+  resolveEngineLogFilePath,
+  resolvePicoLogsReadPath,
+  subscribePicoLogRing,
+} from "./logging";
 import { stageKrlContent } from "./stageKrl";
 
 const engineVersion = require("../package.json").version;
@@ -439,6 +449,51 @@ export function server(
       .catch(next);
   });
 
+  /**
+   * Pushes each finished transaction for this pico. Owner session only,
+   * same gate as the rest of the developer UI.
+   */
+  app.get("/api/picos/:eci/logs/live", requireAuthSession, function (req, res) {
+    let picoId: string;
+    try {
+      picoId = pf.getPico(req.params.eci).id;
+    } catch (_e) {
+      res.status(404).json({ error: "Unknown pico" });
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    res.write(": ok\n\n");
+    let closed = false;
+    const unsubscribe = subscribePicoLogRing((id, txnId) => {
+      if (closed || id !== picoId) return;
+      const entries = picoLogEntries(picoId).filter(
+        (entry) => entry.txnId === txnId
+      );
+      const [txn] = assembleLogTransactions(entries as RawLogEntry[]);
+      if (!txn) return;
+      try {
+        res.write(`data: ${JSON.stringify(txn)}\n\n`);
+      } catch (_err) {
+        closed = true;
+        unsubscribe();
+      }
+    });
+    const beat = setInterval(() => {
+      if (closed) return;
+      res.write(": ping\n\n");
+    }, 25000);
+    req.on("close", () => {
+      closed = true;
+      clearInterval(beat);
+      unsubscribe();
+    });
+  });
+
   /** Localhost-only context for dev MCP (stdio) and other local tooling. */
   app.get("/api/dev/local", function (req, res) {
     if (!localhostChannelBypassEnabled() || !isLocalhostRequest(req)) {
@@ -469,12 +524,11 @@ export function server(
         primaryLogFile,
         /** File `getPicoLogs` reads (mirrors under stdout-only unless PICO_ENGINE_LOG_MIRROR=0). */
         picoLogsReadPath,
-        picoLogsForDeveloperUi: picoLogsReadPath !== null,
+        picoLogsForDeveloperUi: true,
         logMirrorDisabled: mirrorDisabled,
+        logRing: true,
         hint:
-          picoLogsReadPath === null
-            ? "Logging tab is off: stdout-only logging with logMirror false (config logMirror or PICO_ENGINE_LOG_MIRROR=0). Enable logMirror or set PICO_ENGINE_LOG_FILE to a file path."
-            : "Logging tab reads JSON lines from picoLogsReadPath (last ~12h per pico). Stdout-only mode mirrors structured lines to $PICO_ENGINE_HOME/pico-engine.log when logMirror is true (default).",
+          "Logging tab reads the in-memory ring (last N transactions per pico, PICO_ENGINE_LOG_RING, default 200). A restart clears it. The log file remains the operator record.",
       },
     });
   });

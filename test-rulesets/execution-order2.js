@@ -53,9 +53,9 @@ module.exports = {
           await send_directive1($ctx, ["2 - reset_order"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "reset_order" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "reset_order" });
         $ctx.recordRuleOutcome("reset_order", $fired);
         await $ctx.rsCtx.putEnt("order", []);
       } finally {
@@ -71,9 +71,9 @@ module.exports = {
           await send_directive1($ctx, ["2 - foo_or_bar"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "foo_or_bar" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "foo_or_bar" });
         $ctx.recordRuleOutcome("foo_or_bar", $fired);
         await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
@@ -92,9 +92,9 @@ module.exports = {
           await send_directive1($ctx, ["2 - foo"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "foo" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "foo" });
         $ctx.recordRuleOutcome("foo", $fired);
         await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),
@@ -113,9 +113,9 @@ module.exports = {
           await send_directive1($ctx, ["2 - bar"]);
         }
         if ($fired)
-          $ctx.log.debug("fired");
+          $ctx.log.debug("fired", { "rule_name": "bar" });
         else
-          $ctx.log.debug("not fired");
+          $ctx.log.debug("not fired", { "rule_name": "bar" });
         $ctx.recordRuleOutcome("bar", $fired);
         await $ctx.rsCtx.putEnt("order", await append1($ctx, [
           await $ctx.rsCtx.getEnt("order"),

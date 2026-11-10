@@ -80,7 +80,7 @@ Example templates: [`config.example.json`](../../config.example.json), [`config.
 | `wildcardSkyRequireBearer` | boolean | Require OAuth bearer on `/sky/*` for channels with unrestricted `*.*` allow rules. Default `false` (1.8 opt-in hardening). |
 | `logToStdout` | boolean | Log to stdout instead of a file. Use on Fargate (set `logToStdout: true` in config). |
 | `logFile` | string | Absolute log path when `logToStdout` is false. Values `stdout`, `-`, or `0` force stdout. |
-| `logMirror` | boolean | When **`logToStdout`** is true: also write structured JSON lines to **`$PICO_ENGINE_HOME/pico-engine.log`** so **`ctx:logs`** and the Developer UI **Logging** tab work. Default **`true`**. Set **`false`** on EFS + Fargate to avoid mirror-file churn (then use CloudWatch from stdout, or set **`logFile`** to a writable path). **Env:** `PICO_ENGINE_LOG_MIRROR` (`true`/`1` / `false`/`0`). |
+| `logMirror` | boolean | When **`logToStdout`** is true: also write structured JSON lines to **`$PICO_ENGINE_HOME/pico-engine.log`** for operators. Default **`true`**. Set **`false`** on EFS + Fargate to avoid mirror-file churn (then use CloudWatch from stdout, or set **`logFile`** to a writable path). The Developer UI **Logging** tab reads an in-memory ring and does not need this file. **Env:** `PICO_ENGINE_LOG_MIRROR` (`true`/`1` / `false`/`0`). |
 | `defaultRootPolicyCeiling` | object | Max channel policy for new root picos (`eventPolicy` / `queryPolicy`). See policy example file. |
 | `globalEventDeny` | array | Extra deny rules applied on **every** ECI before channel policy (e.g. block `engine:secret_ping`). |
 | `globalQueryDeny` | array | Same for queries. |
@@ -103,7 +103,8 @@ These env overrides cover config path, data dir, port, public URL, and a few log
 | `PORT` | Listen port (if not in file) |
 | `PICO_ENGINE_BASE_URL` | Public URL |
 | `PICO_ENGINE_LOG_FILE` | Log file path, or `stdout` / `-` / `0` / empty for stdout-only |
-| `PICO_ENGINE_LOG_MIRROR` | When stdout-only: `false` / `0` disables writing `$PICO_ENGINE_HOME/pico-engine.log` for `ctx:logs` / Logging tab (config: **`logMirror`**) |
+| `PICO_ENGINE_LOG_MIRROR` | When stdout-only: `false` / `0` disables writing `$PICO_ENGINE_HOME/pico-engine.log` (config: **`logMirror`**). The Logging tab does not read that file |
+| `PICO_ENGINE_LOG_RING` | How many recent transactions per pico the Logging tab keeps in memory. Default **200**. A restart clears the ring |
 
 ---
 
