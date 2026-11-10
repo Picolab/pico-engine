@@ -30,7 +30,7 @@ Copy the example config and adjust paths:
 
 ```sh
 mkdir -p ~/.config/pico-engine
-cp "$(npm root -g)/pico-engine/config.example.json ~/.config/pico-engine/config.json
+cp "$(npm root -g)/pico-engine/config.example.json" ~/.config/pico-engine/config.json
 # or from a git checkout: packages/pico-engine/config.example.json
 pico-engine
 ```
