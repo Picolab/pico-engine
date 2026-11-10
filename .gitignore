@@ -20,3 +20,4 @@ build
 pico-engine.ish
 **/.obsidian/
 docs/.DS_Store
+packages/pico-engine/public/.DS_Store
