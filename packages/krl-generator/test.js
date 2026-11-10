@@ -14,8 +14,8 @@ test('generator', async function (t) {
     if (!/\.krl$/.test(file)) {
       continue
     }
-    // Engine integration fixtures (not generator round-trip goldens)
-    if (/^io\.picolabs\./.test(file)) {
+    // Engine and schema fixtures (not generator round-trip goldens)
+    if (/^io\./.test(file)) {
       continue
     }
     let src = await fs.promises.readFile(path.resolve(filesDir, file), 'utf8')

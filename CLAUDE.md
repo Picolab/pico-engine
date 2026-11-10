@@ -2,7 +2,7 @@
 
 This is the **pico engine**: an open-source Node.js runtime for **picos** (persistent compute objects) — small, always-on actors with persistent identity, state, and availability that talk by events and queries. Behavior is written in **KRL** (the pico rules language), compiled to JavaScript. Read `docs/design/pico-overview.md` first if the model isn't in your head yet.
 
-Lerna mono-repo. Current release line: 1.7.x (identity portability). Next: 1.8 (`docs/release/1.8.md`).
+Lerna mono-repo. Current release line: 1.9.0 (`docs/release/1.9.0.md`).
 
 ## The one rule that governs all design: strict layering
 

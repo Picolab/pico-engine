@@ -21,5 +21,6 @@ Shipped under `/krl/` on your engine; install from the Rulesets tab or `wrangler
 |---------|-----|--------|
 | **io.picolabs.oauth** | [oauth](io.picolabs.oauth.md) | **Root pico only** — optional mesh-wide OAuth on `/sky/*` |
 | **io.picolabs.portable_subtree** | [portable_subtree](io.picolabs.portable_subtree.md) | Portable export/import of subtrees (identity-aware move) |
+| **io.picolabs.xmlui** | [Pico views](../pico-views.md) | Optional. A `@view` function is a page at `/ui/{eci}/{rid}/` |
 
 Application rulesets (Manifold, your apps) are not bundled; install their KRL URLs like any other ruleset.

@@ -12,6 +12,7 @@ Machine-readable index for agents working with picos and KRL.
 
 - Pico overview: pico-overview.md
 - Pico engine operator guide: pico-engine.md
+- Pico views: pico-views.md
 - Bundled rulesets: rulesets/README.md
 - KRL manual: krl/README.md
 - Contributing: contributing.md

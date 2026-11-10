@@ -1,6 +1,6 @@
 # Pico views with XMLUI
 
-**Status:** draft (2026-11-04)
+**Status:** shipped in 1.9.0. The user guide is [`packages/pico-engine/public/docs/pico-views.md`](../../packages/pico-engine/public/docs/pico-views.md). This file is the design record (drafted 2026-11-04). The route that shipped is `/ui/{eci}/{rid}/`, not `/c/:eci/ui/`.
 **Audience:** engine and wrangler contributors; anyone building UIs for picos (PLAN, Manifold, the IIWF CRM)
 **Related:** [`pico-schemas.md`](pico-schemas.md) (annotations, `channelSchema`), [`channel-policy-1.8.md`](channel-policy-1.8.md), [`pico-relationships.md`](pico-relationships.md) (per-user meshes for the IIWF CRM)
 

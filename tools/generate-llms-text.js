@@ -39,6 +39,7 @@ for (const name of bundledSampleMd) {
 const indexPaths = [
   { title: "Pico overview", file: "pico-overview.md" },
   { title: "Pico engine operator guide", file: "pico-engine.md" },
+  { title: "Pico views", file: "pico-views.md" },
   { title: "Bundled rulesets", file: "rulesets/README.md" },
   { title: "KRL manual", file: "krl/README.md" },
   { title: "Contributing", file: "contributing.md" },

@@ -625,9 +625,9 @@ commits; local backend (Gemma/Ollama sidecar) default; cloud opt-in only.
 **Phasing:** complete + audit (P1) → extract/classify + async (P2) → memory + delegation (P3) →
 KRL copilot (P4).
 
-### 10. Pico views with XMLUI — **design (2026-11-04)**
+### 10. Pico views with XMLUI — **shipped in 1.9.0**
 
-A view is a shared function returning XMLUI markup, tagged `@view`. Engine change kept minimal: vendored XMLUI runtime, one `/c/:eci/ui/*` route forwarding paths to `io.picolabs.xmlui:file`, `@view` in annotations/schema, ship the ruleset. Shell, navigation (from `channelSchema`), helper components live in the shipped `io.picolabs.xmlui` ruleset. Prior art: classic KRL web actions; Bruce Conrad's PicoStack/PLAN (`.html` queries, `html.plan`, per-app channels). First consumer: IIWF CRM client views. **Design:** [`docs/design/pico-views-xmlui.md`](docs/design/pico-views-xmlui.md).
+A view is a shared function returning XMLUI markup, tagged `@view`. Engine change kept minimal: vendored XMLUI runtime 0.12.7, `/ui/{eci}` and `/ui/{eci}/{rid}/*`, `@view` in annotations/schema, optional ruleset `io.picolabs.xmlui`. Shell, navigation (from `channelSchema`), and markup helpers live in that ruleset. Component files are the view function queried on the channel; `file()` serves the shell, `Main.xmlui`, and `config.json`. **User guide:** [`packages/pico-engine/public/docs/pico-views.md`](packages/pico-engine/public/docs/pico-views.md). **Design:** [`docs/design/pico-views-xmlui.md`](docs/design/pico-views-xmlui.md).
 
 ### 11. Logging tab: transaction log and inspector — **design (2026-11-06)**
 

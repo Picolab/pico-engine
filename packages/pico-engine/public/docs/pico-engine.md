@@ -237,6 +237,6 @@ Logs: default `$home/pico-engine.log`, or stdout when configured. Engine logs **
 
 ## Related docs
 
-- [Pico overview / philosophy](pico-overview.md) · [Bundled rulesets (wrangler, PDS, …)](rulesets/README.md) · [Manifold mesh framework](https://github.com/Picolab/manifold-api/blob/main/docs/llms.txt) · [KRL manual](krl/README.md)
+- [Pico overview / philosophy](pico-overview.md) · [Pico views](pico-views.md) · [Bundled rulesets (wrangler, PDS, …)](rulesets/README.md) · [Manifold mesh framework](https://github.com/Picolab/manifold-api/blob/main/docs/llms.txt) · [KRL manual](krl/README.md)
 - Package [README](../../README.md) — OAuth, authentication, full container checklist
 - Release [1.8.0 notes](https://github.com/Picolab/pico-engine/blob/main/docs/release/1.8.0.md) — what changed in this line
