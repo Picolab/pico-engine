@@ -3,13 +3,24 @@
 const fs = require("fs");
 const path = require("path");
 
-function readDoc(relativeFromPackage) {
-  const filePath = path.join(__dirname, "..", relativeFromPackage);
+// Docs live at the repo root (docs/, CLAUDE.md). In a checkout, read them there;
+// in an npm install, read the copies `npm pack` bundled into mcp/docs/.
+const repoRoot = path.join(__dirname, "..", "..", "..");
+const bundledDir = path.join(__dirname, "docs");
+
+function readFile(filePath) {
   try {
     return fs.readFileSync(filePath, "utf8");
   } catch (_e) {
     return "";
   }
+}
+
+function readDoc(relativeFromRepoRoot) {
+  return (
+    readFile(path.join(repoRoot, relativeFromRepoRoot)) ||
+    readFile(path.join(bundledDir, path.basename(relativeFromRepoRoot)))
+  );
 }
 
 function registerDevResources(server, client) {
@@ -25,7 +36,7 @@ function registerDevResources(server, client) {
         {
           uri: "pico://docs/krl-conventions",
           mimeType: "text/markdown",
-          text: readDoc("../../../CLAUDE.md"),
+          text: readDoc("CLAUDE.md"),
         },
       ],
     })
@@ -44,8 +55,7 @@ function registerDevResources(server, client) {
           uri: "pico://docs/pico-overview",
           mimeType: "text/markdown",
           text:
-            readDoc("public/docs/pico-overview.md") ||
-            readDoc("../../../docs/design/pico-overview.md"),
+            readDoc("docs/pico-overview.md"),
         },
       ],
     })
@@ -63,7 +73,7 @@ function registerDevResources(server, client) {
         {
           uri: "pico://docs/pico-engine",
           mimeType: "text/markdown",
-          text: readDoc("public/docs/pico-engine.md"),
+          text: readDoc("docs/pico-engine.md"),
         },
       ],
     })
@@ -93,7 +103,7 @@ function registerDevResources(server, client) {
           schemaBlock = `\n\n(Could not load channel schema: ${String(err)})\n`;
         }
       }
-      const conventions = readDoc("../../../CLAUDE.md");
+      const conventions = readDoc("CLAUDE.md");
       return {
         messages: [
           {

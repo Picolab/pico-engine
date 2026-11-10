@@ -251,7 +251,7 @@ Weekly digest **2026-10-27 – 2026-11-03** (Picolab/pico-engine). Triage: produ
 **`__testing`** compat alias from schema. Verify: **`npm run test:schema`**, **`npm run check:krl-schema-samples`**.
 
 **Deferred past 1.8 engine tag:** JSON Schema export (`format: jsonschema`); copy schema docs to
-`public/docs/` + `llms-full.txt`; remove `__testing1` injection (1.9); schema **`logged`** flags
+`docs/` + `llms-full.txt`; remove `__testing1` injection (1.9); schema **`logged`** flags
 (roadmap §2 below).
 
 **Event-only logging (original §1 scope):**
@@ -1637,7 +1637,7 @@ wrangler (event sits on the schedule and never runs).
 
 > **Purpose:** operator configuration. Prefer **`~/.config/pico-engine/config.json`** (or
 > `PICO_ENGINE_CONFIG` / `pico-engine -c`); see `packages/pico-engine/config.example.json`.
-> **User-facing operator guide:** [`packages/pico-engine/public/docs/pico-engine.md`](packages/pico-engine/public/docs/pico-engine.md) (canonical; ships with npm). Confluence/wiki should link or mirror from git — see § Documentation source of truth there. **Precedence:** defaults →
+> **User-facing operator guide:** [`docs/pico-engine.md`](docs/pico-engine.md) (canonical; published to GitHub Pages; bundled into the npm package for the dev MCP server). Confluence/wiki should link or mirror from git — see § Documentation source of truth there. **Precedence:** defaults →
 > environment variables → config file → programmatic (tests). **`PORT` and `PICO_ENGINE_HOME` remain
 > supported;** config file values override them when both are set; env applies when the file omits
 > those keys (Docker/CI).

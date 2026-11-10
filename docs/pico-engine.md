@@ -1,6 +1,6 @@
 # pico-engine — operator guide
 
-This document is the **canonical operator reference** for running and configuring the pico engine. It ships with the npm package under `public/docs/` and is indexed in [`llms.txt`](llms.txt).
+This document is the **canonical operator reference** for running and configuring the pico engine. It lives in the repo's top-level `docs/`, is published at <https://picolab.github.io/pico-engine/>, and is indexed in [`llms.txt`](llms.txt).
 
 **New to picos?** Read [pico-overview.md](pico-overview.md) — what picos are, why they exist, and the event-query model (`docs/design/pico-overview.md` in the repo).
 
@@ -8,10 +8,10 @@ This document is the **canonical operator reference** for running and configurin
 
 | Location | Role |
 |----------|------|
-| **This file** (`packages/pico-engine/public/docs/`) | Authoritative for install, config, security flags, and deployment. Versioned with the engine; what `npx pico-engine` and agents read. |
+| **This file** (`docs/pico-engine.md`) | Authoritative for install, config, security flags, and deployment. Versioned with the engine; bundled into the npm package for the dev MCP server, so it's what agents read. |
 | **README** in the same package | Quick start, CLI overview, OAuth, containers — links here for config details. |
 | **`MEMORY.md`** (engine repo) | Maintainer log: rationale, gotchas, env registry — not end-user docs. |
-| **Confluence / wiki** | Optional mirror for Picolab internal use. **Do not treat Confluence as primary:** edit this file in git first, then update Confluence to match (or replace Confluence pages with a short blurb + link to [GitHub `public/docs/pico-engine.md`](https://github.com/Picolab/pico-engine/blob/main/packages/pico-engine/public/docs/pico-engine.md) on `main` or the release tag). |
+| **Confluence / wiki** | Optional mirror for Picolab internal use. **Do not treat Confluence as primary:** edit this file in git first, then update Confluence to match (or replace Confluence pages with a short blurb + link to [`docs/pico-engine.md`](https://github.com/Picolab/pico-engine/blob/main/docs/pico-engine.md) on `main` or the release tag). |
 
 If Confluence and this guide disagree, **trust the repo at the release you run** (`pico-engine --version`).
 
@@ -163,7 +163,7 @@ If something you need **cannot be done through wrangler**:
 
 Install optional rulesets from the **Rulesets** tab (URL like `https://your-engine/krl/io.picolabs.oauth.krl`) or send `wrangler:install_ruleset_request`.
 
-**Generated API docs** (events, queries, `@example` from KRL annotations) live under **[rulesets/](rulesets/README.md)** — notably [wrangler](rulesets/io.picolabs.wrangler.md). Refresh in a git checkout: `npm run check:krl-schema-samples` then **`npm run generate:llms`** (copies samples into `public/docs/rulesets/`).
+**Generated API docs** (events, queries, `@example` from KRL annotations) live under **[rulesets/](rulesets/README.md)** — notably [wrangler](rulesets/io.picolabs.wrangler.md). Refresh in a git checkout: `npm run check:krl-schema-samples` then **`npm run generate:llms`** (copies samples into `docs/rulesets/`).
 
 ---
 

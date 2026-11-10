@@ -35,4 +35,4 @@ Application layer on wrangler (owner, thing, community). Not shipped inside pico
 
 ## OpenAPI
 
-- Sky and channel HTTP: public/docs/openapi.yaml
+- Sky and channel HTTP: docs/openapi.yaml

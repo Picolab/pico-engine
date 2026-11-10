@@ -35,6 +35,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
+    "prepack": "node scripts/bundle-docs.js",
     "start": "npm run dev -s",
     "dev": "scriptsp -r dev:tsc dev:api",
     "dev:tsc": "tsc -w --preserveWatchOutput",

@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..");
-const docsDir = path.join(repoRoot, "packages/pico-engine/public/docs");
+const docsDir = path.join(repoRoot, "docs");
 
 const overviewSrc = path.join(repoRoot, "docs/design/pico-overview.md");
 const overviewDest = path.join(docsDir, "pico-overview.md");
@@ -84,7 +84,7 @@ llmsLines.push(
   "",
 );
 
-llmsLines.push("", "## OpenAPI", "", "- Sky and channel HTTP: public/docs/openapi.yaml", "");
+llmsLines.push("", "## OpenAPI", "", "- Sky and channel HTTP: docs/openapi.yaml", "");
 
 const fullParts = [];
 for (const entry of indexPaths) {
@@ -99,4 +99,4 @@ fs.writeFileSync(
   `# Pico Engine — full text bundle\n${fullParts.join("")}\n`
 );
 
-console.log("Wrote public/docs/llms.txt and llms-full.txt");
+console.log("Wrote docs/llms.txt and llms-full.txt");

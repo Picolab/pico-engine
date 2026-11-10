@@ -11,9 +11,9 @@ npm install -g pico-engine
 pico-engine
 ```
 
-Open `http://localhost:3000` — a root pico and UI channel are created on first run. Operator settings (port, data dir, policy ceiling) live in **`~/.config/pico-engine/config.json`**; copy [`config.example.json`](config.example.json). See [`public/docs/pico-engine.md`](public/docs/pico-engine.md).
+Open `http://localhost:3000` — a root pico and UI channel are created on first run. Operator settings (port, data dir, policy ceiling) live in **`~/.config/pico-engine/config.json`**; copy [`config.example.json`](config.example.json). See [`docs/pico-engine.md`](../../docs/pico-engine.md) (published at https://picolab.github.io/pico-engine/).
 
-**Agents (local dev):** [`CLAUDE.md`](../../CLAUDE.md) at repo root + `pico-engine mcp --stdio` (stdio MCP to the same engine). Machine-readable docs: [`public/docs/llms.txt`](public/docs/llms.txt).
+**Agents (local dev):** [`CLAUDE.md`](../../CLAUDE.md) at repo root + `pico-engine mcp --stdio` (stdio MCP to the same engine). Machine-readable docs: [`docs/llms.txt`](../../docs/llms.txt).
 
 ## Getting Started
 
