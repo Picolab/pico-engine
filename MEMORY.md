@@ -627,7 +627,7 @@ KRL copilot (P4).
 
 ### 10. Pico views with XMLUI — **shipped in 1.9.0**
 
-A view is a shared function returning XMLUI markup, tagged `@view`. Engine change kept minimal: vendored XMLUI runtime 0.12.7, `/ui/{eci}` and `/ui/{eci}/{rid}/*`, `@view` in annotations/schema, optional ruleset `io.picolabs.xmlui`. Shell, navigation (from `channelSchema`), and markup helpers live in that ruleset. Component files are the view function queried on the channel; `file()` serves the shell, `Main.xmlui`, and `config.json`. **User guide:** [`packages/pico-engine/public/docs/pico-views.md`](packages/pico-engine/public/docs/pico-views.md). **Design:** [`docs/design/pico-views-xmlui.md`](docs/design/pico-views-xmlui.md).
+A view is a shared function returning XMLUI markup, tagged `@view`. Engine change kept minimal: vendored XMLUI runtime 0.12.7, `/ui/{eci}` and `/ui/{eci}/{rid}/*`, `@view` in annotations/schema, optional ruleset `io.picolabs.xmlui`. Shell, navigation (from `channelSchema`), and markup helpers live in that ruleset. Component files are the view function queried on the channel; `file()` serves the shell, `Main.xmlui`, and `config.json`. **User guide:** [`docs/pico-views.md`](docs/pico-views.md). **Design:** [`docs/design/pico-views-xmlui.md`](docs/design/pico-views-xmlui.md). On an OAuth mesh, `/ui/` stays open and Sky calls need a bearer. The shell sends `sessionStorage.picoViewBearer`. A client-credentials token for the view's `oauth-webhook` app channel authorizes that channel only. An authorization-code token authorizes the mesh.
 
 ### 11. Logging tab: transaction log and inspector — **design (2026-11-06)**
 
