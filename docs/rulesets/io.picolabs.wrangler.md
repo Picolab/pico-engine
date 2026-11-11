@@ -50,7 +50,7 @@ select when wrangler install_ruleset_request
 
 ### `wrangler:install_ruleset_request` (install_ruleset_absolutely)
 
-Install (or reinstall) a ruleset from a URL on this pico. The URL is fetched and compiled first, so this also picks up a new version. Raises wrangler:ruleset_installed with the installed rid.
+Install (or reinstall) a ruleset from a URL on this pico. The URL is fetched and compiled first, so this also picks up a new version. Raises wrangler:ruleset_installed with the installed rid only when that rid was not already on this pico. A flush reinstalls the source and does not raise it.
 
 **Send:** `wrangler:install_ruleset_request` with `url` matches `re#(.+)#`  
 **Rule:** `install_ruleset_absolutely`
@@ -69,7 +69,7 @@ Install (or reinstall) a ruleset from a URL on this pico. The URL is fetched and
 
 **May emit** (possible, not guaranteed):
 
-- raises `wrangler:ruleset_installed` on this pico — when it acts
+- raises `wrangler:ruleset_installed` on this pico — when the rid is new on this pico
 
 <details><summary>Select expression</summary>
 

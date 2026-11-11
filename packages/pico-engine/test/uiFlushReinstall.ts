@@ -1,6 +1,6 @@
 /**
- * engine_ui flush reinstalls the flushed ruleset on the pico
- * (io.picolabs.pico-engine-ui reinstall_after_flush).
+ * engine_ui flush reinstalls the flushed ruleset's source without raising
+ * wrangler:ruleset_installed. That event is only for a rid new to the pico.
  */
 
 import test from "ava";
@@ -21,7 +21,7 @@ async function uiEvent(
   );
 }
 
-test("engine_ui flush reinstalls an installed ruleset, including dotted rids", async (t) => {
+test("engine_ui flush does not raise ruleset_installed for an installed ruleset", async (t) => {
   const pe = await startIsolatedEngine({ autoCreateRootPico: true });
   const root = pe.pf.rootPicos()[0];
   const ui = Object.values(root.channels).find((c) => c.tags.includes("ui"));
@@ -47,7 +47,7 @@ test("engine_ui flush reinstalls an installed ruleset, including dotted rids", a
 
   // Flush with the url exactly as the UI sends it: from pico(){"rulesets"}.
   await uiEvent(pe, ui!.id, "flush", { url: installed.url });
-  t.is(await installs(), 2, "flush reinstalled the ruleset");
+  t.is(await installs(), 1, "flush does not raise ruleset_installed");
 
   // Flushing a ruleset that isn't installed on this pico doesn't install it.
   const otherUrl = toTestKrlURL("chevron.krl");
@@ -56,7 +56,7 @@ test("engine_ui flush reinstalls an installed ruleset, including dotted rids", a
     (afterOtherFlush.rulesets || []).some((r: any) => r.url === otherUrl),
     "a flush alone doesn't install",
   );
-  t.is(await installs(), 2, "unrelated flush doesn't reinstall the test ruleset");
+  t.is(await installs(), 1, "unrelated flush doesn't install the test ruleset");
 
   await pe.pf.db.close();
 });

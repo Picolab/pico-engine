@@ -85,10 +85,20 @@ ruleset io.picolabs.xmlui {
         " />"
     }
 
+    // A channel matches when it has every requested tag. Extra tags, such as
+    // oauth-webhook on the app channel, still match.
     newestChannelWithTags = function(tags) {
-      wrangler:channels(tags).sort(function(a, b) {
-        a{"id"} cmp b{"id"}
-      }).reverse().head()
+      wanted = tags.typeof() == "Array" => tags.map(function(t) { t.lc() }) |
+        tags.typeof() == "String" => tags.lc().split(",") |
+        []
+      wrangler:channels()
+        .filter(function(c) {
+          have = c{"tags"}.defaultsTo([]).map(function(t) { t.lc() })
+          wanted.filter(function(t) { have >< t }).length() == wanted.length()
+        })
+        .sort(function(a, b) { a{"id"} cmp b{"id"} })
+        .reverse()
+        .head()
     }
 
     app_url = function(tags, app_rid) {

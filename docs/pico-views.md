@@ -81,7 +81,7 @@ These `/ui/` files are the ruleset's markup plus the ECI and RID already in the 
 | `ui:event(id, domain, type, opts)` | An `APICall` that posts the form body. `opts.refresh` is a list of `DataSource` ids to refetch. `opts.confirm` sets a confirmation message. |
 | `ui:query_url(name, rid, eci)` | `/sky/query/…` for this channel, ruleset, and query. |
 | `ui:event_url(domain, type, eci)` | `/sky/event/{eci}/xmlui/{domain}/{type}`. |
-| `ui:app_url(tags, app_rid)` | `/ui/{eci}/{rid}/` for the newest channel with those tags, or `null`. |
+| `ui:app_url(tags, app_rid)` | `/ui/{eci}/{rid}/` for the newest channel that has every tag in `tags`, or `null`. Extra tags on the channel still match. |
 | `ui:escape(s)` | Escape `&`, `<`, `>`, and `"` for text placed in markup. |
 
 A guestbook view:

@@ -1,9 +1,9 @@
 ruleset io.picolabs.test.flush_reinstall {
   meta {
     description <<
-      Test fixture for io.picolabs.pico-engine-ui reinstall_after_flush: counts how
-      many times it has been installed on the pico. Its rid is dotted on purpose,
-      since the old url-parsing logic truncated dotted rids.
+      Counts wrangler:ruleset_installed. A flush of an installed ruleset must
+      not increment this. The rid is dotted on purpose, since the old
+      url-parsing logic truncated dotted rids.
     >>
     shares installs
   }

@@ -625,7 +625,9 @@ ruleset io.picolabs.wrangler {
   /**
    * Install (or reinstall) a ruleset from a URL on this pico. The URL is fetched
    * and compiled first, so this also picks up a new version. Raises
-   * wrangler:ruleset_installed with the installed rid.
+   * wrangler:ruleset_installed with the installed rid only when that rid was
+   * not already on this pico. A flush reinstalls the source and does not
+   * raise it.
    * @attr url String "URL of the .krl file"
    * @attr config Map optional "configuration for the installed ruleset"
    * @example "from a URL" { "url": "https://example.com/krl/<rid>.krl" }
@@ -642,6 +644,9 @@ ruleset io.picolabs.wrangler {
       validate_errors = validation{"errors"}
       validate_warnings = validation{"warnings"}
       validate_rid = validation{"rid"}
+      already_installed = ctx:rulesets.filter(function(rs) {
+        rs{"rid"} == validate_rid
+      }).length() > 0
     }
     if ok then every {
       ctx:flush(url=url)
@@ -650,6 +655,7 @@ ruleset io.picolabs.wrangler {
     fired {
       raise wrangler event "ruleset_installed" attributes
         event:attrs.put({"rids": [rid]})
+        if not already_installed
     }
     else {
       raise wrangler event "ruleset_install_failed" attributes

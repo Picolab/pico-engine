@@ -388,6 +388,8 @@ ruleset io.picolabs.pico-engine-ui {
   // url from pico(){"rulesets"}, so it is exactly the installed ruleset's url.
   // (Previously the rid was parsed out of the url, which never matched —
   // substr(0, 11) is "io.picolabs" without the dot — and truncated dotted rids.)
+  // install_ruleset_absolutely raises ruleset_installed only for a new rid, so
+  // this reinstall does not look like a first install.
   rule reinstall_after_flush {
     select when engine_ui flush_succeeded
     pre {
