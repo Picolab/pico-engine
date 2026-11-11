@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "An implementation of the pico-engine targeting node.js",
   "repository": {
     "type": "git",

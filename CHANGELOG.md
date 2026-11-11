@@ -1,3 +1,8 @@
+# 1.9.1 - November 11, 2026
+
+* **Wrangler** — `ruleset_installed` is raised only when the rid is new on the pico. A flush still reinstalls the source and does not raise that event, so an install-time rule does not run again.
+* **Views** — `ui:app_url` selects the newest channel that has every requested tag. Extra tags, including `oauth-webhook`, still match.
+
 # 1.7.0 - October 10, 2026
 
 * **Identity portability** — **did:peer:4** for new Layer 2 relationships; TypeScript did-peer-4 port; matching and epic9 matrix updated (peer:2 subs unchanged).

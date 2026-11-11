@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-core",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "This provides the environment for KRL to run.",
   "repository": {
     "type": "git",
