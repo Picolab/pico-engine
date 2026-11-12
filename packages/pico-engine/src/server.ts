@@ -33,7 +33,7 @@ import {
   isXmluiCodeBehindPath,
   isXmluiSpaClientRoute,
   parseComponentXmluiPath,
-  viewQueryNameForComponent,
+  queryForComponentFile,
   XMLUI_EMPTY_CODE_BEHIND,
 } from "./xmluiRuntime";
 import { IdentityService } from "./identity/IdentityService";
@@ -744,19 +744,19 @@ export function server(
           (channelEci) => pf.lookupChannel(channelEci),
           eci
         );
-        const viewFn = viewQueryNameForComponent(
+        const source = queryForComponentFile(
           channelSchema.queries,
           appRid,
           componentName
         );
-        if (!viewFn) {
+        if (!source) {
           res.status(404).type("text/plain").end("Not found");
           return;
         }
         data = await core.query({
           eci,
-          rid: appRid,
-          name: viewFn,
+          rid: source.rid,
+          name: source.name,
           args: {},
         });
       } else {

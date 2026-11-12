@@ -80,6 +80,7 @@ Terminology: **relationships** (1.6.2+; "subscriptions" in older code and docs).
 
 - Design before code for anything touching identity, policy, schema, or the Sky API: add or update a doc in `docs/design/` and link it from `MEMORY.md`.
 - Keep `MEMORY.md` current when you learn an engine behavior the hard way; it is what future sessions read.
+- View markup in KRL heredocs: put `<Component …>` on its own line after `<<`, not `<<<Component`. XMLUI accepts the leading newline.
 - Don't commit or publish; leave that to the maintainer. `npm run publish` builds and publishes every package — never run it.
 - Tests are ava, serial for engine suites (`--serial`, 2–3 min timeouts). Add a focused `test:*` script when you add a suite.
 - UI changes need `npm run build` (repo root) or `npm run dev` in `pico-engine-ui` or they won't appear in `public/`.

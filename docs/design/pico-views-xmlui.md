@@ -150,6 +150,58 @@ An app is one ruleset: its `@view` functions are the app's pages, and its `name`
 
 A pico with several app rulesets has several apps, each at its own URL. A channel's policy decides which of them, and which of each app's views, a person can reach.
 
+### `@component`: reusable markup that is not a page
+
+A shared function tagged `@component` returns one `<Component name="…">`, like a view, but it is not a page: it gets no `Page` and no `NavLink`. XMLUI loads `components/<Name>.xmlui` the first time markup uses `<Name>`, and the engine answers that file with the function's output. Props, slots, `emitEvent`, `method.*`, and `var.*` are XMLUI's own; the engine knows only that the function returns a component.
+
+```krl
+/**
+ * Latest reading from each sensor. Props: rows, zone.
+ * @component
+ */
+temperatureTable = function() {
+  <<
+<Component name="TemperatureTable">
+  <Table data="{$props.rows}">…</Table>
+</Component>
+>>
+}
+```
+
+| Rule | Why |
+|------|-----|
+| The tag takes no arguments. The component name is the function name with its first letter capitalized (`temperatureTable` → `TemperatureTable`), the same rule as views | One name rule for every file under `components/` |
+| A function cannot be both `@view` and `@component` | A view is a page; a component is a part. Keep what appears in navigation obvious |
+| `krl check` warns when a `@view` or `@component` name matches a built-in XMLUI component, and the route refuses to serve a component file under a built-in name | XMLUI 0.14 asks for `components/<Name>.xmlui` for every tag it renders (`Table`, `Form`, …), and a file with that name replaces the built-in |
+| `rulesetSchema` and `channelSchema` carry `component: { name }` on the query | The developer UI, MCP tools, and the route read the same schema |
+
+**Which ruleset answers `components/<Name>.xmlui`.** Among the queries the channel allows (`channelSchema`): the app ruleset's `@view` or `@component` with that name first, then `io.picolabs.xmlui`'s `@component`, then any other installed ruleset's `@component`. If two other rulesets both define the name, the route answers not found rather than pick one. A component is a query, so a channel that does not allow it cannot load it.
+
+**Channel policy.** `ui:create_app_channel` adds every `@component` of the app ruleset and of `io.picolabs.xmlui` to the query policy, beside the named queries and `io.picolabs.xmlui/file`. A channel created before a component existed does not allow it at first. On `wrangler:schema_updated` (an install, uninstall, or flush that changes a schema), `io.picolabs.xmlui` updates every channel that allows `io.picolabs.xmlui/file`: it adds the `@component` queries of the rulesets that channel already allows, and of `io.picolabs.xmlui`. It never adds a ruleset the channel did not allow. Flushing `io.picolabs.xmlui` after an engine upgrade is enough to bring existing app channels up to date.
+
+**Shared components in `io.picolabs.xmlui`.** Every pico that serves views has this ruleset, so its components are available to any view:
+
+| Component | What it does |
+|-----------|--------------|
+| `PicoTheme` | Applies the theme stored in this tab (`sessionStorage.picoViewTheme`: `default`, `dark`, `green`, `green-dark`, `gray`, `gray-dark`) to its children, on `$backgroundColor` so rows stay readable in dark tones |
+| `PicoSettings` | Settings dialog with no fields of its own. The caller's fields go in its slot. Save stores each field as `sessionStorage.picoView<Field>` (`theme` → `picoViewTheme`) and reloads the page. Props `title`, `note`; method `open()`; event `saved(data)` |
+| `PicoThemeField` | Theme picker for `PicoSettings`; pairs with `PicoTheme` |
+| `PicoAccessTokenField` | Access token field for `PicoSettings`, stored as `picoViewBearer`, which the shell sends as the bearer. Only views on OAuth meshes include it |
+
+A view composes them:
+
+```xml
+<PicoSettings id="settings" note="…">
+  <FormItem bindTo="zone" label="Time zone" … />
+  <PicoThemeField />
+  <PicoAccessTokenField />
+</PicoSettings>
+<PicoTheme>
+  <Button label="Settings" onClick="settings.open()" />
+  …
+</PicoTheme>
+```
+
 ---
 
 ## Engine changes (all of them)
@@ -160,6 +212,7 @@ A pico with several app rulesets has several apps, each at its own URL. A channe
 | E2 | Route `GET /ui/:eci/:rid/*`: call `io.picolabs.xmlui:file(rid, path)` on that channel and return the string raw with a content type chosen by extension (`.html`, `.xmlui`, `.xs`, `.json`, `.css`); `/ui/:eci/:rid/` maps to `index.html`, and `/ui/:eci/` to a launcher listing the apps visible on the channel | `server.ts` | One handler, beside `handleSkyQuery`. No token: app files are code, not data (see Authentication) |
 | E3 | Recognize `@view` in doc comments; include `view: {title, path}` in `rulesetSchema` / `channelSchema` entries | `krl-parser` `docComment.ts`, schema derivation, `annotationLint.js` | Small; follows `@attr` / `@returns` |
 | E4 | Ship `io.picolabs.xmlui.krl` in the engine's `krl/` directory as an **optional** ruleset, like `io.picolabs.oauth`: available to install, but not in `BUNDLED_KRL_FILES`, so it is not part of the base set every root pico gets | `krl/` | One file, no code change |
+| E5 | Recognize `@component`; include `component: {name}` in the schemas; serve `components/<Name>.xmlui` from the app ruleset, then `io.picolabs.xmlui`, then one other ruleset, never under a built-in XMLUI name | `krl-parser` `docComment.ts`, `rulesetSchema.js`, `annotationLint.js`, `picoSchema.ts`, `xmluiRuntime.ts` | Small; follows `@view` |
 
 **Why `/ui/` and not `/sky/ui/`.** `/sky/` versions the event and query wire format (it succeeded `/blue/`) for clients that evolve independently of the engine. The UI route has no independent clients: the path-to-file mapping, the shell and its sign-in handshake, and the pinned XMLUI runtime all ship in the same engine release as the route, and the data views exchange already goes through `/sky/query` and `/sky/event`. If the Sky format moves, `ui:query_url` and `ui:event_url` move with it. The UI URL is also something people bookmark, so it should not change with an API version. It is a document route, like the developer UI and `/docs`, and stays unversioned.
 
@@ -199,7 +252,7 @@ Markup helpers are KRL functions that return XMLUI markup, so view authors don't
 | `ui:event(id, domain, type, opts)` | function | `<APICall id method="post" url="{ui:event_url(domain, type)}" headers="{appGlobals.auth}" body="{$param}">`; `opts`: `refresh` (array of `DataSource` ids to refetch on success), `confirm` (confirmation message) |
 | `ui:escape(s)` | function | `s` escaped for inclusion in markup, for constants that may contain markup characters (labels, help text). Not a way to put data in markup: app files are open, so data always goes through bindings |
 | `ui:app_url(tags)` | function | The calling ruleset's app URL, `/ui/{eci}/{rid}/`, on the newest channel that has every tag in `tags`. Extra tags still match (PLAN's `app_url` required an exact tag set) |
-| `ui:create_app_channel(tags, domains, queries)` | defaction | Creates a channel whose event policy allows `domains` and whose query policy allows the calling ruleset's `queries` (all its shares when `queries` is null) plus `io.picolabs.xmlui:file`, without which the UI route can't serve anything. PLAN's per-app channel, made reusable |
+| `ui:create_app_channel(tags, domains, queries)` | defaction | Creates a channel whose event policy allows `domains` and whose query policy allows the calling ruleset's `queries` (all its shares when `queries` is null), every `@component` of the calling ruleset and of `io.picolabs.xmlui`, plus `io.picolabs.xmlui:file`, without which the UI route can't serve anything. PLAN's per-app channel, made reusable |
 | `ui:rotate_app_channel(tags)` | defaction | Creates a new channel with the same tags and policy as the newest one with `tags`, then deletes the older ones. The app URL carries the ECI and app files are open, so the ECI acts like a link password; rotating it is how a person retires one that leaked. PLAN's `app_eci_rotated`, made reusable |
 
 ---

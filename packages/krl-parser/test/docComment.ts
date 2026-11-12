@@ -69,6 +69,22 @@ test("parseDocComment @view title only", t => {
   t.is(doc.unknownTags, undefined);
 });
 
+test("parseDocComment @component", t => {
+  const tok = tokenizer(`/** A table.
+   * @component
+   */`).find(x => x.type === "BLOCK-COMMENT")!;
+  const doc = parseDocComment(tok);
+  t.deepEqual(doc.tags, [{ kind: "component" }]);
+  t.is(doc.unknownTags, undefined);
+});
+
+test("parseDocComment @component rejects arguments", t => {
+  const tok = tokenizer(`/** A table.
+   * @component "Table"
+   */`).find(x => x.type === "BLOCK-COMMENT")!;
+  t.throws(() => parseDocComment(tok), { message: /@component takes no arguments/ });
+});
+
 test("unknown doc tag is ignored and recorded", t => {
   const tok = tokenizer(`/** Note.
    * @atr foo

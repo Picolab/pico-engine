@@ -221,6 +221,12 @@ export function parseDocComment(token: Token): DocComment {
         case "view":
           tags.push(parseViewTag(rest, token));
           break;
+        case "component":
+          if (rest.trim().length > 0) {
+            throw new ParseError("@component takes no arguments", token);
+          }
+          tags.push({ kind: "component" });
+          break;
         default:
           unknownTags.push({ name: tagName, rest });
           break;

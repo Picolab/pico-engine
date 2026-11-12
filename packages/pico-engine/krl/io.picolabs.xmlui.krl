@@ -7,7 +7,8 @@ ruleset io.picolabs.xmlui {
     use module io.picolabs.wrangler alias wrangler
 
     provides query_url, event_url, query, event, escape, app_url, create_app_channel, rotate_app_channel, xmluiRuntimePath
-    shares file, query_url, event_url, query, event, escape, app_url, xmluiRuntimePath
+    shares file, query_url, event_url, query, event, escape, app_url, xmluiRuntimePath,
+      picoTheme, picoSettings, picoThemeField, picoAccessTokenField
   }
 
   global {
@@ -115,12 +116,62 @@ ruleset io.picolabs.xmlui {
         })
     }
 
+    componentNamesFor = function(rid) {
+      wrangler:rulesetSchema(rid){"queries"}
+        .defaultsTo([])
+        .filter(function(q) {
+          not q{"component"}.isnull()
+        })
+        .map(function(q) {
+          q{"name"}
+        })
+    }
+
+    // The app's named queries, every @component of the app ruleset and of
+    // this ruleset, and file. A channel that omits a component cannot load it.
     queryPolicyForApp = function(app_rid, queries) {
       (queries.isnull() => shareNamesForApp(app_rid) | queries)
+        .append(componentNamesFor(app_rid))
         .map(function(q) {
           { "rid": app_rid, "name": q }
         })
+        .append(componentNamesFor(xmluiFileRid).map(function(q) {
+          { "rid": xmluiFileRid, "name": q }
+        }))
         .append([{ "rid": xmluiFileRid, "name": "file" }])
+        .reduce(function(acc, entry) {
+          acc.filter(function(r) {
+            r{"rid"} == entry{"rid"} && r{"name"} == entry{"name"}
+          }).length() > 0 => acc | acc.append([entry])
+        }, [])
+    }
+
+    allowsRule = function(allow, rid, name) {
+      allow.filter(function(r) {
+        r{"rid"} == rid && r{"name"} == name
+      }).length() > 0
+    }
+
+    // App channels are the ones the UI route can serve from.
+    appChannels = function() {
+      wrangler:channels().filter(function(c) {
+        allowsRule(c{["queryPolicy", "allow"]}.defaultsTo([]), xmluiFileRid, "file")
+      })
+    }
+
+    // Component queries the channel lacks: every @component of each ruleset
+    // the channel already allows, and of this ruleset. Never a new ruleset.
+    missingComponentRules = function(channel) {
+      have = channel{["queryPolicy", "allow"]}.defaultsTo([])
+      rids = have.map(function(r) { r{"rid"} })
+        .filter(function(rid) { rid != xmluiFileRid })
+        .reduce(function(acc, rid) { acc >< rid => acc | acc.append(rid) }, [])
+      rids.append([xmluiFileRid])
+        .map(function(rid) {
+          componentNamesFor(rid).map(function(name) { {"rid": rid, "name": name} })
+        })
+        .reduce(function(acc, rules) { acc.append(rules) }, [])
+        .filter(function(entry) { not allowsRule(have, entry{"rid"}, entry{"name"}) })
     }
 
     eventPolicyForDomains = function(domains) {
@@ -302,6 +353,102 @@ ruleset io.picolabs.xmlui {
       path.defaultsTo("index.html") == "config.json" => configJson(rid) |
       null
     }
+
+    /**
+     * Applies the theme stored in this browser tab (sessionStorage
+     * picoViewTheme: default, dark, green, green-dark, gray, gray-dark) to
+     * its children, on the theme's page background so rows stay readable
+     * in dark tones.
+     * @component
+     */
+    picoTheme = function() {
+      <<
+<Component name="PicoTheme">
+  <Theme
+    themeId="{['green', 'green-dark'].includes(sessionStorage.getItem('picoViewTheme') || 'default') ? 'xmlui-green' : ['gray', 'gray-dark'].includes(sessionStorage.getItem('picoViewTheme') || 'default') ? 'xmlui-gray' : 'xmlui'}"
+    tone="{(sessionStorage.getItem('picoViewTheme') || 'default').endsWith('dark') ? 'dark' : 'light'}">
+    <VStack gap="$space-2" backgroundColor="$backgroundColor">
+      <Slot />
+    </VStack>
+  </Theme>
+</Component>
+>>
+    }
+
+    /**
+     * Settings dialog with no fields of its own. The caller adds fields as
+     * children. Save stores each field in sessionStorage as picoView<Field>
+     * (theme becomes picoViewTheme) and reloads the page.
+     * Props: title, note. Method: open(). Event: saved(data).
+     * @component
+     */
+    picoSettings = function() {
+      <<
+<Component name="PicoSettings" method.open="() => dialog.open()">
+  <ModalDialog id="dialog" title="{$props.title ?? 'Settings'}">
+    <Form saveLabel="Save"
+          onSubmit="(data) => { Object.keys(data).forEach(k => sessionStorage.setItem('picoView' + k.charAt(0).toUpperCase() + k.slice(1), String(data[k] ?? '').trim())); emitEvent('saved', data); location.reload(); }">
+      <Slot />
+      <Text value="{($props.note ?? '') + ' This browser tab keeps these settings.'}" />
+    </Form>
+  </ModalDialog>
+</Component>
+>>
+    }
+
+    /**
+     * Theme picker for PicoSettings. Pairs with PicoTheme.
+     * @component
+     */
+    picoThemeField = function() {
+      <<
+<Component name="PicoThemeField">
+  <FormItem bindTo="theme" label="Theme" type="select"
+            initialValue="{sessionStorage.getItem('picoViewTheme') || 'default'}">
+    <Option value="default" label="Default" />
+    <Option value="dark" label="Dark" />
+    <Option value="green" label="Green" />
+    <Option value="green-dark" label="Green, dark" />
+    <Option value="gray" label="Gray" />
+    <Option value="gray-dark" label="Gray, dark" />
+  </FormItem>
+</Component>
+>>
+    }
+
+    /**
+     * Access token field for PicoSettings, for views on an OAuth mesh. It is
+     * stored as picoViewBearer, which the view shell sends as the bearer on
+     * Sky calls from this tab.
+     * @component
+     */
+    picoAccessTokenField = function() {
+      <<
+<Component name="PicoAccessTokenField">
+  <FormItem bindTo="bearer" label="Access token" type="password"
+            initialValue="{sessionStorage.getItem('picoViewBearer') || ''}" />
+</Component>
+>>
+    }
   }
 
+  // When rulesets change, give each app channel the component queries it
+  // lacks, so a channel created before a component existed can load it.
+  rule allow_components_on_app_channels {
+    select when wrangler schema_updated
+    foreach appChannels() setting(channel)
+    pre {
+      missing = missingComponentRules(channel)
+    }
+    if missing.length() > 0 then
+      wrangler:updateChannel(
+        channel{"id"},
+        channel{"tags"},
+        channel{"eventPolicy"},
+        {
+          "allow": channel{["queryPolicy", "allow"]}.defaultsTo([]).append(missing),
+          "deny": channel{["queryPolicy", "deny"]}.defaultsTo([])
+        }
+      )
+  }
 }

@@ -74,6 +74,7 @@ export interface RulesetSchema {
     returns?: string;
     examples?: RulesetSchemaQueryExample[];
     view?: { title: string; path?: string };
+    component?: { name: string };
   }>;
 }
 
@@ -119,6 +120,7 @@ export interface PicoSchema {
     returns?: string;
     examples?: RulesetSchemaQueryExample[];
     view?: { title: string; path?: string };
+    component?: { name: string };
   }>;
   conflicts: PicoSchemaConflict[];
 }
@@ -235,6 +237,7 @@ export function mergePicoSchema(
         returns: q.returns,
         examples: q.examples,
         view: q.view,
+        component: q.component,
       });
     }
 

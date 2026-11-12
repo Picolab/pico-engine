@@ -121,12 +121,17 @@ export interface DocTagView {
   path?: string;
 }
 
+export interface DocTagComponent {
+  kind: "component";
+}
+
 export type DocTag =
   | DocTagAttr
   | DocTagParam
   | DocTagReturns
   | DocTagExample
-  | DocTagView;
+  | DocTagView
+  | DocTagComponent;
 
 export interface DocUnknownTag {
   name: string;
@@ -138,7 +143,7 @@ export interface DocComment extends BaseNode {
   raw: string;
   description: string;
   tags: DocTag[];
-  /** `@word` lines that are not attr, param, returns, example, or view — ignored; compiler may warn. */
+  /** `@word` lines that are not attr, param, returns, example, view, or component — ignored; compiler may warn. */
   unknownTags?: DocUnknownTag[];
 }
 

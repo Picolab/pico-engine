@@ -4,6 +4,9 @@
  */
 
 import test from "ava";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
 import { toTestKrlURL } from "./helpers/toTestKrlURL";
 
@@ -57,6 +60,45 @@ test("engine_ui flush does not raise ruleset_installed for an installed ruleset"
     "a flush alone doesn't install",
   );
   t.is(await installs(), 1, "unrelated flush doesn't install the test ruleset");
+
+  await pe.pf.db.close();
+});
+
+// The flush rule validates (loads) the url, flushes, then reinstalls. load()
+// is memoized for 100ms; if a flush did not clear it, the reinstall would put
+// the pre-flush ruleset back and the pico would run one flush behind.
+test("engine_ui flush runs the new source right away", async (t) => {
+  const rid = "io.picolabs.test.flush_version";
+  const src = (v: string) =>
+    `ruleset ${rid} {\n  meta { shares version }\n  global { version = function() { "${v}" } }\n}\n`;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "flush-version-"));
+  const file = path.join(dir, rid + ".krl");
+  fs.writeFileSync(file, src("A"));
+  const url = "file://" + file;
+
+  const pe = await startIsolatedEngine({ autoCreateRootPico: true });
+  const root = pe.pf.rootPicos()[0];
+  const ui = Object.values(root.channels).find((c) => c.tags.includes("ui"));
+  t.truthy(ui);
+  await uiEvent(pe, ui!.id, "new_channel", {
+    id: "flush-version-test",
+    tags: ["test"],
+    eventPolicy: { allow: [], deny: [] },
+    queryPolicy: { allow: [{ rid, name: "version" }], deny: [] },
+  });
+  const version = () =>
+    pe.pf.query({ eci: "flush-version-test", rid, name: "version", args: {} });
+
+  await uiEvent(pe, ui!.id, "install", { url });
+  t.is(await version(), "A");
+
+  fs.writeFileSync(file, src("B"));
+  await uiEvent(pe, ui!.id, "flush", { url });
+  t.is(await version(), "B");
+
+  fs.writeFileSync(file, src("C"));
+  await uiEvent(pe, ui!.id, "flush", { url });
+  t.is(await version(), "C");
 
   await pe.pf.db.close();
 });

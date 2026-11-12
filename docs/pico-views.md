@@ -135,6 +135,52 @@ rule create_app_channel {
 
 `ui:rotate_app_channel(tags)` creates a new channel with the same tags and policy as the newest channel that already has those tags.
 
+## Components
+
+A shared function tagged `@component` returns one `<Component name="…">` that other views use as a tag. It is not a page: it has no `Page` and no navigation entry. The component name is the function name with its first letter capitalized (`readingHistory` → `<ReadingHistory />`). Pass data in as attributes and read them with `$props`. Use `<Slot />` for children, `method.open="…"` for a method, and `emitEvent('saved', data)` for an event.
+
+```krl
+/**
+ * Readings as a table. Props: rows.
+ * @component
+ */
+readingHistory = function() {
+  <<
+<Component name="ReadingHistory">
+  <Table data="{$props.rows}">
+    <Column bindTo="time" header="Time" />
+    <Column bindTo="temperature" header="Temperature (F)" />
+  </Table>
+</Component>
+>>
+}
+```
+
+A view then writes `<ReadingHistory rows="{readings}" />`. Share the function like a view. Do not name a component after a built-in XMLUI tag (`Table`, `Form`, `List`, …): `krl check` warns, and the engine will not serve it.
+
+The engine serves `components/<Name>.xmlui` from the app ruleset first, then from `io.picolabs.xmlui`, then from one other installed ruleset. A component is a query, so the channel must allow it. `ui:create_app_channel` allows every `@component` of the app ruleset and of `io.picolabs.xmlui`. When a schema changes (install, uninstall, or a flush that changes it), `io.picolabs.xmlui` adds missing component queries to every app channel, for the rulesets that channel already allows.
+
+`io.picolabs.xmlui` provides four components every view can use:
+
+| Component | Use |
+|-----------|-----|
+| `<PicoTheme>` | Wraps the page in the theme stored in this tab (`picoViewTheme`), with a background that keeps rows readable in dark themes |
+| `<PicoSettings id="settings" title="…" note="…">` | A settings dialog. Put fields inside it. Save stores each field in `sessionStorage` as `picoView` plus the field name capitalized, then reloads. Open it with `settings.open()` |
+| `<PicoThemeField />` | The theme picker, for `PicoSettings` |
+| `<PicoAccessTokenField />` | The access token for an [OAuth-protected mesh](#oauth-protected-meshes), for `PicoSettings`. Leave it out on an open mesh |
+
+```xml
+<PicoSettings id="display" title="Display">
+  <PicoThemeField />
+</PicoSettings>
+<PicoTheme>
+  <Button label="Display" onClick="display.open()" />
+  <ReadingHistory rows="{readings}" />
+</PicoTheme>
+```
+
+`demos/xmlui/com.example.thermostat.krl` uses all of these.
+
 ## What a view does not do
 
 A view does not subscribe to changes made somewhere else. It loads when the page opens and refetches the `DataSource`s named in `opts.refresh` after its own event. Another pico's data is reached by a query on this pico that calls out, not by pointing a `DataSource` at the other pico. See `demos/xmlui/com.example.temperature_sensors_view.krl`.

@@ -2,7 +2,7 @@ ruleset com.example.thermostat {
   meta {
     name "Thermostat"
     use module io.picolabs.xmlui alias ui
-    shares readings, threshold, dashboard, settings
+    shares readings, threshold, dashboard, settings, readingHistory
   }
   global {
     /**
@@ -24,19 +24,41 @@ ruleset com.example.thermostat {
     }
 
     /**
-     * Current temperature and history
-     * @view "Dashboard"
+     * Readings as a table. Props: rows (Array of { time, temperature }).
+     * @component
      */
-    dashboard = function() {
-      <<<Component name="Dashboard">
-  #{ui:query("readings", "readings", {"rid": meta:rid})}
-  #{ui:query("threshold", "threshold", {"rid": meta:rid})}
-  <Card title="Now: {readings.value[0].temperature} F"
-        subtitle="Alert above {threshold.value} F" />
-  <Table data="{readings}">
+    readingHistory = function() {
+      <<
+<Component name="ReadingHistory">
+  <Table data="{$props.rows}">
     <Column bindTo="time" header="Time" />
     <Column bindTo="temperature" header="Temperature (F)" />
   </Table>
+</Component>
+>>
+    }
+
+    /**
+     * Current temperature and history. Display picks the theme, using the
+     * shared PicoSettings, PicoThemeField, and PicoTheme components.
+     * @view "Dashboard"
+     */
+    dashboard = function() {
+      <<
+<Component name="Dashboard">
+  #{ui:query("readings", "readings", {"rid": meta:rid})}
+  #{ui:query("threshold", "threshold", {"rid": meta:rid})}
+  <PicoSettings id="display" title="Display">
+    <PicoThemeField />
+  </PicoSettings>
+  <PicoTheme>
+    <HStack horizontalAlignment="end">
+      <Button label="Display" onClick="display.open()" />
+    </HStack>
+    <Card title="Now: {readings.value[0].temperature} F"
+          subtitle="Alert above {threshold.value} F" />
+    <ReadingHistory rows="{readings}" />
+  </PicoTheme>
 </Component>
 >>
     }
@@ -46,7 +68,8 @@ ruleset com.example.thermostat {
      * @view "Settings"
      */
     settings = function() {
-      <<<Component name="Settings">
+      <<
+<Component name="Settings">
   #{ui:query("threshold", "threshold", {"rid": meta:rid})}
   #{ui:event("setThreshold", "thermostat", "threshold_set",
              {"rid": meta:rid, "refresh": ["threshold"], "confirm": "Change the alert threshold?"})}

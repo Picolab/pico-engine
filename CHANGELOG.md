@@ -1,3 +1,10 @@
+# Unreleased
+
+* **Views** — `@component`: a shared function that returns a reusable XMLUI component, served as `components/<Name>.xmlui` but not a page. The engine looks in the app ruleset, then `io.picolabs.xmlui`, then one other ruleset, and never serves a built-in XMLUI name. `krl check` warns on built-in names; a function cannot be both `@view` and `@component`. Schemas carry `component: { name }`.
+* **Views** — `io.picolabs.xmlui` provides `PicoTheme`, `PicoSettings`, `PicoThemeField`, and `PicoAccessTokenField`. `ui:create_app_channel` allows component queries, and on a schema change existing app channels get the component queries they lack.
+* **Demos** — the thermostat dashboard uses its own `ReadingHistory` component and the shared settings and theme components.
+* **Flush** — a pico runs the new source as soon as `engine_ui:flush` finishes. Before, the reinstall that follows a flush could load the pre-flush ruleset from a 100 ms cache, so the pico ran one flush behind until a restart. Loads are no longer cached across a content change, and `flush` shares a fetch only with flushes already in progress.
+
 # 1.9.3 - November 12, 2026
 
 * **npm** — `pico-engine` only. New description and keywords (picos as persistent actors, KRL, MCP server), homepage https://docs.picolabs.io/, and README links that work on npm (absolute docs and GitHub URLs). No code changes; the other packages stay at 1.9.2.

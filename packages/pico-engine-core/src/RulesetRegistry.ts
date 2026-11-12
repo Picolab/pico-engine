@@ -45,6 +45,10 @@ export class RulesetRegistry {
 
   public load: (url: string) => Promise<CachedRuleset>;
   public flush: (url: string) => Promise<CachedRuleset>;
+  /** load() results; cleared when content changes so a load right after a flush can't return the old ruleset. */
+  private loadMemo = new Map<string, any>();
+  /** flush() calls in progress only: concurrent flushes of a url share one fetch, a later flush always refetches. */
+  private flushMemo = new Map<string, any>();
 
   constructor(
     private regLoader: RulesetRegistryLoader,
@@ -59,10 +63,15 @@ export class RulesetRegistry {
   ) {
     this.load = pMemoize((url: string) => this.loadBase(url), {
       maxAge: 100,
+      cache: this.loadMemo,
     });
-    this.flush = pMemoize((url: string) => this.flushBase(url), {
-      maxAge: 100,
-    });
+    this.flush = pMemoize(
+      (url: string) =>
+        this.flushBase(url).finally(() => {
+          this.flushMemo.delete(url);
+        }),
+      { cache: this.flushMemo }
+    );
   }
 
   loader: RulesetLoader = async (picoId, rid, config) => {
@@ -141,6 +150,10 @@ export class RulesetRegistry {
     oldHash?: string | null
   ) {
     this.rulesetCache[rs.url] = rs;
+    if (contentUpdated) {
+      // Callers key load() by raw or normalized url, so drop every entry.
+      this.loadMemo.clear();
+    }
     if (this.onRulesetLoaded) {
       this.onRulesetLoaded(rs);
     }

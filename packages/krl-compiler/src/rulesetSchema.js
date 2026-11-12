@@ -1,5 +1,6 @@
 var derive = require('./deriveSchema')
 var deriveEmits = require('./deriveEmits')
+var xmluiBuiltins = require('./xmluiBuiltins')
 
 function chevronPlainText (chevron) {
   if (!chevron || chevron.type !== 'Chevron' || !chevron.value) return null
@@ -108,6 +109,12 @@ function docView (doc) {
   const out = { title: v.title }
   if (v.path) out.path = v.path
   return out
+}
+
+function docComponent (doc, name) {
+  if (!doc || !doc.tags) return undefined
+  if (!doc.tags.some(function (t) { return t.kind === 'component' })) return undefined
+  return { name: xmluiBuiltins.componentNameFor(name) }
 }
 
 function docRuleExamples (doc) {
@@ -239,7 +246,12 @@ module.exports = function buildRulesetSchema (ast, comp, shares) {
       returns: docReturns(dec.doc)
     }
     const view = docView(dec.doc)
+    const component = docComponent(dec.doc, name)
+    if (view && component) {
+      throw comp.error(dec.doc.loc, name + ' cannot be both @view and @component')
+    }
     if (view) qOut.view = view
+    if (component) qOut.component = component
     if (qExamples.length) qOut.examples = qExamples
     queries.push(qOut)
   }

@@ -1,6 +1,7 @@
 'use strict'
 
 var { XMLValidator } = require('fast-xml-parser')
+var xmluiBuiltins = require('./xmluiBuiltins')
 
 var FORBIDDEN_INTERP_DOMAINS = {
   ent: 'entity state (ent:)',
@@ -127,7 +128,9 @@ function validateViewXmlFragment (raw, loc, warn) {
 }
 
 /**
- * Lint @view shared functions: well-formed XML in heredoc + unsafe #{ } interpolations.
+ * Lint @view and @component shared functions: well-formed XML in heredoc,
+ * unsafe #{ } interpolations, and names that would replace a built-in XMLUI
+ * component.
  */
 function lintViewMarkup (ast, rulesetSchema, warn) {
   if (!ast || ast.type !== 'Ruleset' || !rulesetSchema || !rulesetSchema.queries) return
@@ -135,8 +138,16 @@ function lintViewMarkup (ast, rulesetSchema, warn) {
   var viewQueries = {}
   for (var q = 0; q < rulesetSchema.queries.length; q++) {
     var query = rulesetSchema.queries[q]
-    if (query.view) {
-      viewQueries[query.name] = true
+    if (!query.view && !query.component) continue
+    viewQueries[query.name] = true
+    var componentName = xmluiBuiltins.componentNameFor(query.name)
+    if (xmluiBuiltins.isBuiltin(componentName)) {
+      var dec0 = (ast.global || []).find(function (d) {
+        return d && d.left && d.left.value === query.name
+      })
+      warn(dec0 && dec0.doc ? dec0.doc.loc : null,
+        (query.component ? '@component ' : '@view ') + query.name + ' is named ' +
+        componentName + ', a built-in XMLUI component; pick another name')
     }
   }
 

@@ -214,6 +214,65 @@ test('krl check warns on invalid XML in @view heredoc', function (t) {
   }))
 })
 
+test('@component puts component name on the query schema', function (t) {
+  var src = [
+    'ruleset io.test.comp {',
+    '  meta { name "C" shares readingsTable }',
+    '  global {',
+    '    /**',
+    '     * A table',
+    '     * @component',
+    '     */',
+    '    readingsTable = function() { <<<Component name="ReadingsTable"><Text>x</Text></Component> >> }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  var q = out.rulesetSchema.queries.find(function (x) { return x.name === 'readingsTable' })
+  t.deepEqual(q.component, { name: 'ReadingsTable' })
+  t.is(q.view, undefined)
+})
+
+test('a function cannot be both @view and @component', function (t) {
+  var src = [
+    'ruleset io.test.comp2 {',
+    '  meta { name "C" shares page }',
+    '  global {',
+    '    /**',
+    '     * Both',
+    '     * @view "Page"',
+    '     * @component',
+    '     */',
+    '    page = function() { <<<Component name="Page"><Text>x</Text></Component> >> }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.false(out.ok)
+  t.true(JSON.stringify(out).indexOf('cannot be both @view and @component') !== -1)
+})
+
+test('krl check warns on @component named like a built-in XMLUI component', function (t) {
+  var src = [
+    'ruleset io.test.comp3 {',
+    '  meta { name "C" shares table }',
+    '  global {',
+    '    /**',
+    '     * Shadows Table',
+    '     * @component',
+    '     */',
+    '    table = function() { <<<Component name="Table"><Text>x</Text></Component> >> }',
+    '  }',
+    '}'
+  ].join('\n')
+  var out = require('./src/check')(src)
+  t.true(out.ok)
+  t.true(out.warnings.some(function (w) {
+    return w.message.indexOf('built-in XMLUI component') !== -1
+  }))
+})
+
 test('krl check warns on ent: in view markup beesting', function (t) {
   var src = [
     'ruleset io.test.views2 {',

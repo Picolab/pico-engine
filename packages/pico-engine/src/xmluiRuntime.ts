@@ -1,3 +1,9 @@
+const { xmluiBuiltins } = require("krl-compiler");
+
+export function isXmluiBuiltin(componentName: string): boolean {
+  return xmluiBuiltins.isBuiltin(componentName);
+}
+
 /** Pinned XMLUI standalone runtime shipped under `public/xmlui/`. */
 export const XMLUI_RUNTIME_VERSION = "0.14.28";
 
@@ -38,21 +44,38 @@ export interface ChannelSchemaQuery {
   rid: string;
   name: string;
   view?: unknown;
+  component?: unknown;
 }
 
-export function viewQueryNameForComponent(
+export const XMLUI_RID = "io.picolabs.xmlui";
+
+/**
+ * The query that answers components/<componentName>.xmlui on a channel:
+ * the app ruleset's @view or @component, then io.picolabs.xmlui's
+ * @component, then the one other ruleset's @component. Two other rulesets
+ * with the same component name, or a built-in XMLUI name, answer nothing.
+ */
+export function queryForComponentFile(
   queries: ChannelSchemaQuery[] | undefined,
   appRid: string,
   componentName: string
-): string | null {
-  if (!queries?.length) return null;
-  const hit = queries.find(
-    (q) =>
-      q.rid === appRid &&
-      q.view != null &&
-      viewComponentFileName(q.name) === componentName
+): { rid: string; name: string } | null {
+  if (!queries?.length || isXmluiBuiltin(componentName)) return null;
+  const named = queries.filter(
+    (q) => viewComponentFileName(q.name) === componentName
   );
-  return hit?.name ?? null;
+  const fromApp = named.find(
+    (q) => q.rid === appRid && (q.view != null || q.component != null)
+  );
+  if (fromApp) return { rid: fromApp.rid, name: fromApp.name };
+  const components = named.filter(
+    (q) => q.rid !== appRid && q.component != null
+  );
+  const fromXmlui = components.find((q) => q.rid === XMLUI_RID);
+  if (fromXmlui) return { rid: fromXmlui.rid, name: fromXmlui.name };
+  const others = components.filter((q) => q.rid !== XMLUI_RID);
+  if (others.length !== 1) return null;
+  return { rid: others[0].rid, name: others[0].name };
 }
 
 export function contentTypeForUiPath(filePath: string): string {
