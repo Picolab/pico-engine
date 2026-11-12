@@ -2,7 +2,7 @@
 
 [![Node version](https://img.shields.io/node/v/pico-engine.svg)](https://nodejs.org/en/download/)
 
-An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) hosted on node.js
+The Node.js runtime for **picos** (persistent compute objects): actors with their own identity, state, and channels that communicate by events and queries. Pico behavior is written in **KRL**, which the engine compiles to JavaScript. Documentation: https://docs.picolabs.io/
 
 ## Quick start
 
@@ -11,9 +11,9 @@ npm install -g pico-engine
 pico-engine
 ```
 
-Open `http://localhost:3000` — a root pico and UI channel are created on first run. Operator settings (port, data dir, policy ceiling) live in **`~/.config/pico-engine/config.json`**; copy [`config.example.json`](config.example.json). See [`docs/pico-engine.md`](../../docs/pico-engine.md) (published at https://docs.picolabs.io/).
+Open `http://localhost:3000` — a root pico and UI channel are created on first run. Operator settings (port, data dir, policy ceiling) live in **`~/.config/pico-engine/config.json`**; copy [`config.example.json`](https://github.com/Picolab/pico-engine/blob/master/packages/pico-engine/config.example.json). See the [engine guide](https://docs.picolabs.io/#/pico-engine).
 
-**Agents (local dev):** [`CLAUDE.md`](../../CLAUDE.md) at repo root + `pico-engine mcp --stdio` (stdio MCP to the same engine). Machine-readable docs: [`docs/llms.txt`](../../docs/llms.txt).
+**AI coding assistants:** `pico-engine mcp --stdio` runs an MCP server against the same engine (status, picos, channels, events, queries, KRL validation). Machine-readable docs: [`llms.txt`](https://docs.picolabs.io/llms.txt) and [`llms-full.txt`](https://docs.picolabs.io/llms-full.txt). Repo conventions for agents: [`CLAUDE.md`](https://github.com/Picolab/pico-engine/blob/master/CLAUDE.md).
 
 ## Getting Started
 
@@ -390,7 +390,7 @@ Every pico has a portable **did:webvh** identity. **DID-based relationships** (L
 
 **Deprecated:** `io.picolabs.did-o` and `dido:prepareQuery` — use **`wrangler:picoQuery`** and **`event:send({ did: … })`**.
 
-Full guide: [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md) · Release notes: [docs/release/1.6.md](../../docs/release/1.6.md) · [CHANGELOG.md](../../CHANGELOG.md) (1.6.4 mesh-oauth-exempt + KRL directory UI; 1.6.3 fixes)
+Full guide: [Layer 2 relationships](https://docs.picolabs.io/#/guides/layer2-subscriptions) · Release notes: [1.6](https://docs.picolabs.io/#/release/1.6) · [CHANGELOG.md](https://github.com/Picolab/pico-engine/blob/master/CHANGELOG.md) (1.6.4 mesh-oauth-exempt + KRL directory UI; 1.6.3 fixes)
 
 **Dependency:** pico-engine 1.6 requires **pico-framework `^0.8.1`** (npm). When developing engine + framework together, use `npm run link-framework` from the repo root.
 
@@ -416,7 +416,7 @@ PICO_ENGINE_HOME=/tmp/pico-engine-a PORT=3001 npm start
 PICO_ENGINE_HOME=/tmp/pico-engine-b PORT=3002 npm start
 ```
 
-Open http://localhost:3001 and http://localhost:3002 — register on both, then form a Layer 2 relationship A→B. See [docs/guides/layer2-subscriptions.md](../../docs/guides/layer2-subscriptions.md). Test/demo homes live under **`/tmp`** (not `~/.pico-engine`).
+Open http://localhost:3001 and http://localhost:3002 — register on both, then form a Layer 2 relationship A→B. See [Layer 2 relationships](https://docs.picolabs.io/#/guides/layer2-subscriptions). Test/demo homes live under **`/tmp`** (not `~/.pico-engine`).
 
 ## Contributing
 

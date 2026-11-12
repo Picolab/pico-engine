@@ -1,3 +1,7 @@
+# 1.9.3 - November 12, 2026
+
+* **npm** — `pico-engine` only. New description and keywords (picos as persistent actors, KRL, MCP server), homepage https://docs.picolabs.io/, and README links that work on npm (absolute docs and GitHub URLs). No code changes; the other packages stay at 1.9.2.
+
 # 1.9.2 - November 12, 2026
 
 * **Views** — XMLUI runtime 0.14.28 (`/xmlui/0.14.28.js`). Flush `io.picolabs.xmlui` on a pico to move its views to it. `/xmlui/0.12.7.js` still ships for picos that have not been flushed. `npm run vendor:xmlui` copies only the standalone runtime for the version it names.

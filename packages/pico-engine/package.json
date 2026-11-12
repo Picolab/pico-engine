@@ -1,7 +1,7 @@
 {
   "name": "pico-engine",
-  "version": "1.9.2",
-  "description": "An implementation of the pico-engine targeting node.js",
+  "version": "1.9.3",
+  "description": "Node.js runtime for picos: persistent actors with their own identity, state, and channels that communicate by events and queries. Behavior is written in KRL. Includes an MCP server so AI coding assistants can inspect and drive a running engine.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Picolab/pico-engine.git"
@@ -11,12 +11,22 @@
   "bugs": {
     "url": "https://github.com/Picolab/pico-engine/issues"
   },
-  "homepage": "https://github.com/Picolab/pico-engine#readme",
+  "homepage": "https://docs.picolabs.io/",
   "keywords": [
+    "pico",
+    "picos",
     "pico-engine",
     "krl",
-    "KRE",
-    "IoT"
+    "actor",
+    "actor-model",
+    "persistent-compute-objects",
+    "event-driven",
+    "rules-engine",
+    "iot",
+    "decentralized-identity",
+    "did",
+    "mcp",
+    "model-context-protocol"
   ],
   "files": [
     "bin",
