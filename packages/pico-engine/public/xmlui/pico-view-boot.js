@@ -4,7 +4,7 @@
  */
 (function picoViewBoot() {
   var eci = window.__PICO_VIEW_ECI;
-  var xmluiScript = window.__PICO_XMLUI_SCRIPT || "/xmlui/0.12.7.js";
+  var xmluiScript = window.__PICO_XMLUI_SCRIPT || "/xmlui/0.14.28.js";
   var authHeaders = {};
 
   function normPath(p) {

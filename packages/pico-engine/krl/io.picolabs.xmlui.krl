@@ -11,7 +11,7 @@ ruleset io.picolabs.xmlui {
   }
 
   global {
-    xmluiRuntimeVersion = "0.12.7"
+    xmluiRuntimeVersion = "0.14.28"
     xmluiFileRid = "io.picolabs.xmlui"
 
     xmluiRuntimePath = function() {
@@ -262,10 +262,12 @@ ruleset io.picolabs.xmlui {
       "<NavPanel>" + navLinksForApp(app_rid, multiView) + "</NavPanel>"
     }
 
-    // XMLUI defaults: layout condensed-sticky, scrollWholePage true. That combo
-    // mis-measures header height in WebKit (Safari) and can hide page content.
+    // XMLUI's default layout, condensed-sticky, mis-measures header height in
+    // WebKit (Safari) and can hide page content. Do not add
+    // scrollWholePage="false": in XMLUI 0.14 it makes each Table header as tall
+    // as the table, which hides every row.
     shellAppAttrs = function() {
-      " layout=\"vertical-sticky\" scrollWholePage=\"false\""
+      " layout=\"vertical-sticky\""
     }
 
     mainXmlui = function(app_rid) {

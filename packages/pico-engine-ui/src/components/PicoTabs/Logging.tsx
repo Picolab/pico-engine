@@ -104,6 +104,33 @@ const emptyFilters: Filters = {
   showRulesets: {},
 };
 
+/** Filters last for this browser tab, so leaving the Logging tab keeps them. */
+const filtersStorageKey = "pico-engine-ui-logging-filters";
+
+function readStoredFilters(): Filters {
+  try {
+    const raw = sessionStorage.getItem(filtersStorageKey);
+    if (!raw) return emptyFilters;
+    const stored = JSON.parse(raw);
+    if (!stored || typeof stored !== "object") return emptyFilters;
+    return {
+      ...emptyFilters,
+      ...stored,
+      showRulesets: { ...(stored.showRulesets || {}) },
+    };
+  } catch {
+    return emptyFilters;
+  }
+}
+
+function writeStoredFilters(filters: Filters) {
+  try {
+    sessionStorage.setItem(filtersStorageKey, JSON.stringify(filters));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 /** Events the Testing tab writes for its own bookkeeping. */
 const TESTING_EVENTS = [
   "testing_history_record",
@@ -192,8 +219,8 @@ function ruleResultLabel(result?: string): string {
 function stepTitle(step: LogStep): string {
   switch (step.type) {
     case "in":
-      if (step.event) return `EVENT ${eventKey(step.event)}`;
-      if (step.query) return `QUERY ${queryKey(step.query)}`;
+      if (step.event) return eventKey(step.event);
+      if (step.query) return queryKey(step.query);
       return "in";
     case "rule":
       return step.rule || step.rid || "rule";
@@ -216,6 +243,26 @@ function stepTitle(step: LogStep): string {
     default:
       return step.type;
   }
+}
+
+function StepTitle({ step }: { step: LogStep }) {
+  const kind =
+    step.type === "in" && step.event
+      ? "event"
+      : step.type === "in" && step.query
+        ? "query"
+        : "";
+  return (
+    <>
+      {kind === "event" ? (
+        <span className="log-kind log-kind-event">EVENT</span>
+      ) : null}
+      {kind === "query" ? (
+        <span className="log-kind log-kind-query">QUERY</span>
+      ) : null}
+      {stepTitle(step)}
+    </>
+  );
 }
 
 function stepHaystack(step: LogStep): string {
@@ -445,7 +492,7 @@ const LogRow: React.FC<{
     >
       <span className="log-row-time text-muted">{clock(step.t || txn.start)}</span>
       <span className="log-row-label text-mono">
-        {stepTitle(step)}
+        <StepTitle step={step} />
         {step.type === "rule" && step.rid ? (
           <span className="log-chip">{step.rid}</span>
         ) : null}
@@ -557,7 +604,9 @@ function Inspector({
 
   return (
     <div className="log-inspector">
-      <h3 className="h5 mb-1">{stepTitle(step)}</h3>
+      <h3 className="h5 mb-1">
+        <StepTitle step={step} />
+      </h3>
       <p className="small text-muted mb-3">
         {txn.kind || "transaction"} {txn.txnId}
         {typeof txn.durationMs === "number" ? ` · ${txn.durationMs}ms` : ""}
@@ -952,8 +1001,12 @@ export default function Logging({ pico, isTabActive = true }: Props) {
   const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
     apiGet(`/c/${pico.eci}/query/io.picolabs.pico-engine-ui/pico`)
   );
-  const [filters, setFilters] = React.useState<Filters>(emptyFilters);
+  const [filters, setFilters] = React.useState<Filters>(readStoredFilters);
   const [filtersOpen, setFiltersOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    writeStoredFilters(filters);
+  }, [filters]);
   const [live, setLive] = React.useState<LogTransaction[]>([]);
   const [selected, setSelected] = React.useState<{
     txnId: string;

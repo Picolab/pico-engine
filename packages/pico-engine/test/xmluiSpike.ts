@@ -33,7 +33,7 @@ test("view shell and demo markup load over /ui/", async (t) => {
   t.true(mainXml.includes("<Hello />"));
   t.true(mainXml.includes('fallbackPath="/"'));
   t.true(mainXml.includes('layout="vertical-sticky"'));
-  t.true(mainXml.includes('scrollWholePage="false"'));
+  t.false(mainXml.includes("scrollWholePage"));
   t.false(mainXml.includes("<NavPanel>"), "single-view apps omit redundant nav");
   t.true(mainXml.includes('url="/"'));
 

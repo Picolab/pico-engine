@@ -297,6 +297,28 @@ details.testing-panel-details[open] > summary.testing-panel-summary {
       font-size: 0.7rem;
     }
 
+    .log-kind {
+      display: inline-block;
+      margin-right: 0.4rem;
+      padding: 0 0.35rem;
+      border-radius: 0.2rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #fff;
+    }
+
+    // Same colors as the Testing tab's Event (btn-warning) and Query
+    // (btn-primary) buttons.
+    .log-kind-event {
+      background: #ffc107;
+      color: #212529;
+    }
+
+    .log-kind-query {
+      background: #007bff;
+    }
+
     .log-json {
       padding-left: 1rem;
       list-style: disc;

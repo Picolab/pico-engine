@@ -2,7 +2,7 @@
 
 A **view** is a shared function that returns [XMLUI](https://xmlui.org) markup. Install the ruleset, open it on a channel that may call that function, and the engine serves the page.
 
-The engine ships the XMLUI runtime (`/xmlui/0.12.7.js`) and the optional ruleset `io.picolabs.xmlui`. That ruleset builds the app shell, navigation, and the markup helpers. It is not installed on every pico. Install it from the engine:
+The engine ships the XMLUI runtime (`/xmlui/0.14.28.js`) and the optional ruleset `io.picolabs.xmlui`. That ruleset builds the app shell, navigation, and the markup helpers. It is not installed on every pico. Install it from the engine:
 
 `/krl/io.picolabs.xmlui.krl`
 

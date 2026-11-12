@@ -117,7 +117,7 @@ test("contacts Main.xmlui lists only non-parametric nav", async (t) => {
   t.true(text.includes("Contacts"));
   t.regex(
     text,
-    /<App name="Contacts" layout="vertical-sticky" scrollWholePage="false">/
+    /<App name="Contacts" layout="vertical-sticky">/
   );
   t.false(text.includes('NavLink label="Contact"'));
   t.true(text.includes('fallbackPath="/list"'));

@@ -180,7 +180,7 @@ Because it is optional, an app that uses it makes sure it is installed, the way 
 | Path | Returns |
 |------|---------|
 | `index.html` | Shell: `<base href="/ui/{eci}/{rid}/">`, the runtime `<script src="/xmlui/<version>.js">`, and the small OAuth client that obtains a token before the app loads. Like every app file, it contains no pico data |
-| `Main.xmlui` | `<App name="{ruleset name}" layout="vertical-sticky" scrollWholePage="false">` with a `NavPanel` when the app has more than one view (one `NavLink` per non-parametric view visible on the channel) and `Pages` (one `Page` per view rendering its component). The layout attrs avoid XMLUI’s default `condensed-sticky` + document scroll, which breaks page layout in Safari/WebKit. |
+| `Main.xmlui` | `<App name="{ruleset name}" layout="vertical-sticky">` with a `NavPanel` when the app has more than one view (one `NavLink` per non-parametric view visible on the channel) and `Pages` (one `Page` per view rendering its component). `vertical-sticky` avoids XMLUI’s default `condensed-sticky`, which breaks page layout in Safari/WebKit. The shell does not set `scrollWholePage="false"`: in XMLUI 0.14 that makes each `Table` header as tall as the table and hides every row. |
 | `config.json` | App name, theme, and globals (`eci`, `picoName`) |
 | *(launcher, `rid` empty)* | A plain page listing the rulesets on this pico that have `@view` functions visible on the channel, each linking to `/ui/{eci}/{rid}/` |
 | `components/<Name>.xmlui` | The view function's output, fetched **through the requesting channel** so policy applies |

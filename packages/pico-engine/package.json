@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "description": "An implementation of the pico-engine targeting node.js",
   "repository": {
     "type": "git",
@@ -114,8 +114,7 @@
     "onchange": "^7.1.0",
     "scriptsp": "^1.1.1",
     "ts-node": "^10.4.0",
-    "typescript": "^5.2.2",
-    "xmlui": "^0.12.7"
+    "typescript": "^5.2.2"
   },
   "ava": {
     "extensions": [

@@ -1,3 +1,9 @@
+# 1.9.2 - November 12, 2026
+
+* **Views** — XMLUI runtime 0.14.28 (`/xmlui/0.14.28.js`). Flush `io.picolabs.xmlui` on a pico to move its views to it. `/xmlui/0.12.7.js` still ships for picos that have not been flushed. `npm run vendor:xmlui` copies only the standalone runtime for the version it names.
+* **Views** — the app shell sets `layout="vertical-sticky"` and no longer sets `scrollWholePage="false"`. In 0.14 that attribute made each `Table` header as tall as the table and hid every row.
+* **Developer UI** — Logging tab filters stay set when you switch tabs and come back (kept for the browser tab). EVENT labels are gold and QUERY labels blue, matching the Testing tab's buttons.
+
 # 1.9.1 - November 11, 2026
 
 * **Wrangler** — `ruleset_installed` is raised only when the rid is new on the pico. A flush still reinstalls the source and does not raise that event, so an install-time rule does not run again.

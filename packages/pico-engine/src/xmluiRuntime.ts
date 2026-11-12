@@ -1,5 +1,5 @@
 /** Pinned XMLUI standalone runtime shipped under `public/xmlui/`. */
-export const XMLUI_RUNTIME_VERSION = "0.12.7";
+export const XMLUI_RUNTIME_VERSION = "0.14.28";
 
 export const XMLUI_RUNTIME_PUBLIC_PATH = `/xmlui/${XMLUI_RUNTIME_VERSION}.js`;
 
