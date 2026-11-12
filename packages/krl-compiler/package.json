@@ -1,6 +1,6 @@
 {
   "name": "krl-compiler",
-  "version": "1.9.2",
+  "version": "1.9.4",
   "description": "KRL compiler",
   "main": "src/index.js",
   "bin": {
@@ -43,7 +43,7 @@
     "estree-loc": "^2.0.0",
     "fast-xml-parser": "^4.5.7",
     "krl-generator": "^1.9.0",
-    "krl-parser": "^1.9.0",
+    "krl-parser": "^1.9.4",
     "krl-stdlib": "^1.9.0",
     "lodash": "^4.17.11",
     "minimist": "^1.2.5",

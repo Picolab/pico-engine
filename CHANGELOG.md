@@ -1,4 +1,4 @@
-# Unreleased
+# 1.9.4 - November 12, 2026
 
 * **Views** — `@component`: a shared function that returns a reusable XMLUI component, served as `components/<Name>.xmlui` but not a page. The engine looks in the app ruleset, then `io.picolabs.xmlui`, then one other ruleset, and never serves a built-in XMLUI name. `krl check` warns on built-in names; a function cannot be both `@view` and `@component`. Schemas carry `component: { name }`.
 * **Views** — `io.picolabs.xmlui` provides `PicoTheme`, `PicoSettings`, `PicoThemeField`, and `PicoAccessTokenField`. `ui:create_app_channel` allows component queries, and on a schema change existing app channels get the component queries they lack.
