@@ -28,7 +28,7 @@ Engine and wrangler stay **domain-agnostic**. If a change needs the words "owner
 | `docs/design/` | Design docs (schemas, identity, move, relationships, harness) |
 | `docs/release/` | Per-release plans (`1.8.md`) and notes (`1.7.0.md`) |
 | `MEMORY.md` | Long-running working log: roadmap, decisions, gotchas. Source of truth for *why*; skim the TOC |
-| `test-rulesets/`, `demos/` | KRL used by tests and demos |
+| `test-rulesets/`, `demos/` | KRL used by tests and demos. Each `demos/<name>/` has a README; its overview and instructions are in `docs/cookbook/<name>/` |
 
 Sibling repos (same org, not in this tree): `manifold-api` (Manifold KRL), `sensor-network`, `MCPforEXP`, `pico-framework` (lifecycle/channels/LevelDB; engine depends on `^0.8.2` for 1.8 policy ceiling).
 
@@ -72,7 +72,7 @@ rule name {
 | `raise wrangler event "child_deletion_request" attributes {"eci": picoId}` | legacy `wrangler child_deletion` with `{"id": …}` (never runs) |
 | `wrangler:picoQuery` (works over family channels) | `wrangler:skyQuery` (deprecated; HTTP blocked on family channels) |
 
-Also: `if X then noop(); fired { … }` runs `fired` when X is **true**. Rules in one ruleset selecting the same event run in **rule-name lexicographic order**; across rulesets the order is undefined. A stray character after `meta { }` silently prevents registration — if a ruleset never seems to run, check it actually loaded.
+Also: `if X then noop(); fired { … }` runs `fired` when X is **true**. Rules in one ruleset selecting the same event run in **source order** (the order they're written), and `last` stops only the rest of that ruleset; across rulesets the order is undefined. A stray character after `meta { }` silently prevents registration — if a ruleset never seems to run, check it actually loaded.
 
 Terminology: **relationships** (1.6.2+; "subscriptions" in older code and docs). Channels have **ECIs** and **policies**; policy is the authorization gate. Every pico has a `discovery` channel.
 

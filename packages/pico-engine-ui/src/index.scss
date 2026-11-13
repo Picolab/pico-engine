@@ -81,6 +81,19 @@ body {
   max-width: min(720px, 100%);
 }
 
+.try-it-modal {
+  max-width: min(900px, 100%);
+}
+
+.try-it-source {
+  max-height: 22rem;
+  overflow: auto;
+  font-size: 0.78rem;
+  background: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 0.2rem;
+}
+
 .ruleset-docs-index summary {
   cursor: pointer;
   list-style: disclosure-closed inside;

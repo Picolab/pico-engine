@@ -1,0 +1,5 @@
+- Open both dashboard links. On the viewer channel the navigation has only Dashboard. On the admin channel it also has Settings.
+- On **Settings**, change the alert threshold, then go back to the Dashboard.
+- Click **Display** on the Dashboard. The theme picker is built from the shared `PicoSettings` and `PicoThemeField` components. The readings table is the ruleset's own `ReadingHistory` component.
+- Open the child pico's **Channels** tab and compare the query policies of `thermostat, viewer` and `thermostat, admin`. That policy is the whole difference between the two views.
+- On the **Testing** tab, raise `thermostat` `new_reading` with a `temperature`, and reload the dashboard.

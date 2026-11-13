@@ -81,6 +81,7 @@ Example templates: [`config.example.json`](../../config.example.json), [`config.
 | `logToStdout` | boolean | Log to stdout instead of a file. Use on Fargate (set `logToStdout: true` in config). |
 | `logFile` | string | Absolute log path when `logToStdout` is false. Values `stdout`, `-`, or `0` force stdout. |
 | `logMirror` | boolean | When **`logToStdout`** is true: also write structured JSON lines to **`$PICO_ENGINE_HOME/pico-engine.log`** for operators. Default **`true`**. Set **`false`** on EFS + Fargate to avoid mirror-file churn (then use CloudWatch from stdout, or set **`logFile`** to a writable path). The Developer UI **Logging** tab reads an in-memory ring and does not need this file. **Env:** `PICO_ENGINE_LOG_MIRROR` (`true`/`1` / `false`/`0`). |
+| `show_tryit_menu` | string | Where the Developer UI shows the **Try It!** tab: **`off`** (nowhere, and `/api/try-it` lists no demos), **`root_only`** (the root pico only), or **`all`** (every pico). Default **`root_only`**. **Env:** `PICO_ENGINE_SHOW_TRYIT_MENU`. |
 | `defaultRootPolicyCeiling` | object | Max channel policy for new root picos (`eventPolicy` / `queryPolicy`). See policy example file. |
 | `globalEventDeny` | array | Extra deny rules applied on **every** ECI before channel policy (e.g. block `engine:secret_ping`). |
 | `globalQueryDeny` | array | Same for queries. |
@@ -105,6 +106,8 @@ These env overrides cover config path, data dir, port, public URL, and a few log
 | `PICO_ENGINE_LOG_FILE` | Log file path, or `stdout` / `-` / `0` / empty for stdout-only |
 | `PICO_ENGINE_LOG_MIRROR` | When stdout-only: `false` / `0` disables writing `$PICO_ENGINE_HOME/pico-engine.log` (config: **`logMirror`**). The Logging tab does not read that file |
 | `PICO_ENGINE_LOG_RING` | How many recent transactions per pico the Logging tab keeps in memory. Default **200**. A restart clears the ring |
+| `PICO_ENGINE_SHOW_TRYIT_MENU` | `off`, `root_only` (default), or `all`: where the Developer UI shows the **Try It!** tab (config: **`show_tryit_menu`**) |
+| `PICO_ENGINE_DEMOS_DIR` | A directory to serve as `demos/` (at `/krl/demos/`) instead of the copy shipped with the engine, such as the `demos/` folder of a pico-engine checkout you're editing |
 
 ---
 

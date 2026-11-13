@@ -1,0 +1,6 @@
+- Open **Rooms**: four rooms averaging 69.5 F, and Stranger under **Turned away**.
+- To see the mesh the demo built, leave the **Try It!** tab and close the pico. The demo's child has six children: Rooms, Kitchen, Office, Garage, Bedroom, and Stranger.
+- Click into each one and open its **Relationships** tab. Rooms has a relationship with each room, with Rooms in the role `collection` and the room in the role `member`. Each room has the same relationship, seen from its side. Stranger has none.
+- Why was Stranger turned away? Read `accept_member` in `com.example.collection.krl`, then see how the bootstrap set Stranger up. (The cookbook has the answer.)
+- On **Rooms**, click **Remove** next to a room, then look at that room's **Relationships** tab. The relationship is gone on both sides.
+- On a room's **Testing** tab, raise `collection` `leave_requested`, then `collection` `rejoin_requested`, and watch the Rooms page.

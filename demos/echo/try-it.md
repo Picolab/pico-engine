@@ -1,0 +1,5 @@
+- Open **Echo page**. Click **Say hello**, then **Echo it**. Each answer is the `say` directive a rule sent back.
+- Copy the `curl` line at the bottom of the page into a terminal. The JSON has the same directive, plus `ruleOutcomes`, which names the rule that fired.
+- Change `echo/message` in that URL to `wrangler/new_child_request?name=x`. The pico refuses it: `Not allowed by channel policy`.
+- Open the child pico and look at its **Channels** tab. The `echo, app` channel allows `echo` events and nothing else. That's why the last step failed.
+- On its **Logging** tab, find the `echo:message` events you sent and the rule each one fired.

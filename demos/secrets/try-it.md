@@ -1,0 +1,5 @@
+- Open **Notifier**. It shows where it posts, with the token hidden. One message wasn't sent, because it came before the webhook was set. One was delivered.
+- Open **Hook service inbox**: the delivered message. Send more from the Notifier page and watch them arrive.
+- Find where the token is still visible. Open the Hook service pico (close this pico to see the tree). Its **Rulesets** tab shows the install configuration. Its **Logging** tab shows the token in the URL of every `hook:post`.
+- Post to the webhook with a wrong token: copy the URL the Notifier shows, replace `(hidden)` with anything, and `curl -X POST` it. The inbox's **Refused** count goes up.
+- Try to change the webhook from the Notifier page's channel: send `notifier_config/new_webhook` on it. The pico refuses it. Operator events are kept off the app channel.

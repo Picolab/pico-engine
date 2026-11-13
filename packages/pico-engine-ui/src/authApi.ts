@@ -19,6 +19,8 @@ export interface UiContext {
   hasRoots: boolean;
   needsAuthMigration?: boolean;
   allowSelfSignup: boolean;
+  /** Engine config show_tryit_menu; engines before it report nothing (treat as root_only). */
+  showTryItMenu?: "off" | "root_only" | "all";
   eci?: string;
   session?: UiSession;
 }

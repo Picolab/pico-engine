@@ -1,0 +1,5 @@
+- Open **Tasks**. The three seeded tasks are done, and each worker pico is marked "(deleted)".
+- Start a task with `n` set to 200000. It takes about ten seconds. While it runs, leave the **Try It!** tab, close the pico, and look at the pico tree: the task runner has a child named after the task. It disappears when the task is done.
+- Start several large tasks one after another. Each gets its own child, and the runner keeps taking new tasks while they work.
+- Open the task runner's **Logging** tab and follow one task: `task:start`, then `wrangler:child_initialized` from the new child, `task:done` from the worker, and its `wrangler:child_deletion_request`. That one shows `wrangler:child_deleted` under **Raised**.
+- In `com.example.task_worker.krl`, comment out the line that raises `ready_for_deletion` and click **Flush**. New workers stay around after they finish, so you can open one and look inside.

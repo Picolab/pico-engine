@@ -1,0 +1,5 @@
+- Leave the **Try It!** tab and close the pico, so the developer UI shows the pico tree. The demo's child has two children, Alice and Bob.
+- Open each one's **Relationships** tab. Each has one relationship: Bob is the `asker` and Alice is the `answerer`.
+- On **Bob's conversation**, ask about `cat`, `hometown`, or `name`. Then ask about something Alice doesn't know yet.
+- On **What Alice knows**, teach Alice that fact, then ask Bob to ask again.
+- Bob never uses Alice's family channel or her page's channel. Look at `ask` in `com.example.two_picos.asker.krl`: every question goes over the relationship with `subscription:queryOnSub`.

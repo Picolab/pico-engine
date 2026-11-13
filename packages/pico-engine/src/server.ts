@@ -8,6 +8,7 @@ import * as path from "path";
 import {
   bundledKrlDir,
   listEngineKrlSources,
+  listTryItDemos,
   resolveEngineKrlFile,
 } from "./bundledKrl";
 import {
@@ -383,6 +384,19 @@ export function server(
     }
   });
 
+  app.get("/api/try-it", function (req, res, next) {
+    try {
+      let baseUrl = core.base_url;
+      if (!baseUrl) {
+        baseUrl = `${req.protocol}://${req.get("host") || "localhost"}`;
+      }
+      const show = getEngineRuntimeSettings().showTryItMenu;
+      res.json({ show, demos: show === "off" ? [] : listTryItDemos(baseUrl) });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   app.post("/api/stage-krl", function (req, res, next) {
     try {
       const content = req.body?.content;
@@ -426,6 +440,7 @@ export function server(
       version: engineVersion,
       hasRoots,
       allowSelfSignup: auth ? auth.allowSelfSignup() : false,
+      showTryItMenu: getEngineRuntimeSettings().showTryItMenu,
     };
     if (!auth) {
       base.eci = uiECI;

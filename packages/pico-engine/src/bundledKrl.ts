@@ -141,30 +141,136 @@ export function engineKrlRelativeFromUrl(url: string): string | null {
 
   if (parsed.protocol === "http:" || parsed.protocol === "https:") {
     const match = parsed.pathname.match(/^\/krl\/(.+\.krl)$/);
-    if (match) {
-      const relativePath = match[1].split("/").join(path.sep);
-      const candidate = path.join(bundledKrlDir(), relativePath);
-      if (fs.existsSync(candidate)) {
-        return match[1];
-      }
+    if (match && resolveEngineKrlFile(match[1])) {
+      return match[1];
     }
   }
 
   return null;
 }
 
-export function resolveEngineKrlFile(relativePath: string): string | null {
-  const normalized = relativePath.split("/").join(path.sep);
-  const candidate = path.resolve(bundledKrlDir(), normalized);
-  const root = bundledKrlDir();
+/**
+ * The demos/ directory: PICO_ENGINE_DEMOS_DIR when set (a copy someone edits
+ * and keeps across upgrades), else inside the package when installed from npm
+ * (copied at pack time), else the repository root in a checkout.
+ */
+export function demosDir(): string | null {
+  const override = process.env.PICO_ENGINE_DEMOS_DIR;
+  const candidates = [
+    ...(override && override.trim() ? [path.resolve(override.trim())] : []),
+    path.resolve(__dirname, "..", "demos"),
+    path.resolve(__dirname, "..", "..", "..", "demos"),
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) return dir;
+  }
+  return null;
+}
+
+function fileWithin(root: string, relativePath: string): string | null {
+  const candidate = path.resolve(root, relativePath.split("/").join(path.sep));
   if (
     candidate.startsWith(root + path.sep) &&
-    fs.existsSync(candidate) &&
-    candidate.endsWith(".krl")
+    candidate.endsWith(".krl") &&
+    fs.existsSync(candidate)
   ) {
     return candidate;
   }
   return null;
+}
+
+/** `relativePath` is under krl/, or under demos/ when it starts with `demos/`. */
+export function resolveEngineKrlFile(relativePath: string): string | null {
+  if (relativePath.startsWith("demos/")) {
+    const root = demosDir();
+    return root ? fileWithin(root, relativePath.slice("demos/".length)) : null;
+  }
+  return fileWithin(bundledKrlDir(), relativePath);
+}
+
+export interface TryItFile {
+  rid: string;
+  file: string;
+  url: string;
+  /** Absolute path on the engine's machine, so people can edit it and flush. */
+  path: string;
+}
+
+export interface TryItDemo {
+  rid: string;
+  name?: string;
+  description?: string;
+  /** Folder under demos/, which is also the cookbook page's folder. */
+  folder: string;
+  url: string;
+  path: string;
+  docs: string;
+  /** demos/<folder>/try-it.md: what to look for and try once the demo runs. */
+  notes?: string;
+  /** Every .krl in the demo's folder; a running demo's installed rulesets are among them. */
+  files: TryItFile[];
+}
+
+function readNotes(root: string, folder: string): string | undefined {
+  try {
+    return fs.readFileSync(path.join(root, folder, "try-it.md"), "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+/** Folder names from demos/try-it-order.json (a JSON array), or none if it is missing or invalid. */
+function tryItOrder(root: string): string[] {
+  try {
+    const order = JSON.parse(fs.readFileSync(path.join(root, "try-it-order.json"), "utf8"));
+    return Array.isArray(order) ? order.filter((f) => typeof f === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Every demos/<folder>/<rid>.bootstrap.krl, for the developer UI's "Try It!" tab.
+ * Folders named in demos/try-it-order.json come first, in that order; the rest follow by path.
+ */
+export function listTryItDemos(baseUrl: string): TryItDemo[] {
+  const root = demosDir();
+  if (!root) return [];
+  const files: string[] = [];
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+    walkKrlFiles(path.join(root, entry.name), root, files);
+  }
+  const base = baseUrl.replace(/\/$/, "");
+  const fileInfo = (rel: string): TryItFile => ({
+    rid: readKrlMeta(path.join(root, rel)).rid,
+    file: path.basename(rel),
+    url: `${base}/krl/demos/${rel}`,
+    path: path.join(root, rel),
+  });
+  const order = tryItOrder(root);
+  const rank = (rel: string) => {
+    const i = order.indexOf(rel.split("/")[0]);
+    return i < 0 ? order.length : i;
+  };
+  return files
+    .filter((rel) => rel.endsWith(".bootstrap.krl"))
+    .sort((a, b) => rank(a) - rank(b) || (a < b ? -1 : a > b ? 1 : 0))
+    .map((rel) => {
+      const meta = readKrlMeta(path.join(root, rel));
+      const folder = rel.split("/")[0];
+      return {
+        rid: meta.rid,
+        name: meta.name,
+        description: meta.description,
+        folder,
+        url: `${base}/krl/demos/${rel}`,
+        path: path.join(root, rel),
+        docs: `https://docs.picolabs.io/#/cookbook/${folder}/`,
+        notes: readNotes(root, folder),
+        files: files.filter((f) => f.split("/")[0] === folder).sort().map(fileInfo),
+      };
+    });
 }
 
 export function resolveBundledKrlUrl(url: string): string {

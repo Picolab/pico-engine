@@ -9,6 +9,7 @@ import Logging from "./PicoTabs/Logging";
 import Rulesets from "./PicoTabs/Rulesets";
 import Relationships from "./PicoTabs/Relationships";
 import Testing from "./PicoTabs/Testing";
+import TryIt from "./PicoTabs/TryIt";
 
 function returnTabLink(pico: PicoBox, label: string, tab?: string) {
   let url = `/pico/${pico.eci}`;
@@ -24,8 +25,24 @@ function returnTabLink(pico: PicoBox, label: string, tab?: string) {
   );
 }
 
+/** Whether this pico gets the Try It! tab under the engine's show_tryit_menu setting. */
+function showsTryIt(pico: PicoBox, setting?: "off" | "root_only" | "all"): boolean {
+  const show = setting || "root_only";
+  if (show === "all") return true;
+  if (show === "root_only") return !pico.parent;
+  return false;
+}
+
 /** Keep tab panels mounted so local state survives Rulesets ↔ Testing switches. */
-function PicoTabPanels({ pico, openTab }: { pico: PicoBox; openTab?: string }) {
+function PicoTabPanels({
+  pico,
+  openTab,
+  tryIt,
+}: {
+  pico: PicoBox;
+  openTab?: string;
+  tryIt: boolean;
+}) {
   const tab = typeof openTab === "string" ? openTab.toLowerCase().trim() : "";
   const active =
     tab === "rulesets" ||
@@ -33,7 +50,8 @@ function PicoTabPanels({ pico, openTab }: { pico: PicoBox; openTab?: string }) {
     tab === "logging" ||
     tab === "testing" ||
     tab === "subscriptions" ||
-    tab === "relationships"
+    tab === "relationships" ||
+    (tab === "try-it" && tryIt)
       ? tab
       : "about";
 
@@ -59,6 +77,11 @@ function PicoTabPanels({ pico, openTab }: { pico: PicoBox; openTab?: string }) {
       >
         <Relationships pico={pico} />
       </div>
+      {tryIt ? (
+        <div hidden={active !== "try-it"}>
+          <TryIt pico={pico} isTabActive={active === "try-it"} />
+        </div>
+      ) : null}
     </>
   );
 }
@@ -74,6 +97,7 @@ const Pico: React.FC<Props> = (props) => {
   const isOpen = pico.eci === openEci;
 
   const picoPage = picoPageStore.use();
+  const tryIt = showsTryIt(pico, picoPage.uiContext?.showTryItMenu);
 
   const isMovingOrResizing =
     picoPage.picoMoving && picoPage.picoMoving.eci === pico.eci;
@@ -142,10 +166,11 @@ const Pico: React.FC<Props> = (props) => {
               {returnTabLink(pico, "Logging", "logging")}
               {returnTabLink(pico, "Testing", "testing")}
               {returnTabLink(pico, "Relationships", "relationships")}
+              {tryIt ? returnTabLink(pico, "Try It!", "try-it") : null}
             </ul>
           </div>
           <div className="card-body bg-white overflow-auto">
-            <PicoTabPanels pico={pico} openTab={openTab} />
+            <PicoTabPanels pico={pico} openTab={openTab} tryIt={tryIt} />
           </div>
         </React.Fragment>
       ) : (

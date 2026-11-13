@@ -1,0 +1,5 @@
+- Open **Archive**. The bootstrap asked for the archive five times: 1 archive pico, 5 requests, 4 ignored. It also added a note too early, so 1 note was refused.
+- Click **Request the archive** several times. **Ignored** goes up, and **Archive picos** stays at 1.
+- Leave the **Try It!** tab and close the pico. The demo's child has exactly one child, Archive.
+- Click **Start over**, then **Add a note** before requesting the archive. The gate rule refuses it.
+- Look at `archive_needed` in `com.example.archive.krl`. Why does it check `ent:creating` as well as `ent:archive_eci`? Remove `&& not ent:creating`, click **Flush**, and run the demo again from this window to find out.

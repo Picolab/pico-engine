@@ -1,6 +1,18 @@
-# Track only demos/xmlui/*.krl; ignore sibling demo trees under /demos/
+# Track the demo folders below; ignore anything else under /demos/
 /demos/*
 !/demos/xmlui/
+!/demos/moving_picos/
+!/demos/echo/
+!/demos/score_tracker/
+!/demos/child_tasks/
+!/demos/two_picos/
+!/demos/guard_rules/
+!/demos/layered_rulesets/
+!/demos/collection/
+!/demos/secrets/
+!/demos/kblog/
+!/demos/bootstrap/
+!/demos/try-it-order.json
 
 node_modules
 /lerna-debug.log

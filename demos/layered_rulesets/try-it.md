@@ -1,0 +1,5 @@
+- Open **Invitations** and follow its three steps. At each step, try both invitations and compare the answers with what the step says to expect, then click **Add the next layer**.
+- After each layer, open the child pico's **Rulesets** tab. A ruleset was added, and `com.example.invitations` didn't change.
+- With the short links layer installed, accept a short link and look at the **Logging** tab. `invite:new_invitation` arrives with the short URL, and under **Raised** it appears again with the full one.
+- Uninstall `com.example.invitations.short_links` on the **Rulesets** tab. The page goes back a step, and the button offers that layer again.
+- Write your own layer: a ruleset that selects `invite:unknown_short_link` (the short links layer raises it whether or not anything listens) and records the links nobody could expand.

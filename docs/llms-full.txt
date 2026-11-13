@@ -211,6 +211,7 @@ Example templates: [`config.example.json`](../../config.example.json), [`config.
 | `logToStdout` | boolean | Log to stdout instead of a file. Use on Fargate (set `logToStdout: true` in config). |
 | `logFile` | string | Absolute log path when `logToStdout` is false. Values `stdout`, `-`, or `0` force stdout. |
 | `logMirror` | boolean | When **`logToStdout`** is true: also write structured JSON lines to **`$PICO_ENGINE_HOME/pico-engine.log`** for operators. Default **`true`**. Set **`false`** on EFS + Fargate to avoid mirror-file churn (then use CloudWatch from stdout, or set **`logFile`** to a writable path). The Developer UI **Logging** tab reads an in-memory ring and does not need this file. **Env:** `PICO_ENGINE_LOG_MIRROR` (`true`/`1` / `false`/`0`). |
+| `show_tryit_menu` | string | Where the Developer UI shows the **Try It!** tab: **`off`** (nowhere, and `/api/try-it` lists no demos), **`root_only`** (the root pico only), or **`all`** (every pico). Default **`root_only`**. **Env:** `PICO_ENGINE_SHOW_TRYIT_MENU`. |
 | `defaultRootPolicyCeiling` | object | Max channel policy for new root picos (`eventPolicy` / `queryPolicy`). See policy example file. |
 | `globalEventDeny` | array | Extra deny rules applied on **every** ECI before channel policy (e.g. block `engine:secret_ping`). |
 | `globalQueryDeny` | array | Same for queries. |
@@ -235,6 +236,8 @@ These env overrides cover config path, data dir, port, public URL, and a few log
 | `PICO_ENGINE_LOG_FILE` | Log file path, or `stdout` / `-` / `0` / empty for stdout-only |
 | `PICO_ENGINE_LOG_MIRROR` | When stdout-only: `false` / `0` disables writing `$PICO_ENGINE_HOME/pico-engine.log` (config: **`logMirror`**). The Logging tab does not read that file |
 | `PICO_ENGINE_LOG_RING` | How many recent transactions per pico the Logging tab keeps in memory. Default **200**. A restart clears the ring |
+| `PICO_ENGINE_SHOW_TRYIT_MENU` | `off`, `root_only` (default), or `all`: where the Developer UI shows the **Try It!** tab (config: **`show_tryit_menu`**) |
+| `PICO_ENGINE_DEMOS_DIR` | A directory to serve as `demos/` (at `/krl/demos/`) instead of the copy shipped with the engine, such as the `demos/` folder of a pico-engine checkout you're editing |
 
 ---
 
@@ -386,7 +389,7 @@ The engine ships the XMLUI runtime (`/xmlui/0.14.28.js`) and the optional rulese
 
 Channel policy applies to views the same way it applies to any other query. A channel that cannot call the function does not get that page. Live data still comes from `/sky/query` and `/sky/event` on that same channel.
 
-Examples live in `demos/xmlui/` in the pico-engine repository. The design record is `docs/design/pico-views-xmlui.md`.
+Examples live in `demos/xmlui/` in the pico-engine repository; the [cookbook](/cookbook/xmlui/) shows how to install and open each one. The design record is `docs/design/pico-views-xmlui.md`.
 
 ## Write a view
 
@@ -455,7 +458,7 @@ These `/ui/` files are the ruleset's markup plus the ECI and RID already in the 
 
 | Call | Result |
 |------|--------|
-| `ui:query(id, name, opts)` | A `DataSource`. `opts.rid` defaults to this ruleset. `opts.args` is a map of query parameters (values may be XMLUI bindings such as `"{$routeParams.id}"`). `opts.select` sets `resultSelector`. |
+| `ui:query(id, name, opts)` | A `DataSource`. Set `opts.rid` to `meta:rid`: without it the `DataSource` calls `io.picolabs.xmlui`, because inside the module `meta:rid` is the module's own. `opts.args` is a map of query parameters (values may be XMLUI bindings such as `"{$routeParams.id}"`). `opts.select` sets `resultSelector`. |
 | `ui:event(id, domain, type, opts)` | An `APICall` that posts the form body. `opts.refresh` is a list of `DataSource` ids to refetch. `opts.confirm` sets a confirmation message. |
 | `ui:query_url(name, rid, eci)` | `/sky/query/…` for this channel, ruleset, and query. |
 | `ui:event_url(domain, type, eci)` | `/sky/event/{eci}/xmlui/{domain}/{type}`. |
@@ -482,7 +485,7 @@ global {
    */
   book = function() {
     <<<Component name="Book">
-  #{ui:query("entries", "entries")}
+  #{ui:query("entries", "entries", {"rid": meta:rid})}
   #{ui:event("sign", "guestbook", "signed", {"refresh": ["entries"]})}
   <Form onSubmit="(toSave) => sign.execute(toSave)">
     <FormItem bindTo="name" label="Name" />
@@ -586,6 +589,2509 @@ The page URL does not contain the token. Opening the URL shows the view and does
 Any script on that origin can read it. Every pico's pages are served from the same origin, so a script bug in any view on that engine can take the token and call Sky with it. The access token is that channel's authority for as long as it is valid. Whoever holds it can exercise the channel policy. Creating a new channel secret revokes the tokens already minted for that channel. Revoking the channel's tokens revokes all of them. There is no separate revoke for one person.
 
 The shell attaches the token only on `/sky/query`, `/sky/event`, and `/sky/cloud`, in the `Authorization` header. The browser does not send it on other requests.
+
+
+---
+
+# Cookbook
+
+# Cookbook
+
+Worked examples you can install and run. Each recipe has an overview and step-by-step instructions. The KRL lives in the pico-engine repository under [`demos/`](https://github.com/Picolab/pico-engine/tree/master/demos), and the engine ships a copy.
+
+The quickest start is the **Try It!** tab on the root pico in the developer UI (engine config `show_tryit_menu` can show it on every pico, or hide it). It lists the demos that have a bootstrap ruleset. Open one and **Run** it: the tab creates a child pico and installs that ruleset, which sets up the whole demo. The same window shows each ruleset's code and its path on disk. Edit a file, **Flush**, and watch the demo change. Agents can do the same with the dev MCP tools: create a pico, install the `url` from `GET /api/try-it`, and query `tryIt` on the child's `try_it` channel.
+
+| Recipe | What it shows | KRL |
+|--------|---------------|-----|
+| [Echo](/cookbook/echo/) | The hello world of events: a rule answers an event with a directive, from a page or from `curl` | [`demos/echo/`](https://github.com/Picolab/pico-engine/tree/master/demos/echo) |
+| [Score tracker](/cookbook/score_tracker/) | A contest pico with a leaderboard, and an app channel whose policy lets contestants play without changing the pico | [`demos/score_tracker/`](https://github.com/Picolab/pico-engine/tree/master/demos/score_tracker) |
+| [Pico views](/cookbook/xmlui/) | XMLUI pages served from a pico: queries, events, app channels, detail routes, components (the Thermostat demo), and a view over another pico's data | [`demos/xmlui/`](https://github.com/Picolab/pico-engine/tree/master/demos/xmlui) |
+| [Two picos talking](/cookbook/two_picos/) | Two picos form a relationship, and one queries the other over it | [`demos/two_picos/`](https://github.com/Picolab/pico-engine/tree/master/demos/two_picos) |
+| [Child pico tasks](/cookbook/child_tasks/) | Running each task in a new child pico that reports back and deletes itself, so the parent never waits | [`demos/child_tasks/`](https://github.com/Picolab/pico-engine/tree/master/demos/child_tasks) |
+| [Guard rules](/cookbook/guard_rules/) | Making a request idempotent with a guard rule, and refusing work with a gate rule and `last` until it can be done | [`demos/guard_rules/`](https://github.com/Picolab/pico-engine/tree/master/demos/guard_rules) |
+| [Layered rulesets](/cookbook/layered_rulesets/) | Rules that each do one thing and raise an event, and add-on rulesets that change what a pico does without editing the base | [`demos/layered_rulesets/`](https://github.com/Picolab/pico-engine/tree/master/demos/layered_rulesets) |
+| [Collection](/cookbook/collection/) | A pico that keeps a collection of other picos over relationships, accepts members by role, and reports on all of them | [`demos/collection/`](https://github.com/Picolab/pico-engine/tree/master/demos/collection) |
+| [Configuration and secrets](/cookbook/secrets/) | Getting a secret into a ruleset with install configuration or an event, keeping a ruleset idle until it has one, and where secrets stay visible | [`demos/secrets/`](https://github.com/Picolab/pico-engine/tree/master/demos/secrets) |
+| [Bootstrap and channels](/cookbook/bootstrap/) | A bootstrap ruleset installing an app in dependency order with configuration, and an app that creates or updates its own channel on install, with a policy built from its schema | [`demos/bootstrap/`](https://github.com/Picolab/pico-engine/tree/master/demos/bootstrap) |
+| [KBlog](/cookbook/kblog/) | A blog written in KRL: four rulesets that work together through an event hierarchy, with a reader channel and an author channel | [`demos/kblog/`](https://github.com/Picolab/pico-engine/tree/master/demos/kblog) |
+| [Moving picos](/cookbook/moving_picos/) | Exporting a pico and its children from one engine and importing them on another, keeping its did:webvh identity and relationships | [`demos/moving_picos/`](https://github.com/Picolab/pico-engine/tree/master/demos/moving_picos) |
+
+
+---
+
+# Cookbook: pico views
+
+# Pico views
+
+Seven small rulesets that serve [XMLUI](https://xmlui.org) pages from a pico. Each one adds one idea, from a static page to a view that shows another pico's data. They are also the test fixtures for the engine's view routes.
+
+Read [Pico views](/pico-views) for how views work. To install and open these, follow the [instructions](/cookbook/xmlui/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Hello | [`com.example.hello.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/xmlui/com.example.hello.krl) | A `@view` function and nothing else |
+| Favorite color | [`com.example.fav_color.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/xmlui/com.example.fav_color.krl) | Reading with `ui:query` and writing with `ui:event`, then refreshing |
+| Guestbook | [`com.example.guestbook.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/xmlui/com.example.guestbook.krl) | An app channel created on install with `ui:create_app_channel` |
+| Contacts | [`com.example.contacts.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/xmlui/com.example.contacts.krl) | A list page and a detail page (`/contact/:id`), seeded with two contacts |
+| Thermostat | [`com.example.thermostat.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/xmlui/com.example.thermostat.krl) | Two channels with different policies (viewer and admin), an app `@component`, and the shared `PicoSettings`, `PicoThemeField`, and `PicoTheme` components |
+| Thermostat bootstrap | [`com.example.thermostat.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/xmlui/com.example.thermostat.bootstrap.krl) | Sets up the whole Thermostat demo on a new pico. The developer UI's **Try It!** tab runs it |
+| Temperature sensors (data) | [`temperature_sensors.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/xmlui/temperature_sensors.krl) | Sample readings on a data pico |
+| Temperature sensors (view) | [`com.example.temperature_sensors_view.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/xmlui/com.example.temperature_sensors_view.krl) | A view on one pico over data on another, reached through a relationship |
+
+## What you need
+
+- A running pico engine. Components (`@component` and the shared `Pico*` components, used by Thermostat) need pico-engine 1.9.4 or later.
+- `io.picolabs.xmlui` installed on each pico that serves a view. The engine ships it at `/krl/io.picolabs.xmlui.krl` but does not install it anywhere by default.
+
+
+---
+
+# Cookbook: pico views instructions
+
+# Pico views: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/xmlui/) for what each ruleset shows.
+
+## The quick way: Try It!
+
+Open the root pico in the developer UI and choose the **Try It!** tab. (Operators can show the tab on every pico, or hide it, with `show_tryit_menu` in the engine config.) Click **Thermostat**, then **Run in a new child pico**. The tab creates a child pico and installs `com.example.thermostat.bootstrap` on it. That one ruleset installs `io.picolabs.xmlui` and the thermostat, and records three readings. When the demo shows **ready**, open the dashboard links. **Remove** deletes the child.
+
+The same window shows **the code**: the bootstrap and the rulesets it installed, each with its path on the engine's machine. Change one. For example, in `com.example.thermostat.krl` change `ent:threshold.defaultsTo(80)` to `65`, click **Flush**, and reload the dashboard: it says "Alert above 65 F". To contribute a change, make it in a clone of the [pico-engine repository](https://github.com/Picolab/pico-engine) and open a pull request.
+
+The steps below do the same by hand, for every demo.
+
+## 1. Prepare a pico
+
+1. Open the developer UI and sign in.
+2. Pick the pico that will serve the views. A new child pico keeps the demos apart from everything else.
+3. On its **Rulesets** tab, install `io.picolabs.xmlui` from the engine:
+
+   ```
+   http://localhost:3000/krl/io.picolabs.xmlui.krl
+   ```
+
+## 2. Install a demo
+
+On the same **Rulesets** tab, install the demo by URL. Use the raw GitHub file:
+
+```
+https://raw.githubusercontent.com/Picolab/pico-engine/master/demos/xmlui/com.example.hello.krl
+```
+
+or a `file://` URL to your checkout of the repository:
+
+```
+file:///path/to/pico-engine/demos/xmlui/com.example.hello.krl
+```
+
+Install the others the same way: `com.example.fav_color.krl`, `com.example.guestbook.krl`, `com.example.contacts.krl`, `com.example.thermostat.krl`.
+
+## 3. Open it
+
+A ruleset with a `@view` function has a **View** button on the Rulesets tab. Click it, pick a channel, and open the app. The page is at:
+
+```
+http://localhost:3000/ui/<eci>/<rid>/
+```
+
+`http://localhost:3000/ui/<eci>/` lists every app that channel can open.
+
+The channel must allow `io.picolabs.xmlui` / `file` and the view's functions. Guestbook, Contacts, and Thermostat create channels like that when they are installed. Use those channels (tags `guestbook, app`, `contacts, app`, `thermostat, viewer`, `thermostat, admin`).
+
+## 4. Try each demo
+
+**Hello.** The page shows a heading and the ruleset id. There is nothing to click.
+
+**Favorite color.** Enter a color such as `#3366cc` and submit. The card shows the color you picked. Reload the page: the pico remembers it.
+
+**Guestbook.** Open it on the `guestbook, app` channel. Sign with a name and a message. The table refreshes with your entry.
+
+**Contacts.** Open it on the `contacts, app` channel. It starts with Ada Lovelace and Grace Hopper. Add a contact, then click a name to open its detail page and add a note.
+
+**Thermostat.** It has no readings until you send some. On the **Testing** tab, raise `thermostat` `new_reading` with `temperature` set to `72`, then `75`. Then open it on each of its channels:
+
+- `thermostat, viewer` shows only the Dashboard. The Settings page is not reachable on this channel.
+- `thermostat, admin` shows Dashboard and Settings. Settings changes the alert threshold.
+
+On the Dashboard, **Display** opens a theme picker built from the shared `PicoSettings` and `PicoThemeField` components. The readings table is the ruleset's own `ReadingHistory` component.
+
+**Temperature sensors (two picos).**
+
+1. Create two child picos, one for the data and one for the view.
+2. On the data pico, install `temperature_sensors.krl`.
+3. On the view pico, install `io.picolabs.xmlui` and `com.example.temperature_sensors_view.krl`.
+4. Create a relationship between the two picos. On the view pico's **Relationships** tab, note the relationship's `Id`. It is the same on both picos.
+5. On the view pico, raise `temperature_sensors_view` `link_data_pico` with `relationship_id` set to that `Id`.
+6. Open the view on its `temperature_sensors_view, app` channel. The table shows the data pico's readings.
+
+## If something doesn't load
+
+| Symptom | Check |
+|---------|-------|
+| HTTP 403 | The channel's query policy does not allow `io.picolabs.xmlui` / `file`, or the view function |
+| HTTP 404, or a component not found | `io.picolabs.xmlui` is not installed on this pico, or the function is not a `@view` or `@component` the channel allows |
+| The page loads but shows no data | The channel does not allow the page's queries or events, or (on an OAuth mesh) no access token is set |
+| A change to the KRL doesn't show | Flush the ruleset on the Rulesets tab, then reload the page |
+
+
+---
+
+# Cookbook: moving picos
+
+# Moving picos
+
+A pico and its children move from one pico engine to another. The pico keeps its did:webvh identity, and its relationships keep working on the new engine. Follow the [instructions](/cookbook/moving_picos/instructions) to run it.
+
+## The scenario
+
+A bike club owns bikes that members borrow, and uses communities to coordinate rides. A ride coordinator runs her own mesh. The club sells **Gravel Bike #7**, so the bike moves from the club's mesh to the new owner's mesh.
+
+Three meshes on two engines, all running [Manifold](https://github.com/Picolab/manifold-api):
+
+| Mesh | Engine | What's there |
+|------|--------|--------------|
+| Club gear | A, `http://localhost:3001` | Trail Ride Community, Gravel Bike #7 (with a Bike #7 Computer child), and Gravel Bike #3 |
+| Ride coordinator | B, `http://localhost:3002` | A coordinator with a Layer 2 relationship to Bike #7 (optional) |
+| New owner | B | The Manifold that imports Bike #7 |
+
+Bike #7 and its computer move. Bike #3 and the community stay on A.
+
+## What it shows
+
+- **Portable identity.** The did:webvh SCID survives the move. The host in the DID changes to the new engine's.
+- **Subtree move.** Export produces a portable blob of state and identity, not a copy of the engine's database.
+- **Manifold.** The new owner's Manifold makes its own relationship to the bike.
+- **Communities.** A community can stay on the old engine while one of its things moves.
+- **Layer 2.** A DID relationship made before the export (coordinator and bike) still works after the import.
+
+## The rulesets
+
+| Ruleset | File | Install on |
+|---------|------|------------|
+| `io.picolabs.club_gear_demo` | [`io.picolabs.club_gear_demo.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/moving_picos/io.picolabs.club_gear_demo.krl) | Engine A, the Manifold app pico. Builds the club, the bikes, and the community; releases Bike #7 after the move |
+| `io.picolabs.ride_coordinator_demo` | [`io.picolabs.ride_coordinator_demo.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/moving_picos/io.picolabs.ride_coordinator_demo.krl) | Engine B, the mesh root. Optional; sets up the coordinator's relationship to Bike #7 |
+
+Export and import use `io.picolabs.portable_subtree` (bundled with the engine) and `io.picolabs.manifold_portable_thing` from manifold-api.
+
+## What you need
+
+- Docker, to run both engines with `docker-compose.cross-engine.yml` from the repository root. It mounts `demos/` at `/var/pico-demos`, so the rulesets install from `file:///var/pico-demos/moving_picos/…`.
+- The current manifold-api rulesets, including `io.picolabs.manifold_portable_thing`.
+- About 10 to 14 minutes for the full story, or 7 to 9 without the coordinator.
+
+## Known exception
+
+Both demo rulesets call `ctx:newChannel`, and `club_gear_demo` calls `ctx:query`. Application rulesets should use wrangler instead. Setup needs a channel to exist before Manifold raises its events, and wrangler's `new_channel_request` doesn't yet return one in time. A wrangler-based setup is the intended fix.
+
+
+---
+
+# Cookbook: moving picos instructions
+
+# Moving picos: instructions
+
+Engine **A** is the club's mesh at `http://localhost:3001`. Engine **B** is the recipient at `http://localhost:3002`. The move target is **Gravel Bike #7** and its child, **Bike #7 Computer**. **Bike #3** and **Trail Ride Community** stay on A. See the [overview](/cookbook/moving_picos/) for the scenario.
+
+## Prepare
+
+1. From the repository root, start both engines and wait until they are healthy:
+
+   ```sh
+   docker compose -f docker-compose.cross-engine.yml up -d
+   ```
+
+2. Optional: start from fresh engine data, or run `cleanup` (Act 7) on the demo picos from a previous run.
+3. **Engine A, Manifold app pico:**
+   - Install `io.picolabs.club_gear_demo` from `file:///var/pico-demos/moving_picos/io.picolabs.club_gear_demo.krl`.
+   - Install `io.picolabs.portable_subtree` from the KRL directory on the Rulesets tab.
+   - Flush the current manifold-api rulesets: `manifold_pico`, `manifold_portable_thing`, `community`, and their dependencies. For example, `https://raw.githubusercontent.com/Picolab/manifold-api/refs/heads/main/io.picolabs.manifold_portable_thing.krl`.
+4. **Engine B, mesh root (owner):** install `io.picolabs.ride_coordinator_demo` from `file:///var/pico-demos/moving_picos/io.picolabs.ride_coordinator_demo.krl`. Optional, but needed for the Layer 2 part of the story.
+5. **Engine B, Manifold app pico:** flush the same manifold-api rulesets as on A.
+6. Sign in on both engines.
+7. Pick an export secret, such as `demo-secret-iiw`, and keep it handy.
+
+## Act 1: build the club on Engine A (2 to 3 minutes)
+
+On **3001**, open Manifold and the pico with `club_gear_demo` installed.
+
+1. On the **Testing** tab, raise `club_gear_demo` `setup` with no attributes.
+2. Query `demoState` until it returns `ready: true` and `stage: "done"`.
+3. In Manifold, show the children: **Trail Ride Community**, **Gravel Bike #7**, and **Gravel Bike #3**. Expand Bike #7 to show **Bike #7 Computer**.
+4. Open **Gravel Bike #7**, then its **Relationships** tab. Expect `Manifold:Gravel Bike #7` and `Trail Ride Community:Gravel Bike #7`.
+5. From `demoState`, copy these for later:
+   - `bikePicoId` or `bikeEci`
+   - `bikeDid`
+   - `bikeManifoldKey` (the registry id), optional
+   - `communityPicoId` and the names, optional
+
+The community and two bikes are on A. Only Bike #7 will move.
+
+## Act 2: Layer 2 coordinator on B, before the export (optional, 2 minutes)
+
+Skip this act if you only want to show the Manifold import. Run it to show that a did:webvh Layer 2 relationship survives the move.
+
+On **3002**, open the mesh root pico with `ride_coordinator_demo`.
+
+1. Query `demoState` and note `demoEci`, the demo channel. Use this ECI for the coordinator's events, not the root's default channel.
+2. On `demoEci`, raise `ride_coordinator_demo` `setup` with `bikeDid` set to A's `demoState().bikeDid` and `bikeName` set to `"Gravel Bike #7"`.
+3. Wait until `demoState().stage` is `connecting`. Setup stops there on purpose.
+
+Back on **3001**, open **Gravel Bike #7** (its ECI is in A's `demoState().bikeEci`).
+
+4. Query `io.picolabs.subscription` `inbound` and find the pending `Ride Participants:Gravel Bike #7`.
+5. Raise `wrangler` `pending_subscription_approval` with `Id` set to that pending relationship's id.
+
+On **3002**, on `demoEci`:
+
+6. Raise `ride_coordinator_demo` `sync`. It is an internal checkpoint and isn't listed on the Testing tab, so send it from the Events view on the demo channel.
+7. Optional: query `demoState` until `ready: true`.
+
+Thing picos don't accept inbound relationships on their own: the owner approves on the bike. The introduction between engines uses did:webvh, not an ECI.
+
+## Act 3: export Bike #7 on A (1 to 2 minutes)
+
+On **3001**, use the **Manifold app** channel. That is not the `club_gear_demo` pico unless Manifold lives there in your tree.
+
+1. Raise `manifold` `enable_portable_thing`, once per Manifold, if it isn't already enabled.
+2. Query `io.picolabs.manifold_portable_thing` `exportPortableThing` with:
+   - the first argument: `bikePicoId` or `bikeEci` from A's `demoState`
+   - the second argument: your secret
+3. Save the result's `blob`, `name`, and `donorQueryEci`. Copy the blob to a file or the clipboard.
+4. Optional: show Bike #7's did:webvh on A, unchanged before the import.
+
+The export is a portable subtree, a snapshot of state and identity, not a copy of the database.
+
+## Act 4: import on Engine B (2 minutes)
+
+On **3002**, open the **Manifold app** pico.
+
+1. Raise `manifold` `enable_portable_thing` if needed.
+2. Raise `manifold` `import_portable_thing` with:
+   - `blob`
+   - `secret`, the same one you exported with
+   - `name`, from the export result
+   - `donorQueryEci`, from the export result
+   - `renewIngress`: `true`
+3. Wait for `import_portable_thing_done`, or refresh the UI.
+4. Show that **Gravel Bike #7** is in B's Manifold (`getThings`, or the UI), with **Bike #7 Computer** under it.
+5. Open the imported bike's **Relationships** tab. It has a Manifold relationship. The community relationship may stay on A, depending on the export: say what the audience should see.
+
+The did:webvh SCID is the same on B. B's Manifold has a new relationship to the bike.
+
+## Act 5: show it works across meshes (2 minutes)
+
+If you ran Act 2:
+
+1. On **3002**, on `demoEci`, query `demoState`. The relationship should reach `done` without running `setup` again. If it doesn't, approve again and raise `sync` on B, and mention reconciliation.
+2. On B, open **Gravel Bike #7** → **Relationships**. The coordinator's DID relationship is there.
+
+Either way:
+
+3. On **3001**, the community still has Bike #3. Bike #7 may still appear until Act 6.
+4. Optional: compare the `communities` query on Bike #7 on B with the community on A. The community stayed on A; the bike moved.
+
+On B, local peer reconciliation updates other picos that still pointed at the bike's old ECI or DID.
+
+## Act 6: clean up on A (1 minute)
+
+On **3001**, open the `club_gear_demo` pico.
+
+1. Raise `club_gear_demo` `release_bike7`. It removes the old bike from Manifold and from the community on A.
+2. Check that A's Manifold no longer lists Bike #7, and that Bike #3 and the community remain.
+
+The old engine can let go of the moved bike. B is now authoritative for it.
+
+## Act 7: reset (optional)
+
+- On A, raise `club_gear_demo` `cleanup`, then query `demoState` until `stage: "idle"`.
+- On B, raise `ride_coordinator_demo` `cleanup` on `demoEci`.
+- On B, remove the imported thing through Manifold if you want an empty Manifold for another run.
+
+## If something fails
+
+| Symptom | Check |
+|---------|-------|
+| `setup` never reaches `ready` | A's Manifold logs and `demoState().stage`; flush `community` and `manifold_pico` |
+| The export query is missing | Raise `enable_portable_thing` on A's Manifold; flush `manifold_portable_thing` |
+| The import has no child | The secret and blob match; flush the portable rulesets on B; watch for `import_portable_thing_done` |
+| The coordinator is stuck | Approve `pending_subscription_approval` on the **bike's** ECI, then raise `sync` on B's `demoEci` |
+| `cleanup` fails | Flush `club_gear_demo` again; cleanup uses Manifold registry keys (`manifoldKey`) |
+
+## Talking points
+
+Pick three to five:
+
+1. **Portable identity.** The did:webvh SCID survives. The host and path in the DID change with the engine's URL.
+2. **Subtree move.** An export and import blob, not a federation of whole engines.
+3. **Manifold.** The new owner's Manifold makes a new relationship to the bike, named Manifold on the Relationships tab.
+4. **Communities.** A community can stay on the old engine while its thing moves.
+5. **Layer 2.** The coordinator and bike relationship uses DIDs; the bike's owner approves it; it survives the move when made before the export.
+6. **Operators.** Passkeys, two engines on localhost, rulesets installed from manifold-api and this repository.
+7. **Autonomy.** Picos are persistent objects with relationships, not app session tokens.
+
+The developer UI in this demo is for developers to observe and change picos. It is not an end-user interface.
+
+## Timing
+
+| Run | Time |
+|-----|------|
+| The full story (Acts 1 to 6) | 10 to 14 minutes |
+| Manifold only (skip Act 2 and the coordinator part of Act 5) | 7 to 9 minutes |
+| Preparation and reset, off camera | 5 more minutes |
+
+
+---
+
+# Cookbook: echo
+
+# Echo
+
+The smallest useful pico: it answers events. An event arrives on a channel, a rule selects on it, and the rule's action is a **directive**, a named piece of data returned to whoever sent the event. Echo has two rules. `echo:hello` answers "Hello World", and `echo:message` answers with whatever `input` it was sent.
+
+A page served by the pico sends both events and shows the answer. The same events work from `curl`, which shows that a pico's events are plain HTTP.
+
+To run it, follow the [instructions](/cookbook/echo/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Echo | [`com.example.echo.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/echo/com.example.echo.krl) | `select when` with an attribute regex, `send_directive`, and a `@view` that reads directives from the event response. Creates an app channel that allows only `echo` events |
+| Echo bootstrap | [`com.example.echo.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/echo/com.example.echo.bootstrap.krl) | Sets up the demo on a new pico. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the page, which uses the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on the pico for the page. The bootstrap installs it.
+
+
+---
+
+# Cookbook: echo instructions
+
+# Echo: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/echo/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Echo**, then **Run in a new child pico**. When it shows **ready**, open **Echo page**.
+
+## By hand
+
+1. Create a child pico and open its **Rulesets** tab.
+2. Install `io.picolabs.xmlui` from the engine: `http://localhost:3000/krl/io.picolabs.xmlui.krl`.
+3. Install the echo ruleset: `http://localhost:3000/krl/demos/echo/com.example.echo.krl` (the engine's copy), or the raw GitHub file `https://raw.githubusercontent.com/Picolab/pico-engine/master/demos/echo/com.example.echo.krl`.
+4. Installing it creates a channel tagged `echo, app`. Click **View** next to `com.example.echo` and open it on that channel.
+
+## Try it
+
+- Click **Say hello**. The page raises `echo:hello`, and the **The pico said** card shows `Hello World`.
+- Type a message and click **Echo it**. The pico answers with your message.
+- Copy the `curl` line at the bottom of the page into a terminal. The engine answers with JSON like this:
+
+  ```json
+  {"eid": "...", "directives": [{"type": "directive", "name": "say", "options": {"something": "hello"},
+    "meta": {"rid": "com.example.echo", "rule_name": "echo", "txnId": "..."}}],
+   "ruleOutcomes": [{"rid": "com.example.echo", "rule": "echo", "status": "fired"}]}
+  ```
+
+- Change `echo/message` in that URL to `wrangler/new_child_request?name=x`. The answer is `{"error":"Error: Not allowed by channel policy"}`: this channel accepts only `echo` events.
+- On the pico's **Testing** tab, raise `echo` `hello` and look at the response.
+
+## How it works
+
+An event has a domain and a type (`echo` and `message`) and some attributes. A rule's `select when` decides which events it runs on:
+
+```krl
+rule echo {
+  select when echo message input re#(.*)# setting(m)
+  send_directive("say", {"something": m})
+}
+```
+
+`input re#(.*)#` matches the `input` attribute against a regular expression, and `setting(m)` binds what it captured. `send_directive` adds a directive to the response. The engine collects the directives of every rule that ran and returns them to the sender, which is how the page and `curl` see the answer.
+
+The page is a `@view` function. Its `APICall` posts the event and reads the answer from the response:
+
+```xml
+<APICall id="hello" method="post" url="#{hello_url}" headers="{appGlobals.auth}"
+         onSuccess="(result) => reply = result.directives[0].options.something" />
+```
+
+On install, `ui:create_app_channel` makes the `echo, app` channel. Its policy allows events in the `echo` domain and the page's queries, and nothing else. Someone holding that channel can make the pico echo but cannot change it.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit `com.example.echo.krl` there, click **Flush**, and reload the page.
+
+- Change `"Hello World"` in `hello_world` to your own greeting.
+- Make the echo shout: `send_directive("say", {"something": m.uc()})`.
+- Add a rule that answers a new event, such as `echo goodbye`. The app channel already allows every `echo` event, so the page and `curl` can send it right away.
+
+
+---
+
+# Cookbook: score tracker
+
+# Score tracker
+
+A pico that runs a contest. Contestants register with a first and last name and get a participant id. Then they send points with a description of what they are for, and a leaderboard ranks everyone by total.
+
+The demo is also about **channel policy**. The pico's app channel allows only `score` events and the leaderboard's queries. A contestant holding that channel can register and add points, but cannot create child picos, install rulesets, or raise any other event. Hand out the channel, not the pico.
+
+To run it, follow the [instructions](/cookbook/score_tracker/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Score tracker | [`com.example.score_tracker.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/score_tracker/com.example.score_tracker.krl) | Entity variables keyed by participant id, attribute regexes in `select when`, directives that return the new id, a sorted `currentRanks` query, and a leaderboard `@view` |
+| Score tracker bootstrap | [`com.example.score_tracker.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/score_tracker/com.example.score_tracker.bootstrap.krl) | Sets up the demo on a new pico and seeds Ada Lovelace, Grace Hopper, and Alan Turing with points. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the page, which uses the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on the pico for the page. The bootstrap installs it.
+
+
+---
+
+# Cookbook: score tracker instructions
+
+# Score tracker: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/score_tracker/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Score tracker**, then **Run in a new child pico**. The bootstrap installs the ruleset and seeds three contestants: Ada Lovelace (45 points), Grace Hopper (40), and Alan Turing (25). When it shows **ready**, open **Leaderboard**.
+
+## By hand
+
+1. Create a child pico and open its **Rulesets** tab.
+2. Install `io.picolabs.xmlui` from the engine: `http://localhost:3000/krl/io.picolabs.xmlui.krl`.
+3. Install the score tracker: `http://localhost:3000/krl/demos/score_tracker/com.example.score_tracker.krl`.
+4. Installing it creates a channel tagged `score_tracker, app`. Click **View** next to `com.example.score_tracker` and open it on that channel. The leaderboard is empty until someone registers.
+
+## Try it
+
+- Register with your name. The subtitle changes to "You are …", and the form becomes **Add points**. The page keeps your participant id in the browser tab's session storage.
+- Add points a few times and watch your rank change. Negative points work too.
+- Open the leaderboard in a second browser window and register as someone else. Both windows share one pico.
+- In another window, register under a name that is already on the board. You get that contestant's id back, not a second entry.
+- Send events from a terminal on the app channel. Replace `<eci>` with its id (shown in the page URL after `/ui/`):
+
+  ```sh
+  curl "http://localhost:3000/sky/event/<eci>/demo/score/new_participant?first=Katherine&last=Johnson"
+  curl "http://localhost:3000/sky/cloud/<eci>/com.example.score_tracker/currentRanks"
+  ```
+
+- Try something the channel does not allow:
+
+  ```sh
+  curl "http://localhost:3000/sky/event/<eci>/demo/wrangler/new_child_request?name=intruder"
+  ```
+
+  The engine answers `{"error":"Error: Not allowed by channel policy"}`.
+
+## How it works
+
+Each contestant is one entry in the entity variable `ent:participants`, keyed by participant id. `new_participant` requires both names, through attribute regexes in `select when`. It returns the id in a directive, so whoever registered learns their id from the response:
+
+```krl
+rule new_participant {
+  select when score new_participant
+    first re#(.+)#
+    last re#(.+)#
+    setting(first, last)
+  pre {
+    existing = findByName(first, last)
+    pid = existing => existing{"pid"} | event:attr("pid") || random:uuid()
+  }
+  send_directive("registered", {"pid": pid, "name": first + " " + last, "new": existing => false | true})
+  always {
+    ent:participants{pid} := {"pid": pid, "first": first, "last": last, "points": []}
+      if not existing
+  }
+}
+```
+
+`new_points` adds an entry to that participant's list with a path assignment, `ent:participants{[pid, "points"]} := …`. It does nothing (and logs a warning) when the id is unknown.
+
+`currentRanks` is a function the ruleset `shares`. It totals each contestant's points, sorts with `<=>`, and adds a rank. The leaderboard page reads it with a `DataSource`. After registering or adding points, the page refetches it.
+
+The policy is set on install by `ui:create_app_channel(channel_tags, ["score"], ["currentRanks", "participant", "leaderboard"], meta:rid)`. Its event policy allows the `score` domain, and its query policy allows those three functions. That policy, not anything in the page, is what keeps contestants out of the rest of the pico.
+
+The bootstrap registers the seed contestants with one `foreach` rule. When the last one is done (`on final`), it raises an event that starts the rule adding the seed points.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit `com.example.score_tracker.krl` there, click **Flush**, and reload the leaderboard.
+
+- Change `initialValue="10"` on the **Points** field to `100`.
+- Add a column. `currentRanks` already returns `pid`, so add `<Column bindTo="pid" header="Id" />` to the table.
+- Cap a single award: in `new_points`, make the condition `if p && points.as("Number") <= 50 then …`. Larger awards are skipped, so change the `else` warning to say why.
+
+
+---
+
+# Cookbook: child pico tasks
+
+# Child pico tasks
+
+A pattern for work that takes a while: give each job its own child pico. The parent creates a child, hands it the task, and goes back to handling events. The child does the work, sends the result to its parent, and asks to be deleted. Nothing waits on a timer. Each step is an event that starts the next one.
+
+The task here is counting the primes up to `n`, which is slow enough for large `n` that you can watch the children come and go in the developer UI.
+
+To run it, follow the [instructions](/cookbook/child_tasks/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Task runner | [`com.example.task_runner.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/child_tasks/com.example.task_runner.krl) | `wrangler:new_child_request` with extra attributes, `wrangler:child_initialized`, installing a ruleset on a child with `event:send`, and `wrangler:child_deleted`. Has a Tasks `@view` |
+| Task worker | [`com.example.task_worker.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/child_tasks/com.example.task_worker.krl) | Doing the work when it is installed, reporting with `event:send` to `wrangler:parent_eci()`, and deleting itself with `wrangler:ready_for_deletion` |
+| Task runner bootstrap | [`com.example.task_runner.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/child_tasks/com.example.task_runner.bootstrap.krl) | Sets up the demo on a new pico and starts tasks for 1,000, 10,000, and 30,000. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the page, which uses the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on the task runner pico for the page. The bootstrap installs it. The workers don't need it.
+
+
+---
+
+# Cookbook: child pico tasks instructions
+
+# Child pico tasks: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/child_tasks/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Child pico tasks**, then **Run in a new child pico**. The bootstrap starts three tasks. When it shows **ready**, open **Tasks**. The three tasks are done: 168 primes up to 1,000, 1,229 up to 10,000, and 3,245 up to 30,000. Each worker is marked "(deleted)".
+
+## By hand
+
+1. Create a child pico and open its **Rulesets** tab.
+2. Install `io.picolabs.xmlui` from the engine: `http://localhost:3000/krl/io.picolabs.xmlui.krl`.
+3. Install the task runner: `http://localhost:3000/krl/demos/child_tasks/com.example.task_runner.krl`. You don't install the worker. The runner installs it on each child from the same folder.
+4. Installing it creates a channel tagged `task_runner, app`. Click **View** next to `com.example.task_runner` and open it on that channel.
+
+## Try it
+
+- Start a task with the default `n` of 20,000. It finishes in well under a second: 2,262 primes.
+- Start one with `n` set to 200,000, which takes about ten seconds on a laptop. The table shows it as **working**. In the developer UI, the task runner pico has a child named after the task. When the task is done, the child is gone and the table says "(deleted)".
+- Start several large tasks one after another. Each gets its own child, and the runner keeps taking new tasks while they work.
+
+## How it works
+
+The runner never does the work itself. It is a chain of events:
+
+1. **`task:start`.** `start_task` records the task as `starting` and asks wrangler for a child. It passes extra attributes, the task id and `n`, along with the name:
+
+   ```krl
+   raise wrangler event "new_child_request" attributes
+     {"name": "Task " + key, "task_id": key, "n": n}
+   ```
+
+2. **`wrangler:child_initialized`.** Wrangler raises this on the parent when the child is set up. It carries the same extra attributes, plus `eci`, the parent's channel to the child. `hand_off_task` selects on it only when `task_id` is present, so it ignores children created for other reasons. Then it sends the child an `install_ruleset_request` for the worker, again with `task_id` and `n`:
+
+   ```krl
+   event:send({
+     "eci": child,
+     "domain": "wrangler",
+     "type": "install_ruleset_request",
+     "attrs": {"absoluteURL": meta:rulesetURI, "rid": worker_rid, "task_id": key, "n": event:attr("n")}
+   })
+   ```
+
+   `absoluteURL: meta:rulesetURI` with a `rid` installs `com.example.task_worker.krl` from the folder the runner came from.
+
+3. **`wrangler:ruleset_installed`, on the child.** The attributes of the install request come through on this event. `do_task` in the worker selects on its own install, counts the primes, sends `task:done` to `wrangler:parent_eci()`, and raises `wrangler:ready_for_deletion`.
+
+4. **`task:done`, on the parent.** `task_done` records the result.
+
+5. **`wrangler:child_deleted`, on the parent.** `ready_for_deletion` asks the parent's wrangler to delete the child. Once it is gone, wrangler raises `child_deleted` with the child's `eci`. `worker_deleted` finds the task with that `worker_eci` and marks the worker deleted.
+
+Every pico has its own event queue. While a worker is counting, its parent can keep starting tasks, and the developer UI keeps working.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit a file there, click **Flush**, and start a new task.
+
+- In `com.example.task_worker.krl`, comment out `raise wrangler event "ready_for_deletion"`. Workers now stay around after they finish, and you can open one in the developer UI to see the worker ruleset and its parent channel. Delete them from the UI when you are done.
+- Have the worker report more. Add `"largest": …` to the `task:done` attributes, store it in `task_done`, and add a column to the Tasks page in `com.example.task_runner.krl`.
+- Give the worker a different job, such as summing the numbers up to `n`. The runner doesn't care what the work is.
+
+
+---
+
+# Cookbook: two picos talking
+
+# Two picos talking
+
+Picos talk to each other over **relationships**. A relationship is a pair of channels, one on each pico, made for that connection and labeled with each side's role. This demo has two picos. Alice is an *answerer* who knows some facts about herself. Bob is an *asker*. Bob asks Alice for a relationship, Alice accepts, and Bob asks her questions by querying her over it.
+
+Neither pico needs the other's family channels or knows where it lives in the pico tree. Bob reaches Alice only through the relationship, and only for what Alice's ruleset shares.
+
+To run it, follow the [instructions](/cookbook/two_picos/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Answerer (Alice) | [`com.example.two_picos.answerer.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/two_picos/com.example.two_picos.answerer.krl) | Accepting relationship requests by role (`inbound_pending_subscription_added`, `pending_subscription_approval`), a shared `answer` function, and a page to teach Alice facts |
+| Asker (Bob) | [`com.example.two_picos.asker.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/two_picos/com.example.two_picos.asker.krl) | Asking for a relationship through a well-known channel (`wrangler:subscription`), reacting to `subscription_added`, and querying the other side with `subscription:queryOnSub`. Has a conversation page |
+| Bootstrap | [`com.example.two_picos.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/two_picos/com.example.two_picos.bootstrap.krl) | Creates Alice and Bob as children, installs their rulesets, and introduces Bob to Alice's well-known channel. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the pages, which use the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on Alice and Bob for their pages. The bootstrap installs it.
+
+
+---
+
+# Cookbook: two picos talking instructions
+
+# Two picos talking: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/two_picos/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Two picos talking**, then **Run in a new child pico**. The bootstrap creates two children, Alice and Bob, and introduces them. When it shows **ready**, Bob has already asked his first question. Open **Bob's conversation** and **What Alice knows**.
+
+## By hand
+
+1. Create two child picos, Alice and Bob.
+2. On each, install `io.picolabs.xmlui` from the engine: `http://localhost:3000/krl/io.picolabs.xmlui.krl`.
+3. On Alice, install `http://localhost:3000/krl/demos/two_picos/com.example.two_picos.answerer.krl`.
+4. On Bob, install `http://localhost:3000/krl/demos/two_picos/com.example.two_picos.asker.krl`.
+5. Find Alice's well-known channel: on Alice's **Channels** tab, it is the channel tagged `wellknown_rx, tx_rx`. Copy its id.
+6. On Bob's **Testing** tab, raise `two_picos` `introduce` with `wellKnown_Tx` set to that id.
+7. Both picos' **Relationships** tabs now show the relationship, and Bob has asked about Alice's favorite color. Open Bob's page on his `two_picos, asker` channel and Alice's on her `two_picos, answerer` channel (**View** on the **Rulesets** tab).
+
+## Try it
+
+- On Bob's page, ask about `cat`, `hometown`, or `name`. Each answer comes from Alice's pico.
+- Ask about something Alice doesn't know, such as `favorite food`. She says she doesn't know it yet.
+- On Alice's page, teach her that fact, then ask Bob to ask again.
+- Look at the **Relationships** tab on each pico. Bob's role is `asker`, Alice's is `answerer`, and each side has its own channel for the other.
+
+## How it works
+
+**Bob asks for a relationship.** Every pico has a well-known channel that accepts only relationship requests. Given Alice's, Bob asks for a relationship and names both roles:
+
+```krl
+raise wrangler event "subscription" attributes {
+  "wellKnown_Tx": well_known,
+  "name": "Bob and Alice",
+  "Rx_role": "asker",
+  "Tx_role": "answerer"
+}
+```
+
+**Alice accepts.** The request arrives at Alice as `wrangler:inbound_pending_subscription_added`, with the roles swapped to her point of view: her `Rx_role` is `answerer`. She accepts only requests that cast her in that role:
+
+```krl
+rule accept_asker {
+  select when wrangler inbound_pending_subscription_added
+    where event:attr("Rx_role") == "answerer"
+  always {
+    raise wrangler event "pending_subscription_approval" attributes event:attrs
+  }
+}
+```
+
+**Bob hears back.** When Alice accepts, Bob's wrangler raises `wrangler:subscription_added`. Bob's `connected` rule checks that the other side is an answerer, tells the parent pico, and asks a first question.
+
+**Bob queries Alice.** `ask` finds the relationship by role and calls Alice's shared `answer` function over it:
+
+```krl
+bus = subscription:established("Tx_role", "answerer").head()
+reply = subscription:queryOnSub(bus{"Id"}, answerer_rid, "answer", {"question": question})
+```
+
+The query goes to the channel Alice made for Bob when she accepted. Bob uses that channel, not Alice's family channel or her app channel. Relationship channels allow every event and query, so what Bob can do to Alice is up to the rulesets she has installed.
+
+**The bootstrap.** It creates Alice and Bob with `new_child_request` and installs their rulesets when `child_initialized` arrives. Each child sends `two_picos:child_ready` to the parent when its ruleset is installed. When both are ready, the parent queries Alice's well-known channel id (`wrangler:picoQuery(alice, "io.picolabs.subscription", "wellKnown_Rx")`) and sends Bob `two_picos:introduce`. That starts everything above.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit a file there, click **Flush**, and use the pages again.
+
+- In `com.example.two_picos.answerer.krl`, change how Alice answers. For example, make `answer` return `known.uc()`.
+- Change `initial_facts`. The facts are set when the answerer is installed, so run the demo again to see new ones, or teach them on Alice's page.
+- In `com.example.two_picos.asker.krl`, change the first question in `connected` from `favorite color` to another topic, and run the demo again.
+- Let Bob teach Alice. Add a rule to `com.example.two_picos.asker.krl` that sends her an event over the relationship:
+
+  ```krl
+  rule teach {
+    select when two_picos teach
+    pre {
+      bus = subscription:established("Tx_role", "answerer").head()
+    }
+    if bus then event:send({
+      "eci": bus{"Tx"},
+      "domain": "two_picos",
+      "type": "fact_learned",
+      "attrs": {"topic": event:attr("topic"), "value": event:attr("value")}
+    })
+  }
+  ```
+
+  Flush it, raise `two_picos` `teach` on Bob's **Testing** tab with a `topic` and `value`, and Alice's page shows the new fact.
+
+
+---
+
+# Cookbook: guard rules
+
+# Guard rules
+
+Events can arrive more than once: a person clicks twice, a script retries, two picos ask for the same thing. A rule that reacts to an event is **idempotent** when running it again has no further effect. A **guard rule** is the usual way to get there. It responds to the event, tests a condition, and only then raises the event that a second rule listens for to do the real work.
+
+This demo's pico needs exactly one child pico, its Archive. Ask for the archive as often as you like: the guard lets one request through.
+
+It also shows a **gate rule**: a rule placed before others that selects the same event, and stops them with `last` when they can't run yet. Here, notes go into the archive, so the gate refuses them until the archive exists. This is the shape of the "authorize, then use" pattern, where the gate starts an authorization instead of refusing.
+
+To run it, follow the [instructions](/cookbook/guard_rules/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Archive keeper | [`com.example.archive.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/guard_rules/com.example.archive.krl) | The guard rule `archive_needed` and the rule it raises an event for, the gate rule `require_archive` with `last`, and an Archive `@view` that counts requests |
+| Archive store | [`com.example.archive_store.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/guard_rules/com.example.archive_store.krl) | Installed on the Archive child; keeps the notes and shares them |
+| Bootstrap | [`com.example.archive.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/guard_rules/com.example.archive.bootstrap.krl) | Sets up the demo, asks for the archive five times, and adds a note before and after the archive exists. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the page, which uses the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on the pico for the page. The bootstrap installs it.
+
+
+---
+
+# Cookbook: guard rules instructions
+
+# Guard rules: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/guard_rules/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Guard rules**, then **Run in a new child pico**. The bootstrap raises `archive:needed` five times in a row and adds a note before the archive exists. When it shows **ready**, open **Archive**. The counts read: 1 archive pico, 5 requests, 4 ignored, 1 note refused. The archive holds the one note added after it was created.
+
+## By hand
+
+1. Create a child pico and open its **Rulesets** tab.
+2. Install `io.picolabs.xmlui` from the engine: `http://localhost:3000/krl/io.picolabs.xmlui.krl`.
+3. Install the archive keeper: `http://localhost:3000/krl/demos/guard_rules/com.example.archive.krl`. It installs `com.example.archive_store` on the Archive child itself, from the same folder.
+4. Installing it creates a channel tagged `archive, app`. Click **View** next to `com.example.archive` and open it on that channel.
+
+## Try it
+
+- Click **Add a note** before anything else. The gate refuses it: "Note: refused, no archive yet".
+- Click **Request the archive**. "Guard: go ahead", and in a moment the archive is **ready**. The pico has a child named Archive.
+- Click **Request the archive** again, several times. Each one says "Guard: already have one, ignored". **Requests** and **Ignored** go up; **Archive picos** stays at 1.
+- Add a note. It is stored in the Archive child and listed on the page.
+- **Start over** deletes the archive and resets the counts.
+
+## How it works
+
+**The guard.** `archive_needed` answers every `archive:needed` event, but raises `archive:creation_approved` only when there is no archive and none is being created:
+
+```krl
+rule archive_needed {
+  select when archive needed
+  pre {
+    allowed = not ent:archive_eci && not ent:creating
+  }
+  if allowed then send_directive("archive", {"result": "creating"})
+  fired {
+    ent:creating := true
+    raise archive event "creation_approved"
+  }
+  else {
+    ent:ignored := ent:ignored.defaultsTo(0) + 1
+  }
+  finally {
+    ent:requests := ent:requests.defaultsTo(0) + 1
+  }
+}
+```
+
+`create_archive` selects `archive:creation_approved` and asks wrangler for the child. Nothing else raises that event, so the work happens once. When wrangler raises `child_initialized`, `archive_initialized` records the archive, installs the store ruleset on it, and raises `archive:archive_created`.
+
+**Why `ent:creating`.** The archive doesn't exist until `child_initialized` arrives, which is a separate event that comes later. The five requests the bootstrap raises are all handled before then. Checking only `ent:archive_eci` would let all five through. The flag is set the moment the guard approves, so the second request already sees it.
+
+**The gate.** `require_archive` and `store_note` both select `archive:note_added`. Rules in one ruleset that select the same event run in the order they are written, so the gate runs first. When there is no archive, it answers and runs `last`:
+
+```krl
+rule require_archive {
+  select when archive note_added
+  if not ent:archive_eci then send_directive("note", {"result": "refused, no archive yet"})
+  fired {
+    ent:gated := ent:gated.defaultsTo(0) + 1
+    last
+  }
+}
+```
+
+`last` stops the rest of this ruleset's rules for this event, so `store_note` doesn't run. It doesn't stop rules in other rulesets, which is why the gate and the rule it guards are in the same ruleset.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit `com.example.archive.krl` there, click **Flush**, and use the page.
+
+- Remove the flag from the guard: make it `allowed = not ent:archive_eci`. Click **Start over**, then run the demo again from **Try It!**: the five quick requests now make five Archive picos. Put the flag back.
+- Move `require_archive` below `store_note` in the file. Click **Start over**, then **Add a note**. Nothing is stored and the event fails with `TypeError: eci was null instead of a string` (in the response, and on the **Logging** tab): `store_note` ran first and tried to send the note to an archive that doesn't exist. Move it back.
+- Give the guard a second condition, such as a limit of three notes per archive, by adding a guard rule for `note_added` in the same style.
+
+
+---
+
+# Cookbook: layered rulesets
+
+# Layered rulesets
+
+A pico does what its installed rulesets do, so installing another ruleset is how you change it. That works best when the rulesets already there leave room. Two habits make room:
+
+- **Each rule does one thing.** When reacting to an event takes several steps, one rule raises an event that starts the next.
+- **No rule ends the chain.** A rule that finishes its work raises an event saying so, even if nothing listens yet. Later, another ruleset can.
+
+This demo's base ruleset accepts invitations: URLs with a `c_i` parameter that encodes who is inviting. Two add-on rulesets layer on top without changing it. One accepts short links the base doesn't recognize. It selects the same event with its own URL pattern, expands the link, and raises the event again with the full invitation. The other welcomes each new connection by reacting to the event the base raises when it is done.
+
+To run it, follow the [instructions](/cookbook/layered_rulesets/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Invitations (base) | [`com.example.invitations.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/layered_rulesets/com.example.invitations.krl) | A rule selected by an attribute regex that records the connection and raises `invite:connection_made`. Has an Invitations `@view` that walks through adding the add-ons one at a time, says what to expect at each step, and lists every directive in the reply |
+| Short links (add-on) | [`com.example.invitations.short_links.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/layered_rulesets/com.example.invitations.short_links.krl) | Selecting the same event with a different pattern, and raising it again with new attributes |
+| Welcome (add-on) | [`com.example.invitations.welcome.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/layered_rulesets/com.example.invitations.welcome.krl) | Reacting to the event another ruleset raises when it finishes |
+| Bootstrap | [`com.example.invitations.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/layered_rulesets/com.example.invitations.bootstrap.krl) | Installs only the base ruleset; the page adds the layers. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the page, which uses the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on the pico for the page. The bootstrap installs it.
+
+
+---
+
+# Cookbook: layered rulesets instructions
+
+# Layered rulesets: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/layered_rulesets/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Layered rulesets**, then **Run in a new child pico**. The bootstrap installs only the base ruleset. When it shows **ready**, open **Invitations**. The page walks you through three steps, adding one layer at a time.
+
+## Try it
+
+The **The pico answered** card lists the name of every directive in the reply, from every rule that ran, in order. At each step, click **Try the full invitation** and **Try the short link**, compare the answers with what the step card says to expect, then click **Add the next layer**.
+
+| Step | Installed | Full invitation | Short link |
+|------|-----------|-----------------|------------|
+| 1 | The base ruleset | `connected` | `nothing`: no rule selects it |
+| 2 | + `com.example.invitations.short_links` | `connected` | `expanded, connected` |
+| 3 | + `com.example.invitations.welcome` | `connected, welcome` | `expanded, connected, welcome` |
+
+The base ruleset is the same file at every step. Then:
+
+- Paste `https://short.example/nobody` and click **Accept**. The answer is `nothing`: the short links add-on selected it but has no such link, and the base never saw a full invitation.
+- On the **Rulesets** tab, uninstall `com.example.invitations.short_links`. The page goes back a step: the **Layer** table shows it is gone, short links get `nothing` again, and full invitations still get `connected, welcome`. **Add the next layer** puts it back.
+
+**Add the next layer** raises `layers:next_layer_requested`, and a rule in the base ruleset installs the next add-on from the same folder. That rule is scaffolding for the demo, and it installs only the two add-ons the base ruleset lists. On a real pico, the operator installs rulesets, and a page can't.
+
+## By hand
+
+1. Create a child pico and open its **Rulesets** tab.
+2. Install `io.picolabs.xmlui` from the engine: `http://localhost:3000/krl/io.picolabs.xmlui.krl`.
+3. Install the base: `http://localhost:3000/krl/demos/layered_rulesets/com.example.invitations.krl`. It creates a channel tagged `invitations, app`. Open the page on it (**View** next to `com.example.invitations`).
+4. Follow the steps above. To add a layer yourself instead of with the button, install `.../layered_rulesets/com.example.invitations.short_links.krl`, then `.../layered_rulesets/com.example.invitations.welcome.krl`, on the **Rulesets** tab.
+
+## How it works
+
+**The base rule** selects `invite:new_invitation` only when the `url` attribute is a full invitation, and captures the `c_i` code:
+
+```krl
+rule accept_invitation {
+  select when invite new_invitation
+    url re#^(https?://[^?]+[?](?:.*&)?c_i=([A-Za-z0-9+/_=-]+).*)$#
+    setting(url, code)
+  pre {
+    label = labelOf(code)
+  }
+  send_directive("connected", {"label": label})
+  fired {
+    ent:connections := connections().append({"label": label, "url": url, "time": time:now()})
+    raise invite event "connection_made" attributes {"label": label, "url": url}
+  }
+}
+```
+
+It raises `invite:connection_made` after recording the connection. Nothing in the base listens for that event. It is there for other rulesets.
+
+**The short links add-on** selects the same event with a pattern only short links match. It doesn't touch the base. It expands the link and raises the event again, with the full invitation as the `url`:
+
+```krl
+rule expand_short_link {
+  select when invite new_invitation
+    url re#^https://short[.]example/(\w+)$#
+    setting(code)
+  pre {
+    full = links{code}
+  }
+  if full then send_directive("expanded", {"from": event:attr("url"), "to": full})
+  fired {
+    raise invite event "new_invitation" attributes event:attrs.put("url", full)
+  }
+  else {
+    raise invite event "unknown_short_link" attributes event:attrs
+  }
+}
+```
+
+The second time around, the base's pattern matches and the add-on's doesn't. A real short link service would be expanded with `http:get` and its redirect. This one uses a table so the demo works offline.
+
+**The welcome add-on** selects `invite:connection_made`. It runs after every connection, however it was made.
+
+A raised event is handled in the same transaction, after the rules for the current event finish. So the reply to a short link has the directives of all three rulesets, in the order the rules ran.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit a file there, click **Flush**, and use the page again.
+
+- Add a short link: put `"ada": "https://agents.example/invite?c_i=eyJsYWJlbCI6IkFkYSBMb3ZlbGFjZSJ9"` in the `links` table in `com.example.invitations.short_links.krl`, then accept `https://short.example/ada`.
+- Change the welcome message in `com.example.invitations.welcome.krl`.
+- Write a third add-on that selects `invite:unknown_short_link` (the short links add-on raises it whether or not anything listens) and records the links nobody could expand. Install it from a `file://` URL.
+
+
+---
+
+# Cookbook: collection
+
+# Collection
+
+A pico that keeps track of a group of other picos is a pattern you will use often: the rooms in a building, the vehicles in a fleet, the sensors in a field. The best practice is a **relationship** with each member, labeled with roles: the collection pico plays `collection`, and each member plays `member`. Because roles label each relationship, the collection pico can have other relationships too, and tell them apart.
+
+Keep the collection ruleset small. Its only job is managing the collection: accept members, turn away requests in other roles, remove members, and provide the members to other rulesets. Other rulesets on the same pico use the members. Here, a report ruleset asks each room for its temperature over its relationship and averages them.
+
+To run it, follow the [instructions](/cookbook/collection/instructions). For one-to-one relationships first, see [Two picos talking](/cookbook/two_picos/).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Collection | [`com.example.collection.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/collection/com.example.collection.krl) | Accepting relationship requests by role and rejecting the rest (`inbound_rejection`), removing a member, raising `collection:member_added` and `member_removed`, and `provides members` for other rulesets |
+| Room | [`com.example.collection.room.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/collection/com.example.collection.room.krl) | A member that asks to join through the collection's well-known channel, and can leave (`subscription_cancellation`) and rejoin |
+| Room report | [`com.example.collection.report.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/collection/com.example.collection.report.krl) | `use module com.example.collection`, querying every member with `subscription:queryOnSub`, and a Rooms `@view` with a **Remove** button per member |
+| Bootstrap | [`com.example.collection.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/collection/com.example.collection.bootstrap.krl) | Creates a Rooms collection pico and five room picos. Four join as members; Stranger asks as a visitor and is turned away. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the page, which uses the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on the collection pico for the page. The bootstrap installs it. The rooms don't need it.
+
+
+---
+
+# Cookbook: collection instructions
+
+# Collection: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/collection/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Collection**, then **Run in a new child pico**. The bootstrap creates six children: Rooms (the collection), and Kitchen, Office, Garage, Bedroom, and Stranger. The stage counts rooms as they join. When it shows **ready**, open **Rooms**: four rooms averaging 69.5 F, and Stranger under **Turned away**.
+
+To see what the demo built, leave the **Try It!** tab and close the pico, so the developer UI shows the pico tree. The new child has six children of its own: Rooms, the four rooms, and Stranger. Click into each one and open its **Relationships** tab. Rooms has a relationship with each of the four rooms, with Rooms in the role `collection` and each room in the role `member`. Each room has the same relationship, seen from its side. Stranger has none.
+
+Then see if you can work out from the code why Stranger was turned away. Start with the `accept_member` rule in `com.example.collection.krl`, then look at how the bootstrap set Stranger up.
+
+<details>
+<summary>Why Stranger was turned away</summary>
+
+The bootstrap gives Stranger `"as": "visitor"`. Stranger's `join` rule puts that in its request as its own role, `"Rx_role": "visitor"`. At Rooms, the request arrives from Rooms' point of view, with Stranger's role as `Tx_role`. `accept_member` accepts only `Rx_role` `collection` and `Tx_role` `member`, so it raises `wrangler:inbound_rejection`. Wrangler removes the pending request on Rooms and tells Stranger, which removes it too. That's why Stranger's **Relationships** tab is empty.
+
+</details>
+
+## By hand
+
+1. Create a pico for the collection. On its **Rulesets** tab, install, in this order:
+   - `http://localhost:3000/krl/io.picolabs.xmlui.krl`
+   - `http://localhost:3000/krl/demos/collection/com.example.collection.krl`
+   - `http://localhost:3000/krl/demos/collection/com.example.collection.report.krl` (it uses the collection ruleset as a module, so install it second)
+2. On its **Channels** tab, copy the id of the channel tagged `wellknown_rx, tx_rx`.
+3. Create a pico for each room and install `http://localhost:3000/krl/demos/collection/com.example.collection.room.krl` on it.
+4. On each room's **Testing** tab, raise `room` `new_temperature` with a `temperature`, then `collection` `join_requested` with `wellKnown_Tx` set to the id from step 2.
+5. To see a request turned away, raise `join_requested` on one room with `as` set to `visitor` as well.
+6. Open the report on the collection's `collection, app` channel (**View** next to `com.example.collection.report`).
+
+## Try it
+
+- Click **Remove** next to a room. The collection cancels that relationship, and the room leaves the table and the average.
+- Open Office in the developer UI. On its **Testing** tab, raise `collection` `leave_requested`. Office leaves the table. The member ended the relationship this time.
+- Still on Office, raise `room` `new_temperature` with `temperature` set to `80`, then `collection` `rejoin_requested`. Office is back, at 80 F.
+- Look at the **Relationships** tab on Rooms and on a room. Each side has its own channel, and the roles say who is who.
+
+## How it works
+
+**Members are relationships.** The collection ruleset doesn't keep a list. Its members are its relationships in which the other pico is a member:
+
+```krl
+members = function() {
+  subscription:established("Tx_role", "member")
+}
+```
+
+It `provides members`, so another ruleset on the pico can `use module com.example.collection` and call `collection:members()`.
+
+**Joining.** A room asks through the collection's well-known channel, naming both roles: `Rx_role` `member` for itself, `Tx_role` `collection` for the other side. The request arrives at the collection with the roles from its point of view. `accept_member` accepts it only in the right roles, and otherwise rejects it and remembers who asked:
+
+```krl
+rule accept_member {
+  select when wrangler inbound_pending_subscription_added
+  pre {
+    acceptable = event:attr("Rx_role") == "collection" && event:attr("Tx_role") == "member"
+  }
+  if acceptable then noop()
+  fired {
+    raise wrangler event "pending_subscription_approval" attributes event:attrs
+  }
+  else {
+    ent:rejections := rejections().append({"name": event:attr("name"), "role": event:attr("Tx_role"), "time": time:now()})
+    raise wrangler event "inbound_rejection" attributes event:attrs
+    raise collection event "member_rejected" attributes event:attrs
+  }
+}
+```
+
+A role is what the requesting pico says it is. Stranger could ask again as a member and be accepted. Roles sort relationships; they don't prove anything. A collection that must be choosy checks something it trusts as well, such as who introduced the pico, as the bootstrap does by sending each room the well-known channel.
+
+**Leaving.** Either side can end a relationship with `wrangler:subscription_cancellation` and its `Id`. Both picos remove it, and both raise `wrangler:subscription_removed`. The collection turns that, and `subscription_added`, into its own `collection:member_removed` and `collection:member_added` events, for any ruleset that cares. `remove_member` only cancels relationships that are memberships, so the page's channel can't end any other relationship the pico has.
+
+**Reporting.** The report asks each member for its `reading` over its relationship:
+
+```krl
+readingOf = function(bus) {
+  reading = subscription:queryOnSub(bus{"Id"}, room_rid, "reading")
+  row = {"Id": bus{"Id"}, "name": reading{"name"}, "temperature": reading{"temperature"}}
+  row
+}
+```
+
+**The bootstrap.** It creates Rooms first. When Rooms is initialized, it sends Rooms its three install requests, then creates the room picos. For each room, it sends the room ruleset install request, then `collection:join_requested`. A pico handles events one at a time, in the order they arrive, so each ruleset is installed before the event that needs it. Because the requests to Rooms were sent before any room existed, the collection is ready before the first request to join arrives.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit a file there, click **Flush**, and use the page.
+
+- Report the warmest room too: in `com.example.collection.report.krl`, add the room with the highest temperature to the map `report()` returns, and show it in the subtitle.
+- Accept visitors as well: in `com.example.collection.krl`, let `accept_member` also accept `Tx_role` `visitor`, and add a `visitors()` function like `members()`. Then on Stranger's **Testing** tab, raise `collection` `join_requested` with `wellKnown_Tx` (Rooms' well-known channel id) and `as` set to `visitor`. Stranger is accepted, and it is not counted in the report, which only asks members.
+- Have the collection react to new members: add a rule that selects `collection:member_added` and records when each member joined.
+
+
+---
+
+# Cookbook: configuration and secrets
+
+# Configuration and secrets
+
+Rulesets that use outside services need secrets: API keys, passwords, webhook URLs with tokens in them. Those don't belong in KRL source, which ends up in repositories and on web servers. There are two ways to get a secret into a ruleset instead:
+
+- **Install configuration.** `wrangler:install_ruleset_request` takes a `config` map, and the ruleset reads it as `meta:rulesetConfig`.
+- **An event.** A rule selects an event the operator sends, and keeps the secret in an entity variable.
+
+Either way, the secret is not as hidden as it might seem. This demo shows both ways and where the secret can still be seen.
+
+The demo has two picos. The **hook service** stands in for an outside service, such as a chat app, that accepts posts at a webhook URL with a token in it. It gets its token from install configuration. The **notifier** posts messages to that webhook. It gets the URL in an event, and until then the rule that posts is not selected, so it can be installed on a working pico and does nothing until it is configured.
+
+To run it, follow the [instructions](/cookbook/secrets/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Notifier | [`com.example.notifier.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/secrets/com.example.notifier.krl) | A secret from an event, kept in an entity variable; a rule guarded by `where ent:webhook_url`; `http:post`; an operator event in its own domain, so the app channel can't reach it; a status that hides the token |
+| Hook service | [`com.example.hook_service.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/secrets/com.example.hook_service.krl) | A secret from `meta:rulesetConfig`, a channel that takes only `hook:post`, and rules that accept or refuse a post by its token |
+| Bootstrap | [`com.example.notifier.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/secrets/com.example.notifier.bootstrap.krl) | Installs the notifier, creates the hook service with a random token in its configuration, and sends messages before and after configuring the notifier. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the pages, which use the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on both picos for the pages. The bootstrap installs it.
+
+
+---
+
+# Cookbook: configuration and secrets instructions
+
+# Configuration and secrets: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/secrets/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Configuration and secrets**, then **Run in a new child pico**. When it shows **ready**, open **Notifier** and **Hook service inbox**.
+
+- The Notifier page says where it posts, with the token hidden. One message was not sent, because it came before the webhook was set. One was delivered, with HTTP status 200.
+- The inbox has the delivered message, and no refused posts.
+
+## By hand
+
+1. Create a pico for the hook service. On its **Rulesets** tab, install `http://localhost:3000/krl/io.picolabs.xmlui.krl`. Then install `http://localhost:3000/krl/demos/secrets/com.example.hook_service.krl` with a configuration, such as `{"token": "pick-a-long-random-string"}` (the **Rulesets** tab has a box for it).
+2. The hook service sends its webhook URL to its parent pico as `hook_service:webhook_url_issued`. Find it in the parent's **Logging** tab, or build it yourself: `http://localhost:3000/sky/event/<eci>/webhook/hook/post?token=<token>`, where `<eci>` is the hook service's channel tagged `hook_service, webhook`.
+3. Create a pico for the notifier and install `io.picolabs.xmlui` and `http://localhost:3000/krl/demos/secrets/com.example.notifier.krl` on it. Open its page on the `notifier, app` channel and send a message: it is not sent.
+4. On the notifier's **Testing** tab, raise `notifier_config` `new_webhook` with `webhook_url` set to the URL from step 2. Send a message from the page again: it is delivered.
+
+## Try it
+
+- On the Notifier page, send a few messages. Each appears in the inbox and in the Notifier's list with status 200.
+- Post to the webhook with the wrong token. Take the URL the Notifier page shows, replace `(hidden)` with anything, and `curl -X POST` it. The hook service answers with a `refused` directive, and its **Refused** count goes up.
+- On the Notifier's **Testing** tab, raise `notifier_config` `webhook_forgotten`. Messages from the page are counted as not sent again.
+
+## Where the secrets are visible
+
+Neither secret is in a ruleset file. That is the point of both methods. But both can still be seen, by anyone who can see the developer UI or the engine's files:
+
+| Where | What shows |
+|-------|------------|
+| **Rulesets** tab, on the hook service | The install configuration, with the token, for as long as the ruleset is installed. `wrangler:rulesetConfig` returns it too, to anyone with a channel that allows that query |
+| **Logging** tab | Every event's attributes: the install request with its `config`, the `webhook_url_issued` and `new_webhook` events with the URL, and every `hook:post`, because the token is in the URL |
+| `pico-engine.log` in the engine's home directory | The same events, until the log files rotate away |
+| The pico's database | The entity variables: the notifier's `ent:webhook_url` |
+
+The **Testing** tab hides the values of attributes named like `password`, `secret`, `token`, or `apikey` in its own saved history. The engine's logs don't.
+
+What the rulesets do to help:
+
+- The notifier shares `status()`, which hides the token, and never shares the URL itself.
+- `notifier_config:new_webhook` is in its own domain, and the app channel allows only `notifier` events. The page can send messages but can't change where they go. Put operator events in a domain the app channel doesn't allow.
+- The rule that posts is selected only `where ent:webhook_url`, so the notifier is idle, not failing, until it has a URL.
+
+## How it works
+
+**From install configuration.** The hook service reads its token from the configuration it was installed with:
+
+```krl
+token = function() {
+  meta:rulesetConfig{"token"}
+}
+```
+
+The bootstrap installs it with `"config": {"token": random:uuid()}`, so each run gets a new token.
+
+**From an event.** The notifier keeps the URL it is sent:
+
+```krl
+rule set_webhook {
+  select when notifier_config new_webhook
+    webhook_url re#^(https?://.+)$#
+    setting(url)
+  always {
+    ent:webhook_url := url
+    ent:configured_at := time:now()
+  }
+}
+```
+
+**Idle until configured.** Two rules select `notifier:message`, and their `where` clauses decide which one runs:
+
+```krl
+rule notify {
+  select when notifier message where ent:webhook_url
+  pre {
+    text = event:attr("text") || "Hello from a pico"
+  }
+  http:post(ent:webhook_url, json = {"text": text}) setting(response)
+  fired {
+    ent:deliveries := deliveries().append({"text": text, "status": response{"status_code"}, "time": time:now()})
+  }
+}
+
+rule not_configured {
+  select when notifier message where not ent:webhook_url
+  ...
+}
+```
+
+**Accepting or refusing.** The hook service's webhook channel allows only `hook:post`. Its `receive` rule selects posts `where event:attr("token") == token()`, and `refuse` selects the rest.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit a file there, click **Flush**, and use the pages.
+
+- Show less: in `com.example.notifier.krl`, make `masked` hide everything after the host, not just the token.
+- Use configuration for the notifier too: read the URL from `meta:rulesetConfig{"webhook_url"}` when `ent:webhook_url` is not set, and reinstall it with a configuration on the **Rulesets** tab. Then look at where the URL shows.
+- Rotate the token: on the hook service's **Rulesets** tab, install `com.example.hook_service` again from the same URL with a new configuration. Messages from the notifier now raise the inbox's **Refused** count. The Notifier still records status 200, because the hook service answers every post and says "refused" in a directive. Make `notify` record the directive's name, or send the notifier the new URL with `notifier_config` `new_webhook`.
+
+
+---
+
+# Cookbook: bootstrap and channels
+
+# Bootstrap and channels
+
+Two habits make a KRL app easy to install:
+
+- **A bootstrap ruleset.** An app of several rulesets has an install order: a ruleset that uses another as a module can't be installed before it. A bootstrap ruleset knows the order. Installed on a pico, it installs the others one at a time, each when the `wrangler:ruleset_installed` event for the one before arrives, and gives each its configuration. Every Try It! demo starts this way.
+- **A channel made on install.** An app ruleset creates the channel its users need from a rule that selects its own `wrangler:ruleset_installed`. That rule updates the channel if it already exists, so reinstalling doesn't pile up channels or change the channel id people are using.
+
+This demo is a small visitor log. The bootstrap installs a formatting module and then the app, with a greeting in its install configuration. The app creates its channel with a policy built from its own schema. The schema lists only documented rules and functions, so the channel allows exactly the ruleset's documented API.
+
+To run it, follow the [instructions](/cookbook/bootstrap/instructions).
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Bootstrap | [`com.example.visitors.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/bootstrap/com.example.visitors.bootstrap.krl) | Installing in dependency order with `install_ruleset_request` and `absoluteURL: meta:rulesetURI`, and passing `config` |
+| Formatting | [`com.example.visitors.format.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/bootstrap/com.example.visitors.format.krl) | A module the app needs, so it goes first |
+| Visitor log | [`com.example.visitors.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/bootstrap/com.example.visitors.krl) | `meta:rulesetConfig`; a channel created on install, with a policy built from `wrangler:rulesetSchema`; updated in place with `wrangler:updateChannel`; and duplicates cleaned up with `wrangler:deleteChannel` |
+
+## What you need
+
+- A running pico engine (1.9.4 or later for the page, which uses the shared `PicoTheme` component).
+- `io.picolabs.xmlui` on the pico for the page. The bootstrap installs it.
+
+
+---
+
+# Cookbook: bootstrap and channels instructions
+
+# Bootstrap and channels: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/bootstrap/) for what the demo shows.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **Bootstrap and channels**, then **Run in a new child pico**. The stage names each ruleset as it is installed. When it shows **ready**, open **Visitor log**.
+
+## By hand
+
+Installing the app by hand is the job the bootstrap does for you:
+
+1. Create a child pico and open its **Rulesets** tab.
+2. Install `http://localhost:3000/krl/io.picolabs.xmlui.krl`.
+3. Install `http://localhost:3000/krl/demos/bootstrap/com.example.visitors.format.krl`. It has to come before the app, which uses it as a module.
+4. Install `http://localhost:3000/krl/demos/bootstrap/com.example.visitors.krl` with the configuration `{"greeting": "Welcome"}`. Leave the configuration out and visitors are greeted with "Hello".
+5. Its install rule creates a channel tagged `visitors, app`. Click **View** next to `com.example.visitors` and open it on that channel.
+
+## Try it
+
+- Sign in. The greeting comes from the install configuration.
+- **How the bootstrap set up this pico** lists the installed rulesets in install order. On the **Logging** tab, follow the `wrangler:ruleset_installed` events, each followed by the next install request.
+- **This app's channel** shows the channel the install rule made, and the events its policy allows.
+- Click **Run the channel rule again**. The answer is `set_up_channel`, and the channel's id is unchanged.
+- Click **Make a duplicate, the naive way** twice: three channels with the same tags, the way a create-only install rule leaves a pico after a few reinstalls.
+- Click **Clean up duplicates**. Every channel except the one this page uses is deleted.
+
+## How it works
+
+**The bootstrap** chains installs on `wrangler:ruleset_installed`. Each rule waits for the ruleset the next one needs:
+
+```krl
+rule install_app {
+  select when wrangler ruleset_installed where event:attr("rids") >< format_rid
+  always {
+    raise wrangler event "install_ruleset_request" attributes
+      {"absoluteURL": meta:rulesetURI, "rid": app_rid, "config": {"greeting": "Welcome"}}
+  }
+}
+```
+
+`absoluteURL: meta:rulesetURI` with a `rid` installs `<rid>.krl` from the folder the bootstrap came from, so the app installs the same way from the engine, from GitHub, or from a `file://` URL. `config` becomes the app's `meta:rulesetConfig`.
+
+**The app's install rule** selects its own install (the `where` keeps it from running when other rulesets are installed later), and also an event you can send to run it again:
+
+```krl
+rule set_up_channel {
+  select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+           or visitor_channel check_requested
+  pre {
+    existing = wrangler:channels(channel_tags).head()
+  }
+  if existing then every {
+    wrangler:updateChannel(existing{"id"}, channel_tags, eventPolicy(), queryPolicy())
+    send_directive("set_up_channel", {"result": "updated", "id": existing{"id"}})
+  }
+  notfired {
+    raise visitor_setup event "channel_missing"
+  }
+}
+```
+
+When there is no channel yet, `create_channel` makes one. `updateChannel` keeps the id, so links and pages that use the channel keep working.
+
+**The policy** comes from the ruleset's schema, `wrangler:rulesetSchema(meta:rid)`. Its `operations` list the events each rule selects, and its `queries` list the shared functions. Both include only rules and functions with doc comments. `eventPolicy()` allows those events, except `wrangler`'s. `queryPolicy()` allows those functions plus what the page shell needs from `io.picolabs.xmlui`. `create_channel` has no doc comment, so the event that starts it isn't on the channel.
+
+**Flushing** reloads a ruleset's code, but it doesn't raise `wrangler:ruleset_installed` again, because the ruleset was already installed. Channels made on install keep their old policy until the install rule runs again. That's what **Run the channel rule again** is for.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit a file there, click **Flush**, and use the page.
+
+- Add a documented rule to `com.example.visitors.krl` that selects `visitor waved`. After **Flush**, `visitor/waved` on the page's channel is refused. Click **Run the channel rule again**: now it is allowed.
+- Change the greeting word in the bootstrap's `install_app`, and run the demo again in a new child.
+- Make the bootstrap uninstall itself when it's done, by raising `wrangler:uninstall_ruleset_request` with `{"rid": meta:rid}` after the app is installed. The app still works. The Try It! tab loses track of it, though, because it asks the bootstrap's `tryIt()` for progress.
+
+
+---
+
+# Cookbook: KBlog
+
+# KBlog
+
+A blog written in KRL, built from four rulesets on one pico. No ruleset knows how the others work. They cooperate by raising events, and each rule does one thing:
+
+- **Pages** (`com.example.kblog`): Home, a page for each article, Contact, and Post.
+- **Data** (`com.example.kblog.data`): stores the articles and provides them.
+- **Posting** (`com.example.kblog.posting`): checks each post an author submits and passes it on.
+- **Configuration** (`com.example.kblog.config`): the title and the fixed text.
+
+Readers and authors use different channels on the same pico. The reader channel opens every page except Post and accepts no events. The author channel, which the posting ruleset creates when it is installed, adds the Post page and exactly two events. Each time an author posts, the Post page shows the path the post took through the rulesets.
+
+To run it, follow the [instructions](/cookbook/kblog/instructions).
+
+## The event hierarchy
+
+Events are nouns: they say what happened. Rules are verbs: they say what the pico does about it. The write side of KBlog is a chain of them:
+
+```
+kblog:post_submitted                      (from the author channel)
+  ├─ handle_submit      posting  ──▶  kblog:new_article_available
+  │                                     └─ add_article        data   ──▶  kblog:new_article_added
+  │                                                                         └─ show_new_article  pages  ──▶  kblog:front_page_updated
+  └─ reject_submit      posting       (no name or title: nothing is added)
+
+kblog:clear_requested                     (from the author channel)
+  └─ clear_articles     data     ──▶  kblog:articles_cleared
+                                        └─ show_empty_blog    pages  ──▶  kblog:front_page_updated
+```
+
+Every rule that changes something raises an event saying what is now true, even when nothing listens yet (`front_page_updated`). A ruleset added later can react without anyone editing these.
+
+The read side is queries, not events. The Home page calls `articles()` and an article page calls `article(id)`, which the pages ruleset gets from the data ruleset as a module.
+
+## From the 2011 KBlog
+
+The [original KBlog](https://github.com/windley/KBlog) ran on the classic engine, which raised events from a browser and let rules paint the page. Its design is described in [Event Hierarchies: A Blog Written in KRL](https://www.windley.com/archives/2011/04/event_hierarchies_a_blog_written_in_krl.shtml). This version keeps its rulesets, rule names, and events where they still make sense:
+
+| 2011 | Now |
+|------|-----|
+| KBlog (`a16x88`) painted the page with `replace_html` in response to `pageview` and `web:click` | `com.example.kblog` serves XMLUI pages. Navigation and the back button come from the page routes (`/`, `/post/:id`, `/contact`, `/new`) |
+| `show_home` raised `need_blog_data`; KBlog Data answered with `blog_data_ready` carrying the articles | The page queries `articles()`. Reading is a query; writing stays a chain of events |
+| KBlog Data (`a16x89`) kept the articles in an application variable | `com.example.kblog.data` keeps them in an entity variable on the blog pico. `add_article` and `new_article_added` are unchanged |
+| KBlog Posting (`a16x90`) ran only for people who had installed it in their browser | `com.example.kblog.posting` creates the author channel. The channel's policy, not who has the code, decides who can post |
+| KBlog Configuration (`a16x93`) provided the title, about text, and shared actions | `com.example.kblog.config` provides the title and text. The page layout is a component (`BlogAbout`) |
+| KBlog Tweeter (`a16x91`) tweeted new posts | Left out. A ruleset that selects `kblog:new_article_added` would be its place |
+
+## The rulesets
+
+| Ruleset | File | What it shows |
+|---------|------|---------------|
+| Pages | [`com.example.kblog.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/kblog/com.example.kblog.krl) | Four `@view`s with routes, including a detail page (`/post/:id`); a `@component` used on every page; Markdown rendered safely from data; a page whose form comes from another ruleset; the reader channel |
+| Data | [`com.example.kblog.data.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/kblog/com.example.kblog.data.krl) | One ruleset owning the data: rules that change it raise events, and `provides` lets other rulesets read it |
+| Posting | [`com.example.kblog.posting.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/kblog/com.example.kblog.posting.krl) | Checking input before raising the internal event; a `@component` another ruleset's page shows; a channel policy that names single events |
+| Configuration | [`com.example.kblog.config.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/kblog/com.example.kblog.config.krl) | A module of settings other rulesets use |
+| Bootstrap | [`com.example.kblog.bootstrap.krl`](https://github.com/Picolab/pico-engine/blob/master/demos/kblog/com.example.kblog.bootstrap.krl) | Installing rulesets in dependency order, each on the previous one's `ruleset_installed`, then submitting three posts. The developer UI's **Try It!** tab runs it |
+
+## What you need
+
+- A running pico engine (1.9.4 or later: the pages use components).
+- `io.picolabs.xmlui` on the blog pico. The bootstrap installs it.
+
+
+---
+
+# Cookbook: KBlog instructions
+
+# KBlog: instructions
+
+These steps use the developer UI of a running engine at `http://localhost:3000`. Replace that with your engine's URL. See the [overview](/cookbook/kblog/) for what the demo shows and how it differs from the 2011 KBlog.
+
+## The quick way: Try It!
+
+On the root pico in the developer UI, open the **Try It!** tab, click **KBlog**, then **Run in a new child pico**. The bootstrap installs the rulesets and submits three posts. When it shows **ready**, it has two links:
+
+- **Read the blog (reader channel)**: Home and Contact. There is no Post page.
+- **Write a post (author channel)**: Home, Contact, and Post.
+
+## By hand
+
+1. Create a child pico and open its **Rulesets** tab.
+2. Install these from the engine, in this order. Each one after the first uses an earlier one as a module.
+   - `http://localhost:3000/krl/io.picolabs.xmlui.krl`
+   - `http://localhost:3000/krl/demos/kblog/com.example.kblog.config.krl`
+   - `http://localhost:3000/krl/demos/kblog/com.example.kblog.data.krl`
+   - `http://localhost:3000/krl/demos/kblog/com.example.kblog.krl`, which creates the `kblog, reader` channel
+   - `http://localhost:3000/krl/demos/kblog/com.example.kblog.posting.krl`, which creates the `kblog, author` channel
+3. Click **View** next to `com.example.kblog` and open it on either channel.
+
+## Try it
+
+- On the author channel, open **Post**, write a post, and click **Post**. The **Event path** card reads `handle_submit → add_article → show_new_article`: one rule in each of three rulesets. Open **Home**: your post is first, marked **New**.
+- Submit a post without a title. The path is `reject_submit`, and nothing is added.
+- Click an article's title. Its page is at `#/post/<id>`, so you can bookmark it, and the browser's back button returns to Home.
+- On the reader channel, try to post anyway. Replace `<reader eci>` with the id in the reader page's URL:
+
+  ```sh
+  curl -X POST "http://localhost:3000/sky/event/<reader eci>/demo/kblog/post_submitted" \
+    -H 'content-type: application/json' -d '{"author": "Mallory", "title": "Hi"}'
+  ```
+
+  The answer is `{"error":"Error: Not allowed by channel policy"}`.
+- On the author channel, try to skip the check by raising the internal event yourself: `kblog/new_article_available` instead of `kblog/post_submitted`. The author channel refuses it too. It allows `post_submitted` and `clear_requested` and nothing else.
+- **Clear the blog** on the Post page deletes every article. The path is `clear_articles → show_empty_blog`.
+
+## How it works
+
+**Posting** checks a post and passes it on. It doesn't store anything:
+
+```krl
+rule handle_submit {
+  select when kblog post_submitted
+    author re#(\S.*)#
+    title re#(\S.*)#
+    setting(author, title)
+  send_directive("handle_submit", {"title": title})
+  fired {
+    raise kblog event "new_article_available" attributes
+      {"author": author, "title": title, "body": event:attr("body") || ""}
+  }
+}
+```
+
+**Data** stores the article and says so:
+
+```krl
+rule add_article {
+  select when kblog new_article_available
+  pre {
+    id = ent:next_id.defaultsTo(1)
+    entry = {"id": id, "author": event:attr("author"), "title": event:attr("title"),
+             "body": event:attr("body") || "", "time": time:now()}
+  }
+  send_directive("add_article", {"id": id})
+  fired {
+    ent:next_id := id + 1
+    ent:articles{id.as("String")} := entry
+    raise kblog event "new_article_added" attributes entry
+  }
+}
+```
+
+**Pages** marks the newest article and raises `kblog:front_page_updated`. The Home page reloads its articles every five seconds, so readers see new posts without reloading.
+
+Each rule answers with a directive named after itself. A raised event is handled in the same transaction as the event that raised it, after that event's rules finish. So the response to `post_submitted` holds the directives of every rule that ran, in order. The Post page joins their names into the event path.
+
+**Who can post** is the author channel's policy:
+
+```krl
+wrangler:createChannel(
+  ["kblog", "author"],
+  {"allow": [{"domain": "kblog", "name": "post_submitted"}, {"domain": "kblog", "name": "clear_requested"}], "deny": []},
+  authorQueryPolicy()
+)
+```
+
+Its query policy allows every page, including Post, plus the posting ruleset's `PostForm` component. The reader channel, made by `ui:create_app_channel` in the pages ruleset, allows the other pages and no events. The navigation shows only the pages a channel allows, so readers never see Post.
+
+**The Post page** is in the pages ruleset, but its form is the `PostForm` component from the posting ruleset. The engine finds a component in the app's ruleset, then in `io.picolabs.xmlui`, then in one other installed ruleset that defines it.
+
+**Article text** is Markdown from whoever posted it, so the pages render it with `<Markdown content="{$item.body}" allowHtml="false" interpolateBindings="false" />`. HTML in a post shows as text, and nothing in it is evaluated.
+
+## Change it and watch
+
+The **Try It!** window lists each file with its path on disk. Edit a file there, click **Flush**, and reload the page.
+
+- Rename the blog: change the string `blogtitle` returns in `com.example.kblog.config.krl`, flush it, and reload. The pages call the configuration module each time they are generated, so only the module needs flushing.
+- Put back the tweeter as a new ruleset whose rule selects `kblog:new_article_added`, records each title, and sends a directive named after itself. Install it from a `file://` URL and post: the event path gets a fourth name, with no change to the other rulesets.
+- Add a word limit: a rule in `com.example.kblog.posting.krl` that rejects bodies over 200 words. Make `handle_submit` skip them too, so only one of the two rules runs.
+
+
+---
+
+# Patterns and tips
+
+# Patterns and tips
+
+Short techniques for writing KRL and running picos, checked against the current engine. They come from the Pico Labs KRL Cookbook, which was written for earlier engines. The pages here have been updated where KRL or the engine has changed. For runnable examples, see the [Cookbook](/cookbook/) and the developer UI's **Try It!** tab.
+
+## Working with data
+
+| Page | What it covers |
+|------|----------------|
+| [Initializing entity variables](/patterns_and_tips/initializing-entity-variables) | `defaultsTo`, a guard rule, or a rule that runs on install |
+| [Arrays and maps](/patterns_and_tips/arrays-and-maps) | Loops with `reduce`, flattening, and sorting arrays of maps by one key or two |
+| [Decoding form-encoded data](/patterns_and_tips/decoding-form-data) | Turning `a=1&b=2` into a map, keeping repeated names, and decoding `+` and `%xx` |
+| [Importing tables and CSV](/patterns_and_tips/tabular-data) | Tab- and comma-separated exports to arrays and maps, fetched with `http:get` |
+| [Converting time formats](/patterns_and_tips/converting-time-formats) | RSS (RFC 2822) dates to the RFC 3339 form the time library uses |
+| [What's in a name?](/patterns_and_tips/names-and-scope) | KRL's separate kinds of names, and how a `pre` declaration shadows a global |
+
+## HTTP and the outside world
+
+| Page | What it covers |
+|------|----------------|
+| [Events and queries over HTTP](/patterns_and_tips/events-and-queries-over-http) | Event and query URLs, `curl`, POST bodies, `.txt` and `.html` results, and `_headers` |
+| [Cookies and redirects](/patterns_and_tips/cookies-and-redirects) | The `_cookie` and `_redirect` directives, reading cookies, and a URL shortener |
+| [Events from email](/patterns_and_tips/events-from-email) | A mail webhook to an event, routing by address, and turning message lines into events |
+| [Reading the engine's log files](/patterns_and_tips/engine-log-files) | Where the logs are, how they rotate, and one pico's history with `grep` and `jq` |
+
+## Picos working together
+
+| Page | What it covers |
+|------|----------------|
+| [Querying another pico](/patterns_and_tips/querying-another-pico) | `wrangler:picoQuery`, which channel to use, why a pico can't query itself, and `http:get` |
+| [Accepting relationship requests](/patterns_and_tips/accepting-relationship-requests) | An approving rule, wrangler's auto-accept configuration, and a ruleset that accepts later and removes itself |
+| [One pico per resource](/patterns_and_tips/singleton-picos) | Giving a device or account its own pico, so requests can't collide |
+
+## Developing rulesets
+
+| Page | What it covers |
+|------|----------------|
+| [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets) | `file://`, GitHub raw, and engine URLs; flushing; `krl-check` and a Git pre-commit hook |
+
+## Patterns that became demos
+
+These best practices are now runnable demos in the [Cookbook](/cookbook/):
+
+| Pattern | Demo |
+|---------|------|
+| Idempotency and guard rules; authorize, then use | [Guard rules](/cookbook/guard_rules/) |
+| Splitting rules for clarity and extensibility; layering functionality with rulesets; semantic translation (eavesdropping on events) | [Layered rulesets](/cookbook/layered_rulesets/) |
+| Collection picos | [Collection](/cookbook/collection/) |
+| Access tokens and other secrets; keeping keys safe | [Configuration and secrets](/cookbook/secrets/) |
+| Installing a multi-ruleset application; creating a channel for a ruleset; keeping channels clean | [Bootstrap and channels](/cookbook/bootstrap/) |
+| An echo server | [Echo](/cookbook/echo/) |
+| A score tracker | [Score tracker](/cookbook/score_tracker/) |
+| A child pico for an asynchronous task | [Child pico tasks](/cookbook/child_tasks/) |
+| Automatic replies to relationship requests; querying over a relationship | [Two picos talking](/cookbook/two_picos/) |
+| An event hierarchy across rulesets | [KBlog](/cookbook/kblog/) |
+
+## In the KRL manual
+
+- Using persistent variables: [Persistent variables](/krl/persistent-variables/)
+- Writing a `send_warning()` action: [User-defined actions](/krl/krl-expression-language/user-defined-actions)
+
+## Left out
+
+Pages that describe things the current engine no longer has, or that depend on outside services:
+
+- **Sending secure messages** used `engine:signChannelMessage` and its relatives, which are gone. Relationships between picos can use DIDComm now; see the [`dido` library](/krl/libraries/dido/).
+- **Shorter URL for a query or event** used `io.picolabs.rewrite` on the root pico, removed in engine 1.0. A ruleset can do the same with `_redirect`: see [Cookies and redirects](/patterns_and_tips/cookies-and-redirects).
+- **Account management using the root pico** described owner picos from before engine 1.0.
+- **Generate an image with KRL**, **Using Foursquare data**, **Using Wovyn sensors**, **Using Git**, and **Using a Google sheet** are about particular services, devices, or tools rather than KRL.
+- **Proposals, experiments, and proofs of concept** (personal channels, generating KRL with KRL, JavaScript rulesets, and others) were experiments on earlier engines.
+
+
+---
+
+# Tip: initializing entity variables
+
+# Initializing entity variables
+
+Each ruleset installed in a pico gives the pico its own entity variables, specific to that pico and that ruleset. Until a rule's postlude first assigns one, its value is `null`. There are three ways to deal with that.
+
+## Use `defaultsTo` wherever you read it
+
+`defaultsTo` supplies a value when the variable is `null`. Suppose `ent:owners` will be a map but might not exist yet:
+
+```krl
+nameExists = function(ownername) {
+  ent:owners.defaultsTo({}) >< ownername
+}
+```
+
+The first time the map is stored, start from the same default:
+
+```krl
+rule owner_token {
+  select when owner token_created
+  pre {
+    name = event:attr("name")
+    new_owner = event:attr("owner")
+  }
+  fired {
+    ent:owners := ent:owners.defaultsTo({}).put(name, new_owner)
+  }
+}
+```
+
+With this technique, every use of `ent:owners` in the ruleset needs `defaultsTo`. A shared function that returns `ent:owners.defaultsTo({})` keeps that in one place.
+
+## Initialize it in a guard rule
+
+Put a rule before the others that select the same event, and have it create the variable when it is missing:
+
+```krl
+rule guard_owners_map {
+  select when owner token_created
+  if ent:owners.isnull() then noop()
+  fired {
+    ent:owners := {}
+  }
+}
+```
+
+Rules in one ruleset that select the same event run in the order they are written, so this one runs first. The rules after it can then use a path assignment, which is also faster for a large map:
+
+```krl
+rule owner_token {
+  select when owner token_created
+  pre {
+    name = event:attr("name")
+    new_owner = event:attr("owner")
+  }
+  fired {
+    ent:owners{name} := new_owner
+  }
+}
+```
+
+Functions still need `defaultsTo`, in case a query arrives before any event does.
+
+## Initialize it when the ruleset is installed
+
+A rule that selects the ruleset's own `wrangler:ruleset_installed` runs before anything else can use the ruleset:
+
+```krl
+rule initialization {
+  select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+  if ent:owners.isnull() then noop()
+  fired {
+    ent:owners := {}
+  }
+}
+```
+
+The `where` clause matters. Many rulesets are installed in a pico over its life, and without it this rule would run every time. Checking `isnull()` first is good practice too.
+
+Installing again from the same URL, or flushing, does not raise `ruleset_installed` again. A rule like this runs once per install.
+
+See also: [Persistent variables](/krl/persistent-variables/) in the KRL manual, and the [Guard rules](/cookbook/guard_rules/) demo.
+
+*From the Pico Labs KRL Cookbook page "Initializing entity variables".*
+
+
+---
+
+# Tip: arrays and maps
+
+# Arrays and maps
+
+KRL has no `for` loop in expressions. Array operators do the same work: `map`, `filter`, `reduce`, `sort`, and the others in [Array operators](/krl/krl-expression-language/operators/array-operators). Here are a few patterns that come up often.
+
+## Loop with `reduce`
+
+To repeat a step a fixed number of times, `reduce` over a range and carry the state in the accumulator. This converts a number to an 8-byte array, high byte first, the way this JavaScript does:
+
+```js
+for (var index = 0; index < byteArray.length; index++) {
+  var byte = long & 0xff;
+  byteArray[index] = byte;
+  long = (long - byte) / 256;
+}
+```
+
+```krl
+toByteArray = function(str) {
+  1.range(8)
+    .reduce(function(a, i) {
+      [a[0].append(a[1] % 256), math:int(a[1] / 256)]
+    }, [[], str.as("Number")])
+    .head()
+    .reverse()
+}
+```
+
+`1.range(8)` is `[1, 2, ... 8]`. It only counts; the function doesn't use `i`. The accumulator is a pair: the bytes so far, and what's left of the number. Each step appends the low byte and divides by 256. At the end, `head()` takes the bytes and `reverse()` puts the high byte first. `toByteArray("1551127401")` is `[0,0,0,0,92,116,83,105]`.
+
+Add `.klog("step")` inside the function to watch the accumulator change on each step.
+
+The inverse is one `reduce`. With no initial value, it starts from the first element:
+
+```krl
+fromByteArray = function(bytes) {
+  bytes.reduce(function(a, b) { a * 256 + b })
+}
+```
+
+## Flatten an array of arrays
+
+```krl
+[[1, 2, 3], [4, 5, 6], [7, 8, 9]].reduce(function(a, b) { a.append(b) }, [])
+// [1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+## Sort an array of maps
+
+`sort` takes a comparison function. A function that returns one, for a given key, reads well:
+
+```krl
+by = function(key) {
+  function(a, b) { a{key}.encode() cmp b{key}.encode() }
+}
+```
+
+`wrangler:channels().sort(by("id"))` reads "my channels, sorted by id". `cmp` compares strings, and `encode()` turns any value into a string, so `by` works whatever the values are. For numbers, compare them as numbers instead: `people.sort(function(a, b) { a{"born"} <=> b{"born"} })`.
+
+For a primary and a secondary key:
+
+```krl
+by = function(key1, key2) {
+  key2 =>
+    function(a, b) {
+      a{key1}.encode() cmp b{key1}.encode() ||
+      a{key2}.encode() cmp b{key2}.encode()
+    }
+  |
+    function(a, b) { a{key1}.encode() cmp b{key1}.encode() }
+}
+```
+
+`||` stops at the first comparison that isn't zero, so the second key only breaks ties. `by("last", "first")` sorts by last name, then first name, and `by` still works with one key.
+
+A key can also be a path, such as `by(["meta", "flushed"])`, because `a{["meta", "flushed"]}` looks up a nested value.
+
+*From the Pico Labs KRL Cookbook pages "Looping using the reduce operator", "Flatten an Array of Arrays", and "Sorting an Array of Maps".*
+
+
+---
+
+# Tip: decoding form-encoded data
+
+# Decoding form-encoded data
+
+Form-encoded content, such as `q=5&value=%20space%20`, sometimes arrives as a single string: in a webhook body, a stored URL, or a query string you built. A chain of operators turns it into a map.
+
+## Names and values
+
+```krl
+nv_split = function(x) { x.extract(re#([^=]*)=?(.*)#) }  // "n=v" -> ["n", "v"]
+frst = function(a) { a.head() }
+dup_1st = function(v) { v[0][1] }
+
+decodeContent = function(content) {
+  content            // "n0=v0&n1=v1&..."
+    .split(re#&#)    // ["n0=v0", "n1=v1", ...]
+    .map(nv_split)   // [["n0", "v0"], ["n1", "v1"], ...]
+    .collect(frst)   // {"n0": [["n0", "v0"]], "n1": [["n1", "v1"]], ...}
+    .map(dup_1st)    // {"n0": "v0", "n1": "v1", ...}
+}
+```
+
+`decodeContent("q=5&value=%20space%20")` is `{"q": "5", "value": "%20space%20"}`.
+
+- `split` makes an array of `name=value` strings.
+- `extract` matches each one against a regular expression and returns its capture groups, the name and the value.
+- `collect` groups the pairs into a map keyed by name. Each value is an array of every pair with that name.
+- The map operator `map` keeps the first value for each name.
+
+## Keep every value of a repeated name
+
+When a name can repeat, keep all its values:
+
+```krl
+dup_all = function(v) {
+  v.length() == 1 => v[0][1] | v.map(function(w) { w[1] })
+}
+```
+
+Use `.map(dup_all)` in place of `.map(dup_1st)`. `a=1&a=2&b=3` becomes `{"a": ["1", "2"], "b": "3"}`.
+
+## Decode `+` and `%xx`
+
+`replace` accepts a function as its second argument. It is called with the match and then each capture group, and returns the replacement:
+
+```krl
+hexDigits = "0123456789abcdef"
+
+hex2dec = function(hex) {
+  hex like re#^[0-9A-Fa-f]+$#
+    => hex.lc().split("").reduce(function(a, h) { a * 16 + hexDigits.split("").index(h) }, 0)
+    | null
+}
+
+hex2char = function(encoded, hex) {
+  val = hex2dec(hex)
+  val && val < 128 => val.chr() | encoded
+}
+
+decode_val = function(s) {
+  s.replace(re#[+]#g, " ").replace(re#%([0-9A-Fa-f]{2})#g, hex2char)
+}
+```
+
+Replace `+` first: early encoders used it for a space, and a real plus sign arrives as `%2B`. Then use `function(v) { decode_val(v[0][1]) }` as the last step of the chain. `value=%20space%20&plus=a%2Bb&pct=100%25` becomes `{"value": " space ", "plus": "a+b", "pct": "100%"}`. This handles ASCII characters. Anything above 127 is left encoded.
+
+Events and queries that arrive over HTTP are already decoded: the engine gives you their attributes as a map. This is for strings you have in hand.
+
+*From the Pico Labs KRL Cookbook page "Decoding WWW-Form Encoded Content or Query Parameters".*
+
+
+---
+
+# Tip: importing tables and CSV
+
+# Importing tables and CSV
+
+Data exported from a spreadsheet or another system usually arrives as text: tab-separated (TSV) or comma-separated (CSV) lines. If the other system can export JSON, use that instead. `decode()` turns a JSON string into KRL data in one step.
+
+## Lines
+
+Exports end lines with `\n` or, from Windows, `\r\n`. One regular expression handles both:
+
+```krl
+lineBreak = re#\r?\n#
+lines = content.split(lineBreak).filter(function(s) { s })
+```
+
+`filter(function(s) { s })` drops empty lines: an empty string is falsy, and there is usually one after the last line break. Another way is to let a global regular expression find the lines: `content.extract(re#(.+)#g)`.
+
+## A table to an array of maps
+
+When the first row names the columns, make each data row a map:
+
+```krl
+tsv = function(content) {
+  lines = content.split(re#\r?\n#).filter(function(s) { s })
+  keys = lines.head().split(re#\t#)
+  lines.tail().map(function(line) {
+    values = line.split(re#\t#)
+    keys.reduce(function(m, k, i) { m.put(k, values[i]) }, {})
+  })
+}
+```
+
+Given
+
+```
+A	B
+1	2
+3	4
+```
+
+`tsv(content)` is `[{"A": "1", "B": "2"}, {"A": "3", "B": "4"}]`. The `reduce` passes each key's index as its third argument, which picks the matching value.
+
+## CSV with a known shape
+
+CSV is harder, because a value that contains a comma is wrapped in double quotes. When you know what each line looks like, match the whole line with a regular expression and let the last group take the rest:
+
+```krl
+graduands = function(content) {
+  content.extract(re#(.+)#g)
+    .tail()
+    .map(function(line) { line.extract(re#^([\w ]+),(\w+),(\d+),(\d+),(.*)$#) })
+}
+```
+
+`Ada Lovelace,AL,1,1843,"Notes, on the engine"` becomes `["Ada Lovelace", "AL", "1", "1843", "\"Notes, on the engine\""]`. Strip the quotes from that last field if you need to. `tail()` skips the header line.
+
+## Fetch the file
+
+Rather than passing a whole file to a function, give it a URL:
+
+```krl
+import = function(url) {
+  tsv(http:get(url){"content"})
+}
+```
+
+A function that calls `http:get` runs on every query, so for a large file, import it once in a rule and store the result in an entity variable.
+
+*From the Pico Labs KRL Cookbook pages "Converting a table to an Array of Maps" and "Importing data from other systems".*
+
+
+---
+
+# Tip: converting time formats
+
+# Converting time formats
+
+The [time library](/krl/libraries/time) works with ISO 8601 / RFC 3339 times such as `2011-09-21T15:02:01-07:00`. Other formats need converting first. RSS feeds, for example, give dates like `Wed, 21 Sep 2011 15:02:01 -0700` (RFC 2822), and `time:new` rejects them: `time:new was given an invalid date string`.
+
+This function rearranges the parts:
+
+```krl
+mon2num = {
+  "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06",
+  "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"
+}
+
+rss2krlTime = function(pubDate) {
+  tarr = pubDate.split(re# #)
+  tzoff = tarr[5].replace(re#(\d\d)$#, ":$1")
+  tarr[3] + "-" + mon2num{tarr[2]} + "-" + tarr[1] + "T" + tarr[4] + tzoff
+}
+```
+
+`split` gives `["Wed,", "21", "Sep", "2011", "15:02:01", "-0700"]`. The offset `-0700` becomes `-07:00`, and `+0530` becomes `+05:30`. Then the time library can format it:
+
+```krl
+time:strftime(rss2krlTime("Wed, 21 Sep 2011 15:02:01 -0700"), "%b %d %Y")   // "Sep 21 2011"
+```
+
+This expects a two-digit day, as RSS feeds use. For a feed that writes `1 Sep`, pad the day first, for example with `tarr[1].length() == 1 => "0" + tarr[1] | tarr[1]`.
+
+*From the Pico Labs KRL Cookbook page "Converting Time Formats" (originally by Ed Orcutt). The time-zone handling here also covers offsets that aren't whole hours.*
+
+
+---
+
+# Tip: what's in a name
+
+# What's in a name?
+
+KRL keeps many kinds of names apart: the ruleset id, rule names, event domains and types, attribute names, global and local names, function parameters, and directive names. As an exercise, here is a ruleset where every one of them is `name`:
+
+```krl
+ruleset name {
+  meta {
+    shares name
+  }
+  global {
+    /**
+     * @param name String
+     */
+    name = function(name) {
+      name.klog("name") => name | "name"
+    }
+  }
+  rule name {
+    select when name name
+    pre {
+      name = event:attr("name").defaultsTo(name(name), "name")
+    }
+    send_directive("name", {"name": name || "name"})
+  }
+  rule name_provided {
+    select when name name name re#(.+)# setting(name)
+    send_directive("name", {"name": name})
+  }
+}
+```
+
+It works. Most of the uses can't collide: an event domain, a rule name, and a directive name live in different places. One line is worth a closer look:
+
+```krl
+name = event:attr("name").defaultsTo(name(name), "name")
+```
+
+The right-hand side is evaluated before the binding. At that moment `name` is still the global function, so `name(name)` calls the function with itself as the argument, and it returns itself, because a function is truthy. After the line, `name` is bound to the result, and the global function is shadowed for the rest of the rule.
+
+Raise `name:name` with `name` set to `Ada` and both rules answer `{"name": "Ada"}`. Raise it without the attribute and `defaultsTo` uses the function (logging `"name"`). The directive's `name` is then a function, which doesn't survive conversion to JSON, so the reply shows `{}`.
+
+So: a name declared in `pre` hides a global of the same name for the rest of that rule. That is legal, and usually a mistake. And a name in `pre` can't be declared twice. KRL declarations are not assignments.
+
+*From the Pico Labs KRL Cookbook page "What's in a name?".*
+
+
+---
+
+# Tip: events and queries over HTTP
+
+# Events and queries over HTTP
+
+A pico's events and queries are plain HTTP, so anything that can make a request can talk to a pico: `curl`, a browser, a script, a webhook from another service.
+
+## Raise an event
+
+```
+/sky/event/<eci>/<eid>/<domain>/<type>?<attributes>
+```
+
+- `<eci>` is a channel on the pico. Its event policy has to allow `<domain>:<type>`. Make channels on the pico's **Channels** tab, or have a ruleset create one when it is installed (see the [Bootstrap and channels](/cookbook/bootstrap/) demo).
+- `<eid>` is an event id of your choosing, for your own tracing. Anything works; `none` is common.
+- Attributes go in the query string, or in a POST body (form-encoded or JSON). When both have the same name, the body wins.
+
+```sh
+curl "http://localhost:3000/sky/event/<eci>/none/echo/message?input=hello"
+
+curl -X POST "http://localhost:3000/sky/event/<eci>/none/echo/message" \
+  -H 'content-type: application/json' -d '{"input": "hello"}'
+```
+
+The response is JSON with the `directives` the rules sent and `ruleOutcomes`, which say which rules fired. A channel that doesn't allow the event answers `{"error":"Error: Not allowed by channel policy"}`.
+
+## Ask a query
+
+```
+/sky/cloud/<eci>/<rid>/<function>?<arguments>
+```
+
+The function has to be shared by the ruleset, and allowed by the channel's query policy. The answer is the function's value, as JSON.
+
+## Get text or HTML instead of JSON
+
+Add `.txt` or `.html` to the function name and the engine returns the string the function produced, with that content type:
+
+```krl
+page = function() {
+  <<<h1>Hello from a pico</h1>
+>>
+}
+```
+
+`/sky/cloud/<eci>/<rid>/page.html` shows a heading in a browser. `/sky/cloud/<eci>/<rid>/page.txt` shows the markup as text. For whole pages, use a [pico view](/pico-views) instead.
+
+## See the request
+
+Every event raised over HTTP has an attribute `_headers` with the request's HTTP headers, and every query has an argument by the same name. See [Cookies and redirects](/patterns_and_tips/cookies-and-redirects) for one use.
+
+## From the developer UI
+
+On a pico's **Testing** tab, pick a ruleset and fill in the form for any documented event or query, then send it on the channel you choose. Documented means it has a doc comment: the Testing tab builds its forms from the ruleset's schema.
+
+*From the Pico Labs KRL Cookbook pages "Raising Events" and "Content negotiation with HTTP".*
+
+
+---
+
+# Tip: cookies and redirects
+
+# Cookies and redirects
+
+Two directive names are special. When a rule sends one in response to an event raised over HTTP, the engine turns it into part of the HTTP response.
+
+## Set a cookie: `_cookie`
+
+```krl
+rule set_cookie {
+  select when cookie needed
+  pre {
+    eci = wrangler:channels(["wellKnown_Rx", "Tx_Rx"]).head(){"id"} || meta:eci
+  }
+  send_directive("_cookie", {"cookie": <<wellKnown_Rx=#{eci}; Path=/sky>>})
+}
+```
+
+The engine adds `Set-Cookie: wellKnown_Rx=<eci>; Path=/sky` to the response, and the browser sends the cookie back with later requests to the same engine. This one shares the pico's well-known channel, so other picos reached from the same browser could offer it a relationship. The ruleset uses `io.picolabs.wrangler` as a module.
+
+## Read cookies
+
+Every event raised over HTTP has a `_headers` attribute, and every query a `_headers` argument. This function works in both:
+
+```krl
+cookies = function(_headers) {
+  arg = event:attr("_headers") || _headers
+  arg{"cookie"}.isnull() => {} |
+  arg{"cookie"}
+    .split("; ")
+    .map(function(v) { v.split("=") })
+    .collect(function(v) { v.head() })
+    .map(function(v) { v.head()[1] })
+}
+```
+
+With the header `Cookie: wellKnown_Rx=abc123; sessionid=38afes7a8`, `cookies()` is `{"wellKnown_Rx": "abc123", "sessionid": "38afes7a8"}`. The chain is the same idea as [decoding form data](/patterns_and_tips/decoding-form-data), splitting on `"; "` instead of `&`.
+
+## Redirect: `_redirect`
+
+```krl
+send_directive("_redirect", {"url": "https://picolabs.io/"})
+```
+
+The engine answers the event with HTTP 302 and that URL as the `Location`.
+
+## A URL shortener
+
+Together with a channel per link, `_redirect` makes a URL shortener. Each link gets its own channel, whose policy allows only the event that follows it. The channel id is the short URL:
+
+```krl
+ruleset s {
+  meta {
+    use module io.picolabs.wrangler alias wrangler
+    provides u
+  }
+  global {
+    u = function(eci) {
+      <<#{meta:host}/sky/event/#{eci}/none/s/u>>
+    }
+  }
+  rule recordShortcut {
+    select when s u
+      url re#(.+)# setting(url)
+    pre {
+      tag = event:attr("tag").lc().replace(re#[^a-z0-9_.-]#g, "-")
+      eid = tag => tag | "none"
+    }
+    every {
+      wrangler:createChannel(
+        [eid, "s"],
+        {"allow": [{"domain": "s", "name": "u"}], "deny": []},
+        {"allow": [], "deny": [{"rid": "*", "name": "*"}]}
+      ) setting(channel)
+      send_directive("shortcut registered", {"tag": tag, "eci": channel{"id"}, "shortcut": u(channel{"id"}), "url": url})
+    }
+    fired {
+      ent:shortcuts{channel{"id"}} := url
+    }
+  }
+  rule redirectShortcut {
+    select when s u
+      where event:attr("url").isnull()
+    send_directive("_redirect", {"url": ent:shortcuts{meta:eci}})
+  }
+}
+```
+
+Another ruleset uses it as a module. It registers a link with `raise s event "u" attributes {"url": long_url, "tag": "docs"}`, then finds the channel with `wrangler:channels(["docs", "s"]).head()` and the short form with `s:u(eci)`. Opening the short URL redirects to the long one. The short URL can only raise `s:u`, and queries on it are all denied. Short links are handy in QR codes, which get smaller as the URL does.
+
+*From the Pico Labs KRL Cookbook pages "Setting and reading cookies" and "Ruleset that provides a general purpose URL shortener".*
+
+
+---
+
+# Tip: events from email
+
+# Events from email
+
+Any service that can call a webhook can raise events on a pico. Email is a good example: services such as [CloudMailin](https://www.cloudmailin.com/) give you an address and POST each message that arrives to a URL you choose. Point that URL at a pico:
+
+```
+https://<your engine>/sky/event/<eci>/mail/mail/received
+```
+
+The engine has to be reachable from the internet. For an engine on your own machine, a tunnel such as [ngrok](https://ngrok.com/) gives it a public address. Use a channel made for this purpose, whose policy allows only `mail:received`, so the webhook URL can't do anything else.
+
+## Parse the message
+
+The service's POST body becomes the event's attributes. With CloudMailin's JSON format, the headers and the plain-text body are in `headers` and `plain`:
+
+```krl
+rule mail_incoming {
+  select when mail received
+  pre {
+    headers = event:attr("headers").defaultsTo({})
+  }
+  always {
+    raise mail event "parsed" attributes {
+      "date": headers{"Date"},
+      "to": headers{"To"},
+      "from": headers{"From"},
+      "subject": headers{"Subject"},
+      "text": event:attr("plain")
+    }
+  }
+}
+```
+
+## Route it to another pico
+
+One mail pico can serve many. Put the target pico's channel id in the address, as in `me+<eci>@cloudmailin.net`, and forward on it:
+
+```krl
+rule mail_router {
+  select when mail parsed
+    to re#[+]([^@]*)@#
+    setting(eci)
+  event:send({"eci": eci, "domain": "mail", "type": "events", "attrs": event:attrs})
+}
+```
+
+The person writing the email needs that address, but not where the target pico lives.
+
+## Turn lines into events
+
+The target pico can treat each line of the body as an event to raise. Here, a line such as `aurora/on` raises `aurora:on`, and every other line is ignored:
+
+```krl
+rule mail_events {
+  select when mail events
+  foreach event:attr("text").defaultsTo("").split(re#\r?\n#) setting(request)
+  pre {
+    parts = request.split(re#/#)
+    wanted = parts.length() == 2 && parts[0] == "aurora"
+  }
+  if wanted then noop()
+  fired {
+    raise aurora event parts[1]
+  }
+}
+```
+
+A body of
+
+```
+Turn on the lights, then show the second theme after this one.
+aurora/on
+aurora/next
+aurora/next
+```
+
+raises `aurora:on` and `aurora:next` twice, which the pico's existing rulesets handle. The new ruleset doesn't change them.
+
+Parsing the body is the fragile part. Email clients add things you don't expect, such as invisible characters. Test with messages from the clients your senders use.
+
+*From the Pico Labs KRL Cookbook page "Triggering Events from Email Messages".*
+
+
+---
+
+# Tip: reading the engine's log files
+
+# Reading the engine's log files
+
+The **Logging** tab shows recent events and queries for a pico, from the engine's memory. To look further back, or across every pico, read the log files.
+
+## Where they are
+
+The engine writes one JSON object per line to `pico-engine.log` in its home directory (`PICO_ENGINE_HOME`, `~/.pico-engine` by default). When the file reaches 100 MB it rotates: the older entries move to `pico-engine.log.1`, `pico-engine.log.2`, and so on, and the engine keeps up to twelve files. `PICO_ENGINE_LOG_FILE` writes somewhere else instead (`stdout` to write to standard output). See [the operator guide](/pico-engine) for the settings.
+
+Each line has `level`, `time`, and `msg`, and lines about a pico's work have `picoId` and `txnId`. A transaction is one event or query and everything it caused.
+
+```json
+{"level":50,"time":"2026-11-13T18:46:16.317Z","picoId":"cmwfbv2y1001e4jysd0cn9w05","txnId":"cmwfbvcvx00244jysd16w7grz","txnKind":"query","error":"This is a family channel and only the owner can use it.","msg":"..."}
+```
+
+## One pico's history
+
+Find the pico's id on its **About** tab, then:
+
+```sh
+cd ~/.pico-engine
+grep -h '"picoId":"<pico id>"' pico-engine.log* | jq -s -c 'sort_by(.time)[]' > my_pico.log
+```
+
+`grep` collects the lines from every file, and [`jq`](https://jqlang.org/) sorts them by time, since rotated files aren't in order relative to each other. To follow one event through everything it caused, filter on its `txnId` instead.
+
+## What to look for
+
+- `"msg":"txnQueued"` lines show each event or query as it arrived, with its attributes.
+- `"error"` fields show what failed: a channel policy refusal, a KRL runtime error, a family channel used from outside.
+- `klog` output from your own rules is in the log, with the message you gave it.
+
+The logs hold every event's attributes. Anything secret that arrives in an event is in them. See the [Configuration and secrets](/cookbook/secrets/) demo.
+
+*From the Pico Labs KRL Cookbook page "Examining pico-engine log files". The log format and rotation have changed since that page was written.*
+
+
+---
+
+# Tip: querying another pico
+
+# Querying another pico
+
+To call a function another pico's ruleset shares, use `wrangler:picoQuery`. Two things are needed: a channel to the other pico whose query policy allows that function, and `io.picolabs.wrangler` as a module.
+
+```krl
+meta {
+  use module io.picolabs.wrangler alias wrangler
+}
+```
+
+```krl
+rule ask_the_other_pico {
+  select when example question_asked
+  pre {
+    answer = wrangler:picoQuery(other_eci, "my.ruleset.id", "myFunction", {"arg1": "a", "arg2": "b"})
+  }
+  if answer{"error"}.isnull() then noop()
+  fired {
+    ent:last_answer := answer
+  }
+}
+```
+
+On the same engine, `picoQuery` calls the other pico directly. On another engine, or for a `did:` identifier, it goes over HTTP or DIDComm. Either way it returns the function's value, or a map with an `error` key if something went wrong.
+
+## Which channel
+
+- **Your children.** `wrangler:children()` gives each child's family channel (`eci`). `picoQuery` can use it, because the parent owns it.
+- **Picos you have a relationship with.** Use the relationship: `subscription:queryOnSub(Id, rid, name, args)` (see the [Two picos talking](/cookbook/two_picos/) demo), or `picoQuery` on the relationship's `Tx` channel.
+- **Anyone else.** A channel they give you, made for the purpose, with a policy that allows the functions you need.
+
+## Don't query yourself
+
+A pico handles one thing at a time. A query from a pico to itself would wait behind the work that's making it. `picoQuery` refuses: it returns `{"status_code": 400, ...}` with the error "Pico should not query itself". To use a function in another ruleset on the same pico, use that ruleset as a module instead.
+
+## With `http:get`
+
+A pico has a URL, so `http:get` works too:
+
+```krl
+response = http:get(meta:host + "/sky/cloud/" + other_eci + "/my.ruleset.id/myFunction", {"arg1": "a"})
+answer = response{"content"}.decode()
+```
+
+It's slower than `picoQuery` on the same engine, and it can't use family channels: the answer is an error, "This is a family channel and only the owner can use it". The HTTP status is still 200 in that case, so check the content for `error`, not just `status_code`.
+
+*From the Pico Labs KRL Cookbook page "Accessing a Function Shared by Another Pico".*
+
+
+---
+
+# Tip: accepting relationship requests
+
+# Accepting relationship requests
+
+When another pico asks for a relationship, the request waits on the receiving pico (its **Relationships** tab lists it) until something approves it. Here are three ways to approve requests automatically. The examples share one setup: a list pico asks participant picos to join it, in the role `participant list` for itself and `participant` for them.
+
+## A rule that approves
+
+On each participant:
+
+```krl
+rule accept_list {
+  select when wrangler inbound_pending_subscription_added
+    where event:attr("Rx_role") == "participant"
+       && event:attr("Tx_role") == "participant list"
+  always {
+    raise wrangler event "pending_subscription_approval" attributes event:attrs
+  }
+}
+```
+
+Passing the event's attributes along tells wrangler which request to approve. Roles arrive from the receiving pico's point of view: `Rx_role` is this pico's, and `Tx_role` is the other pico's.
+
+Don't approve every request. A rule without a `where` accepts a relationship with any pico that has your well-known channel. Accept only what you expect: the right roles, a request from your parent, a request that carries a shared secret. To refuse, raise `wrangler:inbound_rejection` with the same attributes. The [Collection](/cookbook/collection/) demo does both, and remembers whom it turned away.
+
+## Wrangler's auto-accept configuration
+
+Without writing a rule, give the participant a pattern to accept:
+
+```krl
+raise wrangler event "autoAcceptConfigUpdate" attributes {
+  "config": {"configName": "lists", "entries": {"Tx_role": ["^participant list$"]}}
+}
+```
+
+Each entry maps an attribute of the request, as the participant sees it, to a list of regular expressions. A request that matches any of them is approved. Send the same event with `"delete": true` and the `configName` to remove it. `autoAcceptConfig()`, shared by `io.picolabs.subscription`, shows what is set. You can also send this event from the pico's **Testing** tab.
+
+## Accept later, by installing a ruleset
+
+If a request arrived before there was anything to approve it, install a ruleset that approves it and then removes itself:
+
+```krl
+ruleset acceptance {
+  meta {
+    use module io.picolabs.subscription alias subs
+  }
+  rule initialize {
+    select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+    pre {
+      s = subs:inbound("Tx_role", "participant list")
+        .filter(function(i) { i{"Rx_role"} == "participant" })
+        .head()
+    }
+    if s then noop()
+    fired {
+      raise wrangler event "pending_subscription_approval" attributes s
+    }
+    finally {
+      raise wrangler event "uninstall_ruleset_request" attributes {"rid": meta:rid}
+    }
+  }
+}
+```
+
+It looks for a pending request from a participant list, approves it, and uninstalls itself either way. This is handy when a parent asked many children to join before they could accept: install it on each child.
+
+*From the Pico Labs KRL Cookbook pages "Automatic Replies to Subscription Requests" and "Accepting a subscription offer by installing a ruleset".*
+
+
+---
+
+# Tip: one pico per resource
+
+# One pico per resource
+
+Some things should be used by only one party at a time: a motor, a GPIO pin, a printer, an account with an outside service. Give each one its own pico. Everything else asks that pico, by event, to use the resource. Because a pico handles one event at a time, its rulesets are the only code that touches the resource, and requests can't collide.
+
+A Pico Labs rover project did this with its wheels. Each of four wheel picos kept the index of the one motor it drove, and only its rules called the motor driver:
+
+```krl
+rule set_motor_index {
+  select when rover motor_index_assigned
+  always {
+    ent:motor_index := event:attr("motor_index")
+  }
+}
+```
+
+A controller pico had a channel to each wheel. To move, it sent each wheel the direction that wheel should turn:
+
+```krl
+to_wheels = defaction(type, fr, fl, br, bl) {
+  every {
+    event:send({"eci": ent:wheels{"FR"}, "domain": "rover", "type": type, "attrs": fr})
+    event:send({"eci": ent:wheels{"FL"}, "domain": "rover", "type": type, "attrs": fl})
+    event:send({"eci": ent:wheels{"BR"}, "domain": "rover", "type": type, "attrs": br})
+    event:send({"eci": ent:wheels{"BL"}, "domain": "rover", "type": type, "attrs": bl})
+  }
+}
+forward = defaction() {
+  to_wheels("run", {"direction": "fwd"}, {"direction": "back"}, {"direction": "back"}, {"direction": "fwd"})
+}
+```
+
+The controller could have driven the motors itself. But then every new pico that needed the wheels would need the motor code too, and two of them could drive the same motor at once. With a pico per wheel, any number of controllers can share the wheels safely.
+
+Keep the channels to the resource picos in relationships (or, for children, in their family channels), not in ECIs written into the code. The original rover hard-coded them, and noted that relationships would be much better.
+
+*From the Pico Labs KRL Cookbook page "Singleton Pattern".*
+
+
+---
+
+# Tip: hosting and checking rulesets
+
+# Hosting and checking rulesets
+
+## Install from a URL
+
+The engine installs a ruleset from a URL and remembers it. A few kinds work well:
+
+- **Your own files**, while you work: `file:///path/to/my.ruleset.krl`. The engine must be on the same machine.
+- **GitHub**: use the *raw* URL, `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>.krl`, not the page that displays the file.
+- **The engine's own**: `http://<engine>/krl/<rid>.krl` for the rulesets that ship with it, and `/krl/demos/...` for the demos.
+
+## Flush after you change it
+
+The engine compiles a ruleset once and keeps it. After you change the source, click **Flush** next to the ruleset on the pico's **Rulesets** tab, and the engine fetches the URL again. Every pico with that ruleset gets the new version.
+
+Flushing doesn't raise `wrangler:ruleset_installed` again, so rules that run on install don't run. If you change what such a rule sets up, such as a channel's policy, run that rule again yourself. The [Bootstrap and channels](/cookbook/bootstrap/) demo shows how.
+
+## Check before you commit
+
+`krl-check` parses and compiles KRL, and lints doc comments and views. It ships with `krl-compiler`:
+
+```sh
+npm install -g krl-compiler
+krl-check my.ruleset.krl
+```
+
+It exits with status 1 on an error and prints warnings to stderr. With no file, it reads standard input. That makes a Git pre-commit hook that checks exactly what you're about to commit. Save this as `.git/hooks/pre-commit` and make it executable:
+
+```sh
+#!/bin/sh
+status=0
+for f in $(git diff --cached --name-only --diff-filter=ACM -- '*.krl'); do
+  if ! git show ":$f" | krl-check >/dev/null; then
+    echo "krl-check failed: $f"
+    status=1
+  fi
+done
+exit $status
+```
+
+`git show ":$f"` is the staged version of the file, so a fix you haven't staged yet doesn't hide an error.
+
+*From the Pico Labs KRL Cookbook pages "Hosting Code on GitHub" and "Setting Up a Git Pre-Commit Hook to Parse KRL".*
 
 
 ---

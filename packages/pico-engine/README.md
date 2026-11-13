@@ -135,6 +135,8 @@ The server is configured via some environment variables.
 - `PICO_ENGINE_ALLOW_LOCALHOST_C` - Set to `"0"` to require passkey session on `/c/*` even from localhost (default: allow localhost without session for in-engine HTTP loops). Full registry: repo `MEMORY.md` § Engine environment variables.
 - `PICO_ENGINE_LOG_FILE` - Log file path. Set to `stdout`, `-`, or `0` for **stdout only** (recommended on Fargate + EFS; use CloudWatch for retention). Default: `$PICO_ENGINE_HOME/pico-engine.log`.
 - `PICO_ENGINE_LOG_MIRROR` - When stdout-only: **`true`/`1`** (default) mirrors structured JSON to **`$PICO_ENGINE_HOME/pico-engine.log`** so **`ctx:logs`** and the Developer UI **Logging** tab work; set **`false`/`0`** to skip the mirror file (e.g. avoid EFS log churn). **Config:** `logMirror` in `config.json` (see `config.example.json`).
+- `PICO_ENGINE_SHOW_TRYIT_MENU` - Where the Developer UI shows the **Try It!** tab: `off`, `root_only` (default), or `all` (config: `show_tryit_menu`).
+- `PICO_ENGINE_DEMOS_DIR` - A directory to serve as `demos/` instead of the copy shipped with the engine, such as the `demos/` folder of a pico-engine checkout you're editing.
 
 The `PORT` is the only value used in setting up the engine’s [nodejs http server](https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback). We only specify the `port` so it listens listens to all traffic on that port, it will not filter by host.
 

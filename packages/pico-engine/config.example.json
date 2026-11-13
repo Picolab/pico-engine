@@ -7,6 +7,7 @@
   "wildcardSkyRequireBearer": false,
   "logToStdout": false,
   "logMirror": true,
+  "show_tryit_menu": "root_only",
   "webauthn": {
     "rpId": "localhost",
     "origin": "http://localhost:3000",

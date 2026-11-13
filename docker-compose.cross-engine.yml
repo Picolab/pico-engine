@@ -20,9 +20,9 @@
 # Engine A: http://localhost:3001
 # Engine B: http://localhost:3002
 #
-# Demo KRL (repo demos/, gitignored) at /var/pico-demos — donor/coordinator only:
-#   Engine A Manifold: file:///var/pico-demos/io.picolabs.club_gear_demo.krl
-#   Engine B mesh root (optional): file:///var/pico-demos/io.picolabs.ride_coordinator_demo.krl
+# Demo KRL (repo demos/, mounted at /var/pico-demos) — donor/coordinator only:
+#   Engine A Manifold: file:///var/pico-demos/moving_picos/io.picolabs.club_gear_demo.krl
+#   Engine B mesh root (optional): file:///var/pico-demos/moving_picos/io.picolabs.ride_coordinator_demo.krl
 #
 # Portable move (bike #7) — rebuild image after pico-engine-core changes:
 #   docker compose -f docker-compose.cross-engine.yml build --no-cache

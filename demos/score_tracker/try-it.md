@@ -1,0 +1,5 @@
+- Open **Leaderboard**: Ada Lovelace, Grace Hopper, and Alan Turing, ranked by points.
+- Register yourself, add points a few times, and watch your rank change. Open the page in a second browser window to play as someone else.
+- In another window, register a name that's already on the board. You get that contestant's id back, not a second entry. Look at `new_participant` in the code to see why.
+- Open the child pico's **Channels** tab. The `score_tracker, app` channel allows only `score` events and the leaderboard's queries. Anyone with that channel can play, but can't change the pico.
+- Try it: send `wrangler/new_child_request` on that channel with `curl`. The pico refuses it.

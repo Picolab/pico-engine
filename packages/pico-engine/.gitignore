@@ -4,3 +4,5 @@ yarn.lock
 dist
 .npmrc
 mcp/docs
+# prepack copy of the repo-root demos/ (scripts/bundle-demos.js)
+/demos/

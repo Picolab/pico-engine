@@ -38,11 +38,27 @@ export interface EngineSettings {
    * Set false on EFS/Fargate to avoid mirror file churn (`PICO_ENGINE_LOG_MIRROR=0`).
    */
   logMirror: boolean;
+  /** Where the developer UI shows the Try It! tab: on no pico, the root pico only, or every pico. */
+  showTryItMenu: ShowTryItMenu;
   /** Max channel policy for root picos when none stored on the pico (1.8). */
   defaultRootPolicyCeiling?: PolicyCeiling;
   /** Deny rules applied on every ECI before per-channel policy (1.8). */
   globalEventDeny?: EventPolicyRule[];
   globalQueryDeny?: QueryPolicyRule[];
+}
+
+export type ShowTryItMenu = "off" | "root_only" | "all";
+
+const SHOW_TRY_IT_MENU_VALUES: ShowTryItMenu[] = ["off", "root_only", "all"];
+
+function parseShowTryItMenu(val: unknown, source: string): ShowTryItMenu | undefined {
+  if (val === undefined) return undefined;
+  if (typeof val === "string" && (SHOW_TRY_IT_MENU_VALUES as string[]).includes(val)) {
+    return val as ShowTryItMenu;
+  }
+  throw new Error(
+    `${source} must be one of ${SHOW_TRY_IT_MENU_VALUES.join(", ")} (got ${JSON.stringify(val)})`,
+  );
 }
 
 export interface EngineSettingsOverrides {
@@ -59,6 +75,7 @@ export interface EngineSettingsOverrides {
   logToStdout?: boolean;
   logFile?: string;
   logMirror?: boolean;
+  showTryItMenu?: ShowTryItMenu;
   defaultRootPolicyCeiling?: PolicyCeiling;
   globalEventDeny?: EventPolicyRule[];
   globalQueryDeny?: QueryPolicyRule[];
@@ -87,6 +104,7 @@ export function defaultEngineSettings(): EngineSettings {
     wildcardSkyRequireBearer: false,
     logToStdout: false,
     logMirror: true,
+    showTryItMenu: "root_only",
   };
 }
 
@@ -201,6 +219,8 @@ function parseConfigFile(raw: string): Partial<EngineSettings> {
       out.logFile = path.resolve(expandHome(o.logFile));
     }
   }
+  const showTryItMenu = parseShowTryItMenu(o.show_tryit_menu, "show_tryit_menu");
+  if (showTryItMenu) out.showTryItMenu = showTryItMenu;
   const rootCeiling = parsePolicyCeilingFromJson(
     o.defaultRootPolicyCeiling,
     "defaultRootPolicyCeiling",
@@ -292,6 +312,11 @@ export function settingsFromEnv(): Partial<EngineSettings> {
   if (logMirror !== undefined) {
     out.logMirror = logMirror;
   }
+  const showTryItMenu = parseShowTryItMenu(
+    process.env.PICO_ENGINE_SHOW_TRYIT_MENU || undefined,
+    "PICO_ENGINE_SHOW_TRYIT_MENU",
+  );
+  if (showTryItMenu) out.showTryItMenu = showTryItMenu;
 
   return out;
 }
@@ -342,6 +367,9 @@ export function resolveEngineSettings(
   }
   if (programmatic.logMirror !== undefined) {
     fromProgrammatic.logMirror = programmatic.logMirror;
+  }
+  if (programmatic.showTryItMenu !== undefined) {
+    fromProgrammatic.showTryItMenu = programmatic.showTryItMenu;
   }
   if (programmatic.defaultRootPolicyCeiling !== undefined) {
     fromProgrammatic.defaultRootPolicyCeiling =

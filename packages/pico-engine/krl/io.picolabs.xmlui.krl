@@ -358,7 +358,8 @@ ruleset io.picolabs.xmlui {
      * Applies the theme stored in this browser tab (sessionStorage
      * picoViewTheme: default, dark, green, green-dark, gray, gray-dark) to
      * its children, on the theme's page background so rows stay readable
-     * in dark tones.
+     * in dark tones. The padding keeps content off the panel's edge, which
+     * shows in dark tones.
      * @component
      */
     picoTheme = function() {
@@ -367,7 +368,7 @@ ruleset io.picolabs.xmlui {
   <Theme
     themeId="{['green', 'green-dark'].includes(sessionStorage.getItem('picoViewTheme') || 'default') ? 'xmlui-green' : ['gray', 'gray-dark'].includes(sessionStorage.getItem('picoViewTheme') || 'default') ? 'xmlui-gray' : 'xmlui'}"
     tone="{(sessionStorage.getItem('picoViewTheme') || 'default').endsWith('dark') ? 'dark' : 'light'}">
-    <VStack gap="$space-2" backgroundColor="$backgroundColor">
+    <VStack gap="$space-2" padding="$space-3" backgroundColor="$backgroundColor">
       <Slot />
     </VStack>
   </Theme>

@@ -81,6 +81,8 @@ Environment (optional; Docker/CI when not set in config file):
     PICO_ENGINE_LOG_FILE - Log path, or stdout/- / 0 for console-only
     PICO_ENGINE_LOG_MIRROR - "true"/"1" or "false"/"0" (mirror JSON lines to \$PICO_ENGINE_HOME/pico-engine.log when stdout-only; default on)
     PICO_ENGINE_LOG_RING - how many recent transactions per pico the Logging tab keeps in memory (default 200; cleared on restart)
+    PICO_ENGINE_SHOW_TRYIT_MENU - off, root_only (default), or all: where the Developer UI shows the Try It! tab (config: show_tryit_menu)
+    PICO_ENGINE_DEMOS_DIR - directory to serve as demos/ (/krl/demos/) instead of the shipped copy
 `);
   process.exit(0);
 }

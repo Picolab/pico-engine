@@ -13,6 +13,46 @@ Machine-readable index for agents working with picos and KRL.
 - Pico overview: pico-overview.md
 - Pico engine operator guide: pico-engine.md
 - Pico views: pico-views.md
+- Cookbook: cookbook/README.md
+- Cookbook: pico views: cookbook/xmlui/README.md
+- Cookbook: pico views instructions: cookbook/xmlui/instructions.md
+- Cookbook: moving picos: cookbook/moving_picos/README.md
+- Cookbook: moving picos instructions: cookbook/moving_picos/instructions.md
+- Cookbook: echo: cookbook/echo/README.md
+- Cookbook: echo instructions: cookbook/echo/instructions.md
+- Cookbook: score tracker: cookbook/score_tracker/README.md
+- Cookbook: score tracker instructions: cookbook/score_tracker/instructions.md
+- Cookbook: child pico tasks: cookbook/child_tasks/README.md
+- Cookbook: child pico tasks instructions: cookbook/child_tasks/instructions.md
+- Cookbook: two picos talking: cookbook/two_picos/README.md
+- Cookbook: two picos talking instructions: cookbook/two_picos/instructions.md
+- Cookbook: guard rules: cookbook/guard_rules/README.md
+- Cookbook: guard rules instructions: cookbook/guard_rules/instructions.md
+- Cookbook: layered rulesets: cookbook/layered_rulesets/README.md
+- Cookbook: layered rulesets instructions: cookbook/layered_rulesets/instructions.md
+- Cookbook: collection: cookbook/collection/README.md
+- Cookbook: collection instructions: cookbook/collection/instructions.md
+- Cookbook: configuration and secrets: cookbook/secrets/README.md
+- Cookbook: configuration and secrets instructions: cookbook/secrets/instructions.md
+- Cookbook: bootstrap and channels: cookbook/bootstrap/README.md
+- Cookbook: bootstrap and channels instructions: cookbook/bootstrap/instructions.md
+- Cookbook: KBlog: cookbook/kblog/README.md
+- Cookbook: KBlog instructions: cookbook/kblog/instructions.md
+- Patterns and tips: patterns_and_tips/README.md
+- Tip: initializing entity variables: patterns_and_tips/initializing-entity-variables.md
+- Tip: arrays and maps: patterns_and_tips/arrays-and-maps.md
+- Tip: decoding form-encoded data: patterns_and_tips/decoding-form-data.md
+- Tip: importing tables and CSV: patterns_and_tips/tabular-data.md
+- Tip: converting time formats: patterns_and_tips/converting-time-formats.md
+- Tip: what's in a name: patterns_and_tips/names-and-scope.md
+- Tip: events and queries over HTTP: patterns_and_tips/events-and-queries-over-http.md
+- Tip: cookies and redirects: patterns_and_tips/cookies-and-redirects.md
+- Tip: events from email: patterns_and_tips/events-from-email.md
+- Tip: reading the engine's log files: patterns_and_tips/engine-log-files.md
+- Tip: querying another pico: patterns_and_tips/querying-another-pico.md
+- Tip: accepting relationship requests: patterns_and_tips/accepting-relationship-requests.md
+- Tip: one pico per resource: patterns_and_tips/singleton-picos.md
+- Tip: hosting and checking rulesets: patterns_and_tips/hosting-and-checking-rulesets.md
 - Bundled rulesets: rulesets/README.md
 - KRL manual: krl/README.md
 - Contributing: contributing.md

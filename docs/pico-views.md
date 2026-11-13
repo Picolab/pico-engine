@@ -8,7 +8,7 @@ The engine ships the XMLUI runtime (`/xmlui/0.14.28.js`) and the optional rulese
 
 Channel policy applies to views the same way it applies to any other query. A channel that cannot call the function does not get that page. Live data still comes from `/sky/query` and `/sky/event` on that same channel.
 
-Examples live in `demos/xmlui/` in the pico-engine repository. The design record is `docs/design/pico-views-xmlui.md`.
+Examples live in `demos/xmlui/` in the pico-engine repository; the [cookbook](/cookbook/xmlui/) shows how to install and open each one. The design record is `docs/design/pico-views-xmlui.md`.
 
 ## Write a view
 
@@ -77,7 +77,7 @@ These `/ui/` files are the ruleset's markup plus the ECI and RID already in the 
 
 | Call | Result |
 |------|--------|
-| `ui:query(id, name, opts)` | A `DataSource`. `opts.rid` defaults to this ruleset. `opts.args` is a map of query parameters (values may be XMLUI bindings such as `"{$routeParams.id}"`). `opts.select` sets `resultSelector`. |
+| `ui:query(id, name, opts)` | A `DataSource`. Set `opts.rid` to `meta:rid`: without it the `DataSource` calls `io.picolabs.xmlui`, because inside the module `meta:rid` is the module's own. `opts.args` is a map of query parameters (values may be XMLUI bindings such as `"{$routeParams.id}"`). `opts.select` sets `resultSelector`. |
 | `ui:event(id, domain, type, opts)` | An `APICall` that posts the form body. `opts.refresh` is a list of `DataSource` ids to refetch. `opts.confirm` sets a confirmation message. |
 | `ui:query_url(name, rid, eci)` | `/sky/query/…` for this channel, ruleset, and query. |
 | `ui:event_url(domain, type, eci)` | `/sky/event/{eci}/xmlui/{domain}/{type}`. |
@@ -104,7 +104,7 @@ global {
    */
   book = function() {
     <<<Component name="Book">
-  #{ui:query("entries", "entries")}
+  #{ui:query("entries", "entries", {"rid": meta:rid})}
   #{ui:event("sign", "guestbook", "signed", {"refresh": ["entries"]})}
   <Form onSubmit="(toSave) => sign.execute(toSave)">
     <FormItem bindTo="name" label="Name" />

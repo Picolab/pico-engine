@@ -1,0 +1,6 @@
+- Open both links. On the reader channel the navigation has Home and Contact. On the author channel it also has **Post**.
+- On the author channel, write a post. The **Event path** shows one rule from each of three rulesets: `handle_submit → add_article → show_new_article`. Home lists your post first, marked **New**.
+- Submit a post without a title. The path is just `reject_submit`.
+- Click an article's title. It has its own address (`#/post/<id>`), and the browser's back button returns to Home.
+- Open the child pico's **Channels** tab. The `kblog, author` channel allows exactly two events, `post_submitted` and `clear_requested`. Send `kblog/new_article_available` on it with `curl`, trying to skip the check: the pico refuses it.
+- Open the **Rulesets** tab: four KBlog rulesets, each with one job. `com.example.kblog.data` is the only one that stores articles.

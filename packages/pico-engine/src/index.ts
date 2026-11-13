@@ -35,6 +35,7 @@ import { server } from "./server";
 import {
   installEngineRuntimeSettings,
   resolveEngineSettings,
+  ShowTryItMenu,
 } from "./engineConfig";
 const charwise = require("charwise");
 const safeJsonCodec = require("level-json-coerce-null");
@@ -103,6 +104,12 @@ export interface PicoEngineConfiguration {
    * invite may create a new account.
    */
   allowSelfSignup?: boolean;
+
+  /**
+   * Where the developer UI shows the Try It! tab: "off", "root_only" (default),
+   * or "all". Config file key: show_tryit_menu.
+   */
+  showTryItMenu?: ShowTryItMenu;
 
   /**
    * Override the WebAuthn ceremony/verification implementation. Intended for
@@ -175,6 +182,7 @@ export async function startEngine(
     rpName: configuration.rpName,
     origin: configuration.origin,
     allowSelfSignup: configuration.allowSelfSignup,
+    showTryItMenu: configuration.showTryItMenu,
     defaultRootPolicyCeiling: configuration.defaultRootPolicyCeiling,
     globalEventDeny: configuration.globalEventDeny,
     globalQueryDeny: configuration.globalQueryDeny,
