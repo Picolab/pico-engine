@@ -1,5 +1,7 @@
 # Bundled rulesets (generated docs)
 
+These are API references: every documented event and function of each ruleset. For guides to what they're for and how they fit together, see [Wrangler](/wrangler/).
+
 Markdown here is copied from `tools/krl-schema/samples/` when you run **`npm run generate:llms`** at the repo root. Sources are the annotated KRL under `packages/pico-engine/krl/`. To regenerate samples from KRL: **`npm run check:krl-schema-samples`** (CI) or `node tools/krl-schema/cli.js -f markdown path/to/ruleset.krl`.
 
 ## OS layer (every pico)

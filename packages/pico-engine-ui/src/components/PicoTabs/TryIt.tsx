@@ -1,6 +1,7 @@
 import * as React from "react";
 import { apiGet, apiPost } from "../../api";
 import { flushFailureMessage, installFailureMessage } from "../../installFlushErrors";
+import { fetchMeshOAuthEnabled } from "../../oauthApi";
 import picoPageStore from "../../stores/picoPageStore";
 import { PicoBox } from "../../types/PicoBox";
 import TabPageHeader from "../widgets/TabPageHeader";
@@ -379,6 +380,11 @@ export default function TryIt({ pico, isTabActive = true }: Props) {
     if (isTabActive) void refresh();
   }, [isTabActive, refresh]);
 
+  const [meshOAuth, setMeshOAuth] = React.useState(false);
+  React.useEffect(() => {
+    if (isTabActive) void fetchMeshOAuthEnabled().then(setMeshOAuth);
+  }, [isTabActive]);
+
   // While a demo is still setting up, check again every second.
   React.useEffect(() => {
     if (!isTabActive || !running.some((r) => !r.status?.ready)) return;
@@ -467,6 +473,14 @@ export default function TryIt({ pico, isTabActive = true }: Props) {
         hint="Demos that ship with the engine. Open one to run it in a new child of this pico and read its code."
       />
       {error ? <div className="alert alert-danger">{error}</div> : null}
+      {meshOAuth ? (
+        <div className="alert alert-warning small">
+          OAuth is turned on for this engine's mesh. The demos still install, but their pages
+          and <code>curl</code> examples call the pico without an access token, so they may not
+          load their data. The demos work best on an engine without OAuth, such as one running
+          on your own machine.
+        </div>
+      ) : null}
       {demos.length === 0 && !loading ? (
         <p className="text-muted">This engine ships no runnable demos.</p>
       ) : null}

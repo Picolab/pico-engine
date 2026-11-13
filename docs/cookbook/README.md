@@ -2,7 +2,9 @@
 
 Worked examples you can install and run. Each recipe has an overview and step-by-step instructions. The KRL lives in the pico-engine repository under [`demos/`](https://github.com/Picolab/pico-engine/tree/master/demos), and the engine ships a copy.
 
-The quickest start is the **Try It!** tab on the root pico in the developer UI (engine config `show_tryit_menu` can show it on every pico, or hide it). It lists the demos that have a bootstrap ruleset. Open one and **Run** it: the tab creates a child pico and installs that ruleset, which sets up the whole demo. The same window shows each ruleset's code and its path on disk. Edit a file, **Flush**, and watch the demo change. Agents can do the same with the dev MCP tools: create a pico, install the `url` from `GET /api/try-it`, and query `tryIt` on the child's `try_it` channel.
+The quickest start is the **Try It!** tab on the root pico in the developer UI (engine config `show_tryit_menu` can show it on every pico, or hide it). It lists the demos that have a bootstrap ruleset. Open one and **Run** it: the tab creates a child pico and installs that ruleset, which sets up the whole demo. The same window shows each ruleset's code and its path on disk. Edit a file, **Flush**, and watch the demo change. Agents can do the same with the dev MCP server (`pico-engine mcp --stdio`): `list_try_it_demos`, `run_try_it_demo`, and `try_it_status`. It also serves these pages as `pico://docs/cookbook/...` resources.
+
+The demos are meant for an engine without [OAuth](/pico-views?id=oauth-protected-meshes), such as one on your own machine. On a mesh with OAuth turned on they still install, but their pages and `curl` examples call the pico without an access token, so they may not load their data. The Try It! tab says so when that's the case.
 
 | Recipe | What it shows | KRL |
 |--------|---------------|-----|

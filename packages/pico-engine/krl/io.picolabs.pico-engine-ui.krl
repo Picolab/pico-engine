@@ -259,7 +259,7 @@ ruleset io.picolabs.pico-engine-ui {
       gridRow = (childIndex - childIndex % 4) / 4
       layoutX = ent:x.defaultsTo(100) + 48 + gridCol * 143
       layoutY = ent:y.defaultsTo(100) + 48 + gridRow * 108
-      childBox = ctx:query(uiEci, ctx:rid, "box")
+      childBox = uiEci => ctx:query(uiEci, ctx:rid, "box") | {}
       layoutColor = childBox{"backgroundColor"}
         .defaultsTo(childPalette[childIndex % childPalette.length])
     }
@@ -282,7 +282,7 @@ ruleset io.picolabs.pico-engine-ui {
     select when engine started
       foreach ctx:children setting(familyEci)
     if ent:child_ui_ecis{familyEci}.isnull() then noop()
-    always {
+    fired {
       ent:child_ui_ecis{[familyEci]} := ctx:query(familyEci, ctx:rid, "uiECI")
     }
   }
@@ -304,7 +304,7 @@ ruleset io.picolabs.pico-engine-ui {
   rule backfill_parent_ui_eci {
     select when engine started
     if ctx:parent && ent:parent_ui_eci.isnull() then noop()
-    always {
+    fired {
       ent:parent_ui_eci := ctx:query(ctx:parent, ctx:rid, "uiECI")
     }
   }

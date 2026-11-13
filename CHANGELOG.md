@@ -1,3 +1,12 @@
+# Unreleased
+
+* **Try It!** — the dev MCP server (`pico-engine mcp --stdio`) runs the demos: `list_try_it_demos`, `run_try_it_demo` (creates the child, installs the bootstrap, waits for ready, returns the links), and `try_it_status`. It serves the cookbook and Patterns and tips pages as `pico://docs/...` resources, bundled into the package at pack time. The Try It! tab warns that the demos may not load data on a mesh with OAuth turned on.
+* **Try It!** — the bootstrap rulesets choose between installing the views runtime and going straight to the app with one condition in the action block (`if not has_xmlui then noop()`) and `fired` / `else` / `finally` postludes, instead of `if` guards on each `raise`. Two picos does the same for its `both_ready` raise.
+* **Fix** — the root pico now gets its `pds` and `wellknown_rx` channels. At engine start, a developer UI rule queried the root's (nonexistent) parent, and the error stopped the startup rules of `io.picolabs.subscription` and `io.picolabs.pds` from running. `io.picolabs.pds` also never found an existing `pds` channel (it looked for a `name` channels don't have), and now checks for it at engine start too.
+* **Fix** — importing a portable subtree while the adopting parent is busy handling an event (the import creates the child directly in that case) now gives the new pico a `did:webvh`, as creating it through wrangler does. Before, the import's relocation was skipped. `identityPortable` failed intermittently because of this.
+* **Docs** — **Wrangler** (`docs/wrangler/`), from the Pico Labs Confluence docs and updated for this engine: an overview of Wrangler, the wrangler ruleset, managing channels, relationships, and the pico data store, plus guides to the optional rulesets `io.picolabs.xmlui`, `io.picolabs.oauth`, and `io.picolabs.portable_subtree`. The generated API references in `docs/rulesets/` link to them.
+* **Dev MCP** — tools that send events (`raise_event`, `install_ruleset`, `flush_ruleset`, `create_pico`, `delete_pico`, `create_channel`) flag failures as errors: a refusal the engine answers with an `error` body (such as a channel policy refusal), and an install or flush that raises `wrangler:ruleset_install_failed` or `ruleset_flush_failed`.
+
 # 1.9.5 - November 13, 2026
 
 * **Views** — `PicoTheme` pads its content (`$space-3`) so buttons and tables don't sit against the panel edge in dark themes.

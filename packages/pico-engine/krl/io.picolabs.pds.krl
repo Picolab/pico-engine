@@ -418,22 +418,25 @@ ruleset io.picolabs.pds {
     }
   }
 
+  // On install, and on the root pico at engine start: a pico whose PDS came
+  // with an older engine may have no pds channel yet.
   rule create_pds_channel {
     select when wrangler ruleset_installed where event:attr("rids") >< ctx:rid
+             or engine started
     pre {
       channelName = "pds"
       eventPolicy = {"allow": [{"domain": "pds", "name": "*"}], "deny": []}
       queryPolicy = {"allow": [{"rid": "io.picolabs.pds", "name": "*"}], "deny": []}
-      existing_channels = wrangler:channels()
-      pds_channel = existing_channels.filter(function(chan) {
-        chan{"name"} == channelName
-      })
+      pds_channel = wrangler:channels([channelName])
       channel_exists = pds_channel.length() > 0
     }
     if not channel_exists then
       wrangler:createChannel([channelName], eventPolicy, queryPolicy) setting(channel)
     fired {
-      ent:pds_channel_eci := channel_exists => pds_channel.head(){"id"} | channel{"id"}
+      ent:pds_channel_eci := channel{"id"}
+    }
+    else {
+      ent:pds_channel_eci := pds_channel.head(){"id"}
     }
   }
 

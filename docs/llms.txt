@@ -38,6 +38,14 @@ Machine-readable index for agents working with picos and KRL.
 - Cookbook: bootstrap and channels instructions: cookbook/bootstrap/instructions.md
 - Cookbook: KBlog: cookbook/kblog/README.md
 - Cookbook: KBlog instructions: cookbook/kblog/instructions.md
+- Wrangler: the pico operating system: wrangler/README.md
+- Wrangler: the wrangler ruleset: wrangler/wrangler.md
+- Wrangler: managing channels: wrangler/channels.md
+- Wrangler: relationships: wrangler/relationships.md
+- Wrangler: pico data store: wrangler/pds.md
+- Wrangler: pico views (io.picolabs.xmlui): wrangler/xmlui.md
+- Wrangler: OAuth (io.picolabs.oauth): wrangler/oauth.md
+- Wrangler: portable subtrees (io.picolabs.portable_subtree): wrangler/portable-subtree.md
 - Patterns and tips: patterns_and_tips/README.md
 - Tip: initializing entity variables: patterns_and_tips/initializing-entity-variables.md
 - Tip: arrays and maps: patterns_and_tips/arrays-and-maps.md

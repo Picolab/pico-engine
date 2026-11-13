@@ -26,7 +26,11 @@ function picoInfo(pe: Pe, uiEci: string) {
     rid: "io.picolabs.pico-engine-ui",
     name: "pico",
     args: {},
-  }) as Promise<{ children: string[]; channels: Array<{ id: string; tags: string[] }> }>;
+  }) as Promise<{
+    children: string[];
+    channels: Array<{ id: string; tags: string[] }>;
+    rulesets: Array<{ rid: string }>;
+  }>;
 }
 
 async function waitFor<T>(fn: () => Promise<T | null | undefined | false>, ms = 20000): Promise<T> {
@@ -39,13 +43,22 @@ async function waitFor<T>(fn: () => Promise<T | null | undefined | false>, ms = 
   }
 }
 
-/** Run a demo's bootstrap on a new child of the root pico, as the Try It! tab does. */
-async function runDemo(folder: string, rid: string) {
+/**
+ * Run a demo's bootstrap on a new child of the root pico, as the Try It! tab does.
+ * With `withXmlui`, the child already has the views runtime when the bootstrap runs.
+ */
+async function runDemo(folder: string, rid: string, opts: { withXmlui?: boolean } = {}) {
   const pe = await startIsolatedEngine({ autoCreateRootPico: true });
   const root = pe.pf.rootPicos()[0];
   const rootUi = Object.values(root.channels).find((c) => c.tags.includes("ui"))!.id;
   await uiEvent(pe, rootUi, "new", { name: rid });
   const childUi = await waitFor(async () => (await picoInfo(pe, rootUi)).children[0]);
+  if (opts.withXmlui) {
+    await uiEvent(pe, childUi, "install", { url: `${pe.base_url}/krl/io.picolabs.xmlui.krl` });
+    await waitFor(async () =>
+      (await picoInfo(pe, childUi)).rulesets.some((r) => r.rid === "io.picolabs.xmlui")
+    );
+  }
   await uiEvent(pe, childUi, "install", { url: `${pe.base_url}/krl/demos/${folder}/${rid}.krl` });
   const tryItEci = await waitFor(async () =>
     (await picoInfo(pe, childUi)).channels.find((c) => c.tags.includes("try_it"))?.id
@@ -459,4 +472,16 @@ test("KBlog: readers read, authors post through the event hierarchy, and nobody 
   t.deepEqual(names(await skyEvent(pe, author, "kblog", "clear_requested")), ["clear_articles", "show_empty_blog"]);
   t.deepEqual(await articles(reader), []);
   await pe.pf.db.close();
+});
+
+test("A pico that already has the views runtime: the bootstraps go straight to the app", async (t) => {
+  for (const [folder, rid, app] of [
+    ["echo", "com.example.echo.bootstrap", "com.example.echo"],
+    ["bootstrap", "com.example.visitors.bootstrap", "com.example.visitors"],
+  ]) {
+    const { pe, childUi, status } = await runDemo(folder, rid, { withXmlui: true });
+    t.true((await picoInfo(pe, childUi)).rulesets.some((r) => r.rid === app), app);
+    t.is(status.links.length, 1, folder);
+    await pe.pf.db.close();
+  }
 });

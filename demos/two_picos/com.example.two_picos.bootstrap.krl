@@ -99,10 +99,13 @@ ruleset com.example.two_picos.bootstrap {
       ready = ent:ready.defaultsTo({}).put(role, true)
       both = (ready{"answerer"} && ready{"asker"}) => true | false
     }
-    always {
+    if both then noop()
+    fired {
+      raise two_picos event "both_ready"
+    }
+    finally {
       ent:ready{role} := true
       ent:stage := "installing rulesets"
-      raise two_picos event "both_ready" if both
     }
   }
 

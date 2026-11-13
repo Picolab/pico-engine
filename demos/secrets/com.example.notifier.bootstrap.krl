@@ -58,19 +58,22 @@ ruleset com.example.notifier.bootstrap {
     pre {
       has_xmlui = wrangler:installedRIDs() >< xmlui_rid
     }
-    always {
+    if not has_xmlui then noop()
+    fired {
+      raise wrangler event "install_ruleset_request" attributes
+        {"url": host() + "/krl/" + xmlui_rid + ".krl"}
+    }
+    else {
+      raise wrangler event "install_ruleset_request" attributes
+        {"absoluteURL": meta:rulesetURI, "rid": notifier_rid}
+    }
+    finally {
       ent:stage := "installing"
       raise wrangler event "new_channel_request" attributes {
         "tags": ["try_it"],
         "eventPolicy": {"allow": [], "deny": []},
         "queryPolicy": {"allow": [{"rid": meta:rid, "name": "tryIt"}], "deny": []}
       }
-      raise wrangler event "install_ruleset_request" attributes
-        {"url": host() + "/krl/" + xmlui_rid + ".krl"}
-        if not has_xmlui
-      raise wrangler event "install_ruleset_request" attributes
-        {"absoluteURL": meta:rulesetURI, "rid": notifier_rid}
-        if has_xmlui
       raise wrangler event "new_child_request" attributes
         {"name": "Hook service", "secrets_demo": "hook_service", "backgroundColor": "#ffe0b2"}
     }

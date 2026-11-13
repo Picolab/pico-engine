@@ -165,7 +165,12 @@ export async function importPortableSubtree(
     parent,
     bootstrapName,
     deps.rsRegistry,
-    createOpts
+    createOpts,
+    async (picoId, ctx) => {
+      if (deps.getBaseUrl()) {
+        await deps.identity.ensureWebvhDid(picoId, { isRoot: ctx.isRoot });
+      }
+    }
   );
   const importResult = await importIntoExistingChild(
     services,

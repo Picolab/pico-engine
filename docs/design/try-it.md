@@ -52,9 +52,19 @@ A demo always runs in a new child, so it never changes a pico someone already us
 
 Edits are for experimenting. The demos are maintained in the repository's `demos/`, and changes come in as pull requests. An npm install's copy may not be writable and is replaced on upgrade, and that's fine. `PICO_ENGINE_DEMOS_DIR` points the engine at another directory to serve as `demos/` (the tests use it, and so can a contributor running an installed engine against a checkout).
 
+## OAuth meshes
+
+Not supported, on purpose. The demo pages don't include `PicoAccessTokenField`, and the docs' `curl` examples send no bearer, so on a mesh with OAuth turned on the pages may not load data. The tab checks `/api/oauth/mesh-enabled` and shows a warning when it is.
+
 ## Agents
 
-The same steps work through the dev MCP tools that exist today: `create_pico`, `install_ruleset` (with the `url` from `/api/try-it`), and `query` on the `try_it` channel for `tryIt`. A `list_try_it` tool and links from `llms.txt` are follow-ups.
+The dev MCP server (`pico-engine mcp --stdio`, `mcp/tryItTools.js`) has three tools that take the tab's steps:
+
+- `list_try_it_demos`: `/api/try-it`, summarized: name, folder, bootstrap rid, what it shows, `try-it.md` notes, cookbook URL and MCP resource URIs, files.
+- `run_try_it_demo {demo, parentEci?, name?, timeoutSeconds?}`: `demo` is a folder, bootstrap rid, or name. Creates the child under the parent's UI channel (default root), installs the bootstrap with `engine_ui:install` (reporting `ruleset_install_failed`), then polls `tryIt()` on the child's `try_it` channel until ready. Returns the child's UI ECI, the `try_it` ECI, stage, links, and the notes. Removing a demo is `delete_pico` on that UI ECI.
+- `try_it_status {parentEci?}`: the "Running here" list for a pico's children.
+
+The cookbook and Patterns and tips pages are MCP resources (`pico://docs/cookbook/<folder>/README` and `/instructions`, `pico://docs/patterns_and_tips/<page>`), read from the repo in a checkout and from `mcp/docs/` (bundled at pack time) in an npm install. Test: `test/mcpTryIt.ts`, in `npm run test:mcp`.
 
 ## Testing
 

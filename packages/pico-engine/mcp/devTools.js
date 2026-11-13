@@ -13,6 +13,35 @@ function textResult(text, isError = false) {
 
 const emptySchema = {};
 
+/** The attrs of a wrangler:<name> event anywhere in an event-wait body, or null. */
+function findWranglerEvent(node, name) {
+  if (!node || typeof node !== "object") return null;
+  if (node.domain === "wrangler" && node.name === name) {
+    return (node.data && node.data.attrs) || {};
+  }
+  for (const value of Object.values(node)) {
+    const hit = findWranglerEvent(value, name);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/**
+ * An event-wait body as a tool result. The engine answers some failures with
+ * HTTP 200 and an error in the body (a channel policy refusal), and install or
+ * flush failures as a raised wrangler event; both are reported as errors.
+ */
+function eventResult(data, failureEvent) {
+  if (data && typeof data === "object" && data.error != null) {
+    return textResult(jsonText(data), true);
+  }
+  const failed = failureEvent ? findWranglerEvent(data, failureEvent) : null;
+  if (failed) {
+    return textResult(jsonText({ error: `wrangler:${failureEvent}`, details: failed, response: data }), true);
+  }
+  return textResult(jsonText(data));
+}
+
 function registerDevTools(server, client) {
   server.tool(
     "engine_status",
@@ -111,7 +140,7 @@ function registerDevTools(server, client) {
           name,
           attrs || {}
         );
-        return textResult(jsonText(data));
+        return eventResult(data);
       } catch (err) {
         return textResult(String(err), true);
       }
@@ -258,7 +287,7 @@ function registerDevTools(server, client) {
         const data = await client.channelEventWait(ui, "engine_ui", "install", {
           url,
         });
-        return textResult(jsonText(data));
+        return eventResult(data, "ruleset_install_failed");
       } catch (err) {
         return textResult(String(err), true);
       }
@@ -278,7 +307,7 @@ function registerDevTools(server, client) {
         const data = await client.channelEventWait(ui, "engine_ui", "flush", {
           url,
         });
-        return textResult(jsonText(data));
+        return eventResult(data, "ruleset_flush_failed");
       } catch (err) {
         return textResult(String(err), true);
       }
@@ -295,7 +324,7 @@ function registerDevTools(server, client) {
     async (attrs) => {
       try {
         const data = await client.engineUiEvent("new", attrs);
-        return textResult(jsonText(data));
+        return eventResult(data);
       } catch (err) {
         return textResult(String(err), true);
       }
@@ -309,7 +338,7 @@ function registerDevTools(server, client) {
     async ({ eci }) => {
       try {
         const data = await client.engineUiEvent("del", { eci });
-        return textResult(jsonText(data));
+        return eventResult(data);
       } catch (err) {
         return textResult(String(err), true);
       }
@@ -340,7 +369,7 @@ function registerDevTools(server, client) {
           eventPolicy,
           queryPolicy,
         });
-        return textResult(jsonText(data));
+        return eventResult(data);
       } catch (err) {
         return textResult(String(err), true);
       }
@@ -348,4 +377,4 @@ function registerDevTools(server, client) {
   );
 }
 
-module.exports = { registerDevTools };
+module.exports = { registerDevTools, findWranglerEvent };

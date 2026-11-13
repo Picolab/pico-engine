@@ -71,7 +71,7 @@
     "test:wildcard-channel-identity": "ava reset-cache && ava --serial ./test/wildcardChannelIdentity.ts --timeout=2m",
     "test:policy": "ava reset-cache && ava --serial ./test/layer2ChannelPolicy.ts ./test/channelPolicyCeiling.ts ./test/wildcardChannelIdentity.ts ./test/channelIdentityPolicy.ts ./test/engineConfig.ts --timeout=3m",
     "test:schema": "ava reset-cache && ava --serial ./test/uiTestingSchema.ts ./test/uiTestingHistorySaved.ts --timeout=3m",
-    "test:mcp": "ava reset-cache && ava --serial ./test/mcpDevClient.ts ./test/mcpDevStdioE2e.ts ./test/mcpMesh.ts --timeout=5m && node test/helpers/printMcpTestNoiseNotes.js",
+    "test:mcp": "ava reset-cache && ava --serial ./test/mcpDevClient.ts ./test/mcpDevStdioE2e.ts ./test/mcpTryIt.ts ./test/mcpMesh.ts --timeout=5m && node test/helpers/printMcpTestNoiseNotes.js",
     "test:install-failure": "ava reset-cache && ava --serial ./test/installFailureVisibility.ts --timeout=3m",
     "test:cross-engine": "ava reset-cache && ava --serial ./test/crossEngineSubscription.ts --timeout=3m",
     "test:relationship-alias": "ava reset-cache && ava --serial ./test/relationshipAlias.ts --timeout=2m",

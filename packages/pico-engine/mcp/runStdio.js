@@ -7,6 +7,7 @@ const {
 const { EngineClient } = require("./engineClient");
 const { registerDevTools } = require("./devTools");
 const { registerDevResources } = require("./devResources");
+const { registerTryItTools } = require("./tryItTools");
 
 async function runDevMcpStdio() {
   const client = new EngineClient();
@@ -25,6 +26,7 @@ async function runDevMcpStdio() {
   );
 
   registerDevTools(server, client);
+  registerTryItTools(server, client);
   registerDevResources(server, client);
 
   const transport = new StdioServerTransport();

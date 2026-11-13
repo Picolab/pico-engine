@@ -89,13 +89,20 @@ async function rulesetFromParent(
   return { rs: loaded.ruleset, config };
 }
 
+/** What ctx:newPico runs for a new pico (identity); parent.newPico doesn't. */
+export type PicoCreatedHook = (
+  picoId: string,
+  ctx: { isRoot: boolean; parentPicoId: string }
+) => Promise<void>;
+
 /** Same bootstrap as wrangler bootstrapNewChild, without blocking the parent's event queue. */
 async function bootstrapImportChildSync(
   pf: PicoFramework,
   parent: Pico,
   name: string,
   rsRegistry: RulesetRegistry,
-  options?: CreateImportChildOptions
+  options?: CreateImportChildOptions,
+  onPicoCreated?: PicoCreatedHook
 ): Promise<{ familyEci: string; child: Pico }> {
   const ui = await rulesetFromParent(parent, ENGINE_UI_RID, rsRegistry);
   const wrangler = await rulesetFromParent(parent, WRANGLER_RID, rsRegistry);
@@ -105,6 +112,9 @@ async function bootstrapImportChildSync(
   const child = pf.getPico(familyEci);
   if (!child) {
     throw new Error(`Failed to resolve child for family ECI ${familyEci}`);
+  }
+  if (onPicoCreated) {
+    await onPicoCreated(child.id, { isRoot: false, parentPicoId: parent.id });
   }
 
   const parentUi = parent.toReadOnly().channels.find(
@@ -228,10 +238,11 @@ export async function createImportChildViaWrangler(
   parent: Pico,
   name: string,
   rsRegistry: RulesetRegistry,
-  options?: CreateImportChildOptions
+  options?: CreateImportChildOptions,
+  onPicoCreated?: PicoCreatedHook
 ): Promise<{ familyEci: string; child: Pico }> {
   if (parentIsHandlingEvent(parent)) {
-    return bootstrapImportChildSync(pf, parent, name, rsRegistry, options);
+    return bootstrapImportChildSync(pf, parent, name, rsRegistry, options, onPicoCreated);
   }
 
   const newChildRequest = {
@@ -269,10 +280,11 @@ export async function createImportChildViaWrangler(
 
 /** Wrangler-backed child creation wired into ctx subtree import. */
 export function wranglerSubtreeImportServices(
-  rsRegistry: RulesetRegistry
+  rsRegistry: RulesetRegistry,
+  onPicoCreated?: PicoCreatedHook
 ): Pick<RulesetStateServices, "createImportChild"> {
   return {
     createImportChild: (pf, parent, name, opts) =>
-      createImportChildViaWrangler(pf, parent, name, rsRegistry, opts),
+      createImportChildViaWrangler(pf, parent, name, rsRegistry, opts, onPicoCreated),
   };
 }

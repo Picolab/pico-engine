@@ -97,6 +97,14 @@ class EngineClient {
     return JSON.parse(text);
   }
 
+  async getTryIt() {
+    const res = await fetch(`${this.baseUrl}/api/try-it`);
+    if (!res.ok) {
+      throw new Error(`GET /api/try-it ${res.status}`);
+    }
+    return res.json();
+  }
+
   async engineUiEvent(name, attrs = {}) {
     const ui = await this.resolveUiEci();
     return this.channelEventWait(ui, "engine_ui", name, attrs);

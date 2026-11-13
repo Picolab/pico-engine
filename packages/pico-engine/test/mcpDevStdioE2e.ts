@@ -103,3 +103,44 @@ test.serial(
   },
   { timeout: "2m" }
 );
+
+test.serial(
+  "dev MCP stdio: a policy refusal or a failed install is flagged as an error",
+  async (t) => {
+    const pe = await startIsolatedEngine({ autoCreateRootPico: true });
+    const client = new Client({ name: "pico-engine-test", version: "0" });
+    const badKrl = path.join(fs.mkdtempSync(path.join(require("os").tmpdir(), "mcp-bad-")), "bad.krl");
+    fs.writeFileSync(badKrl, "ruleset bad.ruleset {\n  rule r { select when }\n}\n");
+
+    try {
+      await client.connect(devMcpTransport(pe.base_url));
+      const uiEci = mcpToolJson<{ uiEci: string }>(
+        await client.callTool({ name: "engine_status", arguments: {} })
+      ).uiEci;
+
+      const refused = await client.callTool({
+        name: "raise_event",
+        arguments: { eci: uiEci, domain: "echo", name: "hello", attrs: {} },
+      });
+      t.true(refused.isError, "an event the channel doesn't allow");
+      t.regex(mcpToolText(refused), /channel policy/i);
+
+      const failed = await client.callTool({
+        name: "install_ruleset",
+        arguments: { url: "file://" + badKrl, eci: uiEci },
+      });
+      t.true(failed.isError, "a ruleset that doesn't compile");
+      t.regex(mcpToolText(failed), /ruleset_install_failed/);
+
+      const fine = await client.callTool({
+        name: "raise_event",
+        arguments: { eci: uiEci, domain: "engine_ui", name: "box", attrs: {} },
+      });
+      t.false(fine.isError, mcpToolText(fine));
+    } finally {
+      await client.close();
+      await pe.shutdown();
+    }
+  },
+  { timeout: "2m" }
+);

@@ -53,17 +53,21 @@ ruleset com.example.visitors.bootstrap {
     pre {
       has_xmlui = wrangler:installedRIDs() >< xmlui_rid
     }
-    always {
+    if not has_xmlui then noop()
+    fired {
       ent:stage := "installing " + xmlui_rid
+      raise wrangler event "install_ruleset_request" attributes
+        {"url": host() + "/krl/" + xmlui_rid + ".krl"}
+    }
+    else {
+      raise bootstrap event "xmlui_ready"
+    }
+    finally {
       raise wrangler event "new_channel_request" attributes {
         "tags": ["try_it"],
         "eventPolicy": {"allow": [], "deny": []},
         "queryPolicy": {"allow": [{"rid": meta:rid, "name": "tryIt"}], "deny": []}
       }
-      raise wrangler event "install_ruleset_request" attributes
-        {"url": host() + "/krl/" + xmlui_rid + ".krl"}
-        if not has_xmlui
-      raise bootstrap event "xmlui_ready" if has_xmlui
     }
   }
 

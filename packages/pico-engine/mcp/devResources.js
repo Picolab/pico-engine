@@ -19,11 +19,63 @@ function readFile(filePath) {
 function readDoc(relativeFromRepoRoot) {
   return (
     readFile(path.join(repoRoot, relativeFromRepoRoot)) ||
+    readFile(path.join(bundledDir, relativeFromRepoRoot.replace(/^docs\//, ""))) ||
     readFile(path.join(bundledDir, path.basename(relativeFromRepoRoot)))
   );
 }
 
+/** Markdown pages under docs/<dir>, as paths relative to it ("echo/README.md"). */
+function listPages(dir) {
+  const root = fs.existsSync(path.join(repoRoot, "docs", dir))
+    ? path.join(repoRoot, "docs", dir)
+    : path.join(bundledDir, dir);
+  const out = [];
+  const walk = (sub) => {
+    let entries = [];
+    try {
+      entries = fs.readdirSync(path.join(root, sub), { withFileTypes: true });
+    } catch (_e) {
+      return;
+    }
+    for (const entry of entries) {
+      const rel = sub ? `${sub}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) walk(rel);
+      else if (entry.name.endsWith(".md")) out.push(rel);
+    }
+  };
+  walk("");
+  return out.sort();
+}
+
+function firstHeading(text, fallback) {
+  const m = /^# (.+)$/m.exec(text);
+  return m ? m[1].trim() : fallback;
+}
+
+// Every page of the cookbook (demo overviews and instructions) and of Patterns
+// and tips, at pico://docs/<dir>/<page without .md>.
+function registerDocPages(server, dir, label) {
+  for (const rel of listPages(dir)) {
+    const page = rel.replace(/\.md$/, "");
+    const uri = `pico://docs/${dir}/${page}`;
+    const docPath = `docs/${dir}/${rel}`;
+    const title = firstHeading(readDoc(docPath), page);
+    server.resource(
+      `${dir}/${page}`,
+      uri,
+      { description: `${label}: ${title}`, mimeType: "text/markdown" },
+      async () => ({
+        contents: [{ uri, mimeType: "text/markdown", text: readDoc(docPath) }],
+      })
+    );
+  }
+}
+
 function registerDevResources(server, client) {
+  registerDocPages(server, "cookbook", "Cookbook");
+  registerDocPages(server, "patterns_and_tips", "Patterns and tips");
+  registerDocPages(server, "wrangler", "Wrangler");
+
   server.resource(
     "krl-conventions",
     "pico://docs/krl-conventions",

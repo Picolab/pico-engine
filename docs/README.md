@@ -72,7 +72,7 @@ A `say:hello` event sent to the pico stores the name in the entity variable `ent
 | Understand what picos are and why | [Persistent Compute Objects](pico-overview.md) |
 | Install, configure and run an engine | [Operator guide](pico-engine.md) |
 | Write rulesets | [KRL manual](krl/) |
-| Use the rulesets every pico has (Wrangler, PDS, relationships) | [Bundled rulesets](rulesets/) |
+| Use the rulesets every pico has (Wrangler, PDS, relationships) | [Wrangler](wrangler/), and the [API reference](rulesets/) |
 | Give a pico its own web UI | [Pico views](pico-views.md) |
 | Install and run worked examples, from the **Try It!** tab or by hand | [Cookbook](cookbook/) |
 | Learn short techniques for KRL and picos | [Patterns and tips](patterns_and_tips/) |

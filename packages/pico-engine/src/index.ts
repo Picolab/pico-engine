@@ -235,7 +235,9 @@ export async function startEngine(
   });
   const pf = core.picoFramework;
   core.resolveBundledRulesetUrl = resolveBundledKrlUrl;
-  core.subtreeImportServices = wranglerSubtreeImportServices(core.rsRegistry);
+  core.subtreeImportServices = wranglerSubtreeImportServices(core.rsRegistry, (picoId, ctx) =>
+    onPicoCreated(picoId, ctx)
+  );
   const identity = new IdentityStore({ db: pf.db });
   let identityService!: IdentityService;
   const onPicoCreated = async (

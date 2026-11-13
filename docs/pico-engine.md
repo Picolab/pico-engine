@@ -219,7 +219,7 @@ Local dev MCP: `pico-engine mcp --stdio` — not exposed on hosted load balancer
 ## Agents and KRL authoring
 
 - **`krl-check`** on ruleset files before install.
-- **Dev MCP** (stdio): validate, install, flush, raise, query — same mesh as the UI when `PICO_ENGINE_HOME` / config match.
+- **Dev MCP** (stdio): validate, install, flush, raise, query — same mesh as the UI when `PICO_ENGINE_HOME` / config match. It runs the Try It! demos too (`list_try_it_demos`, `run_try_it_demo`, `try_it_status`), and serves the cookbook and Patterns and tips pages as `pico://docs/cookbook/<folder>/README`, `…/instructions`, and `pico://docs/patterns_and_tips/<page>`.
 - **Docs for LLMs:** [`llms.txt`](llms.txt), [`llms-full.txt`](llms-full.txt), [`openapi.yaml`](openapi.yaml). Regenerate after doc edits: `npm run generate:llms` at repo root.
 
 ---
