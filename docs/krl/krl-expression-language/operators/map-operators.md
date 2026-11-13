@@ -2,7 +2,7 @@
 
 The operators in this section are valid for maps.
 
-Note: in addition to these operators, there is a [membership infix operator that works on arrays and maps](/krl/krl-expression-language/predicate-expressions).
+Note: in addition to these operators, there is a [membership infix operator that works on arrays and maps](/krl/krl-expression-language/predicate-expressions). To find values deep in nested maps and arrays, use [`query()`](/krl/krl-expression-language/operators/query-operator).
 
 ## Hash Paths
 

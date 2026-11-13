@@ -40,6 +40,7 @@ The following sections describe operators currently available. They are organize
 - [Set Operators](/krl/krl-expression-language/operators/set-operators)
 - [Hex Operators](/krl/krl-expression-language/operators/hex-operators)
 - [Bitwise Operators](/krl/krl-expression-language/operators/bitwise-operators)
+- [query()](/krl/krl-expression-language/operators/query-operator): finding values in maps and arrays with JSONPath
 
 ---
 

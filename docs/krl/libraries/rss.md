@@ -1,132 +1,91 @@
 # rss
 
-## The RSS Library
+The rss library reads RSS 2.0, RSS 1.0 (RDF), and Atom feeds.
 
-> **Engine Compatibility:**
->
-> This library has not yet been ported to the New Pico Engine
+Every function takes the feed as its first argument, in any of these forms:
 
-The Kynetx Rule Language has native support for handling and processing RSS feeds.  The KRL convenience functions can be grouped into feed, channel and item functions.
+- a parsed feed, from `rss:parse`
+- the feed's XML text
+- an `http:get` response holding the feed (its `content` is the XML)
 
-## Feed Functions
+Each call parses text or a response again, so when a rule uses several functions, call `rss:parse` once in the prelude and pass the result.
+
+```krl
+pre {
+  feed = rss:parse(http:get("https://www.windley.com/rss.xml"))
+  title = rss:channel(feed, "title")
+  latest = rss:first(feed)
+}
+```
+
+## The parsed feed
+
+`rss:parse` returns a map:
+
+```krl
+{
+  "version": "2.0",            // "2.0" (or the version the feed gives), "1.0", or "atom"
+  "channel": { "title": …, "link": …, "description": …, … },
+  "items": [ { "title": …, "link": …, "description": …, "guid": …, "pubDate": …, … }, … ]
+}
+```
+
+The channel and each item hold their elements by name. An element with text gives its text (CDATA included); an element with only attributes, such as `<enclosure url="…" type="…"/>`, gives a map of them; and a repeated element, such as `category`, gives an array. Elements with a namespace prefix keep it: `item{"dc:creator"}`, `item{"content:encoded"}`.
+
+For Atom feeds the names match RSS where they can: the channel's `link` is the feed's page and `description` its subtitle, and each entry's `link` is its page, `guid` its `id`, `description` its summary (or content), and `pubDate` its published (or updated) time. The Atom names are there too.
+
+## Feed functions
+
+### parse
+
+`rss:parse(feed)` returns the parsed feed. It raises an error for text that isn't an RSS or Atom feed.
 
 ### version
 
-The rss:version() function returns the version of the rss feed.  The rss:version() function takes in the following arguments:
+`rss:version(feed)` returns the feed's version: the `version` of an `<rss>` feed (usually `"2.0"`), `"1.0"` for RDF, or `"atom"`.
 
-- **Dataset or Datasource**—An rss dataset or datasource
-
-The following is an example of rss:version
-
-```javascript
-pre {
-  rssVersion = rss:version(rss_data_set);
-}
-```
-
-## Channel Functions
+## Channel functions
 
 ### items
 
-the rss:items() function returns an array of all the RSS items in the feed. The rss:items function takes in the following arguments:
-
-- **Dataset or Datasource**—An rss dataset or datasource
-
-The following is an example of rss:items()
-
-```javascript
-pre {
-  rssItems = rss:items(rss_data_set);
-}
-```
+`rss:items(feed)` returns the array of items.
 
 ### first
 
-the [rss:first()](http://rssitems()) function returns the first item from the channel feed. The rss:first function takes in the following arguments:
-
-- **Dataset or Datasource**—An rss dataset or datasource
-
-The following is an example of [rss:items()](http://rssitems())
-
-```javascript
-pre {
-  rssFirstItem = rss:first(rss_data_set);
-}
-```
+`rss:first(feed)` returns the first item, or `null` if there are none.
 
 ### last
 
-the [rss:last()](http://rssitems%28%29/) function returns the last item from the channel feed.  The rss:last function takes in the following arguments:
-
-- **Dataset or Datasource**—An rss dataset or datasource
-
-The following is an example of [rss:last()](http://rssitems%28%29/)
-
-```javascript
-pre {
-  rssLastItem = rss:last(rss_data_set);
-}
-```
+`rss:last(feed)` returns the last item, or `null`.
 
 ### index
 
-The [rss:index()](http://rssitems%28%29/) function returns the nth item from the feed.  The rss:index function takes in the following arguments:
+`rss:index(feed, n)` returns the nth item, counting from 1, or `null` if there is no such item.
 
-- **Dataset or Datasource**—An rss dataset or datasource
-- **n—**The item number desired
-
-The following is an example of [rss:index()](http://rssitems%28%29/)
-
-```javascript
-pre {
-  rssThirdItem = rss:index(rss_data_set, 3);
-}
+```krl
+third = rss:index(feed, 3)
 ```
 
 ### random
 
-The [rss:random()](http://rssitems%28%29/) function returns a random item from the feed. The rss:random function takes in the following arguments:
-
-- **Dataset or Datasource**—An rss dataset or datasource
-
-The following is an example of [rss:random()](http://rssitems%28%29/)
-
-```javascript
-pre {
-  rssRandomItem = rss:random(rss_data_set);
-}
-```
+`rss:random(feed)` returns a random item, or `null`.
 
 ### channel
 
-The [rss:channel()](http://rssitems%28%29/) function returns values from the various channel elements. The rss:channel function takes in the following arguments:
+`rss:channel(feed, name)` returns the named channel element, or `null`. Without a name it returns the whole channel map.
 
-- **Dataset or Datasource**—An rss dataset or datasource
-- **name—**The name of the desired element
-
-The following is an example of [rss:channel()](http://rssitems%28%29/)
-
-```javascript
-pre {
-  rssChannelTitle = rss:channel(rss_data_set, "title");
-}
+```krl
+title = rss:channel(feed, "title")
 ```
 
-## Item Functions
+## Item functions
 
 ### item
 
-The rss:item() function returns the desired rss item
+`rss:item(item, name)` returns the named element of an item, or `null`. It's the same as `item{name}`.
 
-- **Dataset or Datasource—**An rss dataset or datasource
-- **name---**the name of the desired element
-
-The following is an example of [rss:item()](http://rssitems%28%29/)
-
-```javascript
-pre {
-  rssTitle = rss:item(rss_data_set, "title");
-}
+```krl
+headlines = rss:items(feed).map(function(i) { rss:item(i, "title") })
 ```
 
 ---

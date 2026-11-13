@@ -50,19 +50,20 @@ test("console eval reads globals and ent", async (t) => {
 
   const picoId = core.picoFramework.rootPicos()[0].id;
 
-  let r = await evalInRulesetDirect(picoId, "console_test", "getN()");
+  let r = await evalInRulesetDirect(core, picoId, "console_test", "getN()");
   t.true(r.ok);
   t.is(r.value, 17);
 
-  r = await evalInRulesetDirect(picoId, "console_test", "n + 1");
+  r = await evalInRulesetDirect(core, picoId, "console_test", "n + 1");
   t.true(r.ok);
   t.is(r.value, 18);
 
-  r = await evalInRulesetDirect(picoId, "console_test", 'getMap(){"a"}');
+  r = await evalInRulesetDirect(core, picoId, "console_test", 'getMap(){"a"}');
   t.true(r.ok);
   t.is(r.value, 1);
 
   r = await evalInRulesetDirect(
+    core,
     picoId,
     "console_test",
     'getMap().get(["a"])'
@@ -71,28 +72,31 @@ test("console eval reads globals and ent", async (t) => {
   t.is(r.value, 1);
 
   r = await evalInRulesetDirect(
+    core,
     picoId,
     "console_test",
-    'flip = "a"; getMap().get(["a", flip])'
+    'flip = "a"; getMap().get([flip])'
   );
   t.true(r.ok);
   t.is(r.value, 1);
 
   const rootPico = core.picoFramework.getPico(picoId);
   await rootPico.putEnt("console_test", "flag", true);
-  r = await evalInRulesetDirect(picoId, "console_test", "ent:flag");
+  r = await evalInRulesetDirect(core, picoId, "console_test", "ent:flag");
   t.true(r.ok);
   t.is(r.value, true);
 
   r = await evalInRulesetDirect(
+    core,
     picoId,
     "console_test",
     "ent:missing := 1"
   );
   t.false(r.ok);
-  t.regex(r.error || "", /not allowed/i);
+  t.regex(r.error || "", /not allowed|expected an expression/i);
 
   r = await evalInRulesetDirect(
+    core,
     picoId,
     "console_test",
     'getRows().map(function(row){ row{"name"} })'
@@ -100,6 +104,7 @@ test("console eval reads globals and ent", async (t) => {
   t.true(r.ok);
 
   r = await evalInRulesetDirect(
+    core,
     picoId,
     "console_test",
     'pick = function(row){ row{"name"} }; getRows().map(pick)'

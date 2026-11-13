@@ -34,6 +34,19 @@ For a rule to be executed in a pico on an event, a ruleset must be
 - registered with the pico engine with a unique ruleset ID or RID
 - installed in the pico with the corresponding event channel
 
+# How a Rule Runs
+
+A rule is like the body of an `if` statement whose condition is its `select when`. Rules change a pico's state by setting persistent variables, and they raise and send events. Each part of a rule runs in order:
+
+1. **[Select](/krl/rulesets/rules/the-select-statement).** The event expression decides whether the rule runs for this event. Rules in one ruleset that select the same event run in the order they're written.
+2. **[Prelude](/krl/rulesets/rules/prelude/)** (`pre { }`). Declarations computed for the rest of the rule. They are names, not variables: each is declared once.
+3. **[Action block](/krl/rulesets/rules/actions/).** An optional condition, `if <expr> then`, and the actions: one, several in [`every { }`](/krl/rulesets/rules/actions/compound-actions), or one picked by value with [`choose`](/krl/rulesets/rules/actions/compound-actions), KRL's case statement. The rule *fires* when the condition is true, or when there's no condition. A rule has one action block, and an action can't have an `else`.
+4. **[Postlude](/krl/rulesets/rules/postlude/).** Where persistent variables are set and events are raised. Use one of `fired { }` (runs if the rule fired), `notfired { }` (if it didn't), or `always { }`. After `fired` or `notfired` can come an `else { }` for the opposite case, and then a `finally { }` for what happens either way.
+
+Within a postlude, a statement can have a [guard](/krl/rulesets/rules/postlude/guard-conditions): `ent:count := 0 if reset`, or `raise … on final` in a loop. [`last`](/krl/rulesets/rules/postlude/control-statements) stops the rest of the ruleset's rules for this event.
+
+For values that may be missing, use [`defaultsTo`](/krl/krl-expression-language/operators/universal-operators) or `||`, and for choosing between two values, the [conditional expression](/krl/krl-expression-language/conditional-expressions) `cond => a | b`.
+
 # Ruleset Structure
 
 This is a more in depth ruleset example with in line comments.
@@ -51,9 +64,9 @@ ruleset rulesetExample{// "rulesetExample" is the RID, and must be unique in the
     author "CS462 TA"
 
     //You can use other modules (a.k.a. rulesets) that have functions or defactions that you want to use in this ruleset.
-    //To use a function/defaction in another ruleset, call the module: io.picolabs.pico:someProvidedFunction(<pass in params here>)
+    //To use a function/defaction in another ruleset, call the module: io.picolabs.wrangler:someProvidedFunction(<pass in params here>)
     //The optional alias keyword shortens the above function call to: wrangler:someFunction(<pass in params here>)
-    use module io.picolabs.pico alias wrangler
+    use module io.picolabs.wrangler alias wrangler
 
     //to use more than one module, do not separate with commas. Simply add a new line:
     use module someRulesetName

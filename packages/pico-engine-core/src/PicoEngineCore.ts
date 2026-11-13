@@ -13,14 +13,18 @@ import {
 } from "./formatEventOutput";
 import { makeKrlCtx } from "./makeKrlCtx";
 import initCtxModule from "./modules/ctx";
+import module_csv from "./modules/csv";
 import module_event from "./modules/event";
 import initHttpModule from "./modules/http";
+import module_ical from "./modules/ical";
 import module_math from "./modules/math";
 import module_random from "./modules/random";
+import module_rss from "./modules/rss";
 import { initScheduleModule } from "./modules/schedule";
 import module_stdlib from "./modules/stdlib";
+import initTelnetModule from "./modules/telnet";
 import module_time from "./modules/time";
-import module_ursa from "./modules/ursa";
+import module_uri from "./modules/uri";
 import initMetaModule from "./modules/meta";
 import { PicoEngineCoreConfiguration } from "./PicoEngineCoreConfiguration";
 import { CachedRuleset, RulesetRegistry } from "./RulesetRegistry";
@@ -307,11 +311,16 @@ export class PicoEngineCore {
     });
 
     this.modules["ctx"] = initCtxModule(this);
+    this.modules["csv"] = module_csv;
     this.modules["event"] = module_event;
     this.modules["http"] = initHttpModule(this);
+    this.modules["ical"] = module_ical;
 
     this.modules["math"] = module_math;
     this.modules["random"] = module_random;
+    this.modules["rss"] = module_rss;
+    this.modules["telnet"] = initTelnetModule(this.picoFramework);
+    this.modules["uri"] = module_uri;
 
     scheduleHooks = initScheduleModule(this.picoFramework);
     this.modules["schedule"] = scheduleHooks.module;
@@ -320,7 +329,6 @@ export class PicoEngineCore {
 
     this.modules["stdlib"] = module_stdlib;
     this.modules["time"] = module_time;
-    this.modules["ursa"] = module_ursa;
     this.modules["meta"] = initMetaModule(this);
 
     if (conf.modules) {

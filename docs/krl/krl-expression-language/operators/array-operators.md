@@ -1,6 +1,6 @@
 # Array Operators
 
-The following operators are valid for arrays. Note: in addition to these operators, there is a [membership infix operator that works on arrays and maps](https://picolabs.atlassian.net/wiki/display/docs/Predicate+Expressions#PredicateExpressions-Membership), and there are also [Set Operators](https://picolabs.atlassian.net/wiki/spaces/docs/pages/1183114/Set+Operators), which are extremely useful when comparing & inspecting arrays.
+The following operators are valid for arrays. Note: in addition to these operators, there is a [membership infix operator that works on arrays and maps](/krl/krl-expression-language/predicate-expressions), and there are also [Set Operators](/krl/krl-expression-language/operators/set-operators), which are extremely useful when comparing & inspecting arrays. To find values deep in nested arrays and maps, use [`query()`](/krl/krl-expression-language/operators/query-operator).
 
 ## `all()`
 

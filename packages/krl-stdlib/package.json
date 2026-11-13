@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "json-log": "^3.0.1",
+    "json-p3": "^3.0.3",
     "lodash": "^4.17.11",
     "pico-framework": "^0.8.2",
     "select-when": "^0.1.9"

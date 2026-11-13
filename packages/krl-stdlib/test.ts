@@ -1560,3 +1560,36 @@ test("collection operators", async (t) => {
     [1, 2, 3]
   );
 });
+
+test("query", async (t) => {
+  const callLib = await mkCallLib();
+  const fleet = {
+    vehicles: [
+      { name: "truck", trips: [{ miles: 8.7, category: "business" }, { miles: 2.7, category: "" }] },
+      { name: "van", trips: [{ miles: 40, category: "business" }] },
+    ],
+    owner: { name: "Phil" },
+  };
+
+  t.deepEqual(await callLib("query", fleet, "$.vehicles[*].name"), ["truck", "van"]);
+  t.deepEqual(await callLib("query", fleet, "$..name"), ["truck", "van", "Phil"]);
+  t.deepEqual(
+    await callLib("query", fleet, "$.vehicles[*].trips[?@.miles > 5 && @.category == 'business'].miles"),
+    [8.7, 40]
+  );
+  t.deepEqual(await callLib("query", fleet, "$.vehicles[?count(@.trips[*]) > 1].name"), ["truck"]);
+  t.deepEqual(await callLib("query", fleet, "$.vehicles[-1].name"), ["van"]);
+  t.deepEqual(await callLib("query", fleet, "$.vehicles[?match(@.name, 't.*')].name"), ["truck"]);
+  t.deepEqual(await callLib("query", fleet, "$.nope"), [], "no match is an empty array");
+  t.deepEqual(await callLib("query", fleet, "$.owner"), [{ name: "Phil" }]);
+  t.deepEqual(await callLib("query", [1, 2, 3], "$[1:]"), [2, 3]);
+  t.deepEqual(await callLib("query", "text", "$"), ["text"]);
+  t.deepEqual(await callLib("query", null, "$.a"), []);
+
+  await t.throwsAsync(callLib("query", fleet, "$.vehicles[?@.miles >"), {
+    instanceOf: TypeError,
+    message: /^query: .* in \$\.vehicles\[\?@\.miles >$/,
+  });
+  await t.throwsAsync(callLib("query", fleet, 3), { message: /expected a JSONPath string but got Number/ });
+  await t.throwsAsync(callLib("query", fleet, "vehicles"), { instanceOf: TypeError }, "paths start with $");
+});

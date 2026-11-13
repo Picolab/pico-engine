@@ -11,8 +11,6 @@ KRL contains a complete expression language for use inside rules. This section d
 - [Functions](/krl/krl-expression-language/functions/)
 - [User-Defined Actions](/krl/krl-expression-language/user-defined-actions)
 - [Operators](/krl/krl-expression-language/operators/)
-- [pick() and query()](/krl/krl-expression-language/pick-and-query/)
-- [Flow Control](/krl/krl-expression-language/flow-control)
 
 ---
 

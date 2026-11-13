@@ -1,6 +1,35 @@
 import * as _ from "lodash";
+import type { JSONPathQuery } from "json-p3";
 import { asyncSort } from "./asyncSort";
 import * as krl from "./krl";
+
+// json-p3 is ESM-only; tsc (module: commonjs) would turn import() into require().
+const importEsm = new Function("s", "return import(s)") as (
+  s: string
+) => Promise<typeof import("json-p3")>;
+let jsonP3: Promise<typeof import("json-p3")> | null = null;
+const compiledPaths = new Map<string, JSONPathQuery>();
+
+async function compileJsonPath(path: string): Promise<JSONPathQuery> {
+  let compiled = compiledPaths.get(path);
+  if (!compiled) {
+    jsonP3 = jsonP3 || importEsm("json-p3");
+    const { jsonpath, JSONPathError } = await jsonP3;
+    try {
+      compiled = jsonpath.compile(path);
+    } catch (err) {
+      if (err instanceof JSONPathError) {
+        throw new TypeError("query: " + err.message.split("\n")[0] + " in " + path);
+      }
+      throw err;
+    }
+    if (compiledPaths.size >= 1000) {
+      compiledPaths.delete(compiledPaths.keys().next().value as string);
+    }
+    compiledPaths.set(path, compiled);
+  }
+  return compiled;
+}
 
 function ltEqGt(left: any, right: any): 0 | 1 | -1 {
   let a: any = krl.toNumberOrNull(left);
@@ -1040,6 +1069,16 @@ const stdlib: krl.Module = {
     }
     path = toKeyPath(path);
     return _.get(obj, path, null);
+  }),
+
+  query: krl.Function(["val", "path"], async function (val, path) {
+    if (!krl.isString(path)) {
+      throw new TypeError(
+        "query expected a JSONPath string but got " + krl.typeOf(path)
+      );
+    }
+    const compiled = await compileJsonPath(path);
+    return compiled.findAll(val);
   }),
 
   set: krl.Function(["obj", "path", "val"], function (obj, path, val) {

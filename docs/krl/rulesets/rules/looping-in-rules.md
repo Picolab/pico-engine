@@ -61,7 +61,7 @@ There is also a [guard condition](https://picolabs.atlassian.net/wiki/spaces/doc
 
 > **Engine Compatibility:**
 >
-> Much of the example code in this section needs to be rewritten; it uses deprecated features like pick() and page:url() only found in the classic pico engine. But, the idea of using a filter instead of a loop is still valid.
+> Much of the example code in this section needs to be rewritten; it uses deprecated features like pick() and page:url() only found in the classic pico engine. In this engine, [`query()`](/krl/krl-expression-language/operators/query-operator) does what `pick()` did, but always returns an array. But, the idea of using a filter instead of a loop is still valid.
 
 Your instincts might be to use foreach loops in places where it’s less efficient than using implicit looping. To see when you might want to use a JPex instead of a foreach statement let’s walk through an example.
 
@@ -173,7 +173,7 @@ Suppose we wanted to make changes to a page based on data we retrieved from an o
 }
 ```
 
-In this dataset, we have an array of replacements, each of which contains a [jQuery selector](/krl/krl-expression-language/pick-and-query/query) pattern for elements on a Web page and the text we’re going to use with the action. The following ruleset uses the items in this data structure to prepend the text in each item above to the element on the page that matches the associated selector pattern:
+In this dataset, we have an array of replacements, each of which contains a jQuery selector pattern for elements on a Web page and the text we’re going to use with the action. The following ruleset uses the items in this data structure to prepend the text in each item above to the element on the page that matches the associated selector pattern:
 
 ```javascript
 rule prepend {
@@ -190,7 +190,7 @@ rule prepend {
 
 This changes the same page multiple times according to the content of the data structure. Change the data and the behavior of the rule will follow.
 
-Using data often requires loops. We'v seen that there are multiple ways to loop in KRL: a ruleset is a loop, each rule can loop explicitly using foreach, and implicit looping is accomplished using operators like [pick()](/krl/krl-expression-language/pick-and-query/pick), [map()](/krl/krl-expression-language/operators/array-operators), and [filter()](/krl/krl-expression-language/operators/array-operators).
+Using data often requires loops. We'v seen that there are multiple ways to loop in KRL: a ruleset is a loop, each rule can loop explicitly using foreach, and implicit looping is accomplished using operators like [map()](/krl/krl-expression-language/operators/array-operators) and [filter()](/krl/krl-expression-language/operators/array-operators).
 
 ---
 

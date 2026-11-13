@@ -81,6 +81,7 @@
     "test:peer-did4": "ava reset-cache && ava --serial ./test/peerDid4.ts --timeout=2m",
     "test:views": "ava reset-cache && ava --serial ./test/xmluiSpike.ts ./test/xmluiRoutes.ts ./test/xmluiLauncher.ts ./test/xmluiConfig.ts ./test/xmluiViewSchema.ts ./test/xmluiViewPolicy.ts ./test/xmluiViewsOAuth.ts ./test/xmluiS2Demos.ts ./test/xmluiComponents.ts --timeout=2m",
     "test:try-it": "ava reset-cache && ava --serial ./test/tryIt.ts ./test/tryItDemos.ts --timeout=2m",
+    "test:libraries": "ava reset-cache && ava --serial ./test/krlLibraries.ts --timeout=2m",
     "vendor:xmlui": "node scripts/copy-xmlui-runtime.mjs"
   },
   "dependencies": {

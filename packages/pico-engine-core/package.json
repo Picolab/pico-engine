@@ -33,12 +33,11 @@
   },
   "dependencies": {
     "abstract-level": "^1.0.3",
-    "bs58": "^4.0.1",
     "cross-fetch": "^4.0.0",
     "cuid": "^2.1.8",
+    "fast-xml-parser": "^4.5.7",
     "krl-compiler": "^1.9.4",
     "krl-stdlib": "^1.9.0",
-    "libsodium-wrappers": "^0.7.8",
     "lodash": "^4.17.11",
     "moment-timezone": "^0.5.31",
     "node-schedule": "^2.1.0",
@@ -48,7 +47,7 @@
     "qs": "^6.9.4",
     "random-words": "^1.1.1",
     "strftime": "^0.10.0",
-    "tweetnacl": "^1.0.3"
+    "telnet-client": "^2.2.14"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.123",

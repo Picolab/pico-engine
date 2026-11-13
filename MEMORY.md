@@ -1641,6 +1641,25 @@ wrangler (event sits on the schedule and never runs).
 - `wrangler:picoQuery` (same params/order, drop-in) uses `ctx:query()` locally on the same host,
   so it works over family channels. Error-map key changed: `skyQueryError` → `picoQueryError`.
 
+### Built-in libraries (2026-11-13)
+- Core registers `ctx csv event http ical math meta random rss schedule stdlib telnet time uri`
+  (`PicoEngineCore.ts`); the engine adds `dido` (identity plumbing for wrangler, subscription,
+  portable_subtree; not the retired DIDComm library) and `oauth`. `ursa` (old Indy pack/unpack) is removed.
+- A `use module … alias X` wins over a library named X (`CorePico.getModule` checks the ruleset's
+  modules first), so adding a library never breaks a ruleset that already uses that alias.
+- A module function that throws synchronously throws from the call, not as a rejected promise: in
+  ava, `t.throwsAsync(async () => mod.fn(ctx, args))`.
+- `telnet` keeps one connection per pico in memory and raises `telnet:*` with `pico.event()`
+  (no channel-policy check, as `schedule` does) on the ECI the connect event came in on.
+- `query(path)` operator (stdlib, 2026-11-13): JSONPath RFC 9535 via `json-p3`, `findAll`, always an
+  array. json-p3 3.x is ESM-only and krl-stdlib is CommonJS, so it's loaded with
+  `new Function("s", "return import(s)")` (tsc would rewrite `import()` to `require()`; engines
+  allow Node 20.0, before require(esm)); compiled paths are cached (1000). Classic `pick()` (JSONPath,
+  unwrapped single matches) and Mongo-style `query()` are gone. Chose json-p3 over JMESPath/JSONata;
+  `jsonpath-plus` had RCE CVEs from eval'd filters.
+- Adding a stdlib name is safe for rulesets that declare the same name: `Identifier.js` injects the
+  stdlib function only when the identifier resolves at the root scope.
+
 ---
 
 ## Engine environment variables (doc registry)

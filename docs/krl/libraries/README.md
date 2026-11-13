@@ -6,24 +6,24 @@ KRL has several libraries that are useful for dealing with special data types an
 <library-name>:<function-name>(<arg0>,<arg1>,...,<argn>)
 ```
 
-The following sections describe built-in libraries. Some of them have not yet been ported from the classic engine.
+The engine provides these libraries to every ruleset:
 
-- [CSV](/krl/libraries/csv)
-- [ctx](/krl/libraries/ctx)
-- [dido](/krl/libraries/dido/)
-- [engine](/krl/libraries/engine)
-- [event](/krl/libraries/event)
-- [HTTP](/krl/libraries/http)
-- [ical](/krl/libraries/ical)
-- [indy](/krl/libraries/indy)
-- [math](/krl/libraries/math)
-- [meta](/krl/libraries/meta)
-- [random](/krl/libraries/random)
-- [rss](/krl/libraries/rss)
-- [schedule](/krl/libraries/schedule)
-- [Telnet](/krl/libraries/telnet)
-- [time](/krl/libraries/time)
-- [URI](/krl/libraries/uri)
+- [CSV](/krl/libraries/csv): comma-separated values to and from arrays of maps
+- [ctx](/krl/libraries/ctx): the pico and the engine (an escape hatch; applications use [wrangler](/wrangler/))
+- [event](/krl/libraries/event): the current event, and sending events
+- [HTTP](/krl/libraries/http): HTTP requests
+- [ical](/krl/libraries/ical): iCalendar files
+- [math](/krl/libraries/math): math, hashing, and base64
+- [meta](/krl/libraries/meta): the ruleset and the current request
+- [oauth](/krl/libraries/oauth): a mesh's OAuth state (for `io.picolabs.oauth`)
+- [random](/krl/libraries/random): random numbers, words, and IDs
+- [rss](/krl/libraries/rss): RSS and Atom feeds
+- [schedule](/krl/libraries/schedule): scheduled events
+- [Telnet](/krl/libraries/telnet): connections to telnet hosts
+- [time](/krl/libraries/time): dates and times
+- [URI](/krl/libraries/uri): escaping strings for URIs
+
+A ruleset that uses a module with one of these names as its alias gets its module, not the library.
 
 ---
 

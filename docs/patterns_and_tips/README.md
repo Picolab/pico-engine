@@ -62,7 +62,7 @@ These best practices are now runnable demos in the [Cookbook](/cookbook/):
 
 Pages that describe things the current engine no longer has, or that depend on outside services:
 
-- **Sending secure messages** used `engine:signChannelMessage` and its relatives, which are gone. Relationships between picos can use DIDComm now; see the [`dido` library](/krl/libraries/dido/).
+- **Sending secure messages** used `engine:signChannelMessage` and its relatives, which are gone. Relationships between picos can use DIDComm now; see [Relationships](/wrangler/relationships).
 - **Shorter URL for a query or event** used `io.picolabs.rewrite` on the root pico, removed in engine 1.0. A ruleset can do the same with `_redirect`: see [Cookies and redirects](/patterns_and_tips/cookies-and-redirects).
 - **Account management using the root pico** described owner picos from before engine 1.0.
 - **Generate an image with KRL**, **Using Foursquare data**, **Using Wovyn sensors**, **Using Git**, and **Using a Google sheet** are about particular services, devices, or tools rather than KRL.

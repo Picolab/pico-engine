@@ -1,110 +1,109 @@
 # Telnet
 
-This module allows for connections and communications to telnet hosts
+The telnet library connects a pico to a telnet host (or any line-oriented TCP service) and sends it commands.
 
-> **Note:**
->
-> This library has not yet been ported to the Node Pico Engine
+Each pico has its own connection: connecting again closes the pico's earlier connection, and two picos can talk to different hosts at once. Connections are not persistent: they end when the engine restarts.
 
-Since this module has not yet been ported to the pico engine, you will have to add it in yourself. Here are the steps to add the module:
+```krl
+rule connect {
+  select when device connect_requested
+  telnet:connect({
+    "host": "192.168.1.20",
+    "port": 23,
+    "negotiationMandatory": false
+  }) setting(result)
+  fired {
+    ent:connected := result{"connected"}
+  }
+}
 
-1. Find the path to your pico-engine
-2. Navigate to **pico-engine/packages/pico-engine-core/src/modules/**
-3. Create a file called telnet.js
-4. Copy the source code from this link <https://raw.githubusercontent.com/Picolab/krl-node-modules/master/modules/telnet.js> and paste it in your new telnet.js file
-5. Go to the index.js file in the same folder you are currently in (pico-engine/packages/pico-engine-core/src/modules/)
-6. Find variable subModules near the top of the file (should be around line 6)
-7. Add a definition mapped to your telnet file to the bottom of the subModules variable. (i.e. telnet: require('./telnet')
-
-   1. Don’t forget to add a comma to the end of line directly above the one you just added
-
-```javascript
-var subModules = {
-  ent: require('./ent'),
-  app: require('./app'),
-  event: require('./event'),
-  engine: require('./engine'),
-  http: require('./http'),
-  indy: require('./indy'),
-  keys: require('./keys'),
-  math: require('./math'),
-  meta: require('./meta'),
-  schedule: require('./schedule'),
-  time: require('./time'),
-  random: require('./random'),
-  telnet: require('./telnet')
+rule status {
+  select when device status_requested
+  telnet:sendCMD("status") setting(reply)
+  fired {
+    ent:last_status := reply
+  }
 }
 ```
 
-> **Note:**
->
-> This telnet module uses another npm module that is not currently on the engine
+## Actions
 
-1. Install ping dependency
+### connect
 
-   a. Navigate two directories up **pico-engine/packages/pico-engine-core/**
+`telnet:connect(params)`
 
-   b. Enter this terminal command: **npm install --save ping**
-2. Save all the changes to the pico engine
+Opens a connection. `params` is a map; all of it is optional:
 
-   1. Navigate to the root path **/pico-engine**
-   2. Execute this command **npm run setup**
+| name | description | default |
+| --- | --- | --- |
+| `host` | Host to connect to | `"127.0.0.1"` |
+| `port` | Port | `23` |
+| `timeout` | Milliseconds of inactivity before the socket times out | `1800000` (30 minutes) |
+| `initialLFCR` | Send a CR+LF as soon as the connection opens | `true` |
+| `negotiationMandatory` | Expect telnet option negotiation and a shell prompt. Set `false` for a plain TCP service. | `true` |
+| `shellPrompt` | The host's shell prompt, a string or regular expression | `/(?:\/ )?#\s/`: a `#` and a space |
+| `loginPrompt` | The login prompt | `login` followed by colons or spaces at the end of a line, any case |
+| `passwordPrompt` | The password prompt | `password` the same way |
+| `username`, `password` | Credentials sent at the login and password prompts | |
+| `failedLoginMatch` | Text the host sends when a login fails | |
+| `irs` | Input record separator, between lines of a response | `"\r\n"` |
+| `ors` | Output record separator, sent after each command | `"\n"` |
+| `echoLines` | Lines of command echo to drop from a response | `1` |
+| `stripShellPrompt` | Leave the shell prompt out of responses | `true` |
+| `sendTimeout` | Milliseconds to wait for a reply to `sendCMD` or `query` | `2000` |
+| `execTimeout` | Milliseconds to wait for a command to finish at the shell prompt | `2000` |
+| `maxBufferLength` | Most bytes of a response to keep | `1048576` |
+| `pageSeparator` | Text the host shows between pages of output | `"---- More"` |
 
-You’re all done! Now you can start your pico-engine with the **npm start** command and work with telnet
+With `negotiationMandatory` left `true`, the connection is ready once the host shows its shell prompt (after logging in, if it asks). With `false`, it's ready as soon as the socket opens.
 
----
+`connect` returns a map: `{"connected": true, "host": …, "port": …}`, or, when it fails, `{"connected": false, "host": …, "port": …, "error": …}`. A failed connection doesn't stop the rule.
 
-### Telnet Actions
+### sendCMD
 
-**telnet:connect(params)**
+`telnet:sendCMD(command)`
 
-Creates a new TCP connection to the specified host, where 'params' is an object which can include following properties:
+Sends a command (with `ors` after it) and returns what the host sends back within `sendTimeout`. It raises an error if the pico has no connection.
 
-- *`host`: Host the client should connect to. Defaults to '127.0.0.1'.
-- *`port`: Port the client should connect to. Defaults to '23'.
-- *`timeout`: Sets the socket to timeout after the specified number of milliseconds of inactivity on the socket. Defaults to 180000 (30 minutes)
-- `shellPrompt`: Shell prompt that the host is using. Can be a string or an instance of RegExp. Defaults to regex '/(?:/ )?#\s/'.
-- `loginPrompt`: Username/login prompt that the host is using. Can be a string or an instance of RegExp. Defaults to regex '/login[: ]*$/i'.
-- `passwordPrompt`: Password/login prompt that the host is using. Can be a string or an instance of RegExp. Defaults to regex '/Password: /i'.
-- `failedLoginMatch`: String or regex to match if your host provides login failure messages. Defaults to undefined.
-- *`initialLFCR`: Flag used to determine if an initial '\r\n' (CR+LF) should be sent when connected to server.
-- *`username`: Username used to login. Defaults to 'root'.
-- *`password`: Password used to login. Defaults to 'guest'.
-- `sock`: Duplex stream which can be used for connection hopping/reusing.
-- `irs`: Input record separator. A separator used to distinguish between lines of the response. Defaults to '\r\n'.
-- `ors`: Output record separator. A separator used to execute commands (break lines on input). Defaults to '\n'.
-- `echoLines`: The number of lines used to cut off the response. Defaults to 1.
-- `stripShellPrompt`: Whether shell prompt should be excluded from the results. Defaults to true.
-- `negotiationMandatory`: Disable telnet negotiations if needed. Can be used with 'send' when telnet specification is not needed. Telnet client will then basically act like a simple TCP client. Defaults to true.
-- `sendTimeout`: A timeout used to wait for a server reply when the 'sendCMD' action is used. Defaults to 2000 (ms).
-- `maxBufferLength`: Maximum buffer length in bytes which can be filled with response data. Defaults to 1M.
-- `debug`: Enable/disable debug logs on console. Defaults to false.
+### disconnect
 
-Resolves once the connection is ready. Rejects if the timeout is hit or if the ping module does not receive a response from the specified host.
+`telnet:disconnect()`
 
-Parameters marked with an asterisk * can be queried in the telnet:parameters() function. Any additional parameters will only be returned in that function after being provided in a telnet:connect(params) action.
+Closes the pico's connection.
 
-**telnet:disconnect()**
+## Functions
 
-Half-closes the socket. i.e., it sends a FIN packet. It is possible the server will still send some data.
+### query
 
-**telnet:sendCMD(command)**
+`telnet:query(command)`
 
-Sends data on the socket without requiring telnet negotiations.
+The same as `sendCMD`, as a function, so a rule can use the reply in its prelude. It sends the command, so it isn't free of side effects like most functions.
 
-### Telnet Functions
+### parameters
 
-**telnet:parameters()**
+`telnet:parameters()`
 
-Returns the marked parameters above as well as any additional parameters passed in with the telnet:connect(params) action.
+The parameters of the pico's current or most recent connection, with the defaults filled in. The password is never included.
 
-**telnet:host()**
+### host
 
-Returns the telnet host (ip address) that the engine will attempt to connect to or is currently connected to.
+`telnet:host()`
 
-**telnet:query(command)**
+The host the pico is connected to, or last connected to.
 
-Sends data on the socket without requiring telnet negotiations and awaits a response. This does the same thing as telnet:sendCMD(command) action but is used as a KRL function instead of a KRL action
+## Events
+
+The library raises these events to the pico, on the channel the `connect` event came in on:
+
+| event | when | attributes |
+| --- | --- | --- |
+| `telnet:ready` | The host showed its shell prompt | |
+| `telnet:failedlogin` | The login failed | |
+| `telnet:socket_timeout` | The socket was idle for `timeout` | `duration` |
+| `telnet:error` | A socket error | `message` |
+| `telnet:closed` | The host closed the connection | |
+
+`telnet:closed` isn't raised for `telnet:disconnect`.
 
 ---
 

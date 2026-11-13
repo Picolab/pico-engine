@@ -51,22 +51,23 @@ global {
 }
 ```
 
-**Note:** the following are reserved for the Node engine and should not be used as module aliases:
+**Note:** the following are the names of engine libraries and should not be used as module aliases. Inside a ruleset that does use one, the name means that ruleset's module and the library is out of reach:
 
-- `app`
 - `csv`
-- `engine`
+- `ctx`
+- `dido`
 - `ent`
 - `event`
+- `http`
 - `ical`
 - `keys`
-- `http`
-- `indy`
 - `math`
 - `meta`
+- `oauth`
 - `random`
 - `rss`
 - `schedule`
+- `telnet`
 - `time`
 - `uri`
 - `wrangler`

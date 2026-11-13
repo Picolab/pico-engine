@@ -1,22 +1,23 @@
 # URI
 
-> **Engine Compatibility:**
->
-> This library has not yet been ported to the New Pico Engine
+The URI library escapes strings for use in a URI and unescapes them again: a space becomes `%20`, for example. It escapes everything except letters, digits, and `- _ . ! ~ * ' ( )`, so an escaped value is safe in a path segment or a query parameter.
 
-The URI module is used to escape and unescape strings to/from a URI acceptable format (replacing spaces with '%20' for example).
+### escape
 
-### Escape
-
-```javascript
-escaped = uri:escape("This is a test"); // Returns 'This%20is%20a%20test'
+```krl
+escaped = uri:escape("This is a test") // "This%20is%20a%20test"
+q = uri:escape("a&b=c")                // "a%26b%3Dc"
 ```
 
-### Unescape
+### unescape
 
-```javascript
- unescaped = uri:unescape("This%20is%20a%20test"); // Returns 'This is a test'
+```krl
+unescaped = uri:unescape("This%20is%20a%20test") // "This is a test"
 ```
+
+`uri:unescape` raises an error if the string has a malformed escape, such as a `%` not followed by two hex digits.
+
+To build a query string from a map, `http:get` and `http:post` take a `qs` argument that escapes for you.
 
 ---
 
