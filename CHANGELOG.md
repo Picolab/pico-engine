@@ -1,4 +1,4 @@
-# Unreleased
+# 1.9.5 - November 13, 2026
 
 * **Views** — `PicoTheme` pads its content (`$space-3`) so buttons and tables don't sit against the panel edge in dark themes.
 * **Try It!** — a developer UI tab that runs cookbook demos. Engine config `show_tryit_menu` (`off`, `root_only` (default), `all`; env `PICO_ENGINE_SHOW_TRYIT_MENU`) decides where it appears. The tab lists the demos; a demo's window runs it in a new child, lists the running copies, and shows each ruleset's code and path on disk with **Flush**, to edit, flush, and watch. `PICO_ENGINE_DEMOS_DIR` serves another directory as `demos/`, such as a checkout's. A demo is one bootstrap ruleset (`demos/<folder>/<rid>.bootstrap.krl`) that sets up everything on a new child pico and shares `tryIt()` for progress and links. The engine ships `demos/`, serves it at `/krl/demos/…`, and lists bootstrap rulesets at `GET /api/try-it`. First demo: Thermostat.

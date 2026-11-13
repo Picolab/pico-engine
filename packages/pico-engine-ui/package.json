@@ -2,7 +2,7 @@
   "name": "pico-engine-ui",
   "private": true,
   "type": "module",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "description": "React UI for pico-engine",
   "repository": {
     "type": "git",

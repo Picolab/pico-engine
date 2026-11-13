@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "description": "Node.js runtime for picos: persistent actors with their own identity, state, and channels that communicate by events and queries. Behavior is written in KRL. Includes an MCP server so AI coding assistants can inspect and drive a running engine.",
   "repository": {
     "type": "git",
