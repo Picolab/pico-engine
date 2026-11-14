@@ -32,7 +32,7 @@ The first visit has no users yet, so the page asks you to **register a passkey**
 
 Registering creates your **root pico**. On later visits you sign in with the same passkey. If you delete `~/.pico-engine`, you get a fresh engine with no picos and no passkeys, and you register again.
 
-![The developer UI showing the root pico as a box](/lessons/_media/19791878-root-pico.png)
+![The developer UI showing the root pico as a box](_media/19791878-root-pico.png)
 
 *The screenshots in this lesson come from an earlier release. Yours will look a little different, but the layout and the steps are the same.*
 
@@ -48,7 +48,7 @@ The page shows your root pico as a box. Click it to open its tabs:
 | **Relationships** | Relationships with other picos (a later lesson) |
 | **Try It!** | Demos you can run in a new child pico (root pico only, by default) |
 
-![The root pico's About tab, with its id, name, and a form to add a child pico](/lessons/_media/19791878-root-pico-about.png)
+![The root pico's About tab, with its id, name, and a form to add a child pico](_media/19791878-root-pico-about.png)
 
 Every pico also gets its own box with a small form to **Add** a child pico, with a name and a color. The lessons use a child pico so your root pico stays clean: type a name such as `hello`, click **Add**, and open the new pico.
 
@@ -111,7 +111,7 @@ You can install from a file on your machine, or from a URL.
    If the ruleset is on GitHub, use the **raw** URL, such as `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/hello_world.krl`, not the page that shows the file.
 4. Leave **Config** as it is and click **Install**.
 
-![The Rulesets tab with the install form filled in with a file URL](/lessons/_media/19791878-root-pico-rulesets.png)
+![The Rulesets tab with the install form filled in with a file URL](_media/19791878-root-pico-rulesets.png)
 
 `io.picolabs.hello_world` now appears in the list of installed rulesets. More on URLs and hosting rulesets: [Tips](/developing/tips).
 
@@ -133,7 +133,7 @@ The engine compiles a ruleset once and remembers it. When you change the source,
 2. On the child's **Rulesets** tab, find `io.picolabs.hello_world` in the list and click **flush**. The engine fetches the URL again and recompiles.
 3. In **Testing**, send `echo:hello` again. The greeting now says `Howdy`.
 
-![The Rulesets tab with hello_world installed, showing flush and uninstall buttons, the URL, and the ruleset's hash](/lessons/_media/19791878-root-pico-rulesets3.png)
+![The Rulesets tab with hello_world installed, showing flush and uninstall buttons, the URL, and the ruleset's hash](_media/19791878-root-pico-rulesets3.png)
 
 A flush updates every pico that has the ruleset installed. It rereads the ruleset's URL. If you installed with **Browse…**, that URL is the engine's staged copy, not your file, so flush won't see your edit: browse for the changed file again, or install from a `file://` URL you typed, which flush rereads. [Tips](/developing/tips) covers flushing, and how to check KRL from the command line with `krl-check` before you install it.
 

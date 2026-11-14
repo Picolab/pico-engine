@@ -55,7 +55,7 @@ This example asks wrangler to create a child pico: the domain is `wrangler` and 
 
 5. Click **Send**.
 
-![Postman with a POST request, and the Body tab, raw, and JSON selected, numbered in that order](/developing/_media/1177157666-screen-shot-2020-06-25-at-12.19.02-pm.png)
+![Postman with a POST request, and the Body tab, raw, and JSON selected, numbered in that order](_media/1177157666-screen-shot-2020-06-25-at-12.19.02-pm.png)
 
 *These screenshots are from an earlier release: they show port 8080 and the old `child_creation` event name. Use the URL and event above.*
 
@@ -65,7 +65,7 @@ A JSON body is the best way to send attributes: it keeps numbers, booleans, and 
 
 The response is JSON. It carries the transaction id, any directives from rules that ran, which rules fired, and the events raised during the cycle:
 
-![Postman after Send: the JSON body with name and rids, and a response containing a directive with the new pico's id and eci](/developing/_media/1177157666-screen-shot-2020-06-25-at-12.35.46-pm.png)
+![Postman after Send: the JSON body with name and rids, and a response containing a directive with the new pico's id and eci](_media/1177157666-screen-shot-2020-06-25-at-12.35.46-pm.png)
 
 ```json
 {

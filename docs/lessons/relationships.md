@@ -37,7 +37,7 @@ Each end may also have a role. From A's perspective, **`Rx_role`** is A's role, 
 
 The relationship also has an **`Id`**, the same on both ends. It is the one field that is: there's one relationship with two ends, and the rest of its fields swap.
 
-![A relationship between picos A and B. A's Tx is B's Rx, and A's Rx is B's Tx, and the relationship has a name](/lessons/_media/21659676-image2016-7-21-17-49-40.png)
+![A relationship between picos A and B. A's Tx is B's Rx, and A's Rx is B's Tx, and the relationship has a name](_media/21659676-image2016-7-21-17-49-40.png)
 
 ## The experiment
 
@@ -54,7 +54,7 @@ We continue the registration example. The root pico has two children, the **Regi
 
 Parent-child links are the tree. Relationships are separate lines drawn across it: Jane to a section, and Jane to the Section Collection.
 
-![The pico layout with the parent-child tree, and dashed pink lines for Jane's relationships to the section picos](/lessons/_media/21659676-subs2.png)
+![The pico layout with the parent-child tree, and dashed pink lines for Jane's relationships to the section picos](_media/21659676-subs2.png)
 
 To prepare, (re)build the registration system from [Pico-Based Systems](/lessons/pico-based-systems): install `app_section_collection` in the Section Collection pico and create two sections with `section:needed`. Then create a pico for a student, a child of the root named "Jane", with the About tab. Every pico has `io.picolabs.subscription` installed already, so you needn't install it.
 
@@ -82,7 +82,7 @@ Open Jane's **Relationships** tab and find **New relationship**. Choose the clas
 
 Submit the form. It raises `wrangler:relationship` in Jane's pico.
 
-![The New relationship form on a pico's Relationships tab](/lessons/_media/21659676-ui-subs2.png)
+![The New relationship form on a pico's Relationships tab](_media/21659676-ui-subs2.png)
 
 ### Look at what happened
 
@@ -90,17 +90,17 @@ On Jane's **Channels** tab there's a new channel for this relationship. It is Ja
 
 Visit the section pico. Its **Inbound pending** list has the same relationship. Expand both and compare. `Id` is the same. The roles are swapped and so are `Tx` and `Rx`. Jane doesn't yet have the section's ECI, because the section hasn't accepted.
 
-![A pico's Relationships tab with one inbound pending relationship](/lessons/_media/21659676-ui-subs4.png)
+![A pico's Relationships tab with one inbound pending relationship](_media/21659676-ui-subs4.png)
 
 ### Accept it
 
 On the section pico, expand the inbound relationship and click **Approve**. That raises `wrangler:pending_relationship_approval` with the relationship's `Id`. Both sides now show it as **Established**. Jane has the section's channel, and the section has Jane's.
 
-![An expanded inbound relationship with its Rx_role, Tx_role, Id, Tx and Rx, and an Accept button](/lessons/_media/21659676-ui-subs5.png)
+![An expanded inbound relationship with its Rx_role, Tx_role, Id, Tx and Rx, and an Accept button](_media/21659676-ui-subs5.png)
 
 Do it again with Jane and the other section. Jane's established list now has two relationships. Their `Id`s differ.
 
-![The Relationships tab with the relationship now listed as established](/lessons/_media/21659676-ui-subs6.png)
+![The Relationships tab with the relationship now listed as established](_media/21659676-ui-subs6.png)
 
 ## Create a relationship from a rule
 

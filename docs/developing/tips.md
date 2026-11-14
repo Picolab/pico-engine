@@ -18,7 +18,7 @@ Back up your data directory (`~/.pico-engine` by default) before you update, and
 
 The version also appears at the bottom of the developer UI's root page.
 
-![The developer UI footer: Powered by pico-engine, with the version number](/developing/_media/31544297-version.png)
+![The developer UI footer: Powered by pico-engine, with the version number](_media/31544297-version.png)
 
 To remove the engine code (not your picos, which live in the data directory):
 
@@ -111,11 +111,11 @@ The engine compiles each ruleset once and caches it. After you change the source
 - **From the UI.** On the pico's **Rulesets** tab, click **flush** next to the ruleset.
 - **From a rule.** `raise wrangler event "rulesets_need_flushing"` re-fetches every ruleset installed in the pico and then raises `wrangler:rulesets_flushed`.
 
-![The Rulesets tab with hello_world installed, and its flush and uninstall buttons](/developing/_media/31544297-flush.png)
+![The Rulesets tab with hello_world installed, and its flush and uninstall buttons](_media/31544297-flush.png)
 
 If the changed source doesn't compile, the flush fails and the error appears next to the ruleset:
 
-![The Rulesets tab showing a ParseError next to hello_world after a flush](/developing/_media/31544297-flush-error.png)
+![The Rulesets tab showing a ParseError next to hello_world after a flush](_media/31544297-flush-error.png)
 
 Flushing is by URL. The engine keeps one compiled version per URL, so every pico with that ruleset gets the update. Flushing does **not** raise `wrangler:ruleset_installed` again, so rules that run on install don't run. If you change what such a rule sets up (for example a channel's policy), run that rule again yourself. The [Bootstrap and channels](/cookbook/bootstrap/) demo shows how.
 

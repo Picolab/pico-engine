@@ -21,7 +21,7 @@ Think of a pico as a state machine: queries tell you what state it's in; events 
 
 An event's rules can change things in two places: **outside** the pico, through actions, and **inside** it, through the postlude.
 
-![A pico with "changes outside (action)" above it and "changes inside (postlude)" within it](/developing/_media/676397057-pico.png)
+![A pico with "changes outside (action)" above it and "changes inside (postlude)" within it](_media/676397057-pico.png)
 
 Queries are `GET`s to `/sky/query/<eci>/<rid>/<function>?…` and events are `POST`s (or `GET`s) to `/sky/event/<eci>/<eid>/<domain>/<type>`. The first path component is the giveaway. The event URL names the pico, the domain, and the type, but **not a ruleset**: every installed ruleset with a salient rule gets a chance. A query names the ruleset and function, and only that one answers. See the [Event API](/exp/event), the [Query API](/exp/query), and [Event Loop Introduction](/developing/event-loop).
 

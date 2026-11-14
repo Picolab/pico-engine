@@ -70,9 +70,9 @@ Then:
 3. Query `name` again. It's `"Ada"`.
 4. Restart the engine (stop it with Control-C and start it again) and query `name`. It's still `"Ada"`. That's what "persistent" means.
 
-![Sending hello:name with the name Bob on the Testing tab. The results show the store_name directive](/lessons/_media/20742148-state_testing.png)
+![Sending hello:name with the name Bob on the Testing tab. The results show the store_name directive](_media/20742148-state_testing.png)
 
-![Querying name on the Testing tab. The result is Bob](/lessons/_media/20742148-state_testing2.png)
+![Querying name on the Testing tab. The result is Bob](_media/20742148-state_testing2.png)
 
 The pieces:
 
@@ -214,7 +214,7 @@ Now play with it from the Testing tab (or from `curl`, with the URLs from the la
 5. Query `users`: `{"1": {"name": {"first": "Ada", "last": "Lovelace"}, "visits": 2}}`.
 6. Send `hello:clear_names`. Query `users`: `{}`. The visit count went too, because it lives in the same map.
 
-![The users query on the Testing tab, with each stored user's name and visit count in the Results panel](/lessons/_media/20742148-state_testing7.png)
+![The users query on the Testing tab, with each stored user's name and visit count in the Results panel](_media/20742148-state_testing7.png)
 
 Over HTTP the same steps look like this:
 

@@ -2,7 +2,7 @@
 
 Each pico presents an event loop that handles the events sent to it, according to the rulesets installed in it. The event is the input that makes the cycle happen. When the event has been handled, the pico waits for the next one.
 
-![Pico event evaluation cycle: wait, decode event, schedule rules, eval rules, assemble response](/developing/_media/1189951-image2021-2-22_15-2-38.png)
+![Pico event evaluation cycle: wait, decode event, schedule rules, eval rules, assemble response](_media/1189951-image2021-2-22_15-2-38.png)
 
 The five phases, in order: **Wait**, **Decode**, **Schedule Rules**, **Rule Evaluation**, **Assembling the Response**. Then the pico waits again.
 

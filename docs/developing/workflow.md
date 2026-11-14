@@ -2,7 +2,7 @@
 
 A suggested workflow for new pico developers. Programming picos uses a small tool chain, used more or less in sequence. This page is organized by its stages:
 
-![The pico tool chain: Develop (editor, Git), Build (Pico Labs, Git), Deploy and Test (Pico Labs), Release (AWS, GitHub)](/developing/_media/32754595-pico-tool-chain.png)
+![The pico tool chain: Develop (editor, Git), Build (Pico Labs, Git), Deploy and Test (Pico Labs), Release (AWS, GitHub)](_media/32754595-pico-tool-chain.png)
 
 The loop you'll spend most of your time in is Develop → Build → Deploy (flush) → Test. Release only matters when someone other than you depends on the ruleset.
 

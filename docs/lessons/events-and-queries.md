@@ -63,9 +63,9 @@ Your pico already has channels the engine made for it. The developer UI uses one
 
 6. Click **Add**. The new channel appears in the list, with its ECI. Copy it.
 
-![The New Channel form with tags, an event policy, and a query policy filled in](/lessons/_media/19791904-root-pico-channels2.png)
+![The New Channel form with tags, an event policy, and a query policy filled in](_media/19791904-root-pico-channels2.png)
 
-![The Channels tab listing the new channel, tagged hello_world, with its event and query policy](/lessons/_media/19791904-root-pico-channels3.png)
+![The Channels tab listing the new channel, tagged hello_world, with its event and query policy](_media/19791904-root-pico-channels3.png)
 
 The policy says this channel accepts one event, `echo:hello`, and one query, the `hello` function of `io.picolabs.hello_world`. Use `"*"` to match anything, for instance `{"domain": "echo", "name": "*"}` allows every `echo` event. A rule in `deny` always wins over `allow`.
 
@@ -115,7 +115,7 @@ You get JSON back:
 
 Those are the **directives** from every rule the event ran. The sender asked nothing of a function: the rule `hello_world` selected the event and answered with `say`.
 
-![The directives returned by an echo:hello event, shown in a browser](/lessons/_media/19791904-echo-hello.png)
+![The directives returned by an echo:hello event, shown in a browser](_media/19791904-echo-hello.png)
 
 GET works too, so you can paste the URL in a browser, but **POST is preferred** for events because an event can change state.
 
@@ -152,7 +152,7 @@ You can send the same events and queries without typing URLs. Open the pico's **
 
 The result shows below the forms, and the tab keeps a history of what you sent so you can send it again.
 
-![The Testing tab with the hello_world ruleset selected, a name typed in the echo:hello form, and the directive in the Results panel](/lessons/_media/19791904-root-pico-testing2.png)
+![The Testing tab with the hello_world ruleset selected, a name typed in the echo:hello form, and the directive in the Results panel](_media/19791904-root-pico-testing2.png)
 
 > **Note:** Older rulesets list their events and queries in a global `__testing` map. That's legacy: the engine still understands it for older rulesets, but new rulesets should use doc comments. Rules and functions with no doc comment still appear, with attributes the engine can find in the code, but you won't get descriptions or examples.
 
@@ -193,7 +193,7 @@ Send `echo:hello` with `name` set to `Ada`. Then open the **Logging** tab. It li
 - the directives that went back
 - any events the rules raised
 
-![The Logging tab listing the transactions for an event and a query, with klog output](/lessons/_media/19791904-root-pico-logging.png)
+![The Logging tab listing the transactions for an event and a query, with klog output](_media/19791904-root-pico-logging.png)
 
 The **Filters** button narrows the list: by ruleset, by `domain:type`, errors only, or transactions that logged `klog`. The tab follows new transactions as they arrive. You'll use it constantly: if a rule didn't run, this is where you find out why. Rules that didn't select an event are shown with their `select` text, so you can see what they were waiting for.
 

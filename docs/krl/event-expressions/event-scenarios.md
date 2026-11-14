@@ -3,7 +3,7 @@
 Responding to individual events is useful, but event expressions are even more powerful when used to correlate events contextually. A contextually meaningful, related group of events is called an *event scenario*. Systems that deal with event scenarios are said to do "complex event processing."
 
 For example, consider the simple scenario shown in the following figure. As you drive through town, your phone notifies you that the DVD you added to your Amazon wish list this morning is available and on sale at the Best Buy you're passing. You can't realize this scenario by recognizing an event that says you added something to your wish list or an event that indicates you're driving past Best Buy. To realize this scenario, you have to recognize the pattern of a DVD being added to the wish list before you drive past Best Buy. Combined, the two events automatically provide information that you'd otherwise have to synthesize yourself.
-![Fig03-02.png](/krl/_media/1189889-Fig03-02.jpg)
+![Fig03-02.png](../_media/1189889-Fig03-02.jpg)
 
  Complex event scenarios like this are not unusual. In fact, they make up the most interesting interactions one might have on the Live Web. You might be interested in knowing when someone is viewing a particular sequence of pages on your site or calling your support line after having sent a question by email. But creating these kinds of interactions is prohibitively expensive or even impossible using the old client-server model, with its silos of data. Complex event expressions that describe event scenarios make them easy to recognize.
 
