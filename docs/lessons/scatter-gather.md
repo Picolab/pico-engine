@@ -19,7 +19,7 @@ When you finish you will be able to:
 ## The problem
 
 <img src="_media/1185976-26315821-fuse.jpg" alt="Fuse Logo" width="50%" >
-![Fuse logo](_media/1185976-26315821-fuse.jpg)
+
 
 Fuse was an open-source connected-car platform built with picos. Every week it sent the fleet owner a report: the trips and fuel fill-ups of each vehicle in the period, summed for each vehicle and then for the fleet. Here's the start of a weekly report for one fleet:
 
@@ -41,7 +41,7 @@ fleetDetails = function() {
 
 That process looks like this. The owner sends `periodic_report` to the fleet; a rule calls a function that queries each vehicle over HTTP; once every vehicle has answered, the fleet formats the report and tells the owner it's ready:
 
-![Synchronous request-response: the fleet queries each vehicle in turn and waits for every reply before finishing the report](_media/1185976-21293069658-synchronous.png)
+<img src="_media/1185976-21293069658-synchronous.png" alt="Synchronous request-response: the fleet queries each vehicle in turn and waits for every reply before finishing the report" width="50%">
 
 Programmers who've used an API will find that familiar. It works so long as every vehicle answers promptly. A query waits for its answer, so the fleet pico is stuck for the sum of all the delays, and it can't handle anything else meanwhile. Vehicles on other engines are queried over the network, where timeouts have to be short, and one slow vehicle gets missed. With a few vehicles that's rare. With ten, the chance that at least one is late gets good, and with a hundred it's routine.
 
