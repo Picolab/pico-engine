@@ -11,8 +11,24 @@ Machine-readable index for agents working with picos and KRL.
 ## Docs
 
 - Pico overview: pico-overview.md
+- Developing with Picos: developing/README.md
+- Developing: Programming Workflow: developing/workflow.md
+- Developing: Event Loop Introduction: developing/event-loop.md
+- Developing: Developer Tips: developing/tips.md
+- Developing: Event and Query URLs with Postman: developing/postman.md
+- Developing: KRL misconceptions and common errors: developing/misconceptions.md
 - Pico engine operator guide: pico-engine.md
 - Pico views: pico-views.md
+- Programming lessons: lessons/README.md
+- Lesson: Quickstart: lessons/quickstart.md
+- Lesson: Events and Queries: lessons/events-and-queries.md
+- Lesson: Pico State: lessons/pico-state.md
+- Lesson: Modules and External APIs: lessons/modules-and-apis.md
+- Lesson: Pico views: lessons/pico-views.md
+- Lesson: Pico-Based Systems: lessons/pico-based-systems.md
+- Lesson: Relationships: lessons/relationships.md
+- Lesson: Scatter-Gather: lessons/scatter-gather.md
+- Lesson: Gossip Lab: lessons/gossip.md
 - Cookbook: cookbook/README.md
 - Cookbook: pico views: cookbook/xmlui/README.md
 - Cookbook: pico views instructions: cookbook/xmlui/instructions.md
@@ -38,6 +54,8 @@ Machine-readable index for agents working with picos and KRL.
 - Cookbook: bootstrap and channels instructions: cookbook/bootstrap/instructions.md
 - Cookbook: KBlog: cookbook/kblog/README.md
 - Cookbook: KBlog instructions: cookbook/kblog/instructions.md
+- Cookbook: querying JSON: cookbook/json_query/README.md
+- Cookbook: querying JSON instructions: cookbook/json_query/instructions.md
 - Wrangler: the pico operating system: wrangler/README.md
 - Wrangler: the wrangler ruleset: wrangler/wrangler.md
 - Wrangler: managing channels: wrangler/channels.md
@@ -46,6 +64,9 @@ Machine-readable index for agents working with picos and KRL.
 - Wrangler: pico views (io.picolabs.xmlui): wrangler/xmlui.md
 - Wrangler: OAuth (io.picolabs.oauth): wrangler/oauth.md
 - Wrangler: portable subtrees (io.picolabs.portable_subtree): wrangler/portable-subtree.md
+- Event Exchange Protocol: exp/README.md
+- EXP: Event API (Sky): exp/event.md
+- EXP: Query API (Sky): exp/query.md
 - Patterns and tips: patterns_and_tips/README.md
 - Tip: initializing entity variables: patterns_and_tips/initializing-entity-variables.md
 - Tip: arrays and maps: patterns_and_tips/arrays-and-maps.md
@@ -83,4 +104,4 @@ Application layer on wrangler (owner, thing, community). Not shipped inside pico
 
 ## OpenAPI
 
-- Sky and channel HTTP: docs/openapi.yaml
+- Event Exchange Protocol (Sky) HTTP: docs/openapi.yaml

@@ -1,0 +1,5 @@
+- Open **Query page** and click **Show the JSON**. The fleet data appears beside the queries, so you can check each answer against it.
+- Click each of the four query buttons. Each shows the JSONPath it ran, what that path uses, and the values `query()` returned, always as an array.
+- Type your own query and click **Run it**. Try `$.vehicles[?@.year > 2020].name`, `$..cost`, or `$.vehicles[0].trips[-1:]`.
+- Type a broken path, such as `$.vehicles[?@.year >`. The pico answers with the parse error instead of a result.
+- In the code, `runQuery` is one line of KRL: `fleet.query(path)`. Edit the `cannedQueries` list, click **Flush**, and reload the page to add your own buttons.

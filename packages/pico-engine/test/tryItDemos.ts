@@ -474,6 +474,44 @@ test("KBlog: readers read, authors post through the event hierarchy, and nobody 
   await pe.pf.db.close();
 });
 
+test("Querying JSON: the canned queries, your own query, and a bad path", async (t) => {
+  const { pe, status } = await runDemo("json_query", "com.example.json_query.bootstrap");
+  t.is(status.links.length, 1);
+  await pageLoads(t, status.links[0], "QueryPage");
+  const eci = eciOf(status.links[0]);
+  const run = async (path: string) => {
+    const res = await fetch(
+      `${pe.base_url}/sky/query/${eci}/com.example.json_query/runQuery?path=${encodeURIComponent(path)}`
+    );
+    return (await res.json()) as { count?: number; result?: any[]; error?: string };
+  };
+
+  const canned = (await pe.pf.query({ eci, rid: "com.example.json_query", name: "cannedQueries", args: {} })) as Array<{
+    path: string;
+  }>;
+  t.is(canned.length, 4);
+  const [names, miles, business, fillups] = await Promise.all(canned.map((q) => run(q.path)));
+  t.deepEqual(names.result, ["Work truck", "Family car", "Commuter"]);
+  t.deepEqual(miles.result, [42.6, 3.1, 118.4, 12, 27.5, 31.2]);
+  t.deepEqual(
+    business.result!.map((trip) => trip.miles),
+    [42.6, 118.4, 27.5, 31.2]
+  );
+  t.deepEqual(fillups.result, [
+    { date: "2026-11-06", gallons: 19.8, price: 3.29 },
+    { date: "2026-11-03", gallons: 8.4, price: 3.35 },
+  ]);
+  t.is(fillups.count, 2);
+
+  t.deepEqual((await run("$.owner.email")).result, ["ada@example.com"]);
+  t.regex(String((await run("$.vehicles[?@.miles >")).error), /query: /);
+  const data = await fetch(`${pe.base_url}/sky/query/${eci}/com.example.json_query/fleetData`).then((r) => r.json());
+  t.is(data.vehicles.length, 3);
+  const denied = await skyEvent(pe, eci, "wrangler", "install_ruleset_request", { url: "file:///etc/hosts" });
+  t.regex(String(denied.error), /channel policy/i);
+  await pe.pf.db.close();
+});
+
 test("A pico that already has the views runtime: the bootstraps go straight to the app", async (t) => {
   for (const [folder, rid, app] of [
     ["echo", "com.example.echo.bootstrap", "com.example.echo"],

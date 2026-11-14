@@ -4,7 +4,7 @@
 
 A pico receives events and answers queries on its channels. A channel is one stream of communication with a pico, and a pico can have any number of them. Each channel has a policy that says which events and queries it accepts.
 
-A channel is identified by its ECI (event channel identifier), a unique string such as `ckiz680qq000a7u2r8myeezof`. To use a channel you need only the ECI and the address of the pico's engine. Then you send events and queries to it [over HTTP](/patterns_and_tips/events-and-queries-over-http), or from KRL with `event:send` and `wrangler:picoQuery`. [Relationships](/wrangler/relationships) between picos are built on channels too.
+A channel is identified by its ECI (event channel identifier), a unique string such as `ckiz680qq000a7u2r8myeezof`. To use a channel you need only the ECI and the address of the pico's engine. Then you send events and queries to it [over HTTP](/exp/), or from KRL with `event:send` and `wrangler:picoQuery`. [Relationships](/wrangler/relationships) between picos are built on channels too.
 
 ## Why channels
 
@@ -224,7 +224,7 @@ Give each channel the least it needs. A pico's schema can build a policy that al
 
 ## Using channels
 
-- **Over HTTP**: events at `/sky/event/<eci>/...` and queries at `/sky/cloud/<eci>/...`. See [Events and queries over HTTP](/patterns_and_tips/events-and-queries-over-http).
+- **Over HTTP**: events at `/sky/event/<eci>/...` and queries at `/sky/query/<eci>/...`. See the [Event Exchange Protocol](/exp/).
 - **`event:send`**, from KRL, to a channel on this engine or another.
 - **`wrangler:picoQuery`**, from KRL, to call a function on another pico. See [The wrangler ruleset](/wrangler/wrangler).
 - **The developer UI's Testing tab**, which sends events and queries on a channel you pick.

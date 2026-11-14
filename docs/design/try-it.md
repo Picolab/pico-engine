@@ -1,6 +1,6 @@
 # "Try It!" demos
 
-Status: implemented, eleven demos (Echo, Score tracker, Thermostat, Two picos talking, Child pico tasks, Guard rules, Layered rulesets, Collection, Configuration and secrets, Bootstrap and channels, KBlog). Owner: engine + developer UI.
+Status: implemented, twelve demos (Echo, Score tracker, Thermostat, Two picos talking, Child pico tasks, Guard rules, Layered rulesets, Collection, Configuration and secrets, Bootstrap and channels, KBlog, Querying JSON). Owner: engine + developer UI.
 
 ## Goal
 
@@ -45,7 +45,7 @@ A tab in the developer UI. Engine config `show_tryit_menu` (env `PICO_ENGINE_SHO
 The tab is a list of demos, each with its `meta name` and `description` and how many are running under this pico. Clicking one opens a modal:
 
 - **Run** creates a child of this pico named after the demo (`engine_ui:new`), then installs the bootstrap ruleset on the child (`engine_ui:install`). Everything else is the bootstrap's job.
-- **Running here** lists this pico's children running that demo (they have a `try_it` channel), with each one's `tryIt()` stage and links, and **Remove**, which deletes the child (`engine_ui:del`).
+- **Running here** lists this pico's children running that demo (they have a `try_it` channel), with each one's `tryIt()` stage and links, and **Delete Child**, which deletes the child pico (`engine_ui:del`).
 - **The code** lists the bootstrap ruleset and every demo file a running copy installed. Each shows its absolute path on the engine's machine (with Copy), its source, and **Flush** on each running copy that has it (`engine_ui:flush`). The modal says why: these files ship with the engine, so edit one, flush it, and reload the view to see the change.
 
 A demo always runs in a new child, so it never changes a pico someone already uses. State lives in the picos, so the tab shows the same thing after a reload.
@@ -95,3 +95,4 @@ They follow the same shape: create the `try_it` channel, install `io.picolabs.xm
 | `demos/secrets/` | `com.example.notifier.bootstrap` | `com.example.notifier` here and a Hook service child with `com.example.hook_service`, installed with `config: {token}`. The hook service sends its webhook URL to its parent, which sends one message, configures the notifier, and sends another |
 | `demos/bootstrap/` | `com.example.visitors.bootstrap` | `io.picolabs.xmlui`, then `com.example.visitors.format`, then `com.example.visitors` with `config: {greeting}`, each on the previous one's `ruleset_installed`. The app creates or updates its channel on install, with a policy built from its schema |
 | `demos/kblog/` | `com.example.kblog.bootstrap` | `com.example.kblog.config`, `.data`, the pages `com.example.kblog`, and `.posting`, each on the previous one's `ruleset_installed` (the pages use config and data as modules). The pages create the reader channel and posting creates the author channel; then three `kblog:post_submitted` events. Its links open the blog on each channel |
+| `demos/json_query/` | `com.example.json_query.bootstrap` | `com.example.json_query`: fleet data in a global, `cannedQueries()`, and `runQuery(path)`, which calls `query()`. Its page sends the path with `DataSource` `queryParams` so it is URL-encoded |

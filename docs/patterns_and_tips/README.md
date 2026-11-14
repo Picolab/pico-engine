@@ -17,7 +17,7 @@ Short techniques for writing KRL and running picos, checked against the current 
 
 | Page | What it covers |
 |------|----------------|
-| [Events and queries over HTTP](/patterns_and_tips/events-and-queries-over-http) | Event and query URLs, `curl`, POST bodies, `.txt` and `.html` results, and `_headers` |
+| [Events and queries over HTTP](/patterns_and_tips/events-and-queries-over-http) | Moved to the [Event Exchange Protocol](/exp/) docs (event and query URLs, response shape, `.txt` / `.html`) |
 | [Cookies and redirects](/patterns_and_tips/cookies-and-redirects) | The `_cookie` and `_redirect` directives, reading cookies, and a URL shortener |
 | [Events from email](/patterns_and_tips/events-from-email) | A mail webhook to an event, routing by address, and turning message lines into events |
 | [Reading the engine's log files](/patterns_and_tips/engine-log-files) | Where the logs are, how they rotate, and one pico's history with `grep` and `jq` |

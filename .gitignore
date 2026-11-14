@@ -12,6 +12,7 @@
 !/demos/secrets/
 !/demos/kblog/
 !/demos/bootstrap/
+!/demos/json_query/
 !/demos/try-it-order.json
 
 node_modules

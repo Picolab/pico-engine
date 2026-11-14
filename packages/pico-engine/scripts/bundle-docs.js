@@ -15,7 +15,14 @@ const files = [
   ["CLAUDE.md", "CLAUDE.md"],
 ];
 // Copied with their folder structure, as mcp/docs/<dir>/...
-const dirs = ["docs/cookbook", "docs/patterns_and_tips", "docs/wrangler"];
+const dirs = [
+  "docs/cookbook",
+  "docs/patterns_and_tips",
+  "docs/wrangler",
+  "docs/exp",
+  "docs/lessons",
+  "docs/developing",
+];
 
 function copyMarkdown(fromDir, toDir) {
   let count = 0;

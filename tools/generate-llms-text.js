@@ -38,8 +38,24 @@ for (const name of bundledSampleMd) {
 
 const indexPaths = [
   { title: "Pico overview", file: "pico-overview.md" },
+  { title: "Developing with Picos", file: "developing/README.md" },
+  { title: "Developing: Programming Workflow", file: "developing/workflow.md" },
+  { title: "Developing: Event Loop Introduction", file: "developing/event-loop.md" },
+  { title: "Developing: Developer Tips", file: "developing/tips.md" },
+  { title: "Developing: Event and Query URLs with Postman", file: "developing/postman.md" },
+  { title: "Developing: KRL misconceptions and common errors", file: "developing/misconceptions.md" },
   { title: "Pico engine operator guide", file: "pico-engine.md" },
   { title: "Pico views", file: "pico-views.md" },
+  { title: "Programming lessons", file: "lessons/README.md" },
+  { title: "Lesson: Quickstart", file: "lessons/quickstart.md" },
+  { title: "Lesson: Events and Queries", file: "lessons/events-and-queries.md" },
+  { title: "Lesson: Pico State", file: "lessons/pico-state.md" },
+  { title: "Lesson: Modules and External APIs", file: "lessons/modules-and-apis.md" },
+  { title: "Lesson: Pico views", file: "lessons/pico-views.md" },
+  { title: "Lesson: Pico-Based Systems", file: "lessons/pico-based-systems.md" },
+  { title: "Lesson: Relationships", file: "lessons/relationships.md" },
+  { title: "Lesson: Scatter-Gather", file: "lessons/scatter-gather.md" },
+  { title: "Lesson: Gossip Lab", file: "lessons/gossip.md" },
   { title: "Cookbook", file: "cookbook/README.md" },
   { title: "Cookbook: pico views", file: "cookbook/xmlui/README.md" },
   { title: "Cookbook: pico views instructions", file: "cookbook/xmlui/instructions.md" },
@@ -65,6 +81,8 @@ const indexPaths = [
   { title: "Cookbook: bootstrap and channels instructions", file: "cookbook/bootstrap/instructions.md" },
   { title: "Cookbook: KBlog", file: "cookbook/kblog/README.md" },
   { title: "Cookbook: KBlog instructions", file: "cookbook/kblog/instructions.md" },
+  { title: "Cookbook: querying JSON", file: "cookbook/json_query/README.md" },
+  { title: "Cookbook: querying JSON instructions", file: "cookbook/json_query/instructions.md" },
   { title: "Wrangler: the pico operating system", file: "wrangler/README.md" },
   { title: "Wrangler: the wrangler ruleset", file: "wrangler/wrangler.md" },
   { title: "Wrangler: managing channels", file: "wrangler/channels.md" },
@@ -73,6 +91,9 @@ const indexPaths = [
   { title: "Wrangler: pico views (io.picolabs.xmlui)", file: "wrangler/xmlui.md" },
   { title: "Wrangler: OAuth (io.picolabs.oauth)", file: "wrangler/oauth.md" },
   { title: "Wrangler: portable subtrees (io.picolabs.portable_subtree)", file: "wrangler/portable-subtree.md" },
+  { title: "Event Exchange Protocol", file: "exp/README.md" },
+  { title: "EXP: Event API (Sky)", file: "exp/event.md" },
+  { title: "EXP: Query API (Sky)", file: "exp/query.md" },
   { title: "Patterns and tips", file: "patterns_and_tips/README.md" },
   { title: "Tip: initializing entity variables", file: "patterns_and_tips/initializing-entity-variables.md" },
   { title: "Tip: arrays and maps", file: "patterns_and_tips/arrays-and-maps.md" },
@@ -132,7 +153,7 @@ llmsLines.push(
   "",
 );
 
-llmsLines.push("", "## OpenAPI", "", "- Sky and channel HTTP: docs/openapi.yaml", "");
+llmsLines.push("", "## OpenAPI", "", "- Event Exchange Protocol (Sky) HTTP: docs/openapi.yaml", "");
 
 const fullParts = [];
 for (const entry of indexPaths) {

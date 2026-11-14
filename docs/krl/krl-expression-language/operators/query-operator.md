@@ -19,6 +19,8 @@ fleet.query("$.vehicles[-1].name")      // ["van"]
 fleet.query("$.nope")                   // []
 ```
 
+The [Querying JSON](/cookbook/json_query/) demo runs queries like these on a page, beside the data they search.
+
 `query()` always returns an array, even when one value matches, and an empty array when none does. Use `head()` for the first match:
 
 ```krl

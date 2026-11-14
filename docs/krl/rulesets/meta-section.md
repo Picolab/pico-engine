@@ -11,7 +11,7 @@ The following are allowed in a `meta` section:
 - `use` - use another ruleset as a [module](/krl/user-defined-modules)
 - `configure` - declare the default configuration for this ruleset when used as a [module](/krl/user-defined-modules).
 - `provides` - declare the values this ruleset provides when used as a [module](/krl/user-defined-modules).
-- `shares` - a list of names available to sky/cloud queries
+- `shares` - a list of names available to Sky queries (`/sky/query`)
 
 Some of these have more detailed documentation available:
 

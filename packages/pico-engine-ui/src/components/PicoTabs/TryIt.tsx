@@ -302,7 +302,7 @@ function DemoModal({
                       disabled={!!busy}
                       onClick={() => onRemove(r)}
                     >
-                      {busy === r.uiEci ? "Removing…" : "Remove"}
+                      {busy === r.uiEci ? "Deleting…" : "Delete Child"}
                     </button>
                   </div>
                 </li>

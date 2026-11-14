@@ -1,1 +1,1 @@
-["echo", "score_tracker", "xmlui", "two_picos", "child_tasks", "guard_rules", "layered_rulesets", "collection", "secrets", "bootstrap", "kblog"]
+["echo", "score_tracker", "xmlui", "two_picos", "child_tasks", "guard_rules", "layered_rulesets", "collection", "secrets", "bootstrap", "kblog", "json_query"]

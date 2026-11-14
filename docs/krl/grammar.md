@@ -147,7 +147,7 @@ The rule is considered to have "fired" if and only if the condition is missing (
 
 # Grammar for postlude
 
-While the action has effects on things *outside* of the pico, the postlude can change the state of the pico or select additional rules for the event evaluation currently in progress (see the [Event Loop Introduction](https://picolabs.atlassian.net/wiki/display/docs/Event+Loop+Introduction) page for more information).
+While the action has effects on things *outside* of the pico, the postlude can change the state of the pico or select additional rules for the event evaluation currently in progress (see the [Event Loop Introduction](/developing/event-loop) for more information).
 
 ## Overall structure of postlude
 

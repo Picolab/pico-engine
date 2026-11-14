@@ -4,7 +4,8 @@ info:
   version: 1.8.0
   description: |
     Subset of the pico-engine surface for integrators and agents.
-    Owner UI uses passkey sessions on `/c/*`. External integrators use OAuth bearer on `/sky/*`.
+    Owner UI uses passkey sessions on `/c/*`. External integrators use OAuth bearer on `/sky/*`
+    (Sky is the current Event Exchange Protocol version; see docs/exp/).
     Mesh MCP uses Streamable HTTP at `/mcp/{eci}` with the same bearer as Sky for that channel.
 servers:
   - url: http://localhost:3000

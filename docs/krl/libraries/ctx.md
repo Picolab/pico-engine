@@ -1,5 +1,7 @@
 # ctx
 
+> **Warning:** Developers are generally discouraged from using the ctx library functions directly in favor of using [wrangler](/wrangler/). If you find the need to use ctx functions that can't be done in wrangler, please report that as an [issue](https://github.com/Picolab/pico-engine/issues).
+
 The `ctx` module provides context information and actions for running code. Context includes the pico, ruleset, and engine the code is running for and on.
 
 ## ctx:picoId

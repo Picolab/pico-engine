@@ -2,7 +2,7 @@
 
 # Collecting directives
 
-While an event is evaluated, one or more of the rules which are selected and fire may specify a `send_directive` action. These directives are appended into an array of directives, and at the conclusion of the event evaluation, the array of directives is returned to the event generator. (See [Event Loop Introduction](https://picolabs.atlassian.net/wiki/display/docs/Event+Loop+Introduction) for context.) If none of the fired rules send a directive, the `directives` array will be empty.
+While an event is evaluated, one or more of the rules which are selected and fire may specify a `send_directive` action. These directives are appended into an array of directives, and at the conclusion of the event evaluation, the array of directives is returned to the event generator. (See [Event Loop Introduction](/developing/event-loop) for context.) If none of the fired rules send a directive, the `directives` array will be empty.
 
 ## send_directive(&lt;name>[, &lt;options>])
 

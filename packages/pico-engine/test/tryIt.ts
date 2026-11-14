@@ -56,7 +56,7 @@ test("/api/try-it lists bootstrap demos and /krl/demos serves them", async (t) =
   };
   t.deepEqual(
     demos.map((d) => d.folder),
-    ["echo", "score_tracker", "xmlui", "two_picos", "child_tasks", "guard_rules", "layered_rulesets", "collection", "secrets", "bootstrap", "kblog"]
+    ["echo", "score_tracker", "xmlui", "two_picos", "child_tasks", "guard_rules", "layered_rulesets", "collection", "secrets", "bootstrap", "kblog", "json_query"]
   );
   for (const demo of demos as Array<{ folder: string; notes?: string }>) {
     t.true((demo.notes || "").includes("- "), `${demo.folder} has try-it.md notes`);

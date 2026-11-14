@@ -4,7 +4,7 @@ These steps use the developer UI of a running engine at `http://localhost:3000`.
 
 ## The quick way: Try It!
 
-Open the root pico in the developer UI and choose the **Try It!** tab. (Operators can show the tab on every pico, or hide it, with `show_tryit_menu` in the engine config.) Click **Thermostat**, then **Run in a new child pico**. The tab creates a child pico and installs `com.example.thermostat.bootstrap` on it. That one ruleset installs `io.picolabs.xmlui` and the thermostat, and records three readings. When the demo shows **ready**, open the dashboard links. **Remove** deletes the child.
+Open the root pico in the developer UI and choose the **Try It!** tab. (Operators can show the tab on every pico, or hide it, with `show_tryit_menu` in the engine config.) Click **Thermostat**, then **Run in a new child pico**. The tab creates a child pico and installs `com.example.thermostat.bootstrap` on it. That one ruleset installs `io.picolabs.xmlui` and the thermostat, and records three readings. When the demo shows **ready**, open the dashboard links. **Delete Child** deletes the child pico.
 
 The same window shows **the code**: the bootstrap and the rulesets it installed, each with its path on the engine's machine. Change one. For example, in `com.example.thermostat.krl` change `ent:threshold.defaultsTo(80)` to `65`, click **Flush**, and reload the dashboard: it says "Alert above 65 F". To contribute a change, make it in a clone of the [pico-engine repository](https://github.com/Picolab/pico-engine) and open a pull request.
 
