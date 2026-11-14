@@ -19,6 +19,10 @@ If you know HTTP programming, you may think of a pico as a resource. With REST, 
 
 Think of a pico as a state machine: queries tell you what state it's in; events (maybe) change it.
 
+An event's rules can change things in two places: **outside** the pico, through actions, and **inside** it, through the postlude.
+
+![A pico with "changes outside (action)" above it and "changes inside (postlude)" within it](/developing/_media/676397057-pico.png)
+
 Queries are `GET`s to `/sky/query/<eci>/<rid>/<function>?…` and events are `POST`s (or `GET`s) to `/sky/event/<eci>/<eid>/<domain>/<type>`. The first path component is the giveaway. The event URL names the pico, the domain, and the type, but **not a ruleset**: every installed ruleset with a salient rule gets a chance. A query names the ruleset and function, and only that one answers. See the [Event API](/exp/event), the [Query API](/exp/query), and [Event Loop Introduction](/developing/event-loop).
 
 The response to an event isn't produced until the whole cycle, including the rules that events raised along the way scheduled, has finished. Actions on the outside world happen as the rules evaluate, not at the end.

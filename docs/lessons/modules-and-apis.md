@@ -168,6 +168,8 @@ You never want an API key in a KRL file: source gets copied, committed to reposi
 
 In KRL, the ruleset reads this map as `meta:rulesetConfig`. A `with` clause can use it because the engine evaluates the clause when the ruleset is loaded, before any rule runs. Other forms of the install (the `wrangler:install_ruleset_request` event, which the Rulesets tab sends) take the same `config` attribute. See [The wrangler ruleset](/wrangler/wrangler). A bootstrap ruleset can install a whole app, modules first, each with its own `config`: [Bootstrap and channels](/cookbook/bootstrap/) shows how.
 
+![The Rulesets tab showing my_movie_app installed, with its Config, last flushed time, and hash](/lessons/_media/32148114-modules_overview.png)
+
 Install configuration keeps the secret out of the source, but not out of sight. Anyone who can use the developer UI can see the config on the **Rulesets** tab, the install event's attributes show in the **Logging** tab and the engine's log file, and `wrangler:rulesetConfig(rid)` returns it to anyone whose channel permits the query. The [Configuration and secrets](/cookbook/secrets/) demo walks through where a secret can be seen, how to get one in by event instead, and how to keep a ruleset idle until it has one.
 
 > **Older rulesets:** you may see a `keys` ruleset that holds `key twilio { … }` in its source, and `use module io.picolabs.lesson_keys` with `keys:twilio("account_sid")`. That puts the secret in a file. Prefer install configuration.
@@ -175,6 +177,8 @@ Install configuration keeps the secret out of the source, but not out of sight. 
 ## Try it
 
 On the `movies` pico, open the **Testing** tab and choose `com.example.my_movie_app`.
+
+![The Testing tab with com.example.my_movie_app selected, showing its queries and its movie:rating_given event](/lessons/_media/32148114-module_in_use.png)
 
 1. Run the `popular` query. With a valid key you get a list of titles. With a missing or wrong key, TMDB answers `401` and the module's function returns `[]`.
 2. Send `movie:rating_given` with `movie_id` `550`, `rating` `8`, and a `guest_session_id` (you can make a guest session with TMDB's API, see its [documentation](https://developer.themoviedb.org/); any string works for seeing the flow).

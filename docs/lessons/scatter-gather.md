@@ -48,6 +48,10 @@ Use events, and let every pico work at its own pace. Vaughn Vernon describes the
 
 There are no queries in this flow, only events. Events go to a pico, not to a particular rule: each pico has its own event bus, and any rule that selects the event runs. A rule doesn't need to know who raised the event, or what else is listening.
 
+Fuse's weekly report used exactly this pattern, with a timer added as a safety net. Each oval is a pico, each rounded box a rule, and each arrow an event:
+
+![Fuse periodic report: the owner asks the fleet, the fleet scatters a request to each vehicle, vehicles send reports back, the fleet gathers them and sends the finished report to the owner, with a two-minute timer as a safety net](/lessons/_media/1185976-21293982299_e2f0bbeff6_o.png)
+
 ## The messy details
 
 Two problems have to be solved for this to be reliable.

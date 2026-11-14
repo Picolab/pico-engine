@@ -30,7 +30,11 @@ Open your root pico and click its **About** tab. Under **Children**, type a name
 
 Create a second child of the root, "Section Collection", with a different color.
 
+![The About tab of the root pico, listing the Registration child with its ECI and a form to add another](/lessons/_media/21168151-system-about2.png)
+
 Click **Close** to see the layout: two picos connected to the root by their parent-child links. Drag them around. The layout is saved.
+
+![The pico layout: the root pico connected to the Registration and Section Collection picos](/lessons/_media/21168151-system-view.png)
 
 ## Delete children in the UI
 
@@ -93,6 +97,10 @@ Share it, and `sections` (below), in the `meta` block with `shares`. The full ru
 ### Make a section pico
 
 On the Section Collection pico's **Testing** tab, `section:needed` appears as a form. (Rules with a documentation comment, `@attr`, and `@example` show up there.) Enter a section id such as `CS462-1` and click the button. Close the pico and its tabs, and a new pink child is there.
+
+![The Testing tab of the Section Collection pico with the section:needed form](/lessons/_media/21168151-system-testing.png)
+
+![The layout after the event: a new pink section pico under the Section Collection pico](/lessons/_media/21168151-system-view2.png)
 
 ### Why two rules?
 
