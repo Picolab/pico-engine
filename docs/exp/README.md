@@ -13,7 +13,7 @@ The pico API is **not RESTful**. A pico is not a collection of resources you man
 
 EXP is also a **meta-API**: it describes the *pattern* for talking to a pico, not a fixed list of operations. Each pico's concrete API is whatever its installed rulesets provide — which events their rules select on, and which functions they list in `shares` — and that can change over the pico's life as rulesets are installed or removed. Salience (from the rules' `select when` expressions) and the shared-function list are how you learn what a given pico will respond to; the developer UI's **Testing** tab and each pico's `discovery` channel surface that.
 
-<img src="_media/1189953-event_query_api.png" alt="Event query model in a pico: the event API feeds rules, the query API reads from functions, both backed by persistent storage" width="50%">
+<img src="/exp/_media/1189953-event_query_api.png" alt="Event query model in a pico: the event API feeds rules, the query API reads from functions, both backed by persistent storage" width="50%">
 
 A better analogy than REST is a cloud-based persistent object: you send it messages (events) and ask it questions (queries), the same way you would talk to an object in an OO program. In return you get actors that scale by sharding, can live on different engines, and keep the user in control of their data.
 

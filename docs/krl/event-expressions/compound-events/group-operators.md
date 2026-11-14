@@ -37,7 +37,7 @@ select when count 3 (E)
 
  The arrows on the event stream in the following diagram show where this eventex would match.
 
-![Fig03-03.png](../../_media/1189886-Fig03-03.png)
+<img src="/krl/_media/1189886-Fig03-03.png" alt="Fig03-03.png" width="50%">
 
 ## Repeat
 
@@ -49,7 +49,7 @@ select when repeat 3 (E)
 
 The arrows on the event stream in the following diagram show where this eventex would match.
 
-![Fig03-04.png](../../_media/1189886-Fig03-04.png)
+<img src="/krl/_media/1189886-Fig03-04.png" alt="Fig03-04.png" width="50%">
  The repeat operator is not particularly interesting by itself, but is mostly used in concert with [aggregators](/krl/event-expressions/compound-events/aggregators) introduced in the next section.
 
 ## Time Bounds

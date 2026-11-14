@@ -14,7 +14,7 @@ Both events and queries are sent to a pico through one of its **channels**, and 
 2. Choose a channel whose policies allow what you want to send. The pico's own `self` channel (its ECI is the pico's id) allows everything, which is fine for experiments. For anything you'll leave around, make a channel that allows only what's needed. See [Managing channels](/wrangler/channels).
 3. Copy the ECI.
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-11.52.28-am.png" alt="Channels tab showing a channel and its ECI to copy" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-11.52.28-am.png" alt="Channels tab showing a channel and its ECI to copy" width="50%">
 
 If a request is refused, you'll get HTTP 200 and `{"error":"Error: Not allowed by channel policy"}`. Use a channel with a more permissive policy.
 
@@ -40,11 +40,11 @@ This example asks wrangler to create a child pico: the domain is `wrangler` and 
 
 1. Create a new request tab.
 
-<img src="_media/1177157666-att1177157745-screen-shot-2020-06-25-at-11.07.07-am.png" alt="Postman: create a new request tab" width="50%">
+<img src="/developing/_media/1177157666-att1177157745-screen-shot-2020-06-25-at-11.07.07-am.png" alt="Postman: create a new request tab" width="50%">
 
 2. Set the method to **POST**. (GET works for events, but POST is preferred because an event may change the pico.)
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-11.12.51-am.png" alt="Postman request method set to POST" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-11.12.51-am.png" alt="Postman request method set to POST" width="50%">
 
 3. Enter the URL, with your ECI:
 
@@ -52,11 +52,11 @@ This example asks wrangler to create a child pico: the domain is `wrangler` and 
    http://localhost:3000/sky/event/<eci>/child_test/wrangler/new_child_request
    ```
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-12.29.51-pm.png" alt="Postman address bar with the Sky event URL" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.29.51-pm.png" alt="Postman address bar with the Sky event URL" width="50%">
 
 4. Open the **Body** tab, choose **raw**, and set the type to **JSON**. Put the event's attributes in the body as a JSON object:
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-12.19.02-pm.png" alt="Postman Body tab with raw and JSON selected" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.19.02-pm.png" alt="Postman Body tab with raw and JSON selected" width="50%">
 
    ```json
    {
@@ -65,11 +65,11 @@ This example asks wrangler to create a child pico: the domain is `wrangler` and 
    }
    ```
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-12.34.56-pm.png" alt="Postman raw JSON body with event attributes" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.34.56-pm.png" alt="Postman raw JSON body with event attributes" width="50%">
 
 5. Click **Send**.
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-12.35.59-pm.png" alt="Postman Send button to submit the request" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.35.59-pm.png" alt="Postman Send button to submit the request" width="50%">
 
 *These screenshots are from an earlier release: they show port 8080 and the old `child_creation` event name. Use the URL and event above.*
 
@@ -79,7 +79,7 @@ A JSON body is the best way to send attributes: it keeps numbers, booleans, and 
 
 The response is JSON. It carries the transaction id, any directives from rules that ran, which rules fired, and the events raised during the cycle:
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-12.35.46-pm.png" alt="Postman response JSON with directives and rule outcomes after Send" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.35.46-pm.png" alt="Postman response JSON with directives and rule outcomes after Send" width="50%">
 
 ```json
 {
@@ -116,15 +116,15 @@ http://localhost:3000/sky/query/<eci>/<rid>/<function>?<arguments>
 
 1. Create a new request tab and set the method to **GET**.
 
-<img src="_media/1177157666-att1177157745-screen-shot-2020-06-25-at-11.07.07-am.png" alt="Postman: create a new request tab for a query" width="50%">
+<img src="/developing/_media/1177157666-att1177157745-screen-shot-2020-06-25-at-11.07.07-am.png" alt="Postman: create a new request tab for a query" width="50%">
 
-<img src="_media/1177157666-att1177157757-screen-shot-2020-06-25-at-11.16.39-am.png" alt="Postman request method set to GET" width="50%">
+<img src="/developing/_media/1177157666-att1177157757-screen-shot-2020-06-25-at-11.16.39-am.png" alt="Postman request method set to GET" width="50%">
 
 2. Choose the pico, the ruleset, and a function that ruleset shares. The pico's **Testing** tab lists the queries a ruleset shares, and the **Channels** tab has the ECI. This example uses wrangler's `children` query:
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-11.46.05-am.png" alt="Developer UI Testing tab: pico, ruleset, and shared function" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-11.46.05-am.png" alt="Developer UI Testing tab: pico, ruleset, and shared function" width="50%">
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-11.46.24-am.png" alt="Channels tab ECI for the query URL" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-11.46.24-am.png" alt="Channels tab ECI for the query URL" width="50%">
 
    ```
    http://localhost:3000/sky/query/<eci>/io.picolabs.wrangler/children
@@ -132,11 +132,11 @@ http://localhost:3000/sky/query/<eci>/<rid>/<function>?<arguments>
 
 3. For a function with parameters, add them on the **Params** tab (Postman builds the query string), such as `name = Ada` for `…/io.picolabs.hello_world/hello?name=Ada`. The names must match the function's parameter names.
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-12.09.26-pm.png" alt="Postman Params tab and query URL with parameters" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.09.26-pm.png" alt="Postman Params tab and query URL with parameters" width="50%">
 
 4. Click **Send**. The body is the function's return value, as JSON.
 
-<img src="_media/1177157666-screen-shot-2020-06-25-at-12.08.57-pm.png" alt="Postman response body showing the query result as JSON" width="50%">
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.08.57-pm.png" alt="Postman response body showing the query result as JSON" width="50%">
 
 If the function isn't in the ruleset's `shares` list, or the ruleset isn't installed in that pico, the response has an `error` field instead of a value. A GET is the natural method, though POST with a form-encoded or JSON body also works and is useful for long arguments.
 

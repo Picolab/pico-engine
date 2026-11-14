@@ -26,21 +26,21 @@ A parent and child are connected by **family channels**: the parent has a channe
 
 ## Create children in the UI
 
-<img src="_media/21168151-system-about.png" alt="The root pico About tab before adding a child" width="50%">
+<img src="/lessons/_media/21168151-system-about.png" alt="The root pico About tab before adding a child" width="50%">
 
 Open your root pico and click its **About** tab. Under **Children**, type a name and choose a color, then click the add button. Call the new pico "Registration". The About tab lists the new child with its ECI. Click the link to visit it. Notice that it has a **Parent** link and no children yet.
 
-<img src="_media/21168151-system-about3.png" alt="A child pico's About tab showing its Parent link and no children" width="50%">
+<img src="/lessons/_media/21168151-system-about3.png" alt="A child pico's About tab showing its Parent link and no children" width="50%">
 
 Create a second child of the root, "Section Collection", with a different color.
 
-<img src="_media/21168151-system-about2.png" alt="The About tab of the root pico, listing the Registration child with its ECI and a form to add another" width="50%">
+<img src="/lessons/_media/21168151-system-about2.png" alt="The About tab of the root pico, listing the Registration child with its ECI and a form to add another" width="50%">
 
 Click **Close** to see the layout: two picos connected to the root by their parent-child links. Drag them around. The layout is saved.
 
-<img src="_media/21168151-system-view.png" alt="The pico layout: the root pico connected to the Registration and Section Collection picos" width="50%">
+<img src="/lessons/_media/21168151-system-view.png" alt="The pico layout: the root pico connected to the Registration and Section Collection picos" width="50%">
 
-<img src="_media/21168151-reglayout.png" alt="Diagram of the registration system pico layout" width="50%">
+<img src="/lessons/_media/21168151-reglayout.png" alt="Diagram of the registration system pico layout" width="50%">
 
 ## Delete children in the UI
 
@@ -104,9 +104,9 @@ Share it, and `sections` (below), in the `meta` block with `shares`. The full ru
 
 On the Section Collection pico's **Testing** tab, `section:needed` appears as a form. (Rules with a documentation comment, `@attr`, and `@example` show up there.) Enter a section id such as `CS462-1` and click the button. Close the pico and its tabs, and a new pink child is there.
 
-<img src="_media/21168151-system-testing.png" alt="The Testing tab of the Section Collection pico with the section:needed form" width="50%">
+<img src="/lessons/_media/21168151-system-testing.png" alt="The Testing tab of the Section Collection pico with the section:needed form" width="50%">
 
-<img src="_media/21168151-system-view2.png" alt="The layout after the event: a new pink section pico under the Section Collection pico" width="50%">
+<img src="/lessons/_media/21168151-system-view2.png" alt="The layout after the event: a new pink section pico under the Section Collection pico" width="50%">
 
 ### Why two rules?
 
@@ -192,7 +192,7 @@ The `where` clause makes the rule apply only to children this ruleset asked for.
 
 (ECIs vary. Yours will look different.) To clear out earlier experiments, delete the old children on the About tab and raise `section:needs_initialization`.
 
-<img src="_media/21168151-system-testing2.png" alt="The Testing tab querying sections, showing persisted section entries with ECIs" width="50%">
+<img src="/lessons/_media/21168151-system-testing2.png" alt="The Testing tab querying sections, showing persisted section entries with ECIs" width="50%">
 
 > **Note:** Don't use the old chained form `ent:sections{section_id}{"eci"} := …`. It doesn't parse. Use a composite path, `ent:sections{[section_id, "eci"]}`.
 
@@ -271,7 +271,7 @@ rule install_section_ruleset {
 
 `event:send` goes in the action block, never in a postlude. It sends the event to the child pico's channel. There are two ways to say what to install. With `url`, Wrangler installs the KRL at that URL. With `absoluteURL` and `rid`, it installs `<rid>.krl` from the same folder as `absoluteURL`. `meta:rulesetURI` is the URL of the ruleset that's running, so `app_section.krl` has to be in the same folder as `app_section_collection.krl`. This works like a relative URL in a web page: the browser resolves `page2.html` against the page it came from, and Wrangler resolves `app_section` against `meta:rulesetURI`.
 
-<img src="_media/21168151-relativeurl.png" alt="Installing a ruleset using absoluteURL resolved relative to meta:rulesetURI" width="50%">
+<img src="/lessons/_media/21168151-relativeurl.png" alt="Installing a ruleset using absoluteURL resolved relative to meta:rulesetURI" width="50%">
 
 Wrangler fetches and compiles the ruleset, installs it, and then raises `wrangler:ruleset_installed` in the **child**, with `rids` (an array holding the installed rid) and the other attributes of the request. So `section_id` is passed through, without Wrangler looking at it. The new ruleset's first event is `ruleset_installed`, and every ruleset on that pico sees it, so select your own with `where event:attr("rids") >< meta:rid`:
 

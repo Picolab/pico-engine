@@ -18,11 +18,11 @@ When you finish you will be able to:
 
 ## The problem
 
-<img src="_media/1185976-26315821-fuse.jpg" alt="Fuse Logo" width="50%">
+<img src="/lessons/_media/1185976-26315821-fuse.jpg" alt="Fuse Logo" width="50%">
 
 Fuse was an open-source connected-car platform built with picos. Every week it sent the fleet owner a report: the trips and fuel fill-ups of each vehicle in the period, summed for each vehicle and then for the fleet. Here's the start of a weekly report for one fleet:
 
-<img src="_media/1185976-21289230688-fuse-weekly-report.png" alt="Start of a Fuse weekly report, with trip and fill-up details for each vehicle" width="50%">
+<img src="/lessons/_media/1185976-21289230688-fuse-weekly-report.png" alt="Start of a Fuse weekly report, with trip and fill-up details for each vehicle" width="50%">
 
 The owner was a pico, so was the fleet, and so was each vehicle. Each was independent and addressable, kept its own data, and answered queries (functions) and events (rules). They talked to one another directly, with nothing in between.
 
@@ -40,7 +40,7 @@ fleetDetails = function() {
 
 That process looks like this. The owner sends `periodic_report` to the fleet; a rule calls a function that queries each vehicle over HTTP; once every vehicle has answered, the fleet formats the report and tells the owner it's ready:
 
-<img src="_media/1185976-21293069658-synchronous.png" alt="Synchronous request-response: the fleet queries each vehicle in turn and waits for every reply before finishing the report" width="50%">
+<img src="/lessons/_media/1185976-21293069658-synchronous.png" alt="Synchronous request-response: the fleet queries each vehicle in turn and waits for every reply before finishing the report" width="50%">
 
 Programmers who've used an API will find that familiar. It works so long as every vehicle answers promptly. A query waits for its answer, so the fleet pico is stuck for the sum of all the delays, and it can't handle anything else meanwhile. Vehicles on other engines are queried over the network, where timeouts have to be short, and one slow vehicle gets missed. With a few vehicles that's rare. With ten, the chance that at least one is late gets good, and with a hundred it's routine.
 
@@ -60,7 +60,7 @@ There are no queries in this flow, only events. Events go to a pico, not to a pa
 
 Fuse's weekly report used exactly this pattern, with a timer added as a safety net. Each oval is a pico, each rounded box a rule, and each arrow an event. Picos with the same name are the same pico, drawn again to show the next step:
 
-<img src="_media/1185976-21293982299-scatter-gather.png" alt="Fuse periodic report: the owner asks the fleet, the fleet scatters a request to each vehicle, vehicles send reports back, the fleet gathers them and sends the finished report to the owner, with a two-minute timer as a safety net" width="50%">
+<img src="/lessons/_media/1185976-21293982299-scatter-gather.png" alt="Fuse periodic report: the owner asks the fleet, the fleet scatters a request to each vehicle, vehicles send reports back, the fleet gathers them and sends the finished report to the owner, with a two-minute timer as a safety net" width="50%">
 
 ## The messy details
 
@@ -86,7 +86,7 @@ Here is the fleet. It's a ruleset for a pico whose children are vehicles. The ru
 
 A **correlation identifier** links the two halves of an asynchronous conversation. It is an event attribute, any string that's unique within the conversation, and the sender of the first event expects it back in the reply. Rules also use it as a key in persistent state, so each conversation's data is separate.
 
-<img src="_media/1185976-25264445563-event-correlation.png" alt="Event correlation: a request carries a correlation number that comes back with the reply, so overlapping conversations stay separate" width="50%">
+<img src="/lessons/_media/1185976-25264445563-event-correlation.png" alt="Event correlation: a request carries a correlation number that comes back with the reply, so overlapping conversations stay separate" width="50%">
 
 ```krl
 // 1. Start: correlate the work, remember who we expect, set a safety timer.
@@ -116,7 +116,7 @@ Any rule that sees an `rcn` must pass it on. Future versions of Wrangler may aut
 
 The simplest routing is to keep a list of picos and send the same event to each of them, like the **To:** line of an email. The list can be fixed, or computed, so that the pico acts as an event router. Here the list is the fleet's current children:
 
-<img src="_media/1185976-25867495936-event-recipient-list.png" alt="Event recipient list: one pico sends the same event to every pico on a list" width="50%">
+<img src="/lessons/_media/1185976-25867495936-event-recipient-list.png" alt="Event recipient list: one pico sends the same event to every pico on a list" width="50%">
 
 ```krl
 // 2. Scatter: one event per vehicle, from a computed recipient list.
@@ -173,7 +173,7 @@ It sends the answer to its parent with the number and its name, so the fleet can
 
 An **aggregator** collects events and, when it has enough, raises an event or takes another action. The fleet's is two rules: one collects, and one decides.
 
-<img src="_media/1185976-25867268766-event-aggregation.png" alt="Event aggregation: answers arrive one by one; when enough have been collected, the aggregator raises a ready event" width="50%">
+<img src="/lessons/_media/1185976-25867268766-event-aggregation.png" alt="Event aggregation: answers arrive one by one; when enough have been collected, the aggregator raises a ready event" width="50%">
 
 ```krl
 // 3. Gather: file each answer under its correlation number.
@@ -218,7 +218,7 @@ rule check_report_status {
 
 Because events may be lost, asynchronous systems have to be prepared to deal with failure. A timer, a retry, or both:
 
-<img src="_media/1185976-26168873862-event-failure.png" alt="Dealing with failure: a scheduled timer retries missing vehicles, then finishes the report with what it has" width="50%">
+<img src="/lessons/_media/1185976-26168873862-event-failure.png" alt="Dealing with failure: a scheduled timer retries missing vehicles, then finishes the report with what it has" width="50%">
 
 The timer was scheduled when the report began. When it expires, the rule sees whether the report is still open, and if it is, raises the same `report:ready` event, marked `timed_out`:
 
@@ -267,7 +267,7 @@ To retry instead of just continuing, have `timer_expired` raise `report:scatter`
 
 Another way to decide who gets an event is by what it says. The routing pico knows several others and chooses by the event's domain, type, attributes, or its own state. A Fuse fleet could have more than one owner and needed to keep an owner informed by routing certain events to one:
 
-<img src="_media/1185976-25260450274-event-routing.png" alt="Content-based event routing: the router chooses a destination from the event's content and the pico's state" width="50%">
+<img src="/lessons/_media/1185976-25260450274-event-routing.png" alt="Content-based event routing: the router chooses a destination from the event's content and the pico's state" width="50%">
 
 ```krl
 // Content-based routing: the event decides where it goes.
@@ -296,7 +296,7 @@ rule route_to_owner {
 
 The most general routing is a directory. Picos send a registration event saying who they are and what they care about, and the directory routes events to those that have registered for them. The directory can be a special pico in a large system, or a ruleset in a pico that does other things too. A directory also lets a pico change its channel for security without losing service, and lets a pico move without losing messages.
 
-<img src="_media/1185976-26210449896-pico-registry.png" alt="Pico registration: picos register with a directory; the directory routes events to those that have registered for a topic" width="50%">
+<img src="/lessons/_media/1185976-26210449896-pico-registry.png" alt="Pico registration: picos register with a directory; the directory routes events to those that have registered for a topic" width="50%">
 
 ```krl
 // Registration: picos say what they want to hear about.
@@ -340,7 +340,7 @@ On the fleet's Testing tab, raise `report:requested`. Query `completed` and you'
 
 Recipient list plus aggregator is the scatter-gather pattern in full:
 
-<img src="_media/1185976-25592606980-scatter-gather-pattern.png" alt="Scatter-gather: scatter events to many picos from a recipient list, then gather their answers with an aggregator" width="50%">
+<img src="/lessons/_media/1185976-25592606980-scatter-gather-pattern.png" alt="Scatter-gather: scatter events to many picos from a recipient list, then gather their answers with an aggregator" width="50%">
 
 Scatter-gather adds a few rules over the synchronous version, and each is short and does one thing. What you get for it:
 

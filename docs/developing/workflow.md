@@ -2,7 +2,7 @@
 
 A suggested workflow for new pico developers. Programming picos uses a small tool chain, used more or less in sequence. This page is organized by its stages:
 
-<img src="_media/32754595-pico-tool-chain.png" alt="The pico tool chain: Develop (editor, Git), Build (Pico Labs, Git), Deploy and Test (Pico Labs), Release (AWS, GitHub)" width="50%">
+<img src="/developing/_media/32754595-pico-tool-chain.png" alt="The pico tool chain: Develop (editor, Git), Build (Pico Labs, Git), Deploy and Test (Pico Labs), Release (AWS, GitHub)" width="50%">
 
 The loop you'll spend most of your time in is Develop → Build → Deploy (flush) → Test. Release only matters when someone other than you depends on the ruleset.
 
@@ -58,13 +58,13 @@ Open the developer UI at <http://localhost:3000> (port 3000 is the default), cli
 
 When the engine can't compile the ruleset, the install fails and the UI shows the error with its line and column.
 
-<img src="_media/32754595-screen-shot-2021-01-07-at-11.06.49-am.png" alt="Rulesets tab: Install Ruleset by URL form with a file URL entered" width="50%">
+<img src="/developing/_media/32754595-screen-shot-2021-01-07-at-11.06.49-am.png" alt="Rulesets tab: Install Ruleset by URL form with a file URL entered" width="50%">
 
 ### Flush
 
 The engine compiles a ruleset once and keeps the result. After you change the source, **flush** it so the engine fetches the URL and compiles it again. On the **Rulesets** tab, click **flush** next to the ruleset. Flushing is per URL: every pico on this engine that has the ruleset installed from that URL gets the new version. The ruleset's hash changes with each new version of the source.
 
-<img src="_media/32754595-screen-shot-2021-01-07-at-11.26.13-am.png" alt="Installed Rulesets list with flush and uninstall buttons next to each ruleset" width="50%">
+<img src="/developing/_media/32754595-screen-shot-2021-01-07-at-11.26.13-am.png" alt="Installed Rulesets list with flush and uninstall buttons next to each ruleset" width="50%">
 
 You can also flush from KRL, which is handy in scripts:
 

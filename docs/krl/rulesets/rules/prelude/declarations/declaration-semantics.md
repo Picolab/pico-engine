@@ -14,7 +14,7 @@ pre {
 
 Internally, this declaration block produces the following environment:
 
-![](../../../../_media/216891402-image2018-2-9_13-59-16.png)
+<img src="/krl/_media/216891402-image2018-2-9_13-59-16.png" alt="" width="50%">
 
 When we make a function call like `y(6)`, the result will be 9 because `x` is defined globally, from `y`'s perspective.
 
@@ -31,7 +31,7 @@ pre {
 
 The resulting environment looks like this:
 
-![](../../../../_media/216891402-image2018-2-9_13-59-32.png)
+<img src="/krl/_media/216891402-image2018-2-9_13-59-32.png" alt="" width="50%">
 
 Note that the first `x` is still there. Code referencing `x` in this environment will start looking for `x` from the bottom and see 5 since that declaration shadows the first.
 
