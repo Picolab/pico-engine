@@ -40,6 +40,8 @@ Your pico already has channels the engine made for it. The developer UI uses one
 
 ### Create a channel for hello_world
 
+<img src="_media/19791904-root-pico-channels.png" alt="The Channels tab before creating a new channel" width="50%">
+
 1. Open your pico and click its **Channels** tab.
 2. In the **New Channel** form, leave **Channel id (ECI)** blank to let the engine pick one. (You can choose your own, at least 12 characters of letters, digits, hyphen or underscore, but it can't be changed later.)
 3. Set **Tags** to `hello, lesson`.
@@ -63,9 +65,9 @@ Your pico already has channels the engine made for it. The developer UI uses one
 
 6. Click **Add**. The new channel appears in the list, with its ECI. Copy it.
 
-![The New Channel form with tags, an event policy, and a query policy filled in](_media/19791904-root-pico-channels2.png)
+<img src="_media/19791904-root-pico-channels2.png" alt="The New Channel form with tags, an event policy, and a query policy filled in" width="50%">
 
-![The Channels tab listing the new channel, tagged hello_world, with its event and query policy](_media/19791904-root-pico-channels3.png)
+<img src="_media/19791904-root-pico-channels3.png" alt="The Channels tab listing the new channel, tagged hello_world, with its event and query policy" width="50%">
 
 The policy says this channel accepts one event, `echo:hello`, and one query, the `hello` function of `io.picolabs.hello_world`. Use `"*"` to match anything, for instance `{"domain": "echo", "name": "*"}` allows every `echo` event. A rule in `deny` always wins over `allow`.
 
@@ -115,7 +117,7 @@ You get JSON back:
 
 Those are the **directives** from every rule the event ran. The sender asked nothing of a function: the rule `hello_world` selected the event and answered with `say`.
 
-![The directives returned by an echo:hello event, shown in a browser](_media/19791904-echo-hello.png)
+<img src="_media/19791904-echo-hello.png" alt="The directives returned by an echo:hello event, shown in a browser" width="50%">
 
 GET works too, so you can paste the URL in a browser, but **POST is preferred** for events because an event can change state.
 
@@ -140,9 +142,13 @@ curl "http://localhost:3000/sky/query/<eci>/io.picolabs.hello_world/hello?name=A
 
 The answer is the return value: `"Hello Ada"`. Leave off `name` and the function's default gives `"Hello world"`. Query details are in [Query API](/exp/query).
 
+<img src="_media/19791904-root-pico-testing3.png" alt="The Testing tab running the hello query with a name argument" width="50%">
+
 > **Note:** Older docs and rulesets show `/sky/cloud/…`. It's a legacy alias for the same handler. Use `/sky/query/…`.
 
 ## Use the Testing tab
+
+<img src="_media/19791904-root-pico-testing.png" alt="The Testing tab overview with ECI and Ruleset menus" width="50%">
 
 You can send the same events and queries without typing URLs. Open the pico's **Testing** tab:
 
@@ -152,7 +158,9 @@ You can send the same events and queries without typing URLs. Open the pico's **
 
 The result shows below the forms, and the tab keeps a history of what you sent so you can send it again.
 
-![The Testing tab with the hello_world ruleset selected, a name typed in the echo:hello form, and the directive in the Results panel](_media/19791904-root-pico-testing2.png)
+<img src="_media/19791904-root-pico-testing2.png" alt="The Testing tab with the hello_world ruleset selected, a name typed in the echo:hello form, and the directive in the Results panel" width="50%">
+
+<img src="_media/19791904-root-pico-testing4.png" alt="The Testing tab echo:hello event form with the name field" width="50%">
 
 > **Note:** Older rulesets list their events and queries in a global `__testing` map. That's legacy: the engine still understands it for older rulesets, but new rulesets should use doc comments. Rules and functions with no doc comment still appear, with attributes the engine can find in the code, but you won't get descriptions or examples.
 
@@ -193,7 +201,7 @@ Send `echo:hello` with `name` set to `Ada`. Then open the **Logging** tab. It li
 - the directives that went back
 - any events the rules raised
 
-![The Logging tab listing the transactions for an event and a query, with klog output](_media/19791904-root-pico-logging.png)
+<img src="_media/19791904-root-pico-logging.png" alt="The Logging tab listing the transactions for an event and a query, with klog output" width="50%">
 
 The **Filters** button narrows the list: by ruleset, by `domain:type`, errors only, or transactions that logged `klog`. The tab follows new transactions as they arrive. You'll use it constantly: if a rule didn't run, this is where you find out why. Rules that didn't select an event are shown with their `select` text, so you can see what they were waiting for.
 

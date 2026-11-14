@@ -249,9 +249,9 @@ Raise it on the Testing tab. Give each person the page opened on their own chann
 5. Enter `n1` and a name, click **Timing started**, wait a few seconds, then click **Finished**. The elapsed time appears. Start `n2` and leave it running.
 6. Start `n1` again. Nothing changes: the number is taken.
 
-![The timing tracker page with number and name fields and a Timing started button](_media/32640450-timing1.png)
+<img src="_media/32640450-timing1.png" alt="The timing tracker page with number and name fields and a Timing started button" width="50%">
 
-![The timing tracker page listing n2 as running and n1 as finished, with its elapsed time](_media/32640450-timing2.png)
+<img src="_media/32640450-timing2.png" alt="The timing tracker page listing n2 as running and n1 as finished, with its elapsed time" width="50%">
 
 The same events work without the page. This is why a view is a front end and not a different kind of pico:
 

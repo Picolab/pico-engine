@@ -18,7 +18,7 @@ Back up your data directory (`~/.pico-engine` by default) before you update, and
 
 The version also appears at the bottom of the developer UI's root page.
 
-![The developer UI footer: Powered by pico-engine, with the version number](_media/31544297-version.png)
+<img src="_media/31544297-version.png" alt="The developer UI footer: Powered by pico-engine, with the version number" width="50%">
 
 To remove the engine code (not your picos, which live in the data directory):
 
@@ -111,11 +111,11 @@ The engine compiles each ruleset once and caches it. After you change the source
 - **From the UI.** On the pico's **Rulesets** tab, click **flush** next to the ruleset.
 - **From a rule.** `raise wrangler event "rulesets_need_flushing"` re-fetches every ruleset installed in the pico and then raises `wrangler:rulesets_flushed`.
 
-![The Rulesets tab with hello_world installed, and its flush and uninstall buttons](_media/31544297-flush.png)
+<img src="_media/31544297-flush.png" alt="The Rulesets tab with hello_world installed, and its flush and uninstall buttons" width="50%">
 
 If the changed source doesn't compile, the flush fails and the error appears next to the ruleset:
 
-![The Rulesets tab showing a ParseError next to hello_world after a flush](_media/31544297-flush-error.png)
+<img src="_media/31544297-flush-error.png" alt="The Rulesets tab showing a ParseError next to hello_world after a flush" width="50%">
 
 Flushing is by URL. The engine keeps one compiled version per URL, so every pico with that ruleset gets the update. Flushing does **not** raise `wrangler:ruleset_installed` again, so rules that run on install don't run. If you change what such a rule sets up (for example a channel's policy), run that rule again yourself. The [Bootstrap and channels](/cookbook/bootstrap/) demo shows how.
 
@@ -129,6 +129,8 @@ krl-check my.ruleset.krl
 ```
 
 `krl-check` parses and compiles, and lints doc comments and views. It exits with status 1 on an error and prints warnings to stderr. With no file, it reads standard input. Keep `krl-compiler` at the same version as your engine.
+
+<img src="_media/31544297-screen-shot-2020-11-16-at-11.31.18-am.png" alt="Editor with krl-check validation output before flushing a ruleset" width="50%">
 
 A Git pre-commit hook that checks the *staged* version of each `.krl` file:
 

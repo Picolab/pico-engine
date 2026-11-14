@@ -70,9 +70,9 @@ Then:
 3. Query `name` again. It's `"Ada"`.
 4. Restart the engine (stop it with Control-C and start it again) and query `name`. It's still `"Ada"`. That's what "persistent" means.
 
-![Sending hello:name with the name Bob on the Testing tab. The results show the store_name directive](_media/20742148-state_testing.png)
+<img src="_media/20742148-state_testing.png" alt="Sending hello:name with the name Bob on the Testing tab. The results show the store_name directive" width="50%">
 
-![Querying name on the Testing tab. The result is Bob](_media/20742148-state_testing2.png)
+<img src="_media/20742148-state_testing2.png" alt="Querying name on the Testing tab. The result is Bob" width="50%">
 
 The pieces:
 
@@ -208,13 +208,25 @@ Walk through what's new.
 Now play with it from the Testing tab (or from `curl`, with the URLs from the last lesson):
 
 1. Send `hello:name` with `id` `1`, `first` `Ada`, `last` `Lovelace`.
+
+<img src="_media/20742148-state_testing5.png" alt="The Testing tab hello:name form with id, first, and last fields" width="50%">
+
 2. Send `hello:name` with `id` `2` and only `first`: the warning shows in the Logging tab and nothing is stored. The condition was false, so `else` ran.
 3. Query `name` with `id` `1`: `"Ada Lovelace"`. With `id` `9`: `"HAL 9000"`.
+
+<img src="_media/20742148-state_testing4.png" alt="Querying name with an unknown id on the Testing tab, showing the default HAL 9000 greeting" width="50%">
+
 4. Send `hello:visit` with `id` `1` twice. The directive says `Hello Ada Lovelace`. Query `visits` with `id` `1`: `2`.
+
+<img src="_media/20742148-state_testing6.png" alt="The Testing tab after hello:visit, showing the hello directive with the stored name" width="50%">
+
 5. Query `users`: `{"1": {"name": {"first": "Ada", "last": "Lovelace"}, "visits": 2}}`.
+
+<img src="_media/20742148-state_testing7.png" alt="The users query on the Testing tab, with each stored user's name and visit count in the Results panel" width="50%">
+
 6. Send `hello:clear_names`. Query `users`: `{}`. The visit count went too, because it lives in the same map.
 
-![The users query on the Testing tab, with each stored user's name and visit count in the Results panel](_media/20742148-state_testing7.png)
+<img src="_media/20742148-state_testing3.png" alt="The users query after clear_names, showing an empty map" width="50%">
 
 Over HTTP the same steps look like this:
 

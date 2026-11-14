@@ -21,7 +21,7 @@ Think of a pico as a state machine: queries tell you what state it's in; events 
 
 An event's rules can change things in two places: **outside** the pico, through actions, and **inside** it, through the postlude.
 
-![A pico with "changes outside (action)" above it and "changes inside (postlude)" within it](_media/676397057-pico.png)
+<img src="_media/676397057-pico.png" alt="A pico with changes outside (action) above it and changes inside (postlude) within it" width="50%">
 
 Queries are `GET`s to `/sky/query/<eci>/<rid>/<function>?…` and events are `POST`s (or `GET`s) to `/sky/event/<eci>/<eid>/<domain>/<type>`. The first path component is the giveaway. The event URL names the pico, the domain, and the type, but **not a ruleset**: every installed ruleset with a salient rule gets a chance. A query names the ruleset and function, and only that one answers. See the [Event API](/exp/event), the [Query API](/exp/query), and [Event Loop Introduction](/developing/event-loop).
 
@@ -220,6 +220,8 @@ When a chevron string holds markup, put the closing `>>` on its own line, and th
 <option#{e == el => " selected" | ""}>#{e}</option>
 >>
 ```
+
+<img src="_media/676397057-screen-shot-2020-01-16-at-9.41.39-am.png" alt="KRL chevron string with beestings for selected option markup" width="50%">
 
 ### KRL isn't Java: `raise` is not a call
 
