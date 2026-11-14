@@ -51,7 +51,7 @@ The same operations exist for the developer UI on `/c/*` (passkey session). Inte
 
 - [Persistent Compute Objects](/pico-overview) — where the event-query model sits in the pico picture
 - [Managing channels](/wrangler/channels) — ECIs, tags, and policies
-- [Cookies and redirects](/patterns_and_tips/cookies-and-redirects) — `_cookie` and `_redirect` directives on event responses
+- [Cookies and redirects](/developing/cookies-and-redirects) — `_cookie` and `_redirect` directives on event responses
 - [Pico views](/pico-views) — pages that call EXP from the browser
 - [OAuth](/wrangler/oauth) — when `/sky/*` needs a bearer token
 

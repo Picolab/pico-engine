@@ -119,7 +119,7 @@ Moving picos between engines ([pico-move.md](./pico-move.md)), pico-level schema
 
 **Repos and docs:** this folder and `MEMORY.md`; [manifold-api](https://github.com/Picolab/manifold-api) (`README.md`, `docs/Manifold.md`, `docs/Managing_PDS.md`); [sensor-network](https://github.com/windley/sensor-network); [MCPforEXP](https://github.com/picolab/MCPforEXP).
 
-**Docs in this repo** — start with the [Programming lessons](/lessons/) (Quickstart through Relationships). Engine and Wrangler: [Operator guide](/pico-engine) · [Wrangler](/wrangler/) · [Channels](/wrangler/channels) · [Event Exchange Protocol](/exp/). KRL: [KRL Manual](/krl/) · [Patterns and tips](/patterns_and_tips/) (from the old KRL Cookbook). Identity and relationships: [Relationships](/wrangler/relationships) · design notes in this folder. Platform: [Manifold](https://github.com/Picolab/manifold-api) (sibling repo). Older Confluence pages that have not been moved yet remain at the [Pico Labs wiki](https://picolabs.atlassian.net/wiki/spaces/docs/overview).
+**Docs in this repo** — start with the [Programming lessons](/lessons/) (Quickstart through Relationships). Engine and Wrangler: [Operator guide](/pico-engine) · [Wrangler](/wrangler/) · [Channels](/wrangler/channels) · [Event Exchange Protocol](/exp/). KRL: [KRL Manual](/krl/) · [Developing with Picos](/developing/) (workflow, tips, misconceptions). Identity and relationships: [Relationships](/wrangler/relationships) · design notes in this folder. Platform: [Manifold](https://github.com/Picolab/manifold-api) (sibling repo). Older Confluence pages that have not been moved yet remain at the [Pico Labs wiki](https://picolabs.atlassian.net/wiki/spaces/docs/overview).
 
 **Blog (windley.com, tag: picos):** [Fundamental Features of Persistent Compute Objects](https://www.windley.com/archives/2013/10/fundamental_features_of_persistent_compute_objects.shtml) · [Pico APIs: Events and Queries](https://www.windley.com/archives/2013/12/pico_apis_events_and_queries.shtml) · [Complex Pico Structures: Guard Tours](https://www.windley.com/archives/2014/01/complex_pico_structures_guard_tours.shtml) · [Fuse as a Microservice Architecture](https://www.windley.com/archives/2014/07/fuse_as_a_microservice_architecture.shtml) · [Fuse with Two Owners](https://www.windley.com/archives/2014/10/fuse_with_two_owners.shtml) · [Reactive Programming with Picos](https://www.windley.com/archives/2015/11/reactive_programming_with_picos.shtml) · [Reactive Programming Patterns: Examples from Fuse](https://www.windley.com/archives/2016/04/reactive_programming_patterns_examples_from_fuse.shtml) · [Using Picos for BYU's Priority Registration](https://www.windley.com/archives/2017/01/using_picos_for_byus_priority_registration.shtml) · [Announcing Pico Engine 1.0](https://www.windley.com/archives/2021/02/announcing_pico_engine_10.shtml) · [Persistence, Programming, and Picos](https://www.windley.com/archives/2021/02/persistence_programming_and_picos.shtml) · [Ten Reasons to Use Picos](https://www.windley.com/archives/2021/07/ten_reasons_to_use_picos_for_your_next_decentralized_programming_project.shtml) · [Alternatives to the CompuServe of Things](https://www.windley.com/archives/2021/07/alternatives_to_the_compuserve_of_things.shtml) · [Monitoring Temperatures in a Remote Pump House](https://www.windley.com/archives/2023/03/monitoring_temperatures_in_a_remote_pump_house_using_lorawan.shtml) · [Building a Conversational Interface for Manifold](https://www.windley.com/archives/2026/04/building_a_conversational_interface_for_manifold_with_mcp_and_picos.shtml) · [AI Integration in Picos Starts with Events](https://www.windley.com/archives/2026/06/ai_integration_in_picos_starts_with_events.shtml) · [Manifold API and Sensor Network](https://www.windley.com/archives/2026/06/manifold_api_and_sensor_network_two_new_repos.shtml) · [Identity for the Pico Engine](https://www.windley.com/archives/2026/07/identity_for_the_pico_engine.shtml) · [Why Not SPIFFE for Pico Identity?](https://www.windley.com/archives/2026/08/why_not_spiffe_for_pico_identity.shtml) · [Moving My Sensor Network onto Manifold](https://www.windley.com/archives/2026/09/moving_my_sensor_network_onto_manifold.shtml).
 
@@ -138,7 +138,7 @@ If you're new, start with the [Programming lessons](/lessons/), which build a wo
 
 1. [Programming Workflow](/developing/workflow): develop, build, deploy, test, and release a ruleset.
 2. [Event Loop Introduction](/developing/event-loop): the five phases a pico goes through for every event, and why rule order can surprise you.
-3. [Developer Tips](/developing/tips): installing and updating the engine, resetting it, running several, hosting and flushing rulesets, and initializing a ruleset.
+3. [Tips](/developing/tips): engine setup, hosting and flushing rulesets, `krl-check`, and short technique tips (data, HTTP, picos working together).
 4. [Event and Query URLs with Postman](/developing/postman): building Sky event and query requests in Postman (or `curl`).
 5. [KRL misconceptions and common errors](/developing/misconceptions): where habits from other languages mislead, and the typos that are hard to see.
 
@@ -147,13 +147,13 @@ If you're new, start with the [Programming lessons](/lessons/), which build a wo
 - [Programming lessons](/lessons/): hands-on lessons from the Quickstart to scatter-gather.
 - [KRL manual](/krl/): the language and its libraries.
 - [Event Exchange Protocol](/exp/): the Sky event and query APIs.
-- [Patterns and tips](/patterns_and_tips/): short techniques, including [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets).
+- [Cookbook](/cookbook/): runnable demos from the **Try It!** tab.
 
 The engine listens on port 3000 by default, so the examples here use `http://localhost:3000`. Change that if you've configured another port or public URL (see the [operator guide](/pico-engine)).
 
 ---
 
-<small>Section intro for pages ported from the Pico Labs wiki (Programming Workflow, Event Loop Introduction, Developer Tips, Event and Query URLs with Postman, KRL misconceptions and common errors), updated for this engine.</small>
+<small>Section intro for pages ported from the Pico Labs wiki (Programming Workflow, Event Loop Introduction, Developer Tips, Event and Query URLs with Postman, KRL misconceptions, and the KRL Cookbook tips), updated for this engine.</small>
 
 
 ---
@@ -199,7 +199,7 @@ krl-check my.ruleset.krl
 
 > **Note:** `krl-check` replaces the old parse-only hook scripts (`krl-compiler --verify`, and the hooks built on the old parser). If you still have one of those in a repository, replace it.
 
-Run it often, from your editor or a file watcher. To make sure nothing that fails to compile is ever committed, add a Git pre-commit hook. [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets) has the hook, and it checks the *staged* version of each file, which is what you want.
+Run it often, from your editor or a file watcher. To make sure nothing that fails to compile is ever committed, add a Git pre-commit hook. [Tips](/developing/tips) has the hook, and it checks the *staged* version of each file, which is what you want.
 
 Then add and commit as usual:
 
@@ -365,11 +365,11 @@ Queries are separate. They call a shared function and return its value, and they
 
 ---
 
-# Developing: Developer Tips
+# Developing: Tips
 
-# Developer Tips
+# Tips
 
-A few things that make managing your pico engine, and writing KRL, easier. The [operator guide](/pico-engine) is the full reference for configuration; this page is the short, practical version.
+Practical notes for running the engine and writing KRL. Engine setup is below; technique pages (from the old Patterns and tips / KRL Cookbook) are indexed further down. The [operator guide](/pico-engine) is the full configuration reference.
 
 ## Managing your engine
 
@@ -458,43 +458,59 @@ You can run the image several times with different ports and volumes to get seve
 
 WSL 2 (a Linux environment on Windows) is a good way to run the engine on Windows. If a browser on Windows can't reach an engine running in WSL 2, the usual culprit is bridging the port between Windows and the virtual machine. Also check that the base URL matches the address the browser uses.
 
-## Writing and running rulesets
+## Hosting, flushing, and checking rulesets
 
 ### Host the source where the engine can reach it
 
-The engine reads your KRL from a URL. Your own files can use `file:///…` (three slashes) while you develop on the same machine. For anything shared, any HTTP server works:
+The engine installs a ruleset from a URL and remembers it:
 
-- **GitHub:** use the raw URL, `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>.krl`. GitHub caches raw files for a few minutes, so a push may take a moment to show. GitLab and others may cache less. For a private repository the engine needs a URL that includes an access token.
+- **Your own files**, while you work: `file:///path/to/my.ruleset.krl` (three slashes). The engine must be on the same machine.
+- **GitHub:** use the *raw* URL, `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>.krl`, not the page that displays the file. GitHub caches raw files for a few minutes. For a private repository the engine needs a URL that includes an access token.
+- **The engine's own:** `http://<engine>/krl/<rid>.krl` for rulesets that ship with it, and `/krl/demos/...` for demos.
 - **S3 or any static host:** make sure the URL is readable by the engine.
-
-See [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets).
 
 ### Flush after every change
 
-The engine compiles each ruleset once and caches it. After you change the source, flush it so the engine fetches and compiles it again. There are two ways:
+The engine compiles each ruleset once and caches it. After you change the source, flush it so the engine fetches and compiles it again:
 
 - **From the UI.** On the pico's **Rulesets** tab, click **flush** next to the ruleset.
 - **From a rule.** `raise wrangler event "rulesets_need_flushing"` re-fetches every ruleset installed in the pico and then raises `wrangler:rulesets_flushed`.
 
-Flushing is by URL. The engine keeps one compiled version per URL, so every pico with that ruleset gets the update.
+Flushing is by URL. The engine keeps one compiled version per URL, so every pico with that ruleset gets the update. Flushing does **not** raise `wrangler:ruleset_installed` again, so rules that run on install don't run. If you change what such a rule sets up (for example a channel's policy), run that rule again yourself. The [Bootstrap and channels](/cookbook/bootstrap/) demo shows how.
 
-The engine also offers `/api/flush?url=<ruleset url>`, which is what the UI uses. It needs the signed-in browser session, so it doesn't work from a plain `curl`; use the UI or the wrangler event instead.
+The UI uses `/api/flush?url=<ruleset url>`, which needs the signed-in browser session, so it doesn't work from a plain `curl`; use the UI or the wrangler event instead.
 
 ### Check your KRL before the engine sees it
-
-You can discover a syntax error by installing the ruleset and reading the engine's complaint, which includes the line and column. It's faster to catch it earlier:
 
 ```sh
 npm install -g krl-compiler
 krl-check my.ruleset.krl
 ```
 
-`krl-check` parses and compiles, and lints doc comments. Install a Git pre-commit hook so that nothing broken gets committed; [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets) has one. Keep `krl-compiler` at the same version as your engine.
+`krl-check` parses and compiles, and lints doc comments and views. It exits with status 1 on an error and prints warnings to stderr. With no file, it reads standard input. Keep `krl-compiler` at the same version as your engine.
+
+A Git pre-commit hook that checks the *staged* version of each `.krl` file:
+
+```sh
+#!/bin/sh
+status=0
+for f in $(git diff --cached --name-only --diff-filter=ACM -- '*.krl'); do
+  if ! git show ":$f" | krl-check >/dev/null; then
+    echo "krl-check failed: $f"
+    status=1
+  fi
+done
+exit $status
+```
+
+Save it as `.git/hooks/pre-commit` and make it executable. `git show ":$f"` is the staged copy, so a fix you haven't staged yet doesn't hide an error. See also [Programming Workflow](/developing/workflow).
+
+## Writing and debugging
 
 ### Use the Testing and Logging tabs
 
 - The **Testing** tab builds a form for each event and query a ruleset offers, using the ruleset's doc comments (`@attr`, `@param`, `@example`). Document your rules and shared functions and the forms write themselves.
-- The **Logging** tab shows what the pico did for each event or query: the channel and its policy decision, the attributes, which rules were selected and which fired, directives, raised events, and `klog` output. Use the filters to narrow it to a ruleset, an event, or errors. It keeps recent transactions per pico in memory (200 by default, `PICO_ENGINE_LOG_RING`), so a restart clears it. The log file on disk keeps the full record; see [Reading the engine's log files](/patterns_and_tips/engine-log-files).
+- The **Logging** tab shows what the pico did for each event or query: the channel and its policy decision, the attributes, which rules were selected and which fired, directives, raised events, and `klog` output. Use the filters to narrow it to a ruleset, an event, or errors. It keeps recent transactions per pico in memory (200 by default, `PICO_ENGINE_LOG_RING`), so a restart clears it. The log file on disk keeps the full record; see [Reading the engine's log files](/developing/engine-log-files).
 - `.klog("label: ")` returns the value it's applied to, so you can add it in the middle of an expression without changing the code.
 
 ### "Not allowed by channel policy"
@@ -521,15 +537,75 @@ Two cautions:
 - The event isn't raised again on a flush, so a change to this rule's setup doesn't take effect on picos that already have the ruleset.
 - Guard each initialization with `isnull()` so you never overwrite state that has accumulated.
 
-More about this in [Initializing entity variables](/patterns_and_tips/initializing-entity-variables) and [Bootstrap and channels](/cookbook/bootstrap/).
+More: [Initializing entity variables](/developing/initializing-entity-variables) and [Bootstrap and channels](/cookbook/bootstrap/).
 
 ### Wrangler, not `ctx`, in application rulesets
 
 For children, channels, ruleset installation, and queries between picos, use wrangler's events and functions (`wrangler:new_child_request`, `wrangler:picoQuery`, and so on). The engine's lower-level `ctx:*` actions exist for wrangler and the platform to use. See [Wrangler](/wrangler/).
 
+## Technique tips
+
+Short techniques for writing KRL and working with picos, checked against this engine. For runnable examples, see the [Cookbook](/cookbook/) and the **Try It!** tab. Event and query URLs live in the [Event Exchange Protocol](/exp/).
+
+### Working with data
+
+| Page | What it covers |
+|------|----------------|
+| [Initializing entity variables](/developing/initializing-entity-variables) | `defaultsTo`, a guard rule, or a rule that runs on install |
+| [Arrays and maps](/developing/arrays-and-maps) | Loops with `reduce`, flattening, and sorting arrays of maps by one key or two |
+| [Decoding form-encoded data](/developing/decoding-form-data) | Turning `a=1&b=2` into a map, keeping repeated names, and decoding `+` and `%xx` |
+| [Importing tables and CSV](/developing/tabular-data) | Tab- and comma-separated exports to arrays and maps, fetched with `http:get` |
+| [Converting time formats](/developing/converting-time-formats) | RSS (RFC 2822) dates to the RFC 3339 form the time library uses |
+| [What's in a name?](/developing/names-and-scope) | KRL's separate kinds of names, and how a `pre` declaration shadows a global |
+
+### HTTP and the outside world
+
+| Page | What it covers |
+|------|----------------|
+| [Cookies and redirects](/developing/cookies-and-redirects) | The `_cookie` and `_redirect` directives, reading cookies, and a URL shortener |
+| [Events from email](/developing/events-from-email) | A mail webhook to an event, routing by address, and turning message lines into events |
+| [Reading the engine's log files](/developing/engine-log-files) | Where the logs are, how they rotate, and one pico's history with `grep` and `jq` |
+| [Event and Query URLs with Postman](/developing/postman) | Building Sky requests in Postman or `curl` |
+
+### Picos working together
+
+| Page | What it covers |
+|------|----------------|
+| [Querying another pico](/developing/querying-another-pico) | `wrangler:picoQuery`, which channel to use, why a pico can't query itself, and `http:get` |
+| [Accepting relationship requests](/developing/accepting-relationship-requests) | An approving rule, wrangler's auto-accept configuration, and a ruleset that accepts later and removes itself |
+| [One pico per resource](/developing/singleton-picos) | Giving a device or account its own pico, so requests can't collide |
+
+### Patterns that became demos
+
+| Pattern | Demo |
+|---------|------|
+| Idempotency and guard rules; authorize, then use | [Guard rules](/cookbook/guard_rules/) |
+| Splitting rules for clarity and extensibility; layering functionality with rulesets; semantic translation | [Layered rulesets](/cookbook/layered_rulesets/) |
+| Collection picos | [Collection](/cookbook/collection/) |
+| Access tokens and other secrets; keeping keys safe | [Configuration and secrets](/cookbook/secrets/) |
+| Installing a multi-ruleset application; creating a channel for a ruleset | [Bootstrap and channels](/cookbook/bootstrap/) |
+| An echo server | [Echo](/cookbook/echo/) |
+| A score tracker | [Score tracker](/cookbook/score_tracker/) |
+| A child pico for an asynchronous task | [Child pico tasks](/cookbook/child_tasks/) |
+| Automatic replies to relationship requests; querying over a relationship | [Two picos talking](/cookbook/two_picos/) |
+| An event hierarchy across rulesets | [KBlog](/cookbook/kblog/) |
+
+### In the KRL manual
+
+- [Persistent variables](/krl/persistent-variables/)
+- [User-defined actions](/krl/krl-expression-language/user-defined-actions)
+
+### Left out of the old cookbook
+
+- **Sending secure messages** used `engine:signChannelMessage` and its relatives, which are gone. Relationships can use DIDComm; see [Relationships](/wrangler/relationships).
+- **Shorter URL for a query or event** used `io.picolabs.rewrite` on the root pico, removed in engine 1.0. A ruleset can do the same with `_redirect`: see [Cookies and redirects](/developing/cookies-and-redirects).
+- **Account management using the root pico** described owner picos from before engine 1.0.
+- **Generate an image with KRL**, **Using Foursquare data**, **Using Wovyn sensors**, **Using Git**, and **Using a Google sheet** are about particular services rather than KRL.
+- **Proposals, experiments, and proofs of concept** were experiments on earlier engines.
+
 ---
 
-<small>Ported from the [Pico Labs wiki](https://picolabs.atlassian.net/wiki/spaces/docs/pages/31544297) (last edited there 2021-04-12), and updated for this engine.</small>
+<small>Merges the [Developer Tips](https://picolabs.atlassian.net/wiki/spaces/docs/pages/31544297) wiki page (last edited there 2021-04-12) with the Patterns and tips / KRL Cookbook pages that still apply, updated for this engine.</small>
 
 
 ---
@@ -1104,7 +1180,7 @@ rule initialize {
 - The `where` clause. Without it the rule selects whenever *any* ruleset is installed in the pico, and resets the variable each time, erasing changes made since.
 - The `isnull()` test. It protects against the ruleset being initialized again. A pico's state can accumulate for months, and a reinstall that re-initializes it would throw that away. (Wrangler raises `ruleset_installed` only when the ruleset's id is new on the pico, and a flush doesn't raise it, but the guard is cheap and covers any other path to this rule.)
 
-See [Initializing entity variables](/patterns_and_tips/initializing-entity-variables).
+See [Initializing entity variables](/developing/initializing-entity-variables).
 
 ### Regular expressions and multi-line strings
 
@@ -1128,6 +1204,795 @@ The engine enforces uniqueness of installed rulesets in a pico by rid, not by UR
 ---
 
 <small>Ported from the [Pico Labs wiki](https://picolabs.atlassian.net/wiki/spaces/docs/pages/676397057), and updated for this engine.</small>
+
+
+---
+
+# Tip: initializing entity variables
+
+# Initializing entity variables
+
+Each ruleset installed in a pico gives the pico its own entity variables, specific to that pico and that ruleset. Until a rule's postlude first assigns one, its value is `null`. There are three ways to deal with that.
+
+## Use `defaultsTo` wherever you read it
+
+`defaultsTo` supplies a value when the variable is `null`. Suppose `ent:owners` will be a map but might not exist yet:
+
+```krl
+nameExists = function(ownername) {
+  ent:owners.defaultsTo({}) >< ownername
+}
+```
+
+The first time the map is stored, start from the same default:
+
+```krl
+rule owner_token {
+  select when owner token_created
+  pre {
+    name = event:attr("name")
+    new_owner = event:attr("owner")
+  }
+  fired {
+    ent:owners := ent:owners.defaultsTo({}).put(name, new_owner)
+  }
+}
+```
+
+With this technique, every use of `ent:owners` in the ruleset needs `defaultsTo`. A shared function that returns `ent:owners.defaultsTo({})` keeps that in one place.
+
+## Initialize it in a guard rule
+
+Put a rule before the others that select the same event, and have it create the variable when it is missing:
+
+```krl
+rule guard_owners_map {
+  select when owner token_created
+  if ent:owners.isnull() then noop()
+  fired {
+    ent:owners := {}
+  }
+}
+```
+
+Rules in one ruleset that select the same event run in the order they are written, so this one runs first. The rules after it can then use a path assignment, which is also faster for a large map:
+
+```krl
+rule owner_token {
+  select when owner token_created
+  pre {
+    name = event:attr("name")
+    new_owner = event:attr("owner")
+  }
+  fired {
+    ent:owners{name} := new_owner
+  }
+}
+```
+
+Functions still need `defaultsTo`, in case a query arrives before any event does.
+
+## Initialize it when the ruleset is installed
+
+A rule that selects the ruleset's own `wrangler:ruleset_installed` runs before anything else can use the ruleset:
+
+```krl
+rule initialization {
+  select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+  if ent:owners.isnull() then noop()
+  fired {
+    ent:owners := {}
+  }
+}
+```
+
+The `where` clause matters. Many rulesets are installed in a pico over its life, and without it this rule would run every time. Checking `isnull()` first is good practice too.
+
+Installing again from the same URL, or flushing, does not raise `ruleset_installed` again. A rule like this runs once per install.
+
+See also: [Persistent variables](/krl/persistent-variables/) in the KRL manual, and the [Guard rules](/cookbook/guard_rules/) demo.
+
+*From the Pico Labs KRL Cookbook page "Initializing entity variables".*
+
+
+---
+
+# Tip: arrays and maps
+
+# Arrays and maps
+
+KRL has no `for` loop in expressions. Array operators do the same work: `map`, `filter`, `reduce`, `sort`, and the others in [Array operators](/krl/krl-expression-language/operators/array-operators). Here are a few patterns that come up often.
+
+## Loop with `reduce`
+
+To repeat a step a fixed number of times, `reduce` over a range and carry the state in the accumulator. This converts a number to an 8-byte array, high byte first, the way this JavaScript does:
+
+```js
+for (var index = 0; index < byteArray.length; index++) {
+  var byte = long & 0xff;
+  byteArray[index] = byte;
+  long = (long - byte) / 256;
+}
+```
+
+```krl
+toByteArray = function(str) {
+  1.range(8)
+    .reduce(function(a, i) {
+      [a[0].append(a[1] % 256), math:int(a[1] / 256)]
+    }, [[], str.as("Number")])
+    .head()
+    .reverse()
+}
+```
+
+`1.range(8)` is `[1, 2, ... 8]`. It only counts; the function doesn't use `i`. The accumulator is a pair: the bytes so far, and what's left of the number. Each step appends the low byte and divides by 256. At the end, `head()` takes the bytes and `reverse()` puts the high byte first. `toByteArray("1551127401")` is `[0,0,0,0,92,116,83,105]`.
+
+Add `.klog("step")` inside the function to watch the accumulator change on each step.
+
+The inverse is one `reduce`. With no initial value, it starts from the first element:
+
+```krl
+fromByteArray = function(bytes) {
+  bytes.reduce(function(a, b) { a * 256 + b })
+}
+```
+
+## Flatten an array of arrays
+
+```krl
+[[1, 2, 3], [4, 5, 6], [7, 8, 9]].reduce(function(a, b) { a.append(b) }, [])
+// [1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+## Sort an array of maps
+
+`sort` takes a comparison function. A function that returns one, for a given key, reads well:
+
+```krl
+by = function(key) {
+  function(a, b) { a{key}.encode() cmp b{key}.encode() }
+}
+```
+
+`wrangler:channels().sort(by("id"))` reads "my channels, sorted by id". `cmp` compares strings, and `encode()` turns any value into a string, so `by` works whatever the values are. For numbers, compare them as numbers instead: `people.sort(function(a, b) { a{"born"} <=> b{"born"} })`.
+
+For a primary and a secondary key:
+
+```krl
+by = function(key1, key2) {
+  key2 =>
+    function(a, b) {
+      a{key1}.encode() cmp b{key1}.encode() ||
+      a{key2}.encode() cmp b{key2}.encode()
+    }
+  |
+    function(a, b) { a{key1}.encode() cmp b{key1}.encode() }
+}
+```
+
+`||` stops at the first comparison that isn't zero, so the second key only breaks ties. `by("last", "first")` sorts by last name, then first name, and `by` still works with one key.
+
+A key can also be a path, such as `by(["meta", "flushed"])`, because `a{["meta", "flushed"]}` looks up a nested value.
+
+*From the Pico Labs KRL Cookbook pages "Looping using the reduce operator", "Flatten an Array of Arrays", and "Sorting an Array of Maps".*
+
+
+---
+
+# Tip: decoding form-encoded data
+
+# Decoding form-encoded data
+
+Form-encoded content, such as `q=5&value=%20space%20`, sometimes arrives as a single string: in a webhook body, a stored URL, or a query string you built. A chain of operators turns it into a map.
+
+## Names and values
+
+```krl
+nv_split = function(x) { x.extract(re#([^=]*)=?(.*)#) }  // "n=v" -> ["n", "v"]
+frst = function(a) { a.head() }
+dup_1st = function(v) { v[0][1] }
+
+decodeContent = function(content) {
+  content            // "n0=v0&n1=v1&..."
+    .split(re#&#)    // ["n0=v0", "n1=v1", ...]
+    .map(nv_split)   // [["n0", "v0"], ["n1", "v1"], ...]
+    .collect(frst)   // {"n0": [["n0", "v0"]], "n1": [["n1", "v1"]], ...}
+    .map(dup_1st)    // {"n0": "v0", "n1": "v1", ...}
+}
+```
+
+`decodeContent("q=5&value=%20space%20")` is `{"q": "5", "value": "%20space%20"}`.
+
+- `split` makes an array of `name=value` strings.
+- `extract` matches each one against a regular expression and returns its capture groups, the name and the value.
+- `collect` groups the pairs into a map keyed by name. Each value is an array of every pair with that name.
+- The map operator `map` keeps the first value for each name.
+
+## Keep every value of a repeated name
+
+When a name can repeat, keep all its values:
+
+```krl
+dup_all = function(v) {
+  v.length() == 1 => v[0][1] | v.map(function(w) { w[1] })
+}
+```
+
+Use `.map(dup_all)` in place of `.map(dup_1st)`. `a=1&a=2&b=3` becomes `{"a": ["1", "2"], "b": "3"}`.
+
+## Decode `+` and `%xx`
+
+`replace` accepts a function as its second argument. It is called with the match and then each capture group, and returns the replacement:
+
+```krl
+hexDigits = "0123456789abcdef"
+
+hex2dec = function(hex) {
+  hex like re#^[0-9A-Fa-f]+$#
+    => hex.lc().split("").reduce(function(a, h) { a * 16 + hexDigits.split("").index(h) }, 0)
+    | null
+}
+
+hex2char = function(encoded, hex) {
+  val = hex2dec(hex)
+  val && val < 128 => val.chr() | encoded
+}
+
+decode_val = function(s) {
+  s.replace(re#[+]#g, " ").replace(re#%([0-9A-Fa-f]{2})#g, hex2char)
+}
+```
+
+Replace `+` first: early encoders used it for a space, and a real plus sign arrives as `%2B`. Then use `function(v) { decode_val(v[0][1]) }` as the last step of the chain. `value=%20space%20&plus=a%2Bb&pct=100%25` becomes `{"value": " space ", "plus": "a+b", "pct": "100%"}`. This handles ASCII characters. Anything above 127 is left encoded.
+
+Events and queries that arrive over HTTP are already decoded: the engine gives you their attributes as a map. This is for strings you have in hand.
+
+*From the Pico Labs KRL Cookbook page "Decoding WWW-Form Encoded Content or Query Parameters".*
+
+
+---
+
+# Tip: importing tables and CSV
+
+# Importing tables and CSV
+
+Data exported from a spreadsheet or another system usually arrives as text: tab-separated (TSV) or comma-separated (CSV) lines. If the other system can export JSON, use that instead. `decode()` turns a JSON string into KRL data in one step.
+
+## Lines
+
+Exports end lines with `\n` or, from Windows, `\r\n`. One regular expression handles both:
+
+```krl
+lineBreak = re#\r?\n#
+lines = content.split(lineBreak).filter(function(s) { s })
+```
+
+`filter(function(s) { s })` drops empty lines: an empty string is falsy, and there is usually one after the last line break. Another way is to let a global regular expression find the lines: `content.extract(re#(.+)#g)`.
+
+## A table to an array of maps
+
+When the first row names the columns, make each data row a map:
+
+```krl
+tsv = function(content) {
+  lines = content.split(re#\r?\n#).filter(function(s) { s })
+  keys = lines.head().split(re#\t#)
+  lines.tail().map(function(line) {
+    values = line.split(re#\t#)
+    keys.reduce(function(m, k, i) { m.put(k, values[i]) }, {})
+  })
+}
+```
+
+Given
+
+```
+A	B
+1	2
+3	4
+```
+
+`tsv(content)` is `[{"A": "1", "B": "2"}, {"A": "3", "B": "4"}]`. The `reduce` passes each key's index as its third argument, which picks the matching value.
+
+## CSV with a known shape
+
+CSV is harder, because a value that contains a comma is wrapped in double quotes. When you know what each line looks like, match the whole line with a regular expression and let the last group take the rest:
+
+```krl
+graduands = function(content) {
+  content.extract(re#(.+)#g)
+    .tail()
+    .map(function(line) { line.extract(re#^([\w ]+),(\w+),(\d+),(\d+),(.*)$#) })
+}
+```
+
+`Ada Lovelace,AL,1,1843,"Notes, on the engine"` becomes `["Ada Lovelace", "AL", "1", "1843", "\"Notes, on the engine\""]`. Strip the quotes from that last field if you need to. `tail()` skips the header line.
+
+## Fetch the file
+
+Rather than passing a whole file to a function, give it a URL:
+
+```krl
+import = function(url) {
+  tsv(http:get(url){"content"})
+}
+```
+
+A function that calls `http:get` runs on every query, so for a large file, import it once in a rule and store the result in an entity variable.
+
+*From the Pico Labs KRL Cookbook pages "Converting a table to an Array of Maps" and "Importing data from other systems".*
+
+
+---
+
+# Tip: converting time formats
+
+# Converting time formats
+
+The [time library](/krl/libraries/time) works with ISO 8601 / RFC 3339 times such as `2011-09-21T15:02:01-07:00`. Other formats need converting first. RSS feeds, for example, give dates like `Wed, 21 Sep 2011 15:02:01 -0700` (RFC 2822), and `time:new` rejects them: `time:new was given an invalid date string`.
+
+This function rearranges the parts:
+
+```krl
+mon2num = {
+  "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06",
+  "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"
+}
+
+rss2krlTime = function(pubDate) {
+  tarr = pubDate.split(re# #)
+  tzoff = tarr[5].replace(re#(\d\d)$#, ":$1")
+  tarr[3] + "-" + mon2num{tarr[2]} + "-" + tarr[1] + "T" + tarr[4] + tzoff
+}
+```
+
+`split` gives `["Wed,", "21", "Sep", "2011", "15:02:01", "-0700"]`. The offset `-0700` becomes `-07:00`, and `+0530` becomes `+05:30`. Then the time library can format it:
+
+```krl
+time:strftime(rss2krlTime("Wed, 21 Sep 2011 15:02:01 -0700"), "%b %d %Y")   // "Sep 21 2011"
+```
+
+This expects a two-digit day, as RSS feeds use. For a feed that writes `1 Sep`, pad the day first, for example with `tarr[1].length() == 1 => "0" + tarr[1] | tarr[1]`.
+
+*From the Pico Labs KRL Cookbook page "Converting Time Formats" (originally by Ed Orcutt). The time-zone handling here also covers offsets that aren't whole hours.*
+
+
+---
+
+# Tip: what's in a name
+
+# What's in a name?
+
+KRL keeps many kinds of names apart: the ruleset id, rule names, event domains and types, attribute names, global and local names, function parameters, and directive names. As an exercise, here is a ruleset where every one of them is `name`:
+
+```krl
+ruleset name {
+  meta {
+    shares name
+  }
+  global {
+    /**
+     * @param name String
+     */
+    name = function(name) {
+      name.klog("name") => name | "name"
+    }
+  }
+  rule name {
+    select when name name
+    pre {
+      name = event:attr("name").defaultsTo(name(name), "name")
+    }
+    send_directive("name", {"name": name || "name"})
+  }
+  rule name_provided {
+    select when name name name re#(.+)# setting(name)
+    send_directive("name", {"name": name})
+  }
+}
+```
+
+It works. Most of the uses can't collide: an event domain, a rule name, and a directive name live in different places. One line is worth a closer look:
+
+```krl
+name = event:attr("name").defaultsTo(name(name), "name")
+```
+
+The right-hand side is evaluated before the binding. At that moment `name` is still the global function, so `name(name)` calls the function with itself as the argument, and it returns itself, because a function is truthy. After the line, `name` is bound to the result, and the global function is shadowed for the rest of the rule.
+
+Raise `name:name` with `name` set to `Ada` and both rules answer `{"name": "Ada"}`. Raise it without the attribute and `defaultsTo` uses the function (logging `"name"`). The directive's `name` is then a function, which doesn't survive conversion to JSON, so the reply shows `{}`.
+
+So: a name declared in `pre` hides a global of the same name for the rest of that rule. That is legal, and usually a mistake. And a name in `pre` can't be declared twice. KRL declarations are not assignments.
+
+*From the Pico Labs KRL Cookbook page "What's in a name?".*
+
+
+---
+
+# Tip: cookies and redirects
+
+# Cookies and redirects
+
+Two directive names are special. When a rule sends one in response to an event raised over HTTP, the engine turns it into part of the HTTP response.
+
+## Set a cookie: `_cookie`
+
+```krl
+rule set_cookie {
+  select when cookie needed
+  pre {
+    eci = wrangler:channels(["wellKnown_Rx", "Tx_Rx"]).head(){"id"} || meta:eci
+  }
+  send_directive("_cookie", {"cookie": <<wellKnown_Rx=#{eci}; Path=/sky>>})
+}
+```
+
+The engine adds `Set-Cookie: wellKnown_Rx=<eci>; Path=/sky` to the response, and the browser sends the cookie back with later requests to the same engine. This one shares the pico's well-known channel, so other picos reached from the same browser could offer it a relationship. The ruleset uses `io.picolabs.wrangler` as a module.
+
+## Read cookies
+
+Every event raised over HTTP has a `_headers` attribute, and every query a `_headers` argument. This function works in both:
+
+```krl
+cookies = function(_headers) {
+  arg = event:attr("_headers") || _headers
+  arg{"cookie"}.isnull() => {} |
+  arg{"cookie"}
+    .split("; ")
+    .map(function(v) { v.split("=") })
+    .collect(function(v) { v.head() })
+    .map(function(v) { v.head()[1] })
+}
+```
+
+With the header `Cookie: wellKnown_Rx=abc123; sessionid=38afes7a8`, `cookies()` is `{"wellKnown_Rx": "abc123", "sessionid": "38afes7a8"}`. The chain is the same idea as [decoding form data](/developing/decoding-form-data), splitting on `"; "` instead of `&`.
+
+## Redirect: `_redirect`
+
+```krl
+send_directive("_redirect", {"url": "https://picolabs.io/"})
+```
+
+The engine answers the event with HTTP 302 and that URL as the `Location`.
+
+## A URL shortener
+
+Together with a channel per link, `_redirect` makes a URL shortener. Each link gets its own channel, whose policy allows only the event that follows it. The channel id is the short URL:
+
+```krl
+ruleset s {
+  meta {
+    use module io.picolabs.wrangler alias wrangler
+    provides u
+  }
+  global {
+    u = function(eci) {
+      <<#{meta:host}/sky/event/#{eci}/none/s/u>>
+    }
+  }
+  rule recordShortcut {
+    select when s u
+      url re#(.+)# setting(url)
+    pre {
+      tag = event:attr("tag").lc().replace(re#[^a-z0-9_.-]#g, "-")
+      eid = tag => tag | "none"
+    }
+    every {
+      wrangler:createChannel(
+        [eid, "s"],
+        {"allow": [{"domain": "s", "name": "u"}], "deny": []},
+        {"allow": [], "deny": [{"rid": "*", "name": "*"}]}
+      ) setting(channel)
+      send_directive("shortcut registered", {"tag": tag, "eci": channel{"id"}, "shortcut": u(channel{"id"}), "url": url})
+    }
+    fired {
+      ent:shortcuts{channel{"id"}} := url
+    }
+  }
+  rule redirectShortcut {
+    select when s u
+      where event:attr("url").isnull()
+    send_directive("_redirect", {"url": ent:shortcuts{meta:eci}})
+  }
+}
+```
+
+Another ruleset uses it as a module. It registers a link with `raise s event "u" attributes {"url": long_url, "tag": "docs"}`, then finds the channel with `wrangler:channels(["docs", "s"]).head()` and the short form with `s:u(eci)`. Opening the short URL redirects to the long one. The short URL can only raise `s:u`, and queries on it are all denied. Short links are handy in QR codes, which get smaller as the URL does.
+
+*From the Pico Labs KRL Cookbook pages "Setting and reading cookies" and "Ruleset that provides a general purpose URL shortener".*
+
+
+---
+
+# Tip: events from email
+
+# Events from email
+
+Any service that can call a webhook can raise events on a pico. Email is a good example: services such as [CloudMailin](https://www.cloudmailin.com/) give you an address and POST each message that arrives to a URL you choose. Point that URL at a pico:
+
+```
+https://<your engine>/sky/event/<eci>/mail/mail/received
+```
+
+The engine has to be reachable from the internet. For an engine on your own machine, a tunnel such as [ngrok](https://ngrok.com/) gives it a public address. Use a channel made for this purpose, whose policy allows only `mail:received`, so the webhook URL can't do anything else.
+
+## Parse the message
+
+The service's POST body becomes the event's attributes. With CloudMailin's JSON format, the headers and the plain-text body are in `headers` and `plain`:
+
+```krl
+rule mail_incoming {
+  select when mail received
+  pre {
+    headers = event:attr("headers").defaultsTo({})
+  }
+  always {
+    raise mail event "parsed" attributes {
+      "date": headers{"Date"},
+      "to": headers{"To"},
+      "from": headers{"From"},
+      "subject": headers{"Subject"},
+      "text": event:attr("plain")
+    }
+  }
+}
+```
+
+## Route it to another pico
+
+One mail pico can serve many. Put the target pico's channel id in the address, as in `me+<eci>@cloudmailin.net`, and forward on it:
+
+```krl
+rule mail_router {
+  select when mail parsed
+    to re#[+]([^@]*)@#
+    setting(eci)
+  event:send({"eci": eci, "domain": "mail", "type": "events", "attrs": event:attrs})
+}
+```
+
+The person writing the email needs that address, but not where the target pico lives.
+
+## Turn lines into events
+
+The target pico can treat each line of the body as an event to raise. Here, a line such as `aurora/on` raises `aurora:on`, and every other line is ignored:
+
+```krl
+rule mail_events {
+  select when mail events
+  foreach event:attr("text").defaultsTo("").split(re#\r?\n#) setting(request)
+  pre {
+    parts = request.split(re#/#)
+    wanted = parts.length() == 2 && parts[0] == "aurora"
+  }
+  if wanted then noop()
+  fired {
+    raise aurora event parts[1]
+  }
+}
+```
+
+A body of
+
+```
+Turn on the lights, then show the second theme after this one.
+aurora/on
+aurora/next
+aurora/next
+```
+
+raises `aurora:on` and `aurora:next` twice, which the pico's existing rulesets handle. The new ruleset doesn't change them.
+
+Parsing the body is the fragile part. Email clients add things you don't expect, such as invisible characters. Test with messages from the clients your senders use.
+
+*From the Pico Labs KRL Cookbook page "Triggering Events from Email Messages".*
+
+
+---
+
+# Tip: reading the engine's log files
+
+# Reading the engine's log files
+
+The **Logging** tab shows recent events and queries for a pico, from the engine's memory. To look further back, or across every pico, read the log files.
+
+## Where they are
+
+The engine writes one JSON object per line to `pico-engine.log` in its home directory (`PICO_ENGINE_HOME`, `~/.pico-engine` by default). When the file reaches 100 MB it rotates: the older entries move to `pico-engine.log.1`, `pico-engine.log.2`, and so on, and the engine keeps up to twelve files. `PICO_ENGINE_LOG_FILE` writes somewhere else instead (`stdout` to write to standard output). See [the operator guide](/pico-engine) for the settings.
+
+Each line has `level`, `time`, and `msg`, and lines about a pico's work have `picoId` and `txnId`. A transaction is one event or query and everything it caused.
+
+```json
+{"level":50,"time":"2026-11-13T18:46:16.317Z","picoId":"cmwfbv2y1001e4jysd0cn9w05","txnId":"cmwfbvcvx00244jysd16w7grz","txnKind":"query","error":"This is a family channel and only the owner can use it.","msg":"..."}
+```
+
+## One pico's history
+
+Find the pico's id on its **About** tab, then:
+
+```sh
+cd ~/.pico-engine
+grep -h '"picoId":"<pico id>"' pico-engine.log* | jq -s -c 'sort_by(.time)[]' > my_pico.log
+```
+
+`grep` collects the lines from every file, and [`jq`](https://jqlang.org/) sorts them by time, since rotated files aren't in order relative to each other. To follow one event through everything it caused, filter on its `txnId` instead.
+
+## What to look for
+
+- `"msg":"txnQueued"` lines show each event or query as it arrived, with its attributes.
+- `"error"` fields show what failed: a channel policy refusal, a KRL runtime error, a family channel used from outside.
+- `klog` output from your own rules is in the log, with the message you gave it.
+
+The logs hold every event's attributes. Anything secret that arrives in an event is in them. See the [Configuration and secrets](/cookbook/secrets/) demo.
+
+*From the Pico Labs KRL Cookbook page "Examining pico-engine log files". The log format and rotation have changed since that page was written.*
+
+
+---
+
+# Tip: querying another pico
+
+# Querying another pico
+
+To call a function another pico's ruleset shares, use `wrangler:picoQuery`. Two things are needed: a channel to the other pico whose query policy allows that function, and `io.picolabs.wrangler` as a module.
+
+```krl
+meta {
+  use module io.picolabs.wrangler alias wrangler
+}
+```
+
+```krl
+rule ask_the_other_pico {
+  select when example question_asked
+  pre {
+    answer = wrangler:picoQuery(other_eci, "my.ruleset.id", "myFunction", {"arg1": "a", "arg2": "b"})
+  }
+  if answer{"error"}.isnull() then noop()
+  fired {
+    ent:last_answer := answer
+  }
+}
+```
+
+On the same engine, `picoQuery` calls the other pico directly. On another engine, or for a `did:` identifier, it goes over HTTP or DIDComm. Either way it returns the function's value, or a map with an `error` key if something went wrong.
+
+## Which channel
+
+- **Your children.** `wrangler:children()` gives each child's family channel (`eci`). `picoQuery` can use it, because the parent owns it.
+- **Picos you have a relationship with.** Use the relationship: `subscription:queryOnSub(Id, rid, name, args)` (see the [Two picos talking](/cookbook/two_picos/) demo), or `picoQuery` on the relationship's `Tx` channel.
+- **Anyone else.** A channel they give you, made for the purpose, with a policy that allows the functions you need.
+
+## Don't query yourself
+
+A pico handles one thing at a time. A query from a pico to itself would wait behind the work that's making it. `picoQuery` refuses: it returns `{"status_code": 400, ...}` with the error "Pico should not query itself". To use a function in another ruleset on the same pico, use that ruleset as a module instead.
+
+## With `http:get`
+
+A pico has a URL, so `http:get` works too:
+
+```krl
+response = http:get(meta:host + "/sky/cloud/" + other_eci + "/my.ruleset.id/myFunction", {"arg1": "a"})
+answer = response{"content"}.decode()
+```
+
+It's slower than `picoQuery` on the same engine, and it can't use family channels: the answer is an error, "This is a family channel and only the owner can use it". The HTTP status is still 200 in that case, so check the content for `error`, not just `status_code`.
+
+*From the Pico Labs KRL Cookbook page "Accessing a Function Shared by Another Pico".*
+
+
+---
+
+# Tip: accepting relationship requests
+
+# Accepting relationship requests
+
+When another pico asks for a relationship, the request waits on the receiving pico (its **Relationships** tab lists it) until something approves it. Here are three ways to approve requests automatically. The examples share one setup: a list pico asks participant picos to join it, in the role `participant list` for itself and `participant` for them.
+
+## A rule that approves
+
+On each participant:
+
+```krl
+rule accept_list {
+  select when wrangler inbound_pending_subscription_added
+    where event:attr("Rx_role") == "participant"
+       && event:attr("Tx_role") == "participant list"
+  always {
+    raise wrangler event "pending_subscription_approval" attributes event:attrs
+  }
+}
+```
+
+Passing the event's attributes along tells wrangler which request to approve. Roles arrive from the receiving pico's point of view: `Rx_role` is this pico's, and `Tx_role` is the other pico's.
+
+Don't approve every request. A rule without a `where` accepts a relationship with any pico that has your well-known channel. Accept only what you expect: the right roles, a request from your parent, a request that carries a shared secret. To refuse, raise `wrangler:inbound_rejection` with the same attributes. The [Collection](/cookbook/collection/) demo does both, and remembers whom it turned away.
+
+## Wrangler's auto-accept configuration
+
+Without writing a rule, give the participant a pattern to accept:
+
+```krl
+raise wrangler event "autoAcceptConfigUpdate" attributes {
+  "config": {"configName": "lists", "entries": {"Tx_role": ["^participant list$"]}}
+}
+```
+
+Each entry maps an attribute of the request, as the participant sees it, to a list of regular expressions. A request that matches any of them is approved. Send the same event with `"delete": true` and the `configName` to remove it. `autoAcceptConfig()`, shared by `io.picolabs.subscription`, shows what is set. You can also send this event from the pico's **Testing** tab.
+
+## Accept later, by installing a ruleset
+
+If a request arrived before there was anything to approve it, install a ruleset that approves it and then removes itself:
+
+```krl
+ruleset acceptance {
+  meta {
+    use module io.picolabs.subscription alias subs
+  }
+  rule initialize {
+    select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
+    pre {
+      s = subs:inbound("Tx_role", "participant list")
+        .filter(function(i) { i{"Rx_role"} == "participant" })
+        .head()
+    }
+    if s then noop()
+    fired {
+      raise wrangler event "pending_subscription_approval" attributes s
+    }
+    finally {
+      raise wrangler event "uninstall_ruleset_request" attributes {"rid": meta:rid}
+    }
+  }
+}
+```
+
+It looks for a pending request from a participant list, approves it, and uninstalls itself either way. This is handy when a parent asked many children to join before they could accept: install it on each child.
+
+*From the Pico Labs KRL Cookbook pages "Automatic Replies to Subscription Requests" and "Accepting a subscription offer by installing a ruleset".*
+
+
+---
+
+# Tip: one pico per resource
+
+# One pico per resource
+
+Some things should be used by only one party at a time: a motor, a GPIO pin, a printer, an account with an outside service. Give each one its own pico. Everything else asks that pico, by event, to use the resource. Because a pico handles one event at a time, its rulesets are the only code that touches the resource, and requests can't collide.
+
+A Pico Labs rover project did this with its wheels. Each of four wheel picos kept the index of the one motor it drove, and only its rules called the motor driver:
+
+```krl
+rule set_motor_index {
+  select when rover motor_index_assigned
+  always {
+    ent:motor_index := event:attr("motor_index")
+  }
+}
+```
+
+A controller pico had a channel to each wheel. To move, it sent each wheel the direction that wheel should turn:
+
+```krl
+to_wheels = defaction(type, fr, fl, br, bl) {
+  every {
+    event:send({"eci": ent:wheels{"FR"}, "domain": "rover", "type": type, "attrs": fr})
+    event:send({"eci": ent:wheels{"FL"}, "domain": "rover", "type": type, "attrs": fl})
+    event:send({"eci": ent:wheels{"BR"}, "domain": "rover", "type": type, "attrs": br})
+    event:send({"eci": ent:wheels{"BL"}, "domain": "rover", "type": type, "attrs": bl})
+  }
+}
+forward = defaction() {
+  to_wheels("run", {"direction": "fwd"}, {"direction": "back"}, {"direction": "back"}, {"direction": "fwd"})
+}
+```
+
+The controller could have driven the motors itself. But then every new pico that needed the wheels would need the motor code too, and two of them could drive the same motor at once. With a pico per wheel, any number of controllers can share the wheels safely.
+
+Keep the channels to the resource picos in relationships (or, for children, in their family channels), not in ECIs written into the code. The original rover hard-coded them, and noted that relationships would be much better.
+
+*From the Pico Labs KRL Cookbook page "Singleton Pattern".*
 
 
 ---
@@ -1355,7 +2220,7 @@ Local dev MCP: `pico-engine mcp --stdio` — not exposed on hosted load balancer
 ## Agents and KRL authoring
 
 - **`krl-check`** on ruleset files before install.
-- **Dev MCP** (stdio): validate, install, flush, raise, query — same mesh as the UI when `PICO_ENGINE_HOME` / config match. It runs the Try It! demos too (`list_try_it_demos`, `run_try_it_demo`, `try_it_status`), and serves the cookbook and Patterns and tips pages as `pico://docs/cookbook/<folder>/README`, `…/instructions`, and `pico://docs/patterns_and_tips/<page>`.
+- **Dev MCP** (stdio): validate, install, flush, raise, query — same mesh as the UI when `PICO_ENGINE_HOME` / config match. It runs the Try It! demos too (`list_try_it_demos`, `run_try_it_demo`, `try_it_status`), and serves the cookbook and Developing with Picos pages as `pico://docs/cookbook/<folder>/README`, `…/instructions`, and `pico://docs/developing/<page>`.
 - **Docs for LLMs:** [`llms.txt`](llms.txt), [`llms-full.txt`](llms-full.txt), [`openapi.yaml`](openapi.yaml). Regenerate after doc edits: `npm run generate:llms` at repo root.
 
 ---
@@ -1634,7 +2499,7 @@ Complete lessons 1 through 7 in order. **Scatter-Gather** is an optional advance
 - **Run everything.** Each lesson has code to install and things to try. Use the developer UI at `http://localhost:3000` or `curl`.
 - **The Testing tab builds forms from the ruleset's schema**, which comes from `/** … */` doc comments on rules and functions. You'll see `@attr`, `@param`, and `@example` in the lessons' KRL.
 - **Use wrangler.** Picos create children and channels through [wrangler](/wrangler/) events and functions, not by reaching into the engine.
-- **Check your KRL.** `krl-check`, in the `krl-compiler` package, finds errors before you install. See [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets).
+- **Check your KRL.** `krl-check`, in the `krl-compiler` package, finds errors before you install. See [Tips](/developing/tips).
 
 ## Runnable examples beside the lessons
 
@@ -1655,7 +2520,7 @@ The [Cookbook](/cookbook/) has demos you can run in a new child pico with one cl
 - [Pico Engine](/pico-engine): installing, configuring, and operating the engine
 - [KRL manual](/krl/)
 - [Event Exchange Protocol](/exp/): the HTTP event and query APIs
-- [Patterns and tips](/patterns_and_tips/)
+- [Developing with Picos](/developing/)
 
 ---
 
@@ -1773,7 +2638,7 @@ You can install from a file on your machine, or from a URL.
    If the ruleset is on GitHub, use the **raw** URL, such as `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/hello_world.krl`, not the page that shows the file.
 4. Leave **Config** as it is and click **Install**.
 
-`io.picolabs.hello_world` now appears in the list of installed rulesets. More on URLs and hosting rulesets: [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets).
+`io.picolabs.hello_world` now appears in the list of installed rulesets. More on URLs and hosting rulesets: [Tips](/developing/tips).
 
 ## Try it
 
@@ -1793,7 +2658,7 @@ The engine compiles a ruleset once and remembers it. When you change the source,
 2. On the child's **Rulesets** tab, find `io.picolabs.hello_world` in the list and click **flush**. The engine fetches the URL again and recompiles.
 3. In **Testing**, send `echo:hello` again. The greeting now says `Howdy`.
 
-A flush updates every pico that has the ruleset installed. It rereads the ruleset's URL. If you installed with **Browse…**, that URL is the engine's staged copy, not your file, so flush won't see your edit: browse for the changed file again, or install from a `file://` URL you typed, which flush rereads. [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets) covers flushing, and how to check KRL from the command line with `krl-check` before you install it.
+A flush updates every pico that has the ruleset installed. It rereads the ruleset's URL. If you installed with **Browse…**, that URL is the engine's staged copy, not your file, so flush won't see your edit: browse for the changed file again, or install from a `file://` URL you typed, which flush rereads. [Tips](/developing/tips) covers flushing, and how to check KRL from the command line with `krl-check` before you install it.
 
 ## Troubleshooting
 
@@ -2130,7 +2995,7 @@ The pieces:
 - The rule has one action, `send_directive`. Anything after the action runs in the **postlude**.
 - `always { … }` runs whether or not an action ran. `ent:name := new_name` is the only place the variable changes.
 
-Notice that the function `name` and the event attribute `name` share a word and nothing else. Names in KRL live in different places: [What's in a name?](/patterns_and_tips/names-and-scope) explains the one case where that bites.
+Notice that the function `name` and the event attribute `name` share a word and nothing else. Names in KRL live in different places: [What's in a name?](/developing/names-and-scope) explains the one case where that bites.
 
 You can check any entity variable without writing a query. On the **Testing** tab, pick the ruleset, find the **KRL console**, enter `ent:name`, and click **Evaluate**. It evaluates the expression inside that ruleset on that pico.
 
@@ -3084,7 +3949,7 @@ sectionIdOf = function(section_id) {
 }
 ```
 
-This asks a section pico which section it thinks it is, by calling the shared function `sectionId` of the ruleset `app_section`, which we'll write next. In a rule you would check the answer with `if answer{"error"}.isnull() then …`. A pico can't query itself, and a query waits for its answer, so avoid two picos that query each other at the same time. See [Querying another pico](/patterns_and_tips/querying-another-pico).
+This asks a section pico which section it thinks it is, by calling the shared function `sectionId` of the ruleset `app_section`, which we'll write next. In a rule you would check the answer with `if answer{"error"}.isnull() then …`. A pico can't query itself, and a query waits for its answer, so avoid two picos that query each other at the same time. See [Querying another pico](/developing/querying-another-pico).
 
 ## Install a ruleset in a child
 
@@ -3683,7 +4548,7 @@ rule accept_student {
 
 When a relationship arrives, Wrangler raises `wrangler:inbound_pending_relationship_added` with the attributes of the request, seen from the receiver's side: `Rx_role` is the receiver's own role. The rule approves by raising `wrangler:pending_relationship_approval` with the same attributes (which include `Id`). That's the programmatic version of clicking **Approve**.
 
-Don't approve everyone. This rule only accepts the request when its `Rx_role` is `registration`; anything else is left pending. For something more general, see [Accepting relationship requests](/patterns_and_tips/accepting-relationship-requests) for the auto-accept configuration.
+Don't approve everyone. This rule only accepts the request when its `Rx_role` is `registration`; anything else is left pending. For something more general, see [Accepting relationship requests](/developing/accepting-relationship-requests) for the auto-accept configuration.
 
 ### Add a class: introduce a section
 
@@ -3829,7 +4694,7 @@ In this lesson's application, a section would report `wrangler:myDid()` instead 
 
 - [Relationships](/wrangler/relationships): DIDs, public intro, routing, across engines, and the whole API
 - [Two picos talking](/cookbook/two_picos/): two picos, a relationship, and queries over it, that you can run in two minutes
-- [Accepting relationship requests](/patterns_and_tips/accepting-relationship-requests): auto-accept by configuration
+- [Accepting relationship requests](/developing/accepting-relationship-requests): auto-accept by configuration
 - [Scatter-Gather](/lessons/scatter-gather): what to do once a pico has relationships with many others
 
 ---
@@ -4164,7 +5029,7 @@ Vernon's book is a good companion. Its language and framework (Scala and Akka) a
 ## Related
 
 - [Child pico tasks](/cookbook/child_tasks/): a pico per job, with a task id and no waiting
-- [Querying another pico](/patterns_and_tips/querying-another-pico): when a synchronous query is the right tool
+- [Querying another pico](/developing/querying-another-pico): when a synchronous query is the right tool
 - [Relationships](/wrangler/relationships) and [The wrangler ruleset](/wrangler/wrangler): the events and functions used here
 - [Gossip](/lessons/gossip): an advanced lab in which picos exchange state by events
 
@@ -6151,7 +7016,7 @@ Optional parameters, for a pico on another engine:
 | `_path` | The path before the ECI. Default `/sky/cloud/` |
 | `_root_url` | The whole URL before the ECI, instead of `_host` and `_path` |
 
-A pico can't query itself: `picoQuery` returns an error ("Pico should not query itself"). A query waits for its answer, so avoid two picos that query each other at the same time. See [Querying another pico](/patterns_and_tips/querying-another-pico).
+A pico can't query itself: `picoQuery` returns an error ("Pico should not query itself"). A query waits for its answer, so avoid two picos that query each other at the same time. See [Querying another pico](/developing/querying-another-pico).
 
 `skyQuery`, the older version, is still there for old rulesets. It always uses HTTP, which can't use family channels. It takes the same parameters in the same order, so switching to `picoQuery` is a rename.
 
@@ -6461,7 +7326,7 @@ The side that asks raises `wrangler:relationship`:
 | `Tx_role`, `Rx_role` | Optional roles: the other side's and this side's |
 | `channel_type` | Usually `Tx_Rx` |
 
-The side asked approves with `wrangler:pending_relationship_approval`, or by an auto-accept rule (see [Accepting relationship requests](/patterns_and_tips/accepting-relationship-requests)).
+The side asked approves with `wrangler:pending_relationship_approval`, or by an auto-accept rule (see [Accepting relationship requests](/developing/accepting-relationship-requests)).
 
 Don't pass `wellKnown_Tx` on a DID-based request, or a `did:peer`: the engine makes the pairwise DIDs during the introduction.
 
@@ -7359,7 +8224,7 @@ The same operations exist for the developer UI on `/c/*` (passkey session). Inte
 
 - [Persistent Compute Objects](/pico-overview) — where the event-query model sits in the pico picture
 - [Managing channels](/wrangler/channels) — ECIs, tags, and policies
-- [Cookies and redirects](/patterns_and_tips/cookies-and-redirects) — `_cookie` and `_redirect` directives on event responses
+- [Cookies and redirects](/developing/cookies-and-redirects) — `_cookie` and `_redirect` directives on event responses
 - [Pico views](/pico-views) — pages that call EXP from the browser
 - [OAuth](/wrangler/oauth) — when `/sky/*` needs a bearer token
 
@@ -7420,7 +8285,7 @@ curl -X POST "http://localhost:3000/sky/event/<eci>/none/echo/message" \
   -H 'content-type: application/json' -d '{"input": "hello"}'
 ```
 
-Every event raised over HTTP also gets an attribute `_headers` with the request's HTTP headers. See [Cookies and redirects](/patterns_and_tips/cookies-and-redirects).
+Every event raised over HTTP also gets an attribute `_headers` with the request's HTTP headers. See [Cookies and redirects](/developing/cookies-and-redirects).
 
 ## Response
 
@@ -7464,7 +8329,7 @@ Two directive names change the HTTP response itself, instead of only appearing i
 | `_cookie` | Adds a `Set-Cookie` header from `options.cookie` |
 | `_redirect` | Answers with HTTP 302 and `Location: options.url` |
 
-Details and examples: [Cookies and redirects](/patterns_and_tips/cookies-and-redirects).
+Details and examples: [Cookies and redirects](/developing/cookies-and-redirects).
 
 ## From KRL
 
@@ -7568,7 +8433,7 @@ The channel's query policy must allow that rid and name. App channels created wi
 
 ## From KRL
 
-To query another pico from a ruleset, use `wrangler:picoQuery` (works over family channels and relationships). Prefer that over building an `http:get` to `/sky/query/` yourself. See [Querying another pico](/patterns_and_tips/querying-another-pico) and [Wrangler](/wrangler/).
+To query another pico from a ruleset, use `wrangler:picoQuery` (works over family channels and relationships). Prefer that over building an `http:get` to `/sky/query/` yourself. See [Querying another pico](/developing/querying-another-pico) and [Wrangler](/wrangler/).
 
 ## See also
 
@@ -7580,933 +8445,6 @@ To query another pico from a ruleset, use `wrangler:picoQuery` (works over famil
 ---
 
 <small>Ported from the [Pico Labs wiki](https://picolabs.atlassian.net/wiki/spaces/docs/pages/1186084/Sky+Query+API) (last edited there 2025-07-11), and updated for this engine.</small>
-
-
----
-
-# Patterns and tips
-
-# Patterns and tips
-
-Short techniques for writing KRL and running picos, checked against the current engine. They come from the Pico Labs KRL Cookbook, which was written for earlier engines. The pages here have been updated where KRL or the engine has changed. For runnable examples, see the [Cookbook](/cookbook/) and the developer UI's **Try It!** tab.
-
-## Working with data
-
-| Page | What it covers |
-|------|----------------|
-| [Initializing entity variables](/patterns_and_tips/initializing-entity-variables) | `defaultsTo`, a guard rule, or a rule that runs on install |
-| [Arrays and maps](/patterns_and_tips/arrays-and-maps) | Loops with `reduce`, flattening, and sorting arrays of maps by one key or two |
-| [Decoding form-encoded data](/patterns_and_tips/decoding-form-data) | Turning `a=1&b=2` into a map, keeping repeated names, and decoding `+` and `%xx` |
-| [Importing tables and CSV](/patterns_and_tips/tabular-data) | Tab- and comma-separated exports to arrays and maps, fetched with `http:get` |
-| [Converting time formats](/patterns_and_tips/converting-time-formats) | RSS (RFC 2822) dates to the RFC 3339 form the time library uses |
-| [What's in a name?](/patterns_and_tips/names-and-scope) | KRL's separate kinds of names, and how a `pre` declaration shadows a global |
-
-## HTTP and the outside world
-
-| Page | What it covers |
-|------|----------------|
-| [Events and queries over HTTP](/patterns_and_tips/events-and-queries-over-http) | Moved to the [Event Exchange Protocol](/exp/) docs (event and query URLs, response shape, `.txt` / `.html`) |
-| [Cookies and redirects](/patterns_and_tips/cookies-and-redirects) | The `_cookie` and `_redirect` directives, reading cookies, and a URL shortener |
-| [Events from email](/patterns_and_tips/events-from-email) | A mail webhook to an event, routing by address, and turning message lines into events |
-| [Reading the engine's log files](/patterns_and_tips/engine-log-files) | Where the logs are, how they rotate, and one pico's history with `grep` and `jq` |
-
-## Picos working together
-
-| Page | What it covers |
-|------|----------------|
-| [Querying another pico](/patterns_and_tips/querying-another-pico) | `wrangler:picoQuery`, which channel to use, why a pico can't query itself, and `http:get` |
-| [Accepting relationship requests](/patterns_and_tips/accepting-relationship-requests) | An approving rule, wrangler's auto-accept configuration, and a ruleset that accepts later and removes itself |
-| [One pico per resource](/patterns_and_tips/singleton-picos) | Giving a device or account its own pico, so requests can't collide |
-
-## Developing rulesets
-
-| Page | What it covers |
-|------|----------------|
-| [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets) | `file://`, GitHub raw, and engine URLs; flushing; `krl-check` and a Git pre-commit hook |
-
-## Patterns that became demos
-
-These best practices are now runnable demos in the [Cookbook](/cookbook/):
-
-| Pattern | Demo |
-|---------|------|
-| Idempotency and guard rules; authorize, then use | [Guard rules](/cookbook/guard_rules/) |
-| Splitting rules for clarity and extensibility; layering functionality with rulesets; semantic translation (eavesdropping on events) | [Layered rulesets](/cookbook/layered_rulesets/) |
-| Collection picos | [Collection](/cookbook/collection/) |
-| Access tokens and other secrets; keeping keys safe | [Configuration and secrets](/cookbook/secrets/) |
-| Installing a multi-ruleset application; creating a channel for a ruleset; keeping channels clean | [Bootstrap and channels](/cookbook/bootstrap/) |
-| An echo server | [Echo](/cookbook/echo/) |
-| A score tracker | [Score tracker](/cookbook/score_tracker/) |
-| A child pico for an asynchronous task | [Child pico tasks](/cookbook/child_tasks/) |
-| Automatic replies to relationship requests; querying over a relationship | [Two picos talking](/cookbook/two_picos/) |
-| An event hierarchy across rulesets | [KBlog](/cookbook/kblog/) |
-
-## In the KRL manual
-
-- Using persistent variables: [Persistent variables](/krl/persistent-variables/)
-- Writing a `send_warning()` action: [User-defined actions](/krl/krl-expression-language/user-defined-actions)
-
-## Left out
-
-Pages that describe things the current engine no longer has, or that depend on outside services:
-
-- **Sending secure messages** used `engine:signChannelMessage` and its relatives, which are gone. Relationships between picos can use DIDComm now; see [Relationships](/wrangler/relationships).
-- **Shorter URL for a query or event** used `io.picolabs.rewrite` on the root pico, removed in engine 1.0. A ruleset can do the same with `_redirect`: see [Cookies and redirects](/patterns_and_tips/cookies-and-redirects).
-- **Account management using the root pico** described owner picos from before engine 1.0.
-- **Generate an image with KRL**, **Using Foursquare data**, **Using Wovyn sensors**, **Using Git**, and **Using a Google sheet** are about particular services, devices, or tools rather than KRL.
-- **Proposals, experiments, and proofs of concept** (personal channels, generating KRL with KRL, JavaScript rulesets, and others) were experiments on earlier engines.
-
-
----
-
-# Tip: initializing entity variables
-
-# Initializing entity variables
-
-Each ruleset installed in a pico gives the pico its own entity variables, specific to that pico and that ruleset. Until a rule's postlude first assigns one, its value is `null`. There are three ways to deal with that.
-
-## Use `defaultsTo` wherever you read it
-
-`defaultsTo` supplies a value when the variable is `null`. Suppose `ent:owners` will be a map but might not exist yet:
-
-```krl
-nameExists = function(ownername) {
-  ent:owners.defaultsTo({}) >< ownername
-}
-```
-
-The first time the map is stored, start from the same default:
-
-```krl
-rule owner_token {
-  select when owner token_created
-  pre {
-    name = event:attr("name")
-    new_owner = event:attr("owner")
-  }
-  fired {
-    ent:owners := ent:owners.defaultsTo({}).put(name, new_owner)
-  }
-}
-```
-
-With this technique, every use of `ent:owners` in the ruleset needs `defaultsTo`. A shared function that returns `ent:owners.defaultsTo({})` keeps that in one place.
-
-## Initialize it in a guard rule
-
-Put a rule before the others that select the same event, and have it create the variable when it is missing:
-
-```krl
-rule guard_owners_map {
-  select when owner token_created
-  if ent:owners.isnull() then noop()
-  fired {
-    ent:owners := {}
-  }
-}
-```
-
-Rules in one ruleset that select the same event run in the order they are written, so this one runs first. The rules after it can then use a path assignment, which is also faster for a large map:
-
-```krl
-rule owner_token {
-  select when owner token_created
-  pre {
-    name = event:attr("name")
-    new_owner = event:attr("owner")
-  }
-  fired {
-    ent:owners{name} := new_owner
-  }
-}
-```
-
-Functions still need `defaultsTo`, in case a query arrives before any event does.
-
-## Initialize it when the ruleset is installed
-
-A rule that selects the ruleset's own `wrangler:ruleset_installed` runs before anything else can use the ruleset:
-
-```krl
-rule initialization {
-  select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
-  if ent:owners.isnull() then noop()
-  fired {
-    ent:owners := {}
-  }
-}
-```
-
-The `where` clause matters. Many rulesets are installed in a pico over its life, and without it this rule would run every time. Checking `isnull()` first is good practice too.
-
-Installing again from the same URL, or flushing, does not raise `ruleset_installed` again. A rule like this runs once per install.
-
-See also: [Persistent variables](/krl/persistent-variables/) in the KRL manual, and the [Guard rules](/cookbook/guard_rules/) demo.
-
-*From the Pico Labs KRL Cookbook page "Initializing entity variables".*
-
-
----
-
-# Tip: arrays and maps
-
-# Arrays and maps
-
-KRL has no `for` loop in expressions. Array operators do the same work: `map`, `filter`, `reduce`, `sort`, and the others in [Array operators](/krl/krl-expression-language/operators/array-operators). Here are a few patterns that come up often.
-
-## Loop with `reduce`
-
-To repeat a step a fixed number of times, `reduce` over a range and carry the state in the accumulator. This converts a number to an 8-byte array, high byte first, the way this JavaScript does:
-
-```js
-for (var index = 0; index < byteArray.length; index++) {
-  var byte = long & 0xff;
-  byteArray[index] = byte;
-  long = (long - byte) / 256;
-}
-```
-
-```krl
-toByteArray = function(str) {
-  1.range(8)
-    .reduce(function(a, i) {
-      [a[0].append(a[1] % 256), math:int(a[1] / 256)]
-    }, [[], str.as("Number")])
-    .head()
-    .reverse()
-}
-```
-
-`1.range(8)` is `[1, 2, ... 8]`. It only counts; the function doesn't use `i`. The accumulator is a pair: the bytes so far, and what's left of the number. Each step appends the low byte and divides by 256. At the end, `head()` takes the bytes and `reverse()` puts the high byte first. `toByteArray("1551127401")` is `[0,0,0,0,92,116,83,105]`.
-
-Add `.klog("step")` inside the function to watch the accumulator change on each step.
-
-The inverse is one `reduce`. With no initial value, it starts from the first element:
-
-```krl
-fromByteArray = function(bytes) {
-  bytes.reduce(function(a, b) { a * 256 + b })
-}
-```
-
-## Flatten an array of arrays
-
-```krl
-[[1, 2, 3], [4, 5, 6], [7, 8, 9]].reduce(function(a, b) { a.append(b) }, [])
-// [1, 2, 3, 4, 5, 6, 7, 8, 9]
-```
-
-## Sort an array of maps
-
-`sort` takes a comparison function. A function that returns one, for a given key, reads well:
-
-```krl
-by = function(key) {
-  function(a, b) { a{key}.encode() cmp b{key}.encode() }
-}
-```
-
-`wrangler:channels().sort(by("id"))` reads "my channels, sorted by id". `cmp` compares strings, and `encode()` turns any value into a string, so `by` works whatever the values are. For numbers, compare them as numbers instead: `people.sort(function(a, b) { a{"born"} <=> b{"born"} })`.
-
-For a primary and a secondary key:
-
-```krl
-by = function(key1, key2) {
-  key2 =>
-    function(a, b) {
-      a{key1}.encode() cmp b{key1}.encode() ||
-      a{key2}.encode() cmp b{key2}.encode()
-    }
-  |
-    function(a, b) { a{key1}.encode() cmp b{key1}.encode() }
-}
-```
-
-`||` stops at the first comparison that isn't zero, so the second key only breaks ties. `by("last", "first")` sorts by last name, then first name, and `by` still works with one key.
-
-A key can also be a path, such as `by(["meta", "flushed"])`, because `a{["meta", "flushed"]}` looks up a nested value.
-
-*From the Pico Labs KRL Cookbook pages "Looping using the reduce operator", "Flatten an Array of Arrays", and "Sorting an Array of Maps".*
-
-
----
-
-# Tip: decoding form-encoded data
-
-# Decoding form-encoded data
-
-Form-encoded content, such as `q=5&value=%20space%20`, sometimes arrives as a single string: in a webhook body, a stored URL, or a query string you built. A chain of operators turns it into a map.
-
-## Names and values
-
-```krl
-nv_split = function(x) { x.extract(re#([^=]*)=?(.*)#) }  // "n=v" -> ["n", "v"]
-frst = function(a) { a.head() }
-dup_1st = function(v) { v[0][1] }
-
-decodeContent = function(content) {
-  content            // "n0=v0&n1=v1&..."
-    .split(re#&#)    // ["n0=v0", "n1=v1", ...]
-    .map(nv_split)   // [["n0", "v0"], ["n1", "v1"], ...]
-    .collect(frst)   // {"n0": [["n0", "v0"]], "n1": [["n1", "v1"]], ...}
-    .map(dup_1st)    // {"n0": "v0", "n1": "v1", ...}
-}
-```
-
-`decodeContent("q=5&value=%20space%20")` is `{"q": "5", "value": "%20space%20"}`.
-
-- `split` makes an array of `name=value` strings.
-- `extract` matches each one against a regular expression and returns its capture groups, the name and the value.
-- `collect` groups the pairs into a map keyed by name. Each value is an array of every pair with that name.
-- The map operator `map` keeps the first value for each name.
-
-## Keep every value of a repeated name
-
-When a name can repeat, keep all its values:
-
-```krl
-dup_all = function(v) {
-  v.length() == 1 => v[0][1] | v.map(function(w) { w[1] })
-}
-```
-
-Use `.map(dup_all)` in place of `.map(dup_1st)`. `a=1&a=2&b=3` becomes `{"a": ["1", "2"], "b": "3"}`.
-
-## Decode `+` and `%xx`
-
-`replace` accepts a function as its second argument. It is called with the match and then each capture group, and returns the replacement:
-
-```krl
-hexDigits = "0123456789abcdef"
-
-hex2dec = function(hex) {
-  hex like re#^[0-9A-Fa-f]+$#
-    => hex.lc().split("").reduce(function(a, h) { a * 16 + hexDigits.split("").index(h) }, 0)
-    | null
-}
-
-hex2char = function(encoded, hex) {
-  val = hex2dec(hex)
-  val && val < 128 => val.chr() | encoded
-}
-
-decode_val = function(s) {
-  s.replace(re#[+]#g, " ").replace(re#%([0-9A-Fa-f]{2})#g, hex2char)
-}
-```
-
-Replace `+` first: early encoders used it for a space, and a real plus sign arrives as `%2B`. Then use `function(v) { decode_val(v[0][1]) }` as the last step of the chain. `value=%20space%20&plus=a%2Bb&pct=100%25` becomes `{"value": " space ", "plus": "a+b", "pct": "100%"}`. This handles ASCII characters. Anything above 127 is left encoded.
-
-Events and queries that arrive over HTTP are already decoded: the engine gives you their attributes as a map. This is for strings you have in hand.
-
-*From the Pico Labs KRL Cookbook page "Decoding WWW-Form Encoded Content or Query Parameters".*
-
-
----
-
-# Tip: importing tables and CSV
-
-# Importing tables and CSV
-
-Data exported from a spreadsheet or another system usually arrives as text: tab-separated (TSV) or comma-separated (CSV) lines. If the other system can export JSON, use that instead. `decode()` turns a JSON string into KRL data in one step.
-
-## Lines
-
-Exports end lines with `\n` or, from Windows, `\r\n`. One regular expression handles both:
-
-```krl
-lineBreak = re#\r?\n#
-lines = content.split(lineBreak).filter(function(s) { s })
-```
-
-`filter(function(s) { s })` drops empty lines: an empty string is falsy, and there is usually one after the last line break. Another way is to let a global regular expression find the lines: `content.extract(re#(.+)#g)`.
-
-## A table to an array of maps
-
-When the first row names the columns, make each data row a map:
-
-```krl
-tsv = function(content) {
-  lines = content.split(re#\r?\n#).filter(function(s) { s })
-  keys = lines.head().split(re#\t#)
-  lines.tail().map(function(line) {
-    values = line.split(re#\t#)
-    keys.reduce(function(m, k, i) { m.put(k, values[i]) }, {})
-  })
-}
-```
-
-Given
-
-```
-A	B
-1	2
-3	4
-```
-
-`tsv(content)` is `[{"A": "1", "B": "2"}, {"A": "3", "B": "4"}]`. The `reduce` passes each key's index as its third argument, which picks the matching value.
-
-## CSV with a known shape
-
-CSV is harder, because a value that contains a comma is wrapped in double quotes. When you know what each line looks like, match the whole line with a regular expression and let the last group take the rest:
-
-```krl
-graduands = function(content) {
-  content.extract(re#(.+)#g)
-    .tail()
-    .map(function(line) { line.extract(re#^([\w ]+),(\w+),(\d+),(\d+),(.*)$#) })
-}
-```
-
-`Ada Lovelace,AL,1,1843,"Notes, on the engine"` becomes `["Ada Lovelace", "AL", "1", "1843", "\"Notes, on the engine\""]`. Strip the quotes from that last field if you need to. `tail()` skips the header line.
-
-## Fetch the file
-
-Rather than passing a whole file to a function, give it a URL:
-
-```krl
-import = function(url) {
-  tsv(http:get(url){"content"})
-}
-```
-
-A function that calls `http:get` runs on every query, so for a large file, import it once in a rule and store the result in an entity variable.
-
-*From the Pico Labs KRL Cookbook pages "Converting a table to an Array of Maps" and "Importing data from other systems".*
-
-
----
-
-# Tip: converting time formats
-
-# Converting time formats
-
-The [time library](/krl/libraries/time) works with ISO 8601 / RFC 3339 times such as `2011-09-21T15:02:01-07:00`. Other formats need converting first. RSS feeds, for example, give dates like `Wed, 21 Sep 2011 15:02:01 -0700` (RFC 2822), and `time:new` rejects them: `time:new was given an invalid date string`.
-
-This function rearranges the parts:
-
-```krl
-mon2num = {
-  "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06",
-  "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"
-}
-
-rss2krlTime = function(pubDate) {
-  tarr = pubDate.split(re# #)
-  tzoff = tarr[5].replace(re#(\d\d)$#, ":$1")
-  tarr[3] + "-" + mon2num{tarr[2]} + "-" + tarr[1] + "T" + tarr[4] + tzoff
-}
-```
-
-`split` gives `["Wed,", "21", "Sep", "2011", "15:02:01", "-0700"]`. The offset `-0700` becomes `-07:00`, and `+0530` becomes `+05:30`. Then the time library can format it:
-
-```krl
-time:strftime(rss2krlTime("Wed, 21 Sep 2011 15:02:01 -0700"), "%b %d %Y")   // "Sep 21 2011"
-```
-
-This expects a two-digit day, as RSS feeds use. For a feed that writes `1 Sep`, pad the day first, for example with `tarr[1].length() == 1 => "0" + tarr[1] | tarr[1]`.
-
-*From the Pico Labs KRL Cookbook page "Converting Time Formats" (originally by Ed Orcutt). The time-zone handling here also covers offsets that aren't whole hours.*
-
-
----
-
-# Tip: what's in a name
-
-# What's in a name?
-
-KRL keeps many kinds of names apart: the ruleset id, rule names, event domains and types, attribute names, global and local names, function parameters, and directive names. As an exercise, here is a ruleset where every one of them is `name`:
-
-```krl
-ruleset name {
-  meta {
-    shares name
-  }
-  global {
-    /**
-     * @param name String
-     */
-    name = function(name) {
-      name.klog("name") => name | "name"
-    }
-  }
-  rule name {
-    select when name name
-    pre {
-      name = event:attr("name").defaultsTo(name(name), "name")
-    }
-    send_directive("name", {"name": name || "name"})
-  }
-  rule name_provided {
-    select when name name name re#(.+)# setting(name)
-    send_directive("name", {"name": name})
-  }
-}
-```
-
-It works. Most of the uses can't collide: an event domain, a rule name, and a directive name live in different places. One line is worth a closer look:
-
-```krl
-name = event:attr("name").defaultsTo(name(name), "name")
-```
-
-The right-hand side is evaluated before the binding. At that moment `name` is still the global function, so `name(name)` calls the function with itself as the argument, and it returns itself, because a function is truthy. After the line, `name` is bound to the result, and the global function is shadowed for the rest of the rule.
-
-Raise `name:name` with `name` set to `Ada` and both rules answer `{"name": "Ada"}`. Raise it without the attribute and `defaultsTo` uses the function (logging `"name"`). The directive's `name` is then a function, which doesn't survive conversion to JSON, so the reply shows `{}`.
-
-So: a name declared in `pre` hides a global of the same name for the rest of that rule. That is legal, and usually a mistake. And a name in `pre` can't be declared twice. KRL declarations are not assignments.
-
-*From the Pico Labs KRL Cookbook page "What's in a name?".*
-
-
----
-
-# Tip: events and queries over HTTP
-
-# Events and queries over HTTP
-
-This tip has moved into the [Event Exchange Protocol](/exp/) docs:
-
-- [Overview](/exp/) — what EXP is, and that Sky is the current version
-- [Event API](/exp/event) — `/sky/event/…`, attributes, response shape, special directives
-- [Query API](/exp/query) — `/sky/query/…`, `shares`, `.txt` / `.html`, preparing a ruleset
-
-For cookies and redirects from event directives, see [Cookies and redirects](/patterns_and_tips/cookies-and-redirects).
-
-
----
-
-# Tip: cookies and redirects
-
-# Cookies and redirects
-
-Two directive names are special. When a rule sends one in response to an event raised over HTTP, the engine turns it into part of the HTTP response.
-
-## Set a cookie: `_cookie`
-
-```krl
-rule set_cookie {
-  select when cookie needed
-  pre {
-    eci = wrangler:channels(["wellKnown_Rx", "Tx_Rx"]).head(){"id"} || meta:eci
-  }
-  send_directive("_cookie", {"cookie": <<wellKnown_Rx=#{eci}; Path=/sky>>})
-}
-```
-
-The engine adds `Set-Cookie: wellKnown_Rx=<eci>; Path=/sky` to the response, and the browser sends the cookie back with later requests to the same engine. This one shares the pico's well-known channel, so other picos reached from the same browser could offer it a relationship. The ruleset uses `io.picolabs.wrangler` as a module.
-
-## Read cookies
-
-Every event raised over HTTP has a `_headers` attribute, and every query a `_headers` argument. This function works in both:
-
-```krl
-cookies = function(_headers) {
-  arg = event:attr("_headers") || _headers
-  arg{"cookie"}.isnull() => {} |
-  arg{"cookie"}
-    .split("; ")
-    .map(function(v) { v.split("=") })
-    .collect(function(v) { v.head() })
-    .map(function(v) { v.head()[1] })
-}
-```
-
-With the header `Cookie: wellKnown_Rx=abc123; sessionid=38afes7a8`, `cookies()` is `{"wellKnown_Rx": "abc123", "sessionid": "38afes7a8"}`. The chain is the same idea as [decoding form data](/patterns_and_tips/decoding-form-data), splitting on `"; "` instead of `&`.
-
-## Redirect: `_redirect`
-
-```krl
-send_directive("_redirect", {"url": "https://picolabs.io/"})
-```
-
-The engine answers the event with HTTP 302 and that URL as the `Location`.
-
-## A URL shortener
-
-Together with a channel per link, `_redirect` makes a URL shortener. Each link gets its own channel, whose policy allows only the event that follows it. The channel id is the short URL:
-
-```krl
-ruleset s {
-  meta {
-    use module io.picolabs.wrangler alias wrangler
-    provides u
-  }
-  global {
-    u = function(eci) {
-      <<#{meta:host}/sky/event/#{eci}/none/s/u>>
-    }
-  }
-  rule recordShortcut {
-    select when s u
-      url re#(.+)# setting(url)
-    pre {
-      tag = event:attr("tag").lc().replace(re#[^a-z0-9_.-]#g, "-")
-      eid = tag => tag | "none"
-    }
-    every {
-      wrangler:createChannel(
-        [eid, "s"],
-        {"allow": [{"domain": "s", "name": "u"}], "deny": []},
-        {"allow": [], "deny": [{"rid": "*", "name": "*"}]}
-      ) setting(channel)
-      send_directive("shortcut registered", {"tag": tag, "eci": channel{"id"}, "shortcut": u(channel{"id"}), "url": url})
-    }
-    fired {
-      ent:shortcuts{channel{"id"}} := url
-    }
-  }
-  rule redirectShortcut {
-    select when s u
-      where event:attr("url").isnull()
-    send_directive("_redirect", {"url": ent:shortcuts{meta:eci}})
-  }
-}
-```
-
-Another ruleset uses it as a module. It registers a link with `raise s event "u" attributes {"url": long_url, "tag": "docs"}`, then finds the channel with `wrangler:channels(["docs", "s"]).head()` and the short form with `s:u(eci)`. Opening the short URL redirects to the long one. The short URL can only raise `s:u`, and queries on it are all denied. Short links are handy in QR codes, which get smaller as the URL does.
-
-*From the Pico Labs KRL Cookbook pages "Setting and reading cookies" and "Ruleset that provides a general purpose URL shortener".*
-
-
----
-
-# Tip: events from email
-
-# Events from email
-
-Any service that can call a webhook can raise events on a pico. Email is a good example: services such as [CloudMailin](https://www.cloudmailin.com/) give you an address and POST each message that arrives to a URL you choose. Point that URL at a pico:
-
-```
-https://<your engine>/sky/event/<eci>/mail/mail/received
-```
-
-The engine has to be reachable from the internet. For an engine on your own machine, a tunnel such as [ngrok](https://ngrok.com/) gives it a public address. Use a channel made for this purpose, whose policy allows only `mail:received`, so the webhook URL can't do anything else.
-
-## Parse the message
-
-The service's POST body becomes the event's attributes. With CloudMailin's JSON format, the headers and the plain-text body are in `headers` and `plain`:
-
-```krl
-rule mail_incoming {
-  select when mail received
-  pre {
-    headers = event:attr("headers").defaultsTo({})
-  }
-  always {
-    raise mail event "parsed" attributes {
-      "date": headers{"Date"},
-      "to": headers{"To"},
-      "from": headers{"From"},
-      "subject": headers{"Subject"},
-      "text": event:attr("plain")
-    }
-  }
-}
-```
-
-## Route it to another pico
-
-One mail pico can serve many. Put the target pico's channel id in the address, as in `me+<eci>@cloudmailin.net`, and forward on it:
-
-```krl
-rule mail_router {
-  select when mail parsed
-    to re#[+]([^@]*)@#
-    setting(eci)
-  event:send({"eci": eci, "domain": "mail", "type": "events", "attrs": event:attrs})
-}
-```
-
-The person writing the email needs that address, but not where the target pico lives.
-
-## Turn lines into events
-
-The target pico can treat each line of the body as an event to raise. Here, a line such as `aurora/on` raises `aurora:on`, and every other line is ignored:
-
-```krl
-rule mail_events {
-  select when mail events
-  foreach event:attr("text").defaultsTo("").split(re#\r?\n#) setting(request)
-  pre {
-    parts = request.split(re#/#)
-    wanted = parts.length() == 2 && parts[0] == "aurora"
-  }
-  if wanted then noop()
-  fired {
-    raise aurora event parts[1]
-  }
-}
-```
-
-A body of
-
-```
-Turn on the lights, then show the second theme after this one.
-aurora/on
-aurora/next
-aurora/next
-```
-
-raises `aurora:on` and `aurora:next` twice, which the pico's existing rulesets handle. The new ruleset doesn't change them.
-
-Parsing the body is the fragile part. Email clients add things you don't expect, such as invisible characters. Test with messages from the clients your senders use.
-
-*From the Pico Labs KRL Cookbook page "Triggering Events from Email Messages".*
-
-
----
-
-# Tip: reading the engine's log files
-
-# Reading the engine's log files
-
-The **Logging** tab shows recent events and queries for a pico, from the engine's memory. To look further back, or across every pico, read the log files.
-
-## Where they are
-
-The engine writes one JSON object per line to `pico-engine.log` in its home directory (`PICO_ENGINE_HOME`, `~/.pico-engine` by default). When the file reaches 100 MB it rotates: the older entries move to `pico-engine.log.1`, `pico-engine.log.2`, and so on, and the engine keeps up to twelve files. `PICO_ENGINE_LOG_FILE` writes somewhere else instead (`stdout` to write to standard output). See [the operator guide](/pico-engine) for the settings.
-
-Each line has `level`, `time`, and `msg`, and lines about a pico's work have `picoId` and `txnId`. A transaction is one event or query and everything it caused.
-
-```json
-{"level":50,"time":"2026-11-13T18:46:16.317Z","picoId":"cmwfbv2y1001e4jysd0cn9w05","txnId":"cmwfbvcvx00244jysd16w7grz","txnKind":"query","error":"This is a family channel and only the owner can use it.","msg":"..."}
-```
-
-## One pico's history
-
-Find the pico's id on its **About** tab, then:
-
-```sh
-cd ~/.pico-engine
-grep -h '"picoId":"<pico id>"' pico-engine.log* | jq -s -c 'sort_by(.time)[]' > my_pico.log
-```
-
-`grep` collects the lines from every file, and [`jq`](https://jqlang.org/) sorts them by time, since rotated files aren't in order relative to each other. To follow one event through everything it caused, filter on its `txnId` instead.
-
-## What to look for
-
-- `"msg":"txnQueued"` lines show each event or query as it arrived, with its attributes.
-- `"error"` fields show what failed: a channel policy refusal, a KRL runtime error, a family channel used from outside.
-- `klog` output from your own rules is in the log, with the message you gave it.
-
-The logs hold every event's attributes. Anything secret that arrives in an event is in them. See the [Configuration and secrets](/cookbook/secrets/) demo.
-
-*From the Pico Labs KRL Cookbook page "Examining pico-engine log files". The log format and rotation have changed since that page was written.*
-
-
----
-
-# Tip: querying another pico
-
-# Querying another pico
-
-To call a function another pico's ruleset shares, use `wrangler:picoQuery`. Two things are needed: a channel to the other pico whose query policy allows that function, and `io.picolabs.wrangler` as a module.
-
-```krl
-meta {
-  use module io.picolabs.wrangler alias wrangler
-}
-```
-
-```krl
-rule ask_the_other_pico {
-  select when example question_asked
-  pre {
-    answer = wrangler:picoQuery(other_eci, "my.ruleset.id", "myFunction", {"arg1": "a", "arg2": "b"})
-  }
-  if answer{"error"}.isnull() then noop()
-  fired {
-    ent:last_answer := answer
-  }
-}
-```
-
-On the same engine, `picoQuery` calls the other pico directly. On another engine, or for a `did:` identifier, it goes over HTTP or DIDComm. Either way it returns the function's value, or a map with an `error` key if something went wrong.
-
-## Which channel
-
-- **Your children.** `wrangler:children()` gives each child's family channel (`eci`). `picoQuery` can use it, because the parent owns it.
-- **Picos you have a relationship with.** Use the relationship: `subscription:queryOnSub(Id, rid, name, args)` (see the [Two picos talking](/cookbook/two_picos/) demo), or `picoQuery` on the relationship's `Tx` channel.
-- **Anyone else.** A channel they give you, made for the purpose, with a policy that allows the functions you need.
-
-## Don't query yourself
-
-A pico handles one thing at a time. A query from a pico to itself would wait behind the work that's making it. `picoQuery` refuses: it returns `{"status_code": 400, ...}` with the error "Pico should not query itself". To use a function in another ruleset on the same pico, use that ruleset as a module instead.
-
-## With `http:get`
-
-A pico has a URL, so `http:get` works too:
-
-```krl
-response = http:get(meta:host + "/sky/cloud/" + other_eci + "/my.ruleset.id/myFunction", {"arg1": "a"})
-answer = response{"content"}.decode()
-```
-
-It's slower than `picoQuery` on the same engine, and it can't use family channels: the answer is an error, "This is a family channel and only the owner can use it". The HTTP status is still 200 in that case, so check the content for `error`, not just `status_code`.
-
-*From the Pico Labs KRL Cookbook page "Accessing a Function Shared by Another Pico".*
-
-
----
-
-# Tip: accepting relationship requests
-
-# Accepting relationship requests
-
-When another pico asks for a relationship, the request waits on the receiving pico (its **Relationships** tab lists it) until something approves it. Here are three ways to approve requests automatically. The examples share one setup: a list pico asks participant picos to join it, in the role `participant list` for itself and `participant` for them.
-
-## A rule that approves
-
-On each participant:
-
-```krl
-rule accept_list {
-  select when wrangler inbound_pending_subscription_added
-    where event:attr("Rx_role") == "participant"
-       && event:attr("Tx_role") == "participant list"
-  always {
-    raise wrangler event "pending_subscription_approval" attributes event:attrs
-  }
-}
-```
-
-Passing the event's attributes along tells wrangler which request to approve. Roles arrive from the receiving pico's point of view: `Rx_role` is this pico's, and `Tx_role` is the other pico's.
-
-Don't approve every request. A rule without a `where` accepts a relationship with any pico that has your well-known channel. Accept only what you expect: the right roles, a request from your parent, a request that carries a shared secret. To refuse, raise `wrangler:inbound_rejection` with the same attributes. The [Collection](/cookbook/collection/) demo does both, and remembers whom it turned away.
-
-## Wrangler's auto-accept configuration
-
-Without writing a rule, give the participant a pattern to accept:
-
-```krl
-raise wrangler event "autoAcceptConfigUpdate" attributes {
-  "config": {"configName": "lists", "entries": {"Tx_role": ["^participant list$"]}}
-}
-```
-
-Each entry maps an attribute of the request, as the participant sees it, to a list of regular expressions. A request that matches any of them is approved. Send the same event with `"delete": true` and the `configName` to remove it. `autoAcceptConfig()`, shared by `io.picolabs.subscription`, shows what is set. You can also send this event from the pico's **Testing** tab.
-
-## Accept later, by installing a ruleset
-
-If a request arrived before there was anything to approve it, install a ruleset that approves it and then removes itself:
-
-```krl
-ruleset acceptance {
-  meta {
-    use module io.picolabs.subscription alias subs
-  }
-  rule initialize {
-    select when wrangler ruleset_installed where event:attr("rids") >< meta:rid
-    pre {
-      s = subs:inbound("Tx_role", "participant list")
-        .filter(function(i) { i{"Rx_role"} == "participant" })
-        .head()
-    }
-    if s then noop()
-    fired {
-      raise wrangler event "pending_subscription_approval" attributes s
-    }
-    finally {
-      raise wrangler event "uninstall_ruleset_request" attributes {"rid": meta:rid}
-    }
-  }
-}
-```
-
-It looks for a pending request from a participant list, approves it, and uninstalls itself either way. This is handy when a parent asked many children to join before they could accept: install it on each child.
-
-*From the Pico Labs KRL Cookbook pages "Automatic Replies to Subscription Requests" and "Accepting a subscription offer by installing a ruleset".*
-
-
----
-
-# Tip: one pico per resource
-
-# One pico per resource
-
-Some things should be used by only one party at a time: a motor, a GPIO pin, a printer, an account with an outside service. Give each one its own pico. Everything else asks that pico, by event, to use the resource. Because a pico handles one event at a time, its rulesets are the only code that touches the resource, and requests can't collide.
-
-A Pico Labs rover project did this with its wheels. Each of four wheel picos kept the index of the one motor it drove, and only its rules called the motor driver:
-
-```krl
-rule set_motor_index {
-  select when rover motor_index_assigned
-  always {
-    ent:motor_index := event:attr("motor_index")
-  }
-}
-```
-
-A controller pico had a channel to each wheel. To move, it sent each wheel the direction that wheel should turn:
-
-```krl
-to_wheels = defaction(type, fr, fl, br, bl) {
-  every {
-    event:send({"eci": ent:wheels{"FR"}, "domain": "rover", "type": type, "attrs": fr})
-    event:send({"eci": ent:wheels{"FL"}, "domain": "rover", "type": type, "attrs": fl})
-    event:send({"eci": ent:wheels{"BR"}, "domain": "rover", "type": type, "attrs": br})
-    event:send({"eci": ent:wheels{"BL"}, "domain": "rover", "type": type, "attrs": bl})
-  }
-}
-forward = defaction() {
-  to_wheels("run", {"direction": "fwd"}, {"direction": "back"}, {"direction": "back"}, {"direction": "fwd"})
-}
-```
-
-The controller could have driven the motors itself. But then every new pico that needed the wheels would need the motor code too, and two of them could drive the same motor at once. With a pico per wheel, any number of controllers can share the wheels safely.
-
-Keep the channels to the resource picos in relationships (or, for children, in their family channels), not in ECIs written into the code. The original rover hard-coded them, and noted that relationships would be much better.
-
-*From the Pico Labs KRL Cookbook page "Singleton Pattern".*
-
-
----
-
-# Tip: hosting and checking rulesets
-
-# Hosting and checking rulesets
-
-## Install from a URL
-
-The engine installs a ruleset from a URL and remembers it. A few kinds work well:
-
-- **Your own files**, while you work: `file:///path/to/my.ruleset.krl`. The engine must be on the same machine.
-- **GitHub**: use the *raw* URL, `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>.krl`, not the page that displays the file.
-- **The engine's own**: `http://<engine>/krl/<rid>.krl` for the rulesets that ship with it, and `/krl/demos/...` for the demos.
-
-## Flush after you change it
-
-The engine compiles a ruleset once and keeps it. After you change the source, click **Flush** next to the ruleset on the pico's **Rulesets** tab, and the engine fetches the URL again. Every pico with that ruleset gets the new version.
-
-Flushing doesn't raise `wrangler:ruleset_installed` again, so rules that run on install don't run. If you change what such a rule sets up, such as a channel's policy, run that rule again yourself. The [Bootstrap and channels](/cookbook/bootstrap/) demo shows how.
-
-## Check before you commit
-
-`krl-check` parses and compiles KRL, and lints doc comments and views. It ships with `krl-compiler`:
-
-```sh
-npm install -g krl-compiler
-krl-check my.ruleset.krl
-```
-
-It exits with status 1 on an error and prints warnings to stderr. With no file, it reads standard input. That makes a Git pre-commit hook that checks exactly what you're about to commit. Save this as `.git/hooks/pre-commit` and make it executable:
-
-```sh
-#!/bin/sh
-status=0
-for f in $(git diff --cached --name-only --diff-filter=ACM -- '*.krl'); do
-  if ! git show ":$f" | krl-check >/dev/null; then
-    echo "krl-check failed: $f"
-    status=1
-  fi
-done
-exit $status
-```
-
-`git show ":$f"` is the staged version of the file, so a fix you haven't staged yet doesn't hide an error.
-
-*From the Pico Labs KRL Cookbook pages "Hosting Code on GitHub" and "Setting Up a Git Pre-Commit Hook to Parse KRL".*
 
 
 ---

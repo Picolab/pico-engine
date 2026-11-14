@@ -80,7 +80,7 @@ test.serial(
       const page = await client.readResource({ uri: run.resources.overview });
       t.regex(String((page.contents[0] as { text?: string }).text), /^# Echo/);
       const resources = (await client.listResources()).resources.map((r) => r.uri);
-      t.true(resources.includes("pico://docs/patterns_and_tips/README"));
+      t.true(resources.includes("pico://docs/developing/README"));
       t.true(resources.includes("pico://docs/cookbook/kblog/instructions"));
       t.true(resources.includes("pico://docs/wrangler/relationships"));
 

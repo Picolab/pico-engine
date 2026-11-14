@@ -8,7 +8,7 @@ If you're new, start with the [Programming lessons](/lessons/), which build a wo
 
 1. [Programming Workflow](/developing/workflow): develop, build, deploy, test, and release a ruleset.
 2. [Event Loop Introduction](/developing/event-loop): the five phases a pico goes through for every event, and why rule order can surprise you.
-3. [Developer Tips](/developing/tips): installing and updating the engine, resetting it, running several, hosting and flushing rulesets, and initializing a ruleset.
+3. [Tips](/developing/tips): engine setup, hosting and flushing rulesets, `krl-check`, and short technique tips (data, HTTP, picos working together).
 4. [Event and Query URLs with Postman](/developing/postman): building Sky event and query requests in Postman (or `curl`).
 5. [KRL misconceptions and common errors](/developing/misconceptions): where habits from other languages mislead, and the typos that are hard to see.
 
@@ -17,10 +17,10 @@ If you're new, start with the [Programming lessons](/lessons/), which build a wo
 - [Programming lessons](/lessons/): hands-on lessons from the Quickstart to scatter-gather.
 - [KRL manual](/krl/): the language and its libraries.
 - [Event Exchange Protocol](/exp/): the Sky event and query APIs.
-- [Patterns and tips](/patterns_and_tips/): short techniques, including [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets).
+- [Cookbook](/cookbook/): runnable demos from the **Try It!** tab.
 
 The engine listens on port 3000 by default, so the examples here use `http://localhost:3000`. Change that if you've configured another port or public URL (see the [operator guide](/pico-engine)).
 
 ---
 
-<small>Section intro for pages ported from the Pico Labs wiki (Programming Workflow, Event Loop Introduction, Developer Tips, Event and Query URLs with Postman, KRL misconceptions and common errors), updated for this engine.</small>
+<small>Section intro for pages ported from the Pico Labs wiki (Programming Workflow, Event Loop Introduction, Developer Tips, Event and Query URLs with Postman, KRL misconceptions, and the KRL Cookbook tips), updated for this engine.</small>

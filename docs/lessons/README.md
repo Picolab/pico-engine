@@ -31,7 +31,7 @@ Complete lessons 1 through 7 in order. **Scatter-Gather** is an optional advance
 - **Run everything.** Each lesson has code to install and things to try. Use the developer UI at `http://localhost:3000` or `curl`.
 - **The Testing tab builds forms from the ruleset's schema**, which comes from `/** … */` doc comments on rules and functions. You'll see `@attr`, `@param`, and `@example` in the lessons' KRL.
 - **Use wrangler.** Picos create children and channels through [wrangler](/wrangler/) events and functions, not by reaching into the engine.
-- **Check your KRL.** `krl-check`, in the `krl-compiler` package, finds errors before you install. See [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets).
+- **Check your KRL.** `krl-check`, in the `krl-compiler` package, finds errors before you install. See [Tips](/developing/tips).
 
 ## Runnable examples beside the lessons
 
@@ -52,7 +52,7 @@ The [Cookbook](/cookbook/) has demos you can run in a new child pico with one cl
 - [Pico Engine](/pico-engine): installing, configuring, and operating the engine
 - [KRL manual](/krl/)
 - [Event Exchange Protocol](/exp/): the HTTP event and query APIs
-- [Patterns and tips](/patterns_and_tips/)
+- [Developing with Picos](/developing/)
 
 ---
 

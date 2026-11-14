@@ -248,6 +248,6 @@ Optional parameters, for a pico on another engine:
 | `_path` | The path before the ECI. Default `/sky/cloud/` |
 | `_root_url` | The whole URL before the ECI, instead of `_host` and `_path` |
 
-A pico can't query itself: `picoQuery` returns an error ("Pico should not query itself"). A query waits for its answer, so avoid two picos that query each other at the same time. See [Querying another pico](/patterns_and_tips/querying-another-pico).
+A pico can't query itself: `picoQuery` returns an error ("Pico should not query itself"). A query waits for its answer, so avoid two picos that query each other at the same time. See [Querying another pico](/developing/querying-another-pico).
 
 `skyQuery`, the older version, is still there for old rulesets. It always uses HTTP, which can't use family channels. It takes the same parameters in the same order, so switching to `picoQuery` is a rename.

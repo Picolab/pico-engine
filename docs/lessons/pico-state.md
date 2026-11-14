@@ -76,7 +76,7 @@ The pieces:
 - The rule has one action, `send_directive`. Anything after the action runs in the **postlude**.
 - `always { … }` runs whether or not an action ran. `ent:name := new_name` is the only place the variable changes.
 
-Notice that the function `name` and the event attribute `name` share a word and nothing else. Names in KRL live in different places: [What's in a name?](/patterns_and_tips/names-and-scope) explains the one case where that bites.
+Notice that the function `name` and the event attribute `name` share a word and nothing else. Names in KRL live in different places: [What's in a name?](/developing/names-and-scope) explains the one case where that bites.
 
 You can check any entity variable without writing a query. On the **Testing** tab, pick the ruleset, find the **KRL console**, enter `ent:name`, and click **Evaluate**. It evaluates the expression inside that ruleset on that pico.
 

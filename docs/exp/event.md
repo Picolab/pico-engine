@@ -46,7 +46,7 @@ curl -X POST "http://localhost:3000/sky/event/<eci>/none/echo/message" \
   -H 'content-type: application/json' -d '{"input": "hello"}'
 ```
 
-Every event raised over HTTP also gets an attribute `_headers` with the request's HTTP headers. See [Cookies and redirects](/patterns_and_tips/cookies-and-redirects).
+Every event raised over HTTP also gets an attribute `_headers` with the request's HTTP headers. See [Cookies and redirects](/developing/cookies-and-redirects).
 
 ## Response
 
@@ -90,7 +90,7 @@ Two directive names change the HTTP response itself, instead of only appearing i
 | `_cookie` | Adds a `Set-Cookie` header from `options.cookie` |
 | `_redirect` | Answers with HTTP 302 and `Location: options.url` |
 
-Details and examples: [Cookies and redirects](/patterns_and_tips/cookies-and-redirects).
+Details and examples: [Cookies and redirects](/developing/cookies-and-redirects).
 
 ## From KRL
 

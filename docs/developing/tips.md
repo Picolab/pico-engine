@@ -1,6 +1,6 @@
-# Developer Tips
+# Tips
 
-A few things that make managing your pico engine, and writing KRL, easier. The [operator guide](/pico-engine) is the full reference for configuration; this page is the short, practical version.
+Practical notes for running the engine and writing KRL. Engine setup is below; technique pages (from the old Patterns and tips / KRL Cookbook) are indexed further down. The [operator guide](/pico-engine) is the full configuration reference.
 
 ## Managing your engine
 
@@ -89,43 +89,59 @@ You can run the image several times with different ports and volumes to get seve
 
 WSL 2 (a Linux environment on Windows) is a good way to run the engine on Windows. If a browser on Windows can't reach an engine running in WSL 2, the usual culprit is bridging the port between Windows and the virtual machine. Also check that the base URL matches the address the browser uses.
 
-## Writing and running rulesets
+## Hosting, flushing, and checking rulesets
 
 ### Host the source where the engine can reach it
 
-The engine reads your KRL from a URL. Your own files can use `file:///…` (three slashes) while you develop on the same machine. For anything shared, any HTTP server works:
+The engine installs a ruleset from a URL and remembers it:
 
-- **GitHub:** use the raw URL, `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>.krl`. GitHub caches raw files for a few minutes, so a push may take a moment to show. GitLab and others may cache less. For a private repository the engine needs a URL that includes an access token.
+- **Your own files**, while you work: `file:///path/to/my.ruleset.krl` (three slashes). The engine must be on the same machine.
+- **GitHub:** use the *raw* URL, `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<path>.krl`, not the page that displays the file. GitHub caches raw files for a few minutes. For a private repository the engine needs a URL that includes an access token.
+- **The engine's own:** `http://<engine>/krl/<rid>.krl` for rulesets that ship with it, and `/krl/demos/...` for demos.
 - **S3 or any static host:** make sure the URL is readable by the engine.
-
-See [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets).
 
 ### Flush after every change
 
-The engine compiles each ruleset once and caches it. After you change the source, flush it so the engine fetches and compiles it again. There are two ways:
+The engine compiles each ruleset once and caches it. After you change the source, flush it so the engine fetches and compiles it again:
 
 - **From the UI.** On the pico's **Rulesets** tab, click **flush** next to the ruleset.
 - **From a rule.** `raise wrangler event "rulesets_need_flushing"` re-fetches every ruleset installed in the pico and then raises `wrangler:rulesets_flushed`.
 
-Flushing is by URL. The engine keeps one compiled version per URL, so every pico with that ruleset gets the update.
+Flushing is by URL. The engine keeps one compiled version per URL, so every pico with that ruleset gets the update. Flushing does **not** raise `wrangler:ruleset_installed` again, so rules that run on install don't run. If you change what such a rule sets up (for example a channel's policy), run that rule again yourself. The [Bootstrap and channels](/cookbook/bootstrap/) demo shows how.
 
-The engine also offers `/api/flush?url=<ruleset url>`, which is what the UI uses. It needs the signed-in browser session, so it doesn't work from a plain `curl`; use the UI or the wrangler event instead.
+The UI uses `/api/flush?url=<ruleset url>`, which needs the signed-in browser session, so it doesn't work from a plain `curl`; use the UI or the wrangler event instead.
 
 ### Check your KRL before the engine sees it
-
-You can discover a syntax error by installing the ruleset and reading the engine's complaint, which includes the line and column. It's faster to catch it earlier:
 
 ```sh
 npm install -g krl-compiler
 krl-check my.ruleset.krl
 ```
 
-`krl-check` parses and compiles, and lints doc comments. Install a Git pre-commit hook so that nothing broken gets committed; [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets) has one. Keep `krl-compiler` at the same version as your engine.
+`krl-check` parses and compiles, and lints doc comments and views. It exits with status 1 on an error and prints warnings to stderr. With no file, it reads standard input. Keep `krl-compiler` at the same version as your engine.
+
+A Git pre-commit hook that checks the *staged* version of each `.krl` file:
+
+```sh
+#!/bin/sh
+status=0
+for f in $(git diff --cached --name-only --diff-filter=ACM -- '*.krl'); do
+  if ! git show ":$f" | krl-check >/dev/null; then
+    echo "krl-check failed: $f"
+    status=1
+  fi
+done
+exit $status
+```
+
+Save it as `.git/hooks/pre-commit` and make it executable. `git show ":$f"` is the staged copy, so a fix you haven't staged yet doesn't hide an error. See also [Programming Workflow](/developing/workflow).
+
+## Writing and debugging
 
 ### Use the Testing and Logging tabs
 
 - The **Testing** tab builds a form for each event and query a ruleset offers, using the ruleset's doc comments (`@attr`, `@param`, `@example`). Document your rules and shared functions and the forms write themselves.
-- The **Logging** tab shows what the pico did for each event or query: the channel and its policy decision, the attributes, which rules were selected and which fired, directives, raised events, and `klog` output. Use the filters to narrow it to a ruleset, an event, or errors. It keeps recent transactions per pico in memory (200 by default, `PICO_ENGINE_LOG_RING`), so a restart clears it. The log file on disk keeps the full record; see [Reading the engine's log files](/patterns_and_tips/engine-log-files).
+- The **Logging** tab shows what the pico did for each event or query: the channel and its policy decision, the attributes, which rules were selected and which fired, directives, raised events, and `klog` output. Use the filters to narrow it to a ruleset, an event, or errors. It keeps recent transactions per pico in memory (200 by default, `PICO_ENGINE_LOG_RING`), so a restart clears it. The log file on disk keeps the full record; see [Reading the engine's log files](/developing/engine-log-files).
 - `.klog("label: ")` returns the value it's applied to, so you can add it in the middle of an expression without changing the code.
 
 ### "Not allowed by channel policy"
@@ -152,12 +168,72 @@ Two cautions:
 - The event isn't raised again on a flush, so a change to this rule's setup doesn't take effect on picos that already have the ruleset.
 - Guard each initialization with `isnull()` so you never overwrite state that has accumulated.
 
-More about this in [Initializing entity variables](/patterns_and_tips/initializing-entity-variables) and [Bootstrap and channels](/cookbook/bootstrap/).
+More: [Initializing entity variables](/developing/initializing-entity-variables) and [Bootstrap and channels](/cookbook/bootstrap/).
 
 ### Wrangler, not `ctx`, in application rulesets
 
 For children, channels, ruleset installation, and queries between picos, use wrangler's events and functions (`wrangler:new_child_request`, `wrangler:picoQuery`, and so on). The engine's lower-level `ctx:*` actions exist for wrangler and the platform to use. See [Wrangler](/wrangler/).
 
+## Technique tips
+
+Short techniques for writing KRL and working with picos, checked against this engine. For runnable examples, see the [Cookbook](/cookbook/) and the **Try It!** tab. Event and query URLs live in the [Event Exchange Protocol](/exp/).
+
+### Working with data
+
+| Page | What it covers |
+|------|----------------|
+| [Initializing entity variables](/developing/initializing-entity-variables) | `defaultsTo`, a guard rule, or a rule that runs on install |
+| [Arrays and maps](/developing/arrays-and-maps) | Loops with `reduce`, flattening, and sorting arrays of maps by one key or two |
+| [Decoding form-encoded data](/developing/decoding-form-data) | Turning `a=1&b=2` into a map, keeping repeated names, and decoding `+` and `%xx` |
+| [Importing tables and CSV](/developing/tabular-data) | Tab- and comma-separated exports to arrays and maps, fetched with `http:get` |
+| [Converting time formats](/developing/converting-time-formats) | RSS (RFC 2822) dates to the RFC 3339 form the time library uses |
+| [What's in a name?](/developing/names-and-scope) | KRL's separate kinds of names, and how a `pre` declaration shadows a global |
+
+### HTTP and the outside world
+
+| Page | What it covers |
+|------|----------------|
+| [Cookies and redirects](/developing/cookies-and-redirects) | The `_cookie` and `_redirect` directives, reading cookies, and a URL shortener |
+| [Events from email](/developing/events-from-email) | A mail webhook to an event, routing by address, and turning message lines into events |
+| [Reading the engine's log files](/developing/engine-log-files) | Where the logs are, how they rotate, and one pico's history with `grep` and `jq` |
+| [Event and Query URLs with Postman](/developing/postman) | Building Sky requests in Postman or `curl` |
+
+### Picos working together
+
+| Page | What it covers |
+|------|----------------|
+| [Querying another pico](/developing/querying-another-pico) | `wrangler:picoQuery`, which channel to use, why a pico can't query itself, and `http:get` |
+| [Accepting relationship requests](/developing/accepting-relationship-requests) | An approving rule, wrangler's auto-accept configuration, and a ruleset that accepts later and removes itself |
+| [One pico per resource](/developing/singleton-picos) | Giving a device or account its own pico, so requests can't collide |
+
+### Patterns that became demos
+
+| Pattern | Demo |
+|---------|------|
+| Idempotency and guard rules; authorize, then use | [Guard rules](/cookbook/guard_rules/) |
+| Splitting rules for clarity and extensibility; layering functionality with rulesets; semantic translation | [Layered rulesets](/cookbook/layered_rulesets/) |
+| Collection picos | [Collection](/cookbook/collection/) |
+| Access tokens and other secrets; keeping keys safe | [Configuration and secrets](/cookbook/secrets/) |
+| Installing a multi-ruleset application; creating a channel for a ruleset | [Bootstrap and channels](/cookbook/bootstrap/) |
+| An echo server | [Echo](/cookbook/echo/) |
+| A score tracker | [Score tracker](/cookbook/score_tracker/) |
+| A child pico for an asynchronous task | [Child pico tasks](/cookbook/child_tasks/) |
+| Automatic replies to relationship requests; querying over a relationship | [Two picos talking](/cookbook/two_picos/) |
+| An event hierarchy across rulesets | [KBlog](/cookbook/kblog/) |
+
+### In the KRL manual
+
+- [Persistent variables](/krl/persistent-variables/)
+- [User-defined actions](/krl/krl-expression-language/user-defined-actions)
+
+### Left out of the old cookbook
+
+- **Sending secure messages** used `engine:signChannelMessage` and its relatives, which are gone. Relationships can use DIDComm; see [Relationships](/wrangler/relationships).
+- **Shorter URL for a query or event** used `io.picolabs.rewrite` on the root pico, removed in engine 1.0. A ruleset can do the same with `_redirect`: see [Cookies and redirects](/developing/cookies-and-redirects).
+- **Account management using the root pico** described owner picos from before engine 1.0.
+- **Generate an image with KRL**, **Using Foursquare data**, **Using Wovyn sensors**, **Using Git**, and **Using a Google sheet** are about particular services rather than KRL.
+- **Proposals, experiments, and proofs of concept** were experiments on earlier engines.
+
 ---
 
-<small>Ported from the [Pico Labs wiki](https://picolabs.atlassian.net/wiki/spaces/docs/pages/31544297) (last edited there 2021-04-12), and updated for this engine.</small>
+<small>Merges the [Developer Tips](https://picolabs.atlassian.net/wiki/spaces/docs/pages/31544297) wiki page (last edited there 2021-04-12) with the Patterns and tips / KRL Cookbook pages that still apply, updated for this engine.</small>

@@ -17,7 +17,6 @@ const files = [
 // Copied with their folder structure, as mcp/docs/<dir>/...
 const dirs = [
   "docs/cookbook",
-  "docs/patterns_and_tips",
   "docs/wrangler",
   "docs/exp",
   "docs/lessons",
@@ -39,6 +38,7 @@ function copyMarkdown(fromDir, toDir) {
   return count;
 }
 
+fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
 for (const [src, dest] of files) {
   const from = path.join(repoRoot, src);

@@ -211,7 +211,7 @@ sectionIdOf = function(section_id) {
 }
 ```
 
-This asks a section pico which section it thinks it is, by calling the shared function `sectionId` of the ruleset `app_section`, which we'll write next. In a rule you would check the answer with `if answer{"error"}.isnull() then …`. A pico can't query itself, and a query waits for its answer, so avoid two picos that query each other at the same time. See [Querying another pico](/patterns_and_tips/querying-another-pico).
+This asks a section pico which section it thinks it is, by calling the shared function `sectionId` of the ruleset `app_section`, which we'll write next. In a rule you would check the answer with `if answer{"error"}.isnull() then …`. A pico can't query itself, and a query waits for its answer, so avoid two picos that query each other at the same time. See [Querying another pico](/developing/querying-another-pico).
 
 ## Install a ruleset in a child
 

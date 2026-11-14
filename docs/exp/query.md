@@ -80,7 +80,7 @@ The channel's query policy must allow that rid and name. App channels created wi
 
 ## From KRL
 
-To query another pico from a ruleset, use `wrangler:picoQuery` (works over family channels and relationships). Prefer that over building an `http:get` to `/sky/query/` yourself. See [Querying another pico](/patterns_and_tips/querying-another-pico) and [Wrangler](/wrangler/).
+To query another pico from a ruleset, use `wrangler:picoQuery` (works over family channels and relationships). Prefer that over building an `http:get` to `/sky/query/` yourself. See [Querying another pico](/developing/querying-another-pico) and [Wrangler](/wrangler/).
 
 ## See also
 

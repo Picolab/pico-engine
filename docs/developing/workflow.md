@@ -37,7 +37,7 @@ krl-check my.ruleset.krl
 
 > **Note:** `krl-check` replaces the old parse-only hook scripts (`krl-compiler --verify`, and the hooks built on the old parser). If you still have one of those in a repository, replace it.
 
-Run it often, from your editor or a file watcher. To make sure nothing that fails to compile is ever committed, add a Git pre-commit hook. [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets) has the hook, and it checks the *staged* version of each file, which is what you want.
+Run it often, from your editor or a file watcher. To make sure nothing that fails to compile is ever committed, add a Git pre-commit hook. [Tips](/developing/tips) has the hook, and it checks the *staged* version of each file, which is what you want.
 
 Then add and commit as usual:
 

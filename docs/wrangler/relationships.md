@@ -60,7 +60,7 @@ The side that asks raises `wrangler:relationship`:
 | `Tx_role`, `Rx_role` | Optional roles: the other side's and this side's |
 | `channel_type` | Usually `Tx_Rx` |
 
-The side asked approves with `wrangler:pending_relationship_approval`, or by an auto-accept rule (see [Accepting relationship requests](/patterns_and_tips/accepting-relationship-requests)).
+The side asked approves with `wrangler:pending_relationship_approval`, or by an auto-accept rule (see [Accepting relationship requests](/developing/accepting-relationship-requests)).
 
 Don't pass `wellKnown_Tx` on a DID-based request, or a `did:peer`: the engine makes the pairwise DIDs during the introduction.
 

@@ -64,7 +64,7 @@ The dev MCP server (`pico-engine mcp --stdio`, `mcp/tryItTools.js`) has three to
 - `run_try_it_demo {demo, parentEci?, name?, timeoutSeconds?}`: `demo` is a folder, bootstrap rid, or name. Creates the child under the parent's UI channel (default root), installs the bootstrap with `engine_ui:install` (reporting `ruleset_install_failed`), then polls `tryIt()` on the child's `try_it` channel until ready. Returns the child's UI ECI, the `try_it` ECI, stage, links, and the notes. Removing a demo is `delete_pico` on that UI ECI.
 - `try_it_status {parentEci?}`: the "Running here" list for a pico's children.
 
-The cookbook and Patterns and tips pages are MCP resources (`pico://docs/cookbook/<folder>/README` and `/instructions`, `pico://docs/patterns_and_tips/<page>`), read from the repo in a checkout and from `mcp/docs/` (bundled at pack time) in an npm install. Test: `test/mcpTryIt.ts`, in `npm run test:mcp`.
+The cookbook and Developing with Picos pages are MCP resources (`pico://docs/cookbook/<folder>/README` and `/instructions`, `pico://docs/developing/<page>`), read from the repo in a checkout and from `mcp/docs/` (bundled at pack time) in an npm install. Test: `test/mcpTryIt.ts`, in `npm run test:mcp`.
 
 ## Testing
 

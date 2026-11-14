@@ -63,7 +63,7 @@ ruleset io.picolabs.hello_world {
 }
 ```
 
-A `say:hello` event sent to the pico stores the name in the entity variable `ent:said`. The `hello` and `said` functions can be called as queries on any channel whose policy allows them. To see rulesets like this one running, with pages, channels, and other picos, use the **Try It!** tab. To write your own, see the [KRL manual](krl/) and [Patterns and tips](patterns_and_tips/).
+A `say:hello` event sent to the pico stores the name in the entity variable `ent:said`. The `hello` and `said` functions can be called as queries on any channel whose policy allows them. To see rulesets like this one running, with pages, channels, and other picos, use the **Try It!** tab. To write your own, see the [KRL manual](krl/) and [Developing with Picos](developing/).
 
 ## Where to go next
 
@@ -72,12 +72,11 @@ A `say:hello` event sent to the pico stores the name in the entity variable `ent
 | Understand what picos are and why | [Persistent Compute Objects](pico-overview.md) |
 | Install, configure and run an engine | [Operator guide](pico-engine.md) |
 | Learn by writing rulesets, in order | [Programming lessons](lessons/) |
-| Set up a toolchain, understand the event loop, avoid common mistakes | [Developing with Picos](developing/) |
+| Set up a toolchain, understand the event loop, tips and common mistakes | [Developing with Picos](developing/) |
 | Write rulesets | [KRL manual](krl/) |
 | Use the rulesets every pico has (Wrangler, PDS, relationships) | [Wrangler](wrangler/), and the [API reference](rulesets/) |
 | Give a pico its own web UI | [Pico views](pico-views.md) |
 | Install and run worked examples, from the **Try It!** tab or by hand | [Cookbook](cookbook/) |
-| Learn short techniques for KRL and picos | [Patterns and tips](patterns_and_tips/) |
 | Call picos over HTTP | [Event Exchange Protocol](exp/) · [OpenAPI spec](openapi.yaml) |
 | Point a coding agent at these docs | [llms.txt](llms.txt) · [llms-full.txt](llms-full.txt) |
 | Contribute | [Contributing](contributing.md) |

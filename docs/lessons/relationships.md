@@ -352,7 +352,7 @@ rule accept_student {
 
 When a relationship arrives, Wrangler raises `wrangler:inbound_pending_relationship_added` with the attributes of the request, seen from the receiver's side: `Rx_role` is the receiver's own role. The rule approves by raising `wrangler:pending_relationship_approval` with the same attributes (which include `Id`). That's the programmatic version of clicking **Approve**.
 
-Don't approve everyone. This rule only accepts the request when its `Rx_role` is `registration`; anything else is left pending. For something more general, see [Accepting relationship requests](/patterns_and_tips/accepting-relationship-requests) for the auto-accept configuration.
+Don't approve everyone. This rule only accepts the request when its `Rx_role` is `registration`; anything else is left pending. For something more general, see [Accepting relationship requests](/developing/accepting-relationship-requests) for the auto-accept configuration.
 
 ### Add a class: introduce a section
 
@@ -498,7 +498,7 @@ In this lesson's application, a section would report `wrangler:myDid()` instead 
 
 - [Relationships](/wrangler/relationships): DIDs, public intro, routing, across engines, and the whole API
 - [Two picos talking](/cookbook/two_picos/): two picos, a relationship, and queries over it, that you can run in two minutes
-- [Accepting relationship requests](/patterns_and_tips/accepting-relationship-requests): auto-accept by configuration
+- [Accepting relationship requests](/developing/accepting-relationship-requests): auto-accept by configuration
 - [Scatter-Gather](/lessons/scatter-gather): what to do once a pico has relationships with many others
 
 ---

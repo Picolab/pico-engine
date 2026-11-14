@@ -73,7 +73,7 @@ function registerDocPages(server, dir, label) {
 
 function registerDevResources(server, client) {
   registerDocPages(server, "cookbook", "Cookbook");
-  registerDocPages(server, "patterns_and_tips", "Patterns and tips");
+  registerDocPages(server, "developing", "Developing with Picos");
   registerDocPages(server, "wrangler", "Wrangler");
 
   server.resource(

@@ -321,7 +321,7 @@ Vernon's book is a good companion. Its language and framework (Scala and Akka) a
 ## Related
 
 - [Child pico tasks](/cookbook/child_tasks/): a pico per job, with a task id and no waiting
-- [Querying another pico](/patterns_and_tips/querying-another-pico): when a synchronous query is the right tool
+- [Querying another pico](/developing/querying-another-pico): when a synchronous query is the right tool
 - [Relationships](/wrangler/relationships) and [The wrangler ruleset](/wrangler/wrangler): the events and functions used here
 - [Gossip](/lessons/gossip): an advanced lab in which picos exchange state by events
 

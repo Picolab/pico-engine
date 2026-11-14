@@ -435,7 +435,7 @@ rule initialize {
 - The `where` clause. Without it the rule selects whenever *any* ruleset is installed in the pico, and resets the variable each time, erasing changes made since.
 - The `isnull()` test. It protects against the ruleset being initialized again. A pico's state can accumulate for months, and a reinstall that re-initializes it would throw that away. (Wrangler raises `ruleset_installed` only when the ruleset's id is new on the pico, and a flush doesn't raise it, but the guard is cheap and covers any other path to this rule.)
 
-See [Initializing entity variables](/patterns_and_tips/initializing-entity-variables).
+See [Initializing entity variables](/developing/initializing-entity-variables).
 
 ### Regular expressions and multi-line strings
 

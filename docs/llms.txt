@@ -14,9 +14,21 @@ Machine-readable index for agents working with picos and KRL.
 - Developing with Picos: developing/README.md
 - Developing: Programming Workflow: developing/workflow.md
 - Developing: Event Loop Introduction: developing/event-loop.md
-- Developing: Developer Tips: developing/tips.md
+- Developing: Tips: developing/tips.md
 - Developing: Event and Query URLs with Postman: developing/postman.md
 - Developing: KRL misconceptions and common errors: developing/misconceptions.md
+- Tip: initializing entity variables: developing/initializing-entity-variables.md
+- Tip: arrays and maps: developing/arrays-and-maps.md
+- Tip: decoding form-encoded data: developing/decoding-form-data.md
+- Tip: importing tables and CSV: developing/tabular-data.md
+- Tip: converting time formats: developing/converting-time-formats.md
+- Tip: what's in a name: developing/names-and-scope.md
+- Tip: cookies and redirects: developing/cookies-and-redirects.md
+- Tip: events from email: developing/events-from-email.md
+- Tip: reading the engine's log files: developing/engine-log-files.md
+- Tip: querying another pico: developing/querying-another-pico.md
+- Tip: accepting relationship requests: developing/accepting-relationship-requests.md
+- Tip: one pico per resource: developing/singleton-picos.md
 - Pico engine operator guide: pico-engine.md
 - Pico views: pico-views.md
 - Programming lessons: lessons/README.md
@@ -67,21 +79,6 @@ Machine-readable index for agents working with picos and KRL.
 - Event Exchange Protocol: exp/README.md
 - EXP: Event API (Sky): exp/event.md
 - EXP: Query API (Sky): exp/query.md
-- Patterns and tips: patterns_and_tips/README.md
-- Tip: initializing entity variables: patterns_and_tips/initializing-entity-variables.md
-- Tip: arrays and maps: patterns_and_tips/arrays-and-maps.md
-- Tip: decoding form-encoded data: patterns_and_tips/decoding-form-data.md
-- Tip: importing tables and CSV: patterns_and_tips/tabular-data.md
-- Tip: converting time formats: patterns_and_tips/converting-time-formats.md
-- Tip: what's in a name: patterns_and_tips/names-and-scope.md
-- Tip: events and queries over HTTP: patterns_and_tips/events-and-queries-over-http.md
-- Tip: cookies and redirects: patterns_and_tips/cookies-and-redirects.md
-- Tip: events from email: patterns_and_tips/events-from-email.md
-- Tip: reading the engine's log files: patterns_and_tips/engine-log-files.md
-- Tip: querying another pico: patterns_and_tips/querying-another-pico.md
-- Tip: accepting relationship requests: patterns_and_tips/accepting-relationship-requests.md
-- Tip: one pico per resource: patterns_and_tips/singleton-picos.md
-- Tip: hosting and checking rulesets: patterns_and_tips/hosting-and-checking-rulesets.md
 - Bundled rulesets: rulesets/README.md
 - KRL manual: krl/README.md
 - Contributing: contributing.md

@@ -32,7 +32,7 @@ cookies = function(_headers) {
 }
 ```
 
-With the header `Cookie: wellKnown_Rx=abc123; sessionid=38afes7a8`, `cookies()` is `{"wellKnown_Rx": "abc123", "sessionid": "38afes7a8"}`. The chain is the same idea as [decoding form data](/patterns_and_tips/decoding-form-data), splitting on `"; "` instead of `&`.
+With the header `Cookie: wellKnown_Rx=abc123; sessionid=38afes7a8`, `cookies()` is `{"wellKnown_Rx": "abc123", "sessionid": "38afes7a8"}`. The chain is the same idea as [decoding form data](/developing/decoding-form-data), splitting on `"; "` instead of `&`.
 
 ## Redirect: `_redirect`
 

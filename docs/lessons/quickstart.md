@@ -105,7 +105,7 @@ You can install from a file on your machine, or from a URL.
    If the ruleset is on GitHub, use the **raw** URL, such as `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/hello_world.krl`, not the page that shows the file.
 4. Leave **Config** as it is and click **Install**.
 
-`io.picolabs.hello_world` now appears in the list of installed rulesets. More on URLs and hosting rulesets: [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets).
+`io.picolabs.hello_world` now appears in the list of installed rulesets. More on URLs and hosting rulesets: [Tips](/developing/tips).
 
 ## Try it
 
@@ -125,7 +125,7 @@ The engine compiles a ruleset once and remembers it. When you change the source,
 2. On the child's **Rulesets** tab, find `io.picolabs.hello_world` in the list and click **flush**. The engine fetches the URL again and recompiles.
 3. In **Testing**, send `echo:hello` again. The greeting now says `Howdy`.
 
-A flush updates every pico that has the ruleset installed. It rereads the ruleset's URL. If you installed with **Browse…**, that URL is the engine's staged copy, not your file, so flush won't see your edit: browse for the changed file again, or install from a `file://` URL you typed, which flush rereads. [Hosting and checking rulesets](/patterns_and_tips/hosting-and-checking-rulesets) covers flushing, and how to check KRL from the command line with `krl-check` before you install it.
+A flush updates every pico that has the ruleset installed. It rereads the ruleset's URL. If you installed with **Browse…**, that URL is the engine's staged copy, not your file, so flush won't see your edit: browse for the changed file again, or install from a `file://` URL you typed, which flush rereads. [Tips](/developing/tips) covers flushing, and how to check KRL from the command line with `krl-check` before you install it.
 
 ## Troubleshooting
 

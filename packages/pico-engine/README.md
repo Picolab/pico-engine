@@ -13,7 +13,7 @@ pico-engine
 
 Open `http://localhost:3000` — a root pico and UI channel are created on first run. Operator settings (port, data dir, policy ceiling) live in **`~/.config/pico-engine/config.json`**; copy [`config.example.json`](https://github.com/Picolab/pico-engine/blob/master/packages/pico-engine/config.example.json). See the [engine guide](https://docs.picolabs.io/#/pico-engine).
 
-**AI coding assistants:** `pico-engine mcp --stdio` runs an MCP server against the same engine (status, picos, channels, events, queries, KRL validation, and the Try It! demos: `list_try_it_demos`, `run_try_it_demo`, `try_it_status`). It also serves the cookbook and Patterns and tips as `pico://docs/...` resources. Machine-readable docs: [`llms.txt`](https://docs.picolabs.io/llms.txt) and [`llms-full.txt`](https://docs.picolabs.io/llms-full.txt). Repo conventions for agents: [`CLAUDE.md`](https://github.com/Picolab/pico-engine/blob/master/CLAUDE.md).
+**AI coding assistants:** `pico-engine mcp --stdio` runs an MCP server against the same engine (status, picos, channels, events, queries, KRL validation, and the Try It! demos: `list_try_it_demos`, `run_try_it_demo`, `try_it_status`). It also serves the cookbook and Developing with Picos docs as `pico://docs/...` resources. Machine-readable docs: [`llms.txt`](https://docs.picolabs.io/llms.txt) and [`llms-full.txt`](https://docs.picolabs.io/llms-full.txt). Repo conventions for agents: [`CLAUDE.md`](https://github.com/Picolab/pico-engine/blob/master/CLAUDE.md).
 
 ## Getting Started
 
