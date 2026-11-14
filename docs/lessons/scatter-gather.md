@@ -18,6 +18,7 @@ When you finish you will be able to:
 
 ## The problem
 
+<img src="_media/1185976-26315821-fuse.jpg" alt="Fuse Logo" width="50%" >
 ![Fuse logo](_media/1185976-26315821-fuse.jpg)
 
 Fuse was an open-source connected-car platform built with picos. Every week it sent the fleet owner a report: the trips and fuel fill-ups of each vehicle in the period, summed for each vehicle and then for the fleet. Here's the start of a weekly report for one fleet:
