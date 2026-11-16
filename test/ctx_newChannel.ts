@@ -22,7 +22,8 @@ test("ctx.newChannel", async function(t) {
     tags: ["some", "thing"],
     familyChannelPicoID: null,
     eventPolicy: { allow: [], deny: [] },
-    queryPolicy: { allow: [], deny: [] }
+    queryPolicy: { allow: [], deny: [] },
+    mcpPolicy: { allow: [], deny: [] }
   });
 
   let err = await t.throwsAsync(

@@ -1,17 +1,27 @@
 import {
   cleanEventPolicy,
+  cleanMcpPolicy,
   cleanQueryPolicy,
   EventPolicy,
   EventPolicyRule,
+  McpPolicy,
+  McpSurface,
   QueryPolicy,
   QueryPolicyRule,
   allowsEventPolicy,
+  allowsMcpPolicy,
   allowsQueryPolicy,
+  EMPTY_MCP_POLICY,
 } from "./Channel";
 
 export interface PolicyCeiling {
   eventPolicy: EventPolicy;
   queryPolicy: QueryPolicy;
+  /**
+   * Absent means this ceiling does not constrain MCP. Present means a
+   * channel's mcpPolicy must be no wider. An empty policy denies both surfaces.
+   */
+  mcpPolicy?: McpPolicy;
 }
 
 /** Max-permissive ceiling (legacy behavior when no ceiling is stored). */
@@ -136,10 +146,31 @@ export function queryPolicySubsetOf(
   return true;
 }
 
+const MCP_SURFACES: McpSurface[] = ["channel", "mesh"];
+
+/** Absent inner policy is treated as allowing both surfaces (no constraint). */
+export function mcpPolicySubsetOf(inner: McpPolicy, outer: McpPolicy): boolean {
+  for (const surface of MCP_SURFACES) {
+    if (allowsMcpPolicy(inner, surface) && !allowsMcpPolicy(outer, surface)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function policyCeilingSubsetOf(
   inner: PolicyCeiling,
   outer: PolicyCeiling,
 ): boolean {
+  if (
+    outer.mcpPolicy &&
+    !mcpPolicySubsetOf(
+      inner.mcpPolicy || { allow: [{ surface: "*" }], deny: [] },
+      outer.mcpPolicy,
+    )
+  ) {
+    return false;
+  }
   return (
     eventPolicySubsetOf(inner.eventPolicy, outer.eventPolicy) &&
     queryPolicySubsetOf(inner.queryPolicy, outer.queryPolicy)
@@ -159,6 +190,7 @@ export function assertChannelPolicyWithinCeiling(
   eventPolicy: EventPolicy,
   queryPolicy: QueryPolicy,
   ceiling: PolicyCeiling,
+  mcpPolicy?: McpPolicy,
 ): void {
   if (!eventPolicySubsetOf(eventPolicy, ceiling.eventPolicy)) {
     throw new Error("Channel event policy exceeds pico policy ceiling");
@@ -166,11 +198,21 @@ export function assertChannelPolicyWithinCeiling(
   if (!queryPolicySubsetOf(queryPolicy, ceiling.queryPolicy)) {
     throw new Error("Channel query policy exceeds pico policy ceiling");
   }
+  if (
+    ceiling.mcpPolicy &&
+    !mcpPolicySubsetOf(mcpPolicy || EMPTY_MCP_POLICY, ceiling.mcpPolicy)
+  ) {
+    throw new Error("Channel MCP policy exceeds pico policy ceiling");
+  }
 }
 
 export function normalizePolicyCeiling(raw: PolicyCeiling): PolicyCeiling {
-  return {
+  const ceiling: PolicyCeiling = {
     eventPolicy: cleanEventPolicy(raw.eventPolicy),
     queryPolicy: cleanQueryPolicy(raw.queryPolicy),
   };
+  if (raw.mcpPolicy !== undefined) {
+    ceiling.mcpPolicy = cleanMcpPolicy(raw.mcpPolicy);
+  }
+  return ceiling;
 }

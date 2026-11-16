@@ -7,12 +7,28 @@ import { isNotStringOrBlank, LevelBatch } from "./utils";
 export const CUSTOM_CHANNEL_ID_MIN_LENGTH = 12;
 export const CUSTOM_CHANNEL_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 
+export type McpSurface = "channel" | "mesh";
+
+export interface McpPolicyRule {
+  /** `channel` is `/mcp/{eci}`, `mesh` is the whole-mesh endpoint, `*` is both. */
+  surface: McpSurface | "*";
+}
+
+export interface McpPolicy {
+  allow: McpPolicyRule[];
+  deny: McpPolicyRule[];
+}
+
+export const EMPTY_MCP_POLICY: McpPolicy = { allow: [], deny: [] };
+
 export interface ChannelConfig {
   /** Optional id for manual channel creation; defaults to genID() when omitted. */
   id?: string;
   tags?: string[];
   eventPolicy?: EventPolicy;
   queryPolicy?: QueryPolicy;
+  /** Absent on create means default deny: the channel is not exposed to MCP. */
+  mcpPolicy?: McpPolicy;
 }
 
 export function validateCustomChannelId(id: unknown): string {
@@ -41,6 +57,7 @@ export interface ChannelReadOnly {
   tags: string[];
   eventPolicy: EventPolicy;
   queryPolicy: QueryPolicy;
+  mcpPolicy: McpPolicy;
   familyChannelPicoID: string | null;
 }
 
@@ -65,6 +82,8 @@ export class Channel {
     allow: [{ rid: "*", name: "*" }],
     deny: []
   };
+  /** Missing or empty denies both MCP surfaces. */
+  mcpPolicy: McpPolicy = { allow: [], deny: [] };
 
   /**
    * This is set by the family member (parent-child relation) who owns this channel.
@@ -80,6 +99,9 @@ export class Channel {
   ) {
     this.pico = pico;
     this.id = id;
+    if (conf && conf.mcpPolicy !== undefined) {
+      this.mcpPolicy = cleanMcpPolicy(conf.mcpPolicy);
+    }
     if (familyChannelPicoID) {
       this.tags = (conf && conf.tags) || [];
       this.familyChannelPicoID = familyChannelPicoID;
@@ -110,6 +132,9 @@ export class Channel {
     }
     if (conf.queryPolicy) {
       this.queryPolicy = cleanQueryPolicy(conf.queryPolicy);
+    }
+    if (conf.mcpPolicy !== undefined) {
+      this.mcpPolicy = cleanMcpPolicy(conf.mcpPolicy);
     }
     // NOTE: can't change familyChannelPicoID
   }
@@ -142,6 +167,7 @@ export class Channel {
       tags: this.tags.slice(0),
       eventPolicy: _.cloneDeep(this.eventPolicy),
       queryPolicy: _.cloneDeep(this.queryPolicy),
+      mcpPolicy: _.cloneDeep(this.mcpPolicy),
       familyChannelPicoID: this.familyChannelPicoID || null
     });
   }
@@ -156,6 +182,7 @@ export class Channel {
         tags: this.tags,
         eventPolicy: this.eventPolicy,
         queryPolicy: this.queryPolicy,
+        mcpPolicy: this.mcpPolicy,
         familyChannelPicoID: this.familyChannelPicoID || null
       }
     };
@@ -172,7 +199,8 @@ export class Channel {
       {
         tags: val.tags,
         eventPolicy: val.eventPolicy,
-        queryPolicy: val.queryPolicy
+        queryPolicy: val.queryPolicy,
+        ...(val.mcpPolicy !== undefined ? { mcpPolicy: val.mcpPolicy } : {})
       },
       val.familyChannelPicoID
     );
@@ -220,6 +248,56 @@ export function allowsQueryPolicy(
     }
   }
   return false;
+}
+
+export function allowsMcpPolicy(
+  policy: McpPolicy | undefined,
+  surface: McpSurface
+): boolean {
+  const rules = policy || EMPTY_MCP_POLICY;
+  for (const rule of rules.deny) {
+    if (rule.surface === "*" || rule.surface === surface) {
+      return false;
+    }
+  }
+  for (const rule of rules.allow) {
+    if (rule.surface === "*" || rule.surface === surface) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function cleanMcpPolicy(orig: any): McpPolicy {
+  if (
+    !orig ||
+    Object.keys(orig)
+      .sort()
+      .join(",") !== "allow,deny" ||
+    !Array.isArray(orig.allow) ||
+    !Array.isArray(orig.deny)
+  ) {
+    throw new TypeError(
+      `McpPolicy expects {allow: McpPolicyRule[], deny: McpPolicyRule[]}`
+    );
+  }
+  return {
+    allow: orig.allow.map(cleanMcpPolicyRule),
+    deny: orig.deny.map(cleanMcpPolicyRule)
+  };
+}
+
+function cleanMcpPolicyRule(orig: any): McpPolicyRule {
+  if (
+    !orig ||
+    Object.keys(orig).sort().join(",") !== "surface" ||
+    (orig.surface !== "channel" && orig.surface !== "mesh" && orig.surface !== "*")
+  ) {
+    throw new TypeError(
+      `McpPolicyRule expects {surface: "channel" | "mesh" | "*"}`
+    );
+  }
+  return { surface: orig.surface };
 }
 
 export function assertEventPolicy(eventPolicy: EventPolicy, event: PicoEvent) {

@@ -224,6 +224,7 @@ export class Pico {
       channel.eventPolicy,
       channel.queryPolicy,
       ceiling,
+      channel.mcpPolicy,
     );
   }
 
