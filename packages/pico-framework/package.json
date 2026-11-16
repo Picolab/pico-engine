@@ -1,0 +1,76 @@
+{
+  "name": "pico-framework",
+  "version": "0.8.2",
+  "description": "A framework for building actor-based, people-centric systems. (pico = PersIstent Compute Objects)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picolab/pico-framework.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Picolab/pico-framework/issues"
+  },
+  "homepage": "https://github.com/Picolab/pico-framework#readme",
+  "author": "Picolab",
+  "license": "MIT",
+  "keywords": [
+    "pico",
+    "actor",
+    "actor-model",
+    "event-driven",
+    "event-sourcing",
+    "iot",
+    "distributed",
+    "message-passing",
+    "microservice",
+    "microservice-framework",
+    "human-centric",
+    "krl"
+  ],
+  "files": [
+    "dist/src"
+  ],
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "rm -rf dist && tsc",
+    "test": "ava reset-cache && nyc ava"
+  },
+  "dependencies": {
+    "abstract-level": "^1.0.3",
+    "cuid": "^2.1.8",
+    "lodash": "^4.17.19",
+    "select-when": "^0.1.9"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.201",
+    "ava": "^5.3.1",
+    "charwise": "^3.0.1",
+    "level-json-coerce-null": "^1.0.1",
+    "memory-level": "^1.0.0",
+    "nyc": "^15.1.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^5.2.2"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "files": [
+      "test/**/*",
+      "!test/helpers/**/*"
+    ]
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reporter": [
+      "text",
+      "html"
+    ]
+  }
+}
