@@ -11,6 +11,15 @@ import * as os from "os";
 import * as path from "path";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
 import { resolveEngineSettings } from "../src/engineConfig";
+import { readInternalToken } from "../src/internalAccess";
+
+function internalHeaders(home: string): { "X-Pico-Internal": string } {
+  const token = readInternalToken(home);
+  if (!token) {
+    throw new Error(`missing internal token in ${home}`);
+  }
+  return { "X-Pico-Internal": token };
+}
 
 const RID = "com.example.thermostat.bootstrap";
 
@@ -41,7 +50,9 @@ async function waitFor<T>(fn: () => Promise<T | null | undefined>, ms = 8000): P
 
 test("/api/try-it lists bootstrap demos and /krl/demos serves them", async (t) => {
   const pe = await startIsolatedEngine({ autoCreateRootPico: true });
-  const res = await fetch(`${pe.base_url}/api/try-it`);
+  const res = await fetch(`${pe.base_url}/api/try-it`, {
+    headers: internalHeaders(pe.home),
+  });
   t.is(res.status, 200);
   const { demos } = (await res.json()) as {
     demos: Array<{
@@ -138,7 +149,9 @@ test("show_tryit_menu defaults to root_only; off hides the demos", async (t) => 
   const off = await startIsolatedEngine({ autoCreateRootPico: true, showTryItMenu: "off" });
   const offCtx = (await (await fetch(`${off.base_url}/api/ui-context`)).json()) as { showTryItMenu: string };
   t.is(offCtx.showTryItMenu, "off");
-  const offList = (await (await fetch(`${off.base_url}/api/try-it`)).json()) as { show: string; demos: unknown[] };
+  const offList = (await (
+    await fetch(`${off.base_url}/api/try-it`, { headers: internalHeaders(off.home) })
+  ).json()) as { show: string; demos: unknown[] };
   t.is(offList.show, "off");
   t.deepEqual(offList.demos, []);
   await off.pf.db.close();

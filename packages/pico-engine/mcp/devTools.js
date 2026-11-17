@@ -347,14 +347,15 @@ function registerDevTools(server, client) {
 
   server.tool(
     "create_channel",
-    "Create a channel on the root pico (engine_ui new_channel)",
+    "Create a channel on the root pico (engine_ui new_channel). Omit mcpPolicy and the channel is not exposed to MCP.",
     {
       tags: z.union([z.string(), z.array(z.string())]),
       id: z.string().optional(),
       eventPolicy: z.record(z.any()).optional(),
       queryPolicy: z.record(z.any()).optional(),
+      mcpPolicy: z.record(z.any()).optional(),
     },
-    async ({ tags, id, eventPolicy, queryPolicy }) => {
+    async ({ tags, id, eventPolicy, queryPolicy, mcpPolicy }) => {
       try {
         const tagList =
           typeof tags === "string"
@@ -368,6 +369,7 @@ function registerDevTools(server, client) {
           id,
           eventPolicy,
           queryPolicy,
+          mcpPolicy,
         });
         return eventResult(data);
       } catch (err) {

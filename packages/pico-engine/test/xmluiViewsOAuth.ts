@@ -2,6 +2,7 @@
  * S1: view Sky context and /sky/* bearer when mesh OAuth is enabled.
  */
 
+import * as crypto from "crypto";
 import test from "ava";
 import fetch from "cross-fetch";
 import { OAUTH_MESH_RULESET_RID } from "../src/oauth";
@@ -11,6 +12,10 @@ import { startIsolatedEngine } from "./helpers/isolatedEngine";
 import { toDemoXmluiKrlURL } from "./helpers/toDemoXmluiKrlURL";
 
 const TEST_PKCE_VERIFIER = "test-pkce-verifier-xmlui-views";
+const TEST_PKCE_CHALLENGE = crypto
+  .createHash("sha256")
+  .update(TEST_PKCE_VERIFIER)
+  .digest("base64url");
 
 function fakeAuthenticator(): WebAuthnAdapter {
   let n = 0;
@@ -117,8 +122,8 @@ async function meshAccessToken(
     {
       client_id: app.client_id,
       redirect_uri,
-      code_challenge: TEST_PKCE_VERIFIER,
-      code_challenge_method: "plain",
+      code_challenge: TEST_PKCE_CHALLENGE,
+      code_challenge_method: "S256",
       approved: true,
     }
   );

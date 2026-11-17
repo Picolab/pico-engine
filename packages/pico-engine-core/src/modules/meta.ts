@@ -1,4 +1,4 @@
-import { krl } from "krl-stdlib";
+import { callingRulesetRid, krl } from "krl-stdlib";
 import { PicoEngineCore } from "../PicoEngineCore";
 import {
   getCachedRulesetForUrl,
@@ -32,6 +32,10 @@ export default function initMetaModule(core: PicoEngineCore) {
 
     rid: krl.Property(function rid() {
       return this.rsCtx.ruleset.rid;
+    }),
+
+    callingRID: krl.Function([], function () {
+      return callingRulesetRid(this.rsCtx.ruleset.rid);
     }),
 
     ruleName: krl.Property(function rid() {

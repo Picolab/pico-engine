@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.5
+
+* The package lives in the pico-engine monorepo (`packages/pico-framework`) and shares the engine's version. **0.8.2** was the last release published from the separate `Picolab/pico-framework` repository.
+* **`mcpPolicy`** on each channel (`allow` / `deny` of surfaces `channel`, `mesh`, or `*`). Missing or empty denies both surfaces. A pico policy ceiling constrains MCP only when that ceiling stores `mcpPolicy`.
+
 ## 0.8.2 - October 23, 2026
 
 * **Policy ceiling** — optional `policyCeiling` on each pico (`eventPolicy` / `queryPolicy` caps). Enforced on `newChannel` and `putChannel` for non-exempt tags; children inherit parent ceiling or receive a narrower ceiling via `NewPicoConfig.policyCeiling`.

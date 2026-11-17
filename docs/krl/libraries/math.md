@@ -100,12 +100,25 @@ Return the hash for the **str** using the given **algorithm**. Optionally specif
 
 ### math:hmac(algorithm, key, message [, encoding])
 
-Return an hmac string of **message** from the given hash **algorithm** and secret **key**. Optionally specify the **encoding** "hex" (default) and "base64"
+Return the HMAC of **message** using hash **algorithm** and secret **key**. **key** is a string. **algorithm** is any name from `math:hashAlgorithms`, including `sha256` and `sha1`. **encoding** is `"hex"` (the default) or `"base64"`.
 
 ```
  math:hmac("sha256", "a secret", "some message") // "86de43245b44531ac38b6a6a691996287d932a8dea03bc69b193b90caf48ff53"
  math:hmac("sha256", "a secret", "some message", "base64") // "ht5DJFtEUxrDi2pqaRmWKH2TKo3qA7xpsZO5DK9I/1M="
+ math:hmac("sha1", key, body)
 ```
+
+Keep the key in the ruleset's own PDS settings and mark it secret. `pds:config_value("apiKey")` returns it to this ruleset. The `settings` query returns `{ "secret": true, "set": true }` instead of the key. See [PDS settings](/wrangler/pds).
+
+### math:timing_safe_equal(a, b)
+
+Compare two strings without returning early on the first differing byte. Use this for a signature or other secret, instead of `==`. It returns true only when both arguments are strings and their bytes are the same. A different length, or a value that is not a string, returns false.
+
+```
+math:timing_safe_equal(expected, given)
+```
+
+A Square webhook check is [Webhook signatures](/developing/webhook-signatures).
 
 ## Planned but not yet implemented
 

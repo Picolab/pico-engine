@@ -40,9 +40,9 @@ ruleset io.picolabs.wrangler {
                               { "domain": "wrangler", "name": "child_deletion_request",
                               "attrs": [ "eci"] },
                               { "domain": "wrangler", "name": "new_channel_request",
-                                "attrs": [ "tags", "eventPolicy", "queryPolicy" ] },
+                                "attrs": [ "tags", "eventPolicy", "queryPolicy", "mcpPolicy", "rawBody" ] },
                               { "domain": "wrangler", "name": "channel_update_request",
-                                "attrs": [ "eci", "tags", "eventPolicy", "queryPolicy" ] },
+                                "attrs": [ "eci", "tags", "eventPolicy", "queryPolicy", "mcpPolicy", "rawBody" ] },
                               { "domain": "wrangler", "name": "channel_deletion_request",
                                 "attrs": [ "eci" ] },
                               { "domain": "wrangler", "name": "install_ruleset_request",
@@ -299,21 +299,25 @@ ruleset io.picolabs.wrangler {
       ctx:delChannel(eci)
     }
 
-    createChannel = defaction(tags,eventPolicy,queryPolicy){
+    createChannel = defaction(tags,eventPolicy,queryPolicy,mcpPolicy,rawBody){
       ctx:newChannel(
         tags=tags,
         eventPolicy=eventPolicy,
-        queryPolicy=queryPolicy
+        queryPolicy=queryPolicy,
+        mcpPolicy=mcpPolicy,
+        rawBody=rawBody
       ) setting(channel)
       return channel
     }
 
-    updateChannel = defaction(eci, tags, eventPolicy, queryPolicy) {
+    updateChannel = defaction(eci, tags, eventPolicy, queryPolicy, mcpPolicy, rawBody) {
       ctx:putChannel(
         eci=eci,
         tags=tags,
         eventPolicy=eventPolicy,
-        queryPolicy=queryPolicy
+        queryPolicy=queryPolicy,
+        mcpPolicy=mcpPolicy,
+        rawBody=rawBody
       ) setting(channel)
       return channel
     }
@@ -701,7 +705,9 @@ ruleset io.picolabs.wrangler {
    * @attr tags Array "tags for the channel, e.g. [\"myapp\", \"webhook\"]"
    * @attr eventPolicy Map "{ allow: [ { domain, name } ], deny: [ … ] }"
    * @attr queryPolicy Map "{ allow: [ { rid, name } ], deny: [ … ] }"
-   * @example "webhook" { "tags": ["<app>", "webhook"], "eventPolicy": { "allow": [ { "domain": "<app>", "name": "*" } ], "deny": [] }, "queryPolicy": { "allow": [], "deny": [] } }
+   * @attr mcpPolicy Map "optional { allow: [ { surface } ], deny: [ … ] }. surface is channel, mesh, or *. Absent denies MCP."
+   * @attr rawBody Boolean "optional. true keeps the raw HTTP body for event:raw_body(). Absent does not."
+   * @example "webhook" { "tags": ["<app>", "webhook"], "eventPolicy": { "allow": [ { "domain": "<app>", "name": "*" } ], "deny": [] }, "queryPolicy": { "allow": [], "deny": [] }, "rawBody": true }
    */
   rule createChannel {
     select when wrangler new_channel_request
@@ -709,9 +715,11 @@ ruleset io.picolabs.wrangler {
       tags = event:attrs{"tags"}
       eventPolicy = event:attrs{"eventPolicy"}
       queryPolicy = event:attrs{"queryPolicy"}
+      mcpPolicy = event:attrs{"mcpPolicy"}
+      rawBody = event:attrs{"rawBody"}
     }
     if tags && eventPolicy && queryPolicy then
-      createChannel(tags,eventPolicy,queryPolicy) setting(channel)
+      createChannel(tags,eventPolicy,queryPolicy,mcpPolicy,rawBody) setting(channel)
     fired {
       raise wrangler event "channel_created"
         attributes event:attrs.put({"channel":channel})
@@ -739,6 +747,8 @@ ruleset io.picolabs.wrangler {
    * @attr tags Array "new tags"
    * @attr eventPolicy Map "new event policy"
    * @attr queryPolicy Map "new query policy"
+   * @attr mcpPolicy Map "optional { allow: [ { surface } ], deny: [ … ] }. Omit to leave MCP exposure unchanged."
+   * @attr rawBody Boolean "optional. true or false. Omit to leave the raw-body setting unchanged."
    */
   rule updateChannel {
     select when wrangler channel_update_request
@@ -747,9 +757,11 @@ ruleset io.picolabs.wrangler {
       tags = event:attrs{"tags"}
       eventPolicy = event:attrs{"eventPolicy"}
       queryPolicy = event:attrs{"queryPolicy"}
+      mcpPolicy = event:attrs{"mcpPolicy"}
+      rawBody = event:attrs{"rawBody"}
     }
     if eci && tags && eventPolicy && queryPolicy then
-      updateChannel(eci, tags, eventPolicy, queryPolicy) setting(channel)
+      updateChannel(eci, tags, eventPolicy, queryPolicy, mcpPolicy, rawBody) setting(channel)
     fired {
       raise wrangler event "channel_updated"
         attributes event:attrs.put({"channel": channel})

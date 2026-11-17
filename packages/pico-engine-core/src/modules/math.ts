@@ -100,6 +100,18 @@ const math: krl.Module = {
     return hmac.digest(encoding);
   }),
 
+  timing_safe_equal: krl.Function(["a", "b"], function (a, b) {
+    if (!krl.isString(a) || !krl.isString(b)) {
+      return false;
+    }
+    const left = Buffer.from(a, "utf8");
+    const right = Buffer.from(b, "utf8");
+    if (left.length !== right.length) {
+      return false;
+    }
+    return crypto.timingSafeEqual(left, right);
+  }),
+
   abs: krl.Function(["number"], function (number) {
     return Math.abs(number);
   }),

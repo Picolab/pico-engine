@@ -16,23 +16,15 @@ rule set_cookie {
 
 The engine adds `Set-Cookie: wellKnown_Rx=<eci>; Path=/sky` to the response, and the browser sends the cookie back with later requests to the same engine. This one shares the pico's well-known channel, so other picos reached from the same browser could offer it a relationship. The ruleset uses `io.picolabs.wrangler` as a module.
 
-## Read cookies
+## Read one cookie
 
-Every event raised over HTTP has a `_headers` attribute, and every query a `_headers` argument. This function works in both:
+`_headers` does not include the `Cookie` header. Read one cookie by name:
 
 ```krl
-cookies = function(_headers) {
-  arg = event:attr("_headers") || _headers
-  arg{"cookie"}.isnull() => {} |
-  arg{"cookie"}
-    .split("; ")
-    .map(function(v) { v.split("=") })
-    .collect(function(v) { v.head() })
-    .map(function(v) { v.head()[1] })
-}
+eci = http:cookie("wellKnown_Rx")
 ```
 
-With the header `Cookie: wellKnown_Rx=abc123; sessionid=38afes7a8`, `cookies()` is `{"wellKnown_Rx": "abc123", "sessionid": "38afes7a8"}`. The chain is the same idea as [decoding form data](/developing/decoding-form-data), splitting on `"; "` instead of `&`.
+That is `"abc123"` when the browser sent `Cookie: wellKnown_Rx=abc123`. A cookie that was not sent is `null`. The engine's own session and ceremony cookies are not available to rulesets. `_cookie` and `_redirect` are unchanged: they still set the response.
 
 ## Redirect: `_redirect`
 

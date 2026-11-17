@@ -20,6 +20,7 @@ Engine and wrangler stay **domain-agnostic**. If a change needs the words "owner
 | Path | What |
 |------|------|
 | `packages/pico-engine` | The npm package people install; HTTP server, CLI, auth/OAuth, identity, UI host |
+| `packages/pico-framework` | Pico runtime without KRL: picos, channels, policy, persistence. Versioned with the engine |
 | `packages/pico-engine-core` | Executes compiled KRL; event lifecycle |
 | `packages/krl-parser` → `krl-compiler` → `krl-generator` | KRL → AST → JS; AST → KRL |
 | `packages/krl-stdlib` | KRL standard library |
@@ -30,7 +31,7 @@ Engine and wrangler stay **domain-agnostic**. If a change needs the words "owner
 | `MEMORY.md` | Long-running working log: roadmap, decisions, gotchas. Source of truth for *why*; skim the TOC |
 | `test-rulesets/`, `demos/` | KRL used by tests and demos. Each `demos/<name>/` has a README; its overview and instructions are in `docs/cookbook/<name>/` |
 
-Sibling repos (same org, not in this tree): `manifold-api` (Manifold KRL), `sensor-network`, `MCPforEXP`, `pico-framework` (lifecycle/channels/LevelDB; engine depends on `^0.8.2` for 1.8 policy ceiling).
+Sibling repos (same org, not in this tree): `manifold-api` (Manifold KRL), `sensor-network`, `MCPforEXP`. `pico-framework` is `packages/pico-framework` in this repo.
 
 ## Commands
 

@@ -29,6 +29,11 @@ export interface ChannelConfig {
   queryPolicy?: QueryPolicy;
   /** Absent on create means default deny: the channel is not exposed to MCP. */
   mcpPolicy?: McpPolicy;
+  /**
+   * When true, an HTTP event on this channel keeps the raw request body for
+   * `event:raw_body()`. Absent or false means the body is not kept.
+   */
+  rawBody?: boolean;
 }
 
 export function validateCustomChannelId(id: unknown): string {
@@ -58,6 +63,8 @@ export interface ChannelReadOnly {
   eventPolicy: EventPolicy;
   queryPolicy: QueryPolicy;
   mcpPolicy: McpPolicy;
+  /** Present only when this channel keeps the raw HTTP body. */
+  rawBody?: true;
   familyChannelPicoID: string | null;
 }
 
@@ -84,6 +91,8 @@ export class Channel {
   };
   /** Missing or empty denies both MCP surfaces. */
   mcpPolicy: McpPolicy = { allow: [], deny: [] };
+  /** Webhook channels set this so a signature over the raw body can be checked. */
+  rawBody = false;
 
   /**
    * This is set by the family member (parent-child relation) who owns this channel.
@@ -101,6 +110,9 @@ export class Channel {
     this.id = id;
     if (conf && conf.mcpPolicy !== undefined) {
       this.mcpPolicy = cleanMcpPolicy(conf.mcpPolicy);
+    }
+    if (!familyChannelPicoID && conf && conf.rawBody === true) {
+      this.rawBody = true;
     }
     if (familyChannelPicoID) {
       this.tags = (conf && conf.tags) || [];
@@ -136,6 +148,9 @@ export class Channel {
     if (conf.mcpPolicy !== undefined) {
       this.mcpPolicy = cleanMcpPolicy(conf.mcpPolicy);
     }
+    if (typeof conf.rawBody === "boolean") {
+      this.rawBody = conf.rawBody;
+    }
     // NOTE: can't change familyChannelPicoID
   }
 
@@ -162,14 +177,18 @@ export class Channel {
   }
 
   toReadOnly(): ChannelReadOnly {
-    return Object.freeze({
+    const out: ChannelReadOnly = {
       id: this.id,
       tags: this.tags.slice(0),
       eventPolicy: _.cloneDeep(this.eventPolicy),
       queryPolicy: _.cloneDeep(this.queryPolicy),
       mcpPolicy: _.cloneDeep(this.mcpPolicy),
       familyChannelPicoID: this.familyChannelPicoID || null
-    });
+    };
+    if (this.rawBody) {
+      out.rawBody = true;
+    }
+    return Object.freeze(out);
   }
 
   toDbPut(): LevelBatch {
@@ -183,6 +202,7 @@ export class Channel {
         eventPolicy: this.eventPolicy,
         queryPolicy: this.queryPolicy,
         mcpPolicy: this.mcpPolicy,
+        ...(this.rawBody ? { rawBody: true } : {}),
         familyChannelPicoID: this.familyChannelPicoID || null
       }
     };
@@ -200,7 +220,8 @@ export class Channel {
         tags: val.tags,
         eventPolicy: val.eventPolicy,
         queryPolicy: val.queryPolicy,
-        ...(val.mcpPolicy !== undefined ? { mcpPolicy: val.mcpPolicy } : {})
+        ...(val.mcpPolicy !== undefined ? { mcpPolicy: val.mcpPolicy } : {}),
+        ...(val.rawBody === true ? { rawBody: true } : {})
       },
       val.familyChannelPicoID
     );

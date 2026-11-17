@@ -76,7 +76,7 @@ Environment (optional; Docker/CI when not set in config file):
     PICO_ENGINE_BASE_URL - Public URL (WebAuthn, did:webvh)
     PICO_ENGINE_RP_ID / PICO_ENGINE_ORIGIN - WebAuthn (or use webauthn block in config file)
     PICO_ENGINE_ALLOW_SELF_SIGNUP - "true"/"1" or "false"/"0"
-    PICO_ENGINE_ALLOW_LOCALHOST_C - "0" disables localhost /c/* bypass (see config allowLocalhostChannelBypass)
+    PICO_ENGINE_ALLOW_LOCALHOST_C - "1"/"true" allows direct loopback /c/* without a passkey (default off; config allowLocalhostChannelBypass). Dev MCP uses $PICO_ENGINE_HOME/internal-token
     PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER - "1" enables wildcard /sky/* bearer requirement
     PICO_ENGINE_LOG_FILE - Log path, or stdout/- / 0 for console-only
     PICO_ENGINE_LOG_MIRROR - "true"/"1" or "false"/"0" (mirror JSON lines to \$PICO_ENGINE_HOME/pico-engine.log when stdout-only; default on)
@@ -125,7 +125,11 @@ startEngine(env)
   .then((engine) => {
     installGracefulShutdown(engine);
   })
-  .catch((err) => {
+  .catch((err: NodeJS.ErrnoException) => {
+    if (err && err.code === "EADDRINUSE") {
+      console.error(`Port ${err.port} is already in use.`);
+      process.exit(1);
+    }
     console.error("Failed to start engine.");
     console.error(err);
     process.exit(1);

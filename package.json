@@ -8,11 +8,12 @@
     "out": "lerna clean --yes && lerna exec -- npm i && rm -rf packages/*/package-lock.json && lerna exec --bail=false -- npm out",
     "clean": "lerna clean --yes",
     "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json packages/*/package-lock.json && npm run setup -s",
-    "bootstrap": "lerna bootstrap --hoist --no-ci --nohoist=browserify --nohoist=@types/* --nohoist=react --nohoist=react-dom --nohoist=react-router --nohoist=react-router-dom --nohoist=vite --nohoist=@vitejs/* --nohoist=pico-framework --nohoist=@simplewebauthn/*",
+    "bootstrap": "lerna bootstrap --hoist --no-ci --nohoist=browserify --nohoist=@types/* --nohoist=react --nohoist=react-dom --nohoist=react-router --nohoist=react-router-dom --nohoist=vite --nohoist=@vitejs/* --nohoist=@simplewebauthn/*",
     "setup": "npm i --no-package-lock && npm run bootstrap",
     "publish": "npm run build && lerna publish from-package --yes",
     "start": "cd packages/pico-engine && npm start",
     "test": "lerna run test",
+    "test:framework": "cd packages/pico-framework && npm test",
     "test:auth": "cd packages/pico-engine && npm run test:auth",
     "build": "lerna run build --stream",
     "krl-schema": "node tools/krl-schema/cli.js",
@@ -21,8 +22,7 @@
     "test:mcp": "cd packages/pico-engine && npm run test:mcp",
     "test:agent": "cd packages/pico-engine-core && npx ava --serial ./test/picoSchema.ts && cd ../pico-engine && npx ava --serial ./test/ruleOutcomes.ts ./test/installFailureVisibility.ts ./test/mcpDevStdioE2e.ts --timeout=5m",
     "generate:llms": "node tools/generate-llms-text.js",
-    "test:schema": "cd packages/krl-parser && npx ava test/docComment.ts && cd ../pico-engine-core && npx ava --serial ./test/picoSchema.ts && cd ../pico-engine && npx ava --serial ./test/uiTestingSchema.ts ./test/uiTestingHistorySaved.ts && cd ../.. && node tools/krl-schema/check-samples.js",
-    "link-framework": "cd ../pico-framework && npm run build && rm -rf ../pico-engine/packages/krl-stdlib/node_modules/pico-framework ../pico-engine/packages/pico-engine-core/node_modules/pico-framework ../pico-engine/packages/pico-engine/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/krl-stdlib/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/pico-engine-core/node_modules/pico-framework && ln -sfn ../../../../pico-framework ../pico-engine/packages/pico-engine/node_modules/pico-framework && cd ../pico-engine && npm run build"
+    "test:schema": "cd packages/krl-parser && npx ava test/docComment.ts && cd ../pico-engine-core && npx ava --serial ./test/picoSchema.ts && cd ../pico-engine && npx ava --serial ./test/uiTestingSchema.ts ./test/uiTestingHistorySaved.ts && cd ../.. && node tools/krl-schema/check-samples.js"
   },
   "devDependencies": {
     "@types/react": "18.3.27",

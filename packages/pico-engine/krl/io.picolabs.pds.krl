@@ -17,8 +17,7 @@ ruleset io.picolabs.pds {
 
     shares items, get_keys,
       profile,
-      settings, get_config_value, get_setting_data_value, config_value, settings_names,
-      getChannelEci
+      settings, get_config_value, get_setting_data_value, config_value, settings_names
 
   }
 
@@ -49,7 +48,8 @@ ruleset io.picolabs.pds {
     //     "name": "<display name>",
     //     "rid": "<rulesetRID>",
     //     "data": { "<configKey>": <value>, ... },
-    //     "schema": []
+    //     "schema": [],
+    //     "secret": ["<configKey>", ...]   // those data values are masked in settings
     //   }
     //   Path: ent:settings{[rulesetRID, "data", configKey]} for config_value()
     //
@@ -132,12 +132,39 @@ ruleset io.picolabs.pds {
       })
     };
 
+    is_secret_key = function(rid, key) {
+      listed = ent:settings{[rid, "secret"]} || [];
+      listed >< key
+    };
+
+    mask_secret = function(value) {
+      { "secret": true, "set": not value.isnull() }
+    };
+
+    // Present secret values become the mask. Secret keys with no value are
+    // reported as set: false.
+    mask_data = function(rid, data) {
+      values = data || {};
+      secrets = ent:settings{[rid, "secret"]} || [];
+      masked = values.map(function(v, k) {
+        secrets >< k => mask_secret(v) | v
+      });
+      secrets.reduce(function(acc, key) {
+        values{key}.isnull() => acc.put([key], mask_secret(null)) | acc
+      }, masked)
+    };
+
+    mask_record = function(rid, record) {
+      record.isnull() => record | record.put(["data"], mask_data(rid, record{"data"}))
+    };
+
     /**
      * Read per-ruleset settings. No arguments: all settings. Rid: that ruleset's
-     * settings record ({ name, rid, data, schema }). Rid and Key: one field of the
+     * settings record ({ name, rid, data, schema, secret }). Rid and Key: one field of the
      * record. Rid, Key, and detail: the value of data key `detail` (Key is ignored).
+     * A key listed in `secret` is returned as { secret: true, set }, never the value.
      * @param Rid String "ruleset id whose settings to read"
-     * @param Key String "field of the settings record (name, rid, data, schema)"
+     * @param Key String "field of the settings record (name, rid, data, schema, secret)"
      * @param detail String "key within the record's data map"
      * @returns Map "{ status, settings }"
      * @example "one ruleset" { "Rid": "<rid>" }
@@ -145,16 +172,19 @@ ruleset io.picolabs.pds {
      */
     settings = function(Rid = null, Key = null, detail = null){
       get_setting_all = function() {
-        ent:settings
+        ent:settings.isnull() => ent:settings |
+        ent:settings.map(function(record, rid) { mask_record(rid, record) })
       };
       get_setting = function(rid) {
-        ent:settings{rid}
+        mask_record(rid, ent:settings{rid})
       };
       get_setting_value = function(rid, varible) {
+        varible == "data" => mask_data(rid, ent:settings{[rid, "data"]}) |
         ent:settings{[rid, varible]}
       };
       get_data_value = function(rid, dataKey) {
-        ent:settings{[rid, "data", dataKey]}
+        raw = ent:settings{[rid, "data", dataKey]};
+        is_secret_key(rid, dataKey) => mask_secret(raw) | raw
       };
       pick = function() {
         Rid.isnull() => get_setting_all()
@@ -181,13 +211,15 @@ ruleset io.picolabs.pds {
     };
 
     /**
-     * One configuration value from a ruleset's settings data.
+     * One configuration value from a ruleset's settings data. A secret key is
+     * returned as { secret: true, set }, never the value.
      * @param setRID String "ruleset id"
      * @param setKey String "data key"
      * @returns Any
      */
     get_setting_data_value = function(setRID, setKey) {
-      setting_data_value(setRID, setKey)
+      raw = setting_data_value(setRID, setKey);
+      is_secret_key(setRID, setKey) => mask_secret(raw) | raw
     }
 
     /**
@@ -213,13 +245,35 @@ ruleset io.picolabs.pds {
     }
 
     /**
-     * The ECI of this pico's pds channel, which allows all pds events and queries.
-     * Created when this ruleset is installed.
+     * The ECI of this pico's pds channel. Provided to rulesets on this pico.
+     * Not a shared query: a channel that can read settings must not receive an
+     * ECI that can rewrite them.
      * @returns String
      */
     getChannelEci = function() {
       ent:pds_channel_eci
     }
+
+    keys_from_secret_attr = function(secret, data_key) {
+      secret == true && data_key.typeof() == "String" => [data_key] |
+      secret.typeof() == "Array" => secret.filter(function(k) { k.typeof() == "String" }) |
+      []
+    };
+
+    keys_from_schema = function(schema) {
+      schema.typeof() == "Array" => schema.filter(function(entry) {
+        entry.typeof() == "Map" && entry{"secret"}
+      }).map(function(entry) {
+        entry{"key"} || entry{"name"}
+      }).filter(function(k) { k.typeof() == "String" }) |
+      []
+    };
+
+    merge_secret_keys = function(already, more) {
+      more.reduce(function(acc, key) {
+        acc >< key => acc | acc.append(key)
+      }, already || [])
+    };
 
     defaultProfile = {
       "name": "",
@@ -389,14 +443,18 @@ ruleset io.picolabs.pds {
 
   /**
    * Create or update a ruleset's settings record, and optionally set one data
-   * value in it. Raises pds:settings_added.
+   * value in it. Raises pds:settings_added. A key named in `secret`, or a schema
+   * entry with secret true, is stored as a secret: settings queries return
+   * { secret: true, set } and the raised event does not carry the value.
    * @attr keyed_rid String "ruleset id the settings belong to"
    * @attr name String "display name for the settings"
    * @attr schema Array optional "settings schema, stored as given"
    * @attr data_key String optional "data key to set"
    * @attr value Any optional "value for data_key"
+   * @attr secret Array|Boolean optional "key names to mark secret, or true to mark data_key"
    * @example "register settings" { "keyed_rid": "<rid>", "name": "<display name>" }
    * @example "set one value" { "keyed_rid": "<rid>", "name": "<display name>", "data_key": "<key>", "value": "<value>" }
+   * @example "secret" { "keyed_rid": "<rid>", "name": "<display name>", "data_key": "apiKey", "value": "<secret>", "secret": true }
    */
   rule settings_added {
     select when pds add_settings
@@ -406,15 +464,22 @@ ruleset io.picolabs.pds {
       set_schema = event:attr("schema").defaultsTo(0, "no Schema");
       set_attr   = event:attr("data_key").defaultsTo(0, "no setAttr");
       set_value  = event:attr("value").defaultsTo(0, "no Value");
-
+      already    = ent:settings{[set_rid, "secret"]} || [];
+      next_secret = merge_secret_keys(
+        merge_secret_keys(already, keys_from_secret_attr(event:attr("secret"), event:attr("data_key"))),
+        keys_from_schema(set_schema)
+      );
+      hiding = set_attr.typeof() == "String" && (next_secret >< set_attr);
+      announced = hiding => event:attrs.put(["value"], mask_secret(set_value)) | event:attrs;
     }
     noop()
     always {
       ent:settings{[set_rid, "name"]} := set_name;
       ent:settings{[set_rid, "rid"]} := set_rid;
       ent:settings{[set_rid, "schema"]} := set_schema if set_schema;
+      ent:settings{[set_rid, "secret"]} := next_secret if next_secret.length() > 0;
       ent:settings{[set_rid, "data", set_attr]} := set_value if set_attr;
-      raise pds event "settings_added" attributes event:attrs;
+      raise pds event "settings_added" attributes announced;
     }
   }
 
@@ -425,7 +490,7 @@ ruleset io.picolabs.pds {
              or engine started
     pre {
       channelName = "pds"
-      eventPolicy = {"allow": [{"domain": "pds", "name": "*"}], "deny": []}
+      eventPolicy = {"allow": [{"domain": "pds", "name": "*"}], "deny": [{"domain": "pds", "name": "clear_all_data"}]}
       queryPolicy = {"allow": [{"rid": "io.picolabs.pds", "name": "*"}], "deny": []}
       pds_channel = wrangler:channels([channelName])
       channel_exists = pds_channel.length() > 0
@@ -438,6 +503,26 @@ ruleset io.picolabs.pds {
     else {
       ent:pds_channel_eci := pds_channel.head(){"id"}
     }
+  }
+
+  // A channel created by an older engine allowed clear_all_data. Deny that
+  // event on the pds channel. A ruleset on this pico can still raise it.
+  rule narrow_pds_channel {
+    select when wrangler ruleset_installed where event:attr("rids") >< ctx:rid
+             or engine started
+    pre {
+      found = wrangler:channels(["pds"]).head()
+      denied = found.isnull() => [] | found{"eventPolicy"}{"deny"}.defaultsTo([])
+      already = denied.filter(function(rule) { rule{"name"} == "clear_all_data" })
+      open = found && already.length() == 0
+    }
+    if open then
+      wrangler:updateChannel(
+        found{"id"},
+        ["pds"],
+        {"allow": [{"domain": "pds", "name": "*"}], "deny": [{"domain": "pds", "name": "clear_all_data"}]},
+        {"allow": [{"rid": "io.picolabs.pds", "name": "*"}], "deny": []}
+      )
   }
 
   rule seed_profile_name {

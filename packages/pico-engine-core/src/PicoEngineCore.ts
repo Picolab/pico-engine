@@ -40,6 +40,7 @@ import {
   collectRuntimeRuleOutcomes,
 } from "./ruleOutcomes";
 import { isRoutineQueryError } from "./queryErrors";
+import { redactSecretsForLog, redactTxnForLog } from "./secretLog";
 import { installPolicyLogging, logQueuedPolicy } from "./policyDecision";
 
 const version = require("../package.json").version;
@@ -96,6 +97,7 @@ function directivesForLog(data: unknown): unknown {
 }
 
 function queryResultForLog(data: unknown): unknown {
+  data = redactSecretsForLog(data);
   if (data === undefined) return null;
   let text: string;
   try {
@@ -199,7 +201,7 @@ export class PicoEngineCore {
             log.debug(ev.type, {
               picoId: ev.picoId,
               txnId: ev.txn.id,
-              txn: ev.txn,
+              txn: redactTxnForLog(ev.picoId, ev.txn),
             });
             logQueuedPolicy(this, ev.picoId, ev.txn);
             break;
@@ -293,7 +295,7 @@ export class PicoEngineCore {
               picoId: ev.picoId,
               txnId: ev.txn.id,
               rid: ev.rid,
-              event: ev.event,
+              event: redactSecretsForLog(ev.event),
             });
             break;
           }

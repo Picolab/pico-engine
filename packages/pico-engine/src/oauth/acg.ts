@@ -1,5 +1,11 @@
 import * as crypto from "crypto";
 import { PicoDb, PicoDbKey, PicoFramework } from "pico-framework";
+import {
+  isClientMetadataUrl,
+  rejectsAsMetadataUrl,
+  safeDisplayUrl,
+  type ClientMetadataDocument,
+} from "./cimd";
 import { OAuthError } from "./errors";
 import { rootHasOAuthMeshRuleset } from "./meshOAuth";
 
@@ -14,10 +20,13 @@ export interface OAuthTokenResponse {
 export const OAUTH_APP_PREFIX = "oauth-app";
 export const OAUTH_AUTH_CODE_PREFIX = "oauth-auth-code";
 export const OAUTH_REFRESH_PREFIX = "oauth-refresh";
+export const OAUTH_REFRESH_USED_PREFIX = "oauth-refresh-used";
 
 export const DEFAULT_ACG_SCOPE = "mesh";
 export const AUTH_CODE_TTL_MS = 10 * 60 * 1000;
 export const REFRESH_TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+/** Public clients (no secret) get a short access token and refresh with the rotated token. */
+export const PUBLIC_ACCESS_TTL_MS = 60 * 60 * 1000;
 
 export interface StoredOAuthApp {
   clientId: string;
@@ -57,6 +66,7 @@ interface StoredAuthCode {
   scope: string;
   codeChallenge: string;
   codeChallengeMethod: string;
+  resource?: string;
   expiresAt: number;
   createdAt: string;
 }
@@ -69,8 +79,17 @@ interface StoredRefreshToken {
   appId: string;
   accountId: string;
   scope: string;
+  resource?: string;
+  /** Shared by every refresh token descended from one authorization. */
+  familyId?: string;
   expiresAt: number;
   createdAt: string;
+}
+
+interface UsedRefreshToken {
+  familyId: string;
+  clientId: string;
+  expiresAt: number;
 }
 
 export interface AuthorizeParams {
@@ -81,6 +100,8 @@ export interface AuthorizeParams {
   scope?: string;
   code_challenge: string;
   code_challenge_method: string;
+  /** RFC 8707 resource, already a single absolute URI. Canonicalized by the service. */
+  resource?: string;
 }
 
 export interface ApproveParams {
@@ -90,7 +111,24 @@ export interface ApproveParams {
   scope?: string;
   code_challenge: string;
   code_challenge_method: string;
+  resource?: string;
   approved: boolean;
+}
+
+/** One resource parameter, or none. An empty value is the same as omitting it. */
+export function readResource(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  if (Array.isArray(value)) {
+    throw new OAuthError(
+      "resource must be a single absolute URI",
+      "invalid_target",
+      400
+    );
+  }
+  const resource = String(value).trim();
+  return resource || undefined;
 }
 
 export function parseApproveBody(body: Record<string, unknown>): ApproveParams {
@@ -101,6 +139,7 @@ export function parseApproveBody(body: Record<string, unknown>): ApproveParams {
     scope: body.scope !== undefined ? String(body.scope) : undefined,
     code_challenge: String(body.code_challenge || "").trim(),
     code_challenge_method: String(body.code_challenge_method || "S256").trim(),
+    resource: readResource(body.resource),
     approved:
       body.approved === true ||
       String(body.approved ?? "")
@@ -120,7 +159,25 @@ export interface AcgContext {
     accountId: string;
     scope: string;
     expiresAt: number;
+    resource?: string;
   }) => Promise<void>;
+  /** Fetch a Client ID Metadata Document. Required when client_id is an https URL. */
+  loadClientMetadata?: (url: string) => Promise<ClientMetadataDocument>;
+}
+
+export interface ConsentClient {
+  name: string;
+  /** Host of a URL client_id. Absent for a pre-registered app. */
+  clientIdHost?: string;
+  logoUri?: string;
+  clientUri?: string;
+  meshName?: string;
+}
+
+export interface ResolvedAuthorizeClient {
+  app: StoredOAuthApp;
+  cimd: boolean;
+  consent: ConsentClient;
 }
 
 export function parseAuthorizeQuery(query: Record<string, unknown>): AuthorizeParams {
@@ -140,8 +197,8 @@ export function parseAuthorizeQuery(query: Record<string, unknown>): AuthorizePa
   if (response_type !== "code") {
     throw new OAuthError("Unsupported response_type", "unsupported_response_type", 400);
   }
-  if (!["S256", "plain"].includes(code_challenge_method)) {
-    throw new OAuthError("Unsupported code_challenge_method", "invalid_request", 400);
+  if (code_challenge_method !== "S256") {
+    throw new OAuthError("PKCE S256 is required", "invalid_request", 400);
   }
   return {
     client_id,
@@ -151,6 +208,7 @@ export function parseAuthorizeQuery(query: Record<string, unknown>): AuthorizePa
     scope,
     code_challenge,
     code_challenge_method,
+    resource: readResource(query.resource),
   };
 }
 
@@ -229,7 +287,17 @@ export async function revokeApp(
 export async function getAppForAuthorize(
   ctx: AcgContext,
   params: AuthorizeParams
-): Promise<StoredOAuthApp> {
+): Promise<ResolvedAuthorizeClient> {
+  if (isClientMetadataUrl(params.client_id)) {
+    return resolveCimdClient(ctx, params);
+  }
+  if (rejectsAsMetadataUrl(params.client_id)) {
+    throw new OAuthError(
+      "client_id must be an https URL without a fragment or userinfo",
+      "invalid_client",
+      401
+    );
+  }
   const app = await getApp(ctx, params.client_id);
   if (!app) {
     throw new OAuthError("Unknown client", "invalid_client", 401);
@@ -241,10 +309,14 @@ export async function getAppForAuthorize(
   if (app.publicClient && !params.code_challenge) {
     throw new OAuthError("PKCE code_challenge is required", "invalid_request", 400);
   }
-  return app;
+  return { app, cimd: false, consent: { name: app.name } };
 }
 
-export function renderConsentHtml(app: StoredOAuthApp, params: AuthorizeParams): string {
+export function renderConsentHtml(
+  app: StoredOAuthApp,
+  params: AuthorizeParams,
+  client?: ConsentClient
+): string {
   const esc = escapeHtml;
   const fields = [
     ["client_id", params.client_id],
@@ -252,6 +324,7 @@ export function renderConsentHtml(app: StoredOAuthApp, params: AuthorizeParams):
     ["scope", params.scope || DEFAULT_ACG_SCOPE],
     ["code_challenge", params.code_challenge],
     ["code_challenge_method", params.code_challenge_method],
+    ...(params.resource ? [["resource", params.resource] as [string, string]] : []),
     ...(params.state !== undefined ? [["state", params.state] as [string, string]] : []),
   ];
   const hidden = fields
@@ -264,7 +337,7 @@ export function renderConsentHtml(app: StoredOAuthApp, params: AuthorizeParams):
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>Authorize ${esc(app.name)}</title>
+  <title>Authorize ${esc(client?.name || app.name)}</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 36rem; margin: 3rem auto; padding: 0 1rem; }
     .card { border: 1px solid #ddd; border-radius: 8px; padding: 1.25rem; }
@@ -277,8 +350,12 @@ export function renderConsentHtml(app: StoredOAuthApp, params: AuthorizeParams):
 <body>
   <div class="card">
     <h1>Authorize application</h1>
-    <p><strong>${esc(app.name)}</strong> is requesting access to this pico mesh.</p>
-    <p class="muted">Scope: <code>${esc(params.scope || DEFAULT_ACG_SCOPE)}</code> (read and control this mesh via /sky/*)</p>
+    ${consentLogo(client)}
+    <p><strong>${esc(client?.name || app.name)}</strong> is requesting access to <strong>${esc(client?.meshName || "this mesh")}</strong>.</p>
+    <p class="muted">Client: <code>${esc(client?.clientIdHost || app.clientId)}</code></p>
+    ${consentLink(client)}
+    <p class="muted">Scopes: ${scopeCodes(params.scope)}</p>
+    ${params.resource ? `<p class="muted">Resource: <code>${esc(params.resource)}</code></p>` : ""}
     <p class="muted">Redirect: <code>${esc(params.redirect_uri)}</code></p>
     <form method="POST" action="/oauth/approve">
       ${hidden}
@@ -302,7 +379,10 @@ export async function approveAuthorization(
   session: { accountId: string; rootPicoId: string },
   params: ApproveParams
 ): Promise<string> {
-  const app = await getAppForAuthorize(ctx, {
+  if (params.code_challenge_method !== "S256") {
+    throw new OAuthError("PKCE S256 is required", "invalid_request", 400);
+  }
+  const resolved = await getAppForAuthorize(ctx, {
     client_id: params.client_id,
     redirect_uri: params.redirect_uri,
     response_type: "code",
@@ -311,7 +391,11 @@ export async function approveAuthorization(
     code_challenge: params.code_challenge,
     code_challenge_method: params.code_challenge_method,
   });
-  if (app.rootPicoId !== session.rootPicoId) {
+  let app = resolved.app;
+  if (resolved.cimd) {
+    assertMeshOAuthRoot(ctx, session.rootPicoId);
+    app = { ...app, rootPicoId: session.rootPicoId };
+  } else if (app.rootPicoId !== session.rootPicoId) {
     throw new OAuthError("Not authorized for this mesh", "access_denied", 403);
   }
   if (!params.approved) {
@@ -327,6 +411,7 @@ export async function approveAuthorization(
     scope: normalizeScope(params.scope || DEFAULT_ACG_SCOPE),
     codeChallenge: params.code_challenge,
     codeChallengeMethod: params.code_challenge_method,
+    resource: params.resource,
     expiresAt: Date.now() + AUTH_CODE_TTL_MS,
     createdAt: new Date().toISOString(),
   };
@@ -343,6 +428,7 @@ export async function authorizationCodeGrant(
     client_id?: string;
     client_secret?: string;
     code_verifier?: string;
+    resource?: string;
   }
 ): Promise<OAuthTokenResponse & { refresh_token?: string; scope?: string }> {
   const code = (input.code || "").trim();
@@ -367,19 +453,18 @@ export async function authorizationCodeGrant(
   ) {
     throw new OAuthError("Authorization code mismatch", "invalid_grant", 400);
   }
-  const app = await getApp(ctx, client_id);
-  if (!app) {
-    throw new OAuthError("Invalid client", "invalid_client", 401);
-  }
+  const app = await clientForGrant(ctx, client_id, redirect_uri, stored.rootPicoId);
   await assertClientAuth(app, client_secret);
   if (!verifyPkce(code_verifier, stored.codeChallenge, stored.codeChallengeMethod)) {
     throw new OAuthError("Invalid PKCE verifier", "invalid_grant", 400);
   }
+  assertResourceBinding(stored.resource, input.resource);
   await ctx.db.del([OAUTH_AUTH_CODE_PREFIX, code]);
   return mintAcgTokens(ctx, {
     app,
     accountId: stored.accountId,
     scope: stored.scope,
+    resource: stored.resource,
   });
 }
 
@@ -390,6 +475,7 @@ export async function refreshTokenGrant(
     refresh_token?: string;
     client_id?: string;
     client_secret?: string;
+    resource?: string;
   }
 ): Promise<OAuthTokenResponse & { refresh_token?: string; scope?: string }> {
   const refresh_token = (input.refresh_token || "").trim();
@@ -403,33 +489,108 @@ export async function refreshTokenGrant(
     refresh_token,
   ]);
   if (!stored || stored.clientId !== client_id) {
+    if (!stored) {
+      await rejectReusedRefresh(ctx, refresh_token, client_id);
+    }
     throw new OAuthError("Invalid refresh token", "invalid_grant", 400);
   }
   if (stored.expiresAt < Date.now()) {
     await ctx.db.del([OAUTH_REFRESH_PREFIX, refresh_token]);
     throw new OAuthError("Refresh token expired", "invalid_grant", 400);
   }
-  const app = await getApp(ctx, client_id);
-  if (!app) {
-    throw new OAuthError("Invalid client", "invalid_client", 401);
-  }
+  const app = await clientForGrant(ctx, client_id, undefined, stored.rootPicoId);
   await assertClientAuth(app, client_secret);
+  assertResourceBinding(stored.resource, input.resource);
+  const familyId = stored.familyId || crypto.randomBytes(16).toString("base64url");
   await ctx.db.del([OAUTH_REFRESH_PREFIX, refresh_token]);
   await ctx.db.del(["oauth-token", stored.accessToken] as PicoDbKey);
-  return mintAcgTokens(ctx, {
+  const minted = await mintAcgTokens(ctx, {
     app,
     accountId: stored.accountId,
     scope: stored.scope,
+    resource: stored.resource,
+    familyId,
   });
+  const refreshExpiresAt = Date.now() + REFRESH_TOKEN_TTL_MS;
+  await rememberRefreshUse(ctx, refresh_token, {
+    familyId,
+    clientId: client_id,
+    expiresAt: refreshExpiresAt,
+  });
+  await extendRefreshUses(ctx, familyId, refreshExpiresAt);
+  return minted;
+}
+
+/**
+ * A refresh token that was already rotated is a replay. Revoke every token in
+ * its family so a stolen copy cannot keep the grant alive.
+ */
+async function rejectReusedRefresh(
+  ctx: AcgContext,
+  refreshToken: string,
+  clientId: string
+): Promise<void> {
+  const used = await dbGet<UsedRefreshToken>(ctx.db, [
+    OAUTH_REFRESH_USED_PREFIX,
+    refreshToken,
+  ]);
+  if (!used || used.clientId !== clientId || used.expiresAt < Date.now()) {
+    return;
+  }
+  await revokeRefreshFamily(ctx, used.familyId);
+}
+
+async function revokeRefreshFamily(ctx: AcgContext, familyId: string): Promise<void> {
+  const refreshes = await dbList<StoredRefreshToken>(ctx.db, [OAUTH_REFRESH_PREFIX]);
+  for (const row of refreshes) {
+    if (row.value.familyId !== familyId) {
+      continue;
+    }
+    await ctx.db.del(row.key);
+    if (row.value.accessToken) {
+      await ctx.db.del(["oauth-token", row.value.accessToken] as PicoDbKey);
+    }
+  }
+}
+
+async function rememberRefreshUse(
+  ctx: AcgContext,
+  refreshToken: string,
+  used: UsedRefreshToken
+): Promise<void> {
+  await ctx.db.put([OAUTH_REFRESH_USED_PREFIX, refreshToken], used);
+}
+
+async function extendRefreshUses(
+  ctx: AcgContext,
+  familyId: string,
+  expiresAt: number
+): Promise<void> {
+  const rows = await dbList<UsedRefreshToken>(ctx.db, [OAUTH_REFRESH_USED_PREFIX]);
+  for (const row of rows) {
+    if (row.value.familyId !== familyId || row.value.expiresAt >= expiresAt) {
+      continue;
+    }
+    await ctx.db.put(row.key, { ...row.value, expiresAt });
+  }
 }
 
 async function mintAcgTokens(
   ctx: AcgContext,
-  input: { app: StoredOAuthApp; accountId: string; scope: string }
+  input: {
+    app: StoredOAuthApp;
+    accountId: string;
+    scope: string;
+    resource?: string;
+    familyId?: string;
+  }
 ): Promise<OAuthTokenResponse & { refresh_token?: string; scope?: string }> {
   const access_token = mintAccessToken();
   const refresh_token = mintRefreshToken();
-  const expiresAt = Date.now() + ctx.tokenTtlMs;
+  const accessTtlMs = input.app.publicClient
+    ? Math.min(ctx.tokenTtlMs, PUBLIC_ACCESS_TTL_MS)
+    : ctx.tokenTtlMs;
+  const expiresAt = Date.now() + accessTtlMs;
   await ctx.putAccessToken({
     token: access_token,
     rootPicoId: input.app.rootPicoId,
@@ -437,6 +598,7 @@ async function mintAcgTokens(
     accountId: input.accountId,
     scope: input.scope,
     expiresAt,
+    resource: input.resource,
   });
   const refreshRecord: StoredRefreshToken = {
     refreshToken: refresh_token,
@@ -446,6 +608,8 @@ async function mintAcgTokens(
     appId: input.app.clientId,
     accountId: input.accountId,
     scope: input.scope,
+    resource: input.resource,
+    familyId: input.familyId || crypto.randomBytes(16).toString("base64url"),
     expiresAt: Date.now() + REFRESH_TOKEN_TTL_MS,
     createdAt: new Date().toISOString(),
   };
@@ -453,7 +617,7 @@ async function mintAcgTokens(
   return {
     access_token,
     token_type: "Bearer",
-    expires_in: Math.floor(ctx.tokenTtlMs / 1000),
+    expires_in: Math.floor(accessTtlMs / 1000),
     refresh_token,
     scope: input.scope,
   };
@@ -467,6 +631,99 @@ function assertMeshOAuthRoot(ctx: AcgContext, rootPicoId: string): void {
       400
     );
   }
+}
+
+async function resolveCimdClient(
+  ctx: AcgContext,
+  params: AuthorizeParams
+): Promise<ResolvedAuthorizeClient> {
+  if (!ctx.loadClientMetadata) {
+    throw new OAuthError("Invalid client", "invalid_client", 401);
+  }
+  if (!params.code_challenge) {
+    throw new OAuthError("PKCE code_challenge is required", "invalid_request", 400);
+  }
+  const doc = await ctx.loadClientMetadata(params.client_id);
+  if (!doc.redirectUris.includes(params.redirect_uri)) {
+    throw new OAuthError("Invalid redirect_uri", "invalid_request", 400);
+  }
+  const app = cimdApp(doc);
+  return {
+    app,
+    cimd: true,
+    consent: {
+      name: doc.clientName,
+      clientIdHost: new URL(doc.clientId).host,
+      logoUri: doc.logoUri,
+      clientUri: doc.clientUri,
+    },
+  };
+}
+
+async function clientForGrant(
+  ctx: AcgContext,
+  clientId: string,
+  redirectUri: string | undefined,
+  rootPicoId: string
+): Promise<StoredOAuthApp> {
+  if (isClientMetadataUrl(clientId)) {
+    if (!ctx.loadClientMetadata) {
+      throw new OAuthError("Invalid client", "invalid_client", 401);
+    }
+    const doc = await ctx.loadClientMetadata(clientId);
+    if (redirectUri !== undefined && !doc.redirectUris.includes(redirectUri)) {
+      throw new OAuthError("Invalid redirect_uri", "invalid_grant", 400);
+    }
+    return { ...cimdApp(doc), rootPicoId };
+  }
+  if (rejectsAsMetadataUrl(clientId)) {
+    throw new OAuthError(
+      "client_id must be an https URL without a fragment or userinfo",
+      "invalid_client",
+      401
+    );
+  }
+  const app = await getApp(ctx, clientId);
+  if (!app) {
+    throw new OAuthError("Invalid client", "invalid_client", 401);
+  }
+  return app;
+}
+
+function cimdApp(doc: ClientMetadataDocument): StoredOAuthApp {
+  return {
+    clientId: doc.clientId,
+    rootPicoId: "",
+    name: doc.clientName,
+    redirectUris: doc.redirectUris.slice(),
+    publicClient: true,
+    scopes: [DEFAULT_ACG_SCOPE],
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function consentLogo(client?: ConsentClient): string {
+  const logo = safeDisplayUrl(client?.logoUri);
+  if (!logo) {
+    return "";
+  }
+  return `<img src="${escapeHtml(logo)}" alt="" referrerpolicy="no-referrer" style="max-height:48px;max-width:48px"/>`;
+}
+
+function consentLink(client?: ConsentClient): string {
+  const uri = safeDisplayUrl(client?.clientUri);
+  if (!uri) {
+    return "";
+  }
+  return `<p class="muted">Client page: <a href="${escapeHtml(uri)}" rel="noopener noreferrer">${escapeHtml(uri)}</a></p>`;
+}
+
+function scopeCodes(scope: string | undefined): string {
+  const raw = (scope || DEFAULT_ACG_SCOPE).trim() || DEFAULT_ACG_SCOPE;
+  return raw
+    .split(/\s+/)
+    .map((item) => `<code>${escapeHtml(item)}</code>`)
+    .join(" ");
 }
 
 async function getApp(
@@ -531,9 +788,6 @@ function verifyPkce(
   challenge: string,
   method: string
 ): boolean {
-  if (method === "plain") {
-    return verifier === challenge;
-  }
   if (method === "S256") {
     const digest = crypto
       .createHash("sha256")
@@ -564,6 +818,16 @@ function redirectWithError(
     url.searchParams.set("state", state);
   }
   return url.toString();
+}
+
+function assertResourceBinding(stored: string | undefined, presented: string | undefined): void {
+  if ((stored || undefined) !== (presented || undefined)) {
+    throw new OAuthError(
+      "resource does not match the authorization",
+      "invalid_target",
+      400
+    );
+  }
 }
 
 function normalizeScope(scope: string): string {

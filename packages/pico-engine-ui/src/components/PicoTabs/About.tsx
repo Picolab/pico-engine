@@ -6,6 +6,7 @@ import { PicoBox } from "../../types/PicoBox";
 import { PicoSchema } from "../../types/PicoSchema";
 import useAsyncAction from "../../useAsyncAction";
 import TabPageHeader from "../widgets/TabPageHeader";
+import PdsSettings from "./PdsSettings";
 import PicoSurfacePanel from "./PicoSurfacePanel";
 
 function getRefVal(ref: React.MutableRefObject<HTMLInputElement | null>) {
@@ -233,6 +234,13 @@ const About: React.FC<Props> = ({ pico, isTabActive = true }) => {
         </button>
       </form>
 
+      <hr className="mt-4" />
+      <h3 className="mt-3">Ruleset settings</h3>
+      <p className="text-muted small">
+        Secret values are shown as set or not set. Replacing one writes a new value
+        and does not reveal the current one.
+      </p>
+      <PdsSettings eci={pico.eci} />
       <hr className="mt-4" />
       <h3 className="mt-3">Discovery surface</h3>
       <p className="text-muted small">

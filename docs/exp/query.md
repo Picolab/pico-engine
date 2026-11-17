@@ -28,7 +28,7 @@ curl -X POST "http://localhost:3000/sky/query/<eci>/com.example.json_query/runQu
 
 `/sky/cloud/...` is a legacy alias for the same handler. Prefer `/sky/query/`.
 
-Every query also gets an argument `_headers` with the request's HTTP headers.
+Every query also gets an argument `_headers` with the request's HTTP headers, minus `Authorization`, `Proxy-Authorization`, `Cookie`, and `X-Pico-Internal`. Read one application cookie with `http:cookie(name)`.
 
 ## Response
 

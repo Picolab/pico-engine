@@ -6,6 +6,8 @@
 # Stop:   docker compose down
 #
 # Data persists in ./docker/pico-image (PICO_ENGINE_HOME).
+# The engine writes internal-token there. A dev MCP on the host needs
+# PICO_ENGINE_HOME pointed at that directory (the container path is /var/pico-image).
 #
 # Cross-engine demo: two host processes (see docs/guides/layer2-subscriptions.md).
 
@@ -14,8 +16,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.local
-      additional_contexts:
-        pico-framework: ../pico-framework
     image: picolabs/pico-engine:1.5.2
     ports:
       - "3001:3000"

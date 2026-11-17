@@ -1,8 +1,8 @@
 # pico-framework
 
-[![Build Status](https://github.com/Picolab/pico-framework/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/Picolab/pico-framework/actions/workflows/test.yml)
-
 A framework for building actor-based, people-centric systems. (pico = PersIstent Compute Objects)
+
+This package lives in the [pico-engine](https://github.com/Picolab/pico-engine) monorepo at `packages/pico-framework`. From the repo root, `npm test` runs its tests with the others; `npm run test:framework` runs only these.
 
 ## Why Picos?
 
@@ -30,6 +30,8 @@ Be sure to run the tests before checking in changes.
 ```sh
 npm test
 ```
+
+From the pico-engine repo root: `npm run test:framework`.
 
 ## Changelog
 

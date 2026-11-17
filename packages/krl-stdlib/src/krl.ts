@@ -5,7 +5,27 @@
 import * as _ from "lodash";
 import * as SelectWhenModule from "select-when";
 import { aggregateEvent as aggregateEventFn } from "./aggregateEvent";
+import { AsyncLocalStorage } from "async_hooks";
 import { KrlCtx } from "./KrlCtx";
+
+/**
+ * Ruleset contexts that led to the function now running.
+ * The top is the context passed into that function. meta:callingRID walks
+ * past the current ruleset to the ruleset that called it.
+ */
+const callerStack = new AsyncLocalStorage<KrlCtx[]>();
+
+export function callingRulesetRid(currentRid: string): string {
+  const stack = callerStack.getStore() || [];
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const ctx = stack[i];
+    const rid = ctx && ctx.rsCtx && ctx.rsCtx.ruleset && ctx.rsCtx.ruleset.rid;
+    if (typeof rid === "string" && rid !== currentRid) {
+      return rid;
+    }
+  }
+  return currentRid;
+}
 
 export const SelectWhen = SelectWhenModule; // exposed for the krl-compiler
 
@@ -49,7 +69,8 @@ function krlFunctionMaker(krlTypeName: string) {
   ) {
     const fixArgs = krlNamedArgs(paramOrder);
     const wrapped = function (ctx: KrlCtx, args: any) {
-      return fn.apply(ctx, fixArgs(args));
+      const prev = callerStack.getStore() || [];
+      return callerStack.run(prev.concat(ctx), () => fn.apply(ctx, fixArgs(args)));
     };
 
     // add this for the compiler to know the type

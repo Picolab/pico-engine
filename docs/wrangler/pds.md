@@ -219,7 +219,9 @@ Remove one item with `pds:remove_old_data` (`namespace`, `key`), which raises `p
 
 ### Settings
 
-Settings are keyed by rid. Each entry has a `name`, the `rid`, a `data` map, and an optional `schema`. `pds:add_settings` sets one value, and PDS raises `pds:settings_added`:
+Settings are keyed by rid. Each entry has a `name`, the `rid`, a `data` map, an optional `schema`, and an optional `secret` list of data-key names. `pds:add_settings` sets one value, and PDS raises `pds:settings_added`.
+
+A secret key is marked with `"secret": true` on that write, `"secret": ["apiKey"]`, or a schema entry `{ "key": "apiKey", "secret": true }`. `settings` and `get_setting_data_value` then return `{ "secret": true, "set": true }` (or `set: false` when the key has no value). They never return the value. The ruleset that owns the setting reads it with `config_value`, which uses `meta:callingRID()`. The value is omitted from engine logs. `getChannelEci` is available to rulesets on the pico and is not a shared query. The `pds` channel does not accept `clear_all_data`.
 
 ```krl
 raise pds event "add_settings" attributes {

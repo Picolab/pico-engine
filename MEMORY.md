@@ -111,10 +111,10 @@ deferred.
 
 | Artifact | Status | Notes |
 |----------|--------|-------|
-| **npm** | 1.5.0 published; **1.5.1** ready to publish | Use `npm run publish` from repo root (`lerna publish from-package --yes`). Do **not** publish from repo root or `pico-engine-ui` (both `"private": true`). Publish **pico-framework@0.8.0+** first if bumped. |
+| **npm** | 1.5.0 published; **1.5.1** ready to publish | Use `npm run publish` from repo root (`lerna publish from-package --yes`). Do **not** publish from repo root or `pico-engine-ui` (both `"private": true`). `pico-framework` publishes with the other packages; do not publish it from its own directory first. |
 | **GitHub tags** | `v1.5.0`, `v1.5.1` local | **`git push` does not push tags.** Run `git push origin v1.5.0` (and `v1.5.1`) separately. GitHub **Releases** are created in the UI (or `gh release create`) *after* the tag is on origin. |
 | **UI version string** | From `packages/pico-engine/package.json` | Shown via `/api/ui-context` → AuthGate + Picos page footer. Bumped to **1.5.1** in commit `d135b1d7`. |
-| **pico-framework** | **0.8.2** — policy ceiling, global denies; **0.8.1** custom channel id | **Required** for pico-engine 1.8 policy work (`^0.8.2` in package.json). Publish framework before engine. **`npm run link-framework`** is for co-development only, not deployment. |
+| **pico-framework** | **In this repo** at `packages/pico-framework`, versioned with the engine (1.9.5). npm through **0.8.2** was the separate repo (policy ceiling, global denies) | `krl-stdlib`, `pico-engine-core`, and `pico-engine` depend on `^1.9.5`. One `lerna publish` ships it. No npm dependents outside those three. |
 
 **Tag ↔ commit mapping (local):**
 
@@ -212,10 +212,13 @@ e505a1a2 Fix invite links to always show registration
 |---------|--------|--------|
 | **1.7** | **Identity portability** | **did:peer:4** (new relationships; peer:2 backward compat); pico **move/rotation** — export/import ([`pico-move.md`](docs/design/pico-move.md) A/B) + DIDComm DID Rotation (Phase D). See [`pico-identity-libraries.md`](docs/design/pico-identity-libraries.md). |
 | **1.8** | **Mesh API + security** | Doc annotations + **engine** pico schema merge; wrangler exposes `picoSchema()` / `schemaBindings(rid)` ([`pico-schemas.md`](docs/design/pico-schemas.md)); **channel policy fix** — deny overrides permit, pico-level ceiling ([§4](#4-channel-policy-engine-fix--permit-overrides-deny-must-fix)). |
+| **1.10** | **Secure remote access for agents** | `/c/` internal-only (**§1 in the working tree:** no `Host` check, proxy headers are never local, `$PICO_ENGINE_HOME/internal-token` + `X-Pico-Internal` for the dev MCP, bypass default off; credential headers stripped before KRL). **§2 discovery in the working tree:** RFC 9728 protected-resource metadata, RFC 8414 authorization-server metadata, `WWW-Authenticate` on `/mcp/:eci`. **PKCE is S256 only, and tokens record an RFC 8707 resource** (`{base}/sky` or `{base}/mcp/{eci}`; a token with no resource stays valid on `/sky/*` and is rejected on `/mcp/:eci`). **An https `client_id` is a Client ID Metadata Document** (fetched and checked; the approval screen shows the client's name, host, and the mesh). **`mcpPolicy` is a third channel-policy dimension, default deny** (a channel serves `/mcp/{eci}` only when its policy allows the `channel` surface). **`pico-framework` is `packages/pico-framework`** (history imported; versioned with the engine). **Scopes are enforced** (`mesh:read` for schemas and queries, `mesh:act` for events; a missing scope is `403` `insufficient_scope`). **`/mcp/mesh/{eci}`** is an authorization-code audience whose tools are `pico_tree`, `pico_channels`, `query`, and `raise_event` (only channels that allow the `mesh` surface). **`http:cookie(name)`** reads one application cookie; `pico-session` and `pico-ceremony` are not returned, and they stay out of `_headers`. **Secret PDS settings** are masked in `settings` (`{ secret, set }`); the owning ruleset reads the value with `config_value`. **Webhook signatures:** `math:hmac` and `math:timing_safe_equal`; `event:raw_body()` on a channel with `rawBody: true` (Square: notification URL + raw body). **Public-client tokens:** access tokens last one hour; refresh rotates, and reuse revokes the grant. Notes: [`docs/release/1.10.0.md`](docs/release/1.10.0.md). Driver: IIWF CRM conversational interface. **Plan:** [`docs/design/secure-remote-access-1.10.md`](docs/design/secure-remote-access-1.10.md) |
 
 **Rationale:** 1.7 finishes the identity story (standards-grade peer DIDs + relocation). 1.8 pairs
 declarative pico surface (integrators, Testing tab, discovery) with the long-standing channel-policy
 security fix — both are platform maturity, not sensor-specific.
+
+**TODO (deferred from 1.10):** `meta { debug on|off }` per-ruleset debugging (unmask own secret settings, detailed logs; new keyword, engine switch, never in logs) — see [`docs/design/secure-remote-access-1.10.md` § Deferred](docs/design/secure-remote-access-1.10.md).
 
 **Later (not scoped):** LLM per pico ([`pico-llm-capabilities.md`](docs/design/pico-llm-capabilities.md)) —
 after 1.8 schema; mirrors/logging build on schema `logged` flags.
@@ -334,8 +337,9 @@ Ship with **1.8** (schema release) as the mesh API + security package.
 
 **Partial mitigation (implemented 2026-10-23):** when **`PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER=1`**
 (opt-in; default **off** for existing meshes), channels with unrestricted allow (`*.*`) require OAuth
-bearer on **`/sky/*`**. Passkey session on **`/c/*`** when auth is enabled is unchanged; localhost
-`/c/*` bypass unchanged for dev MCP. DIDComm ingress uses JWE crypto. Internal `pf.event` /
+bearer on **`/sky/*`**. Passkey session on **`/c/*`** when auth is enabled is unchanged. The dev MCP
+uses `$PICO_ENGINE_HOME/internal-token` (1.10 §1); the localhost bypass is off unless
+`PICO_ENGINE_ALLOW_LOCALHOST_C=1`. DIDComm ingress uses JWE crypto. Internal `pf.event` /
 `ctx:query` on same engine unchanged. **Policy ceiling** (non-exempt app channels) applies regardless
 of this flag.
 
@@ -983,10 +987,11 @@ their own authenticated endpoints (so step-up on destructive ops is easy).
   remaining toggle is `allowSelfSignup` for *additional* roots, not for auth itself.)
 
 ##### Multi-root (0–N root picos) exploration — `pico-framework` (2026-07-10)
-**Where the source lives:** `pico-framework` is a **separate published dep** (`^0.7.0`, github
+**Where the source lived (July 2026):** `pico-framework` was a **separate published dep** (`^0.7.0`, github
 `Picolab/pico-framework`), **cloned as a sibling repo** at
 `/Users/pjw/Dropbox/prog/picolabs/pico-framework` (master @ 0.7.0, TS source in `src/`). The engine
-consumes the compiled copy under each package's `node_modules/pico-framework`.
+consumed the compiled copy under each package's `node_modules/pico-framework`.
+**As of 1.10** the package is `packages/pico-framework` in this repo and shares the engine version.
 
 **Key finding: 0–N roots is a small, contained change — NOT a rewrite.**
 - **Storage is already flat / multi-tree.** Picos persist under `["pico", …]`, channels under
@@ -1065,11 +1070,12 @@ to Phase 1b). Added `@simplewebauthn/server` v13.
 - ~~**Install shortcut:** `@simplewebauthn/server` copied into node_modules~~ **FIXED 2026-07-10:**
   restored root `package.json` (a botched `lerna bootstrap --hoist` had hoisted all deps into it
   and removed scripts); added `--nohoist=@simplewebauthn/*` to the bootstrap script (same pattern as
-  `pico-framework`); `npm run bootstrap` now installs `@simplewebauthn/server` v13.3.2 canonically
+  `pico-framework`, whose nohoist was removed in 1.10 when the package moved in-repo); `npm run bootstrap` now installs `@simplewebauthn/server` v13.3.2 canonically
   in `packages/pico-engine/node_modules`. Fresh setup: `npm run setup` (or `npm run bootstrap`).
 - **Local pico-framework co-dev:** added `npm run link-framework` — builds the sibling repo and
   symlinks it into all three packages' `node_modules/pico-framework` (avoids `npm link` lifecycle
   issues). Run after bootstrap when working on multi-root changes before publishing framework.
+  **Removed in 1.10.** The package is `packages/pico-framework`.
 - **Root-creation race:** no serialization/lock yet for two concurrent "first" registrations (MEMORY
   §decisions flagged this) — add a lock.
 - **Confirm:** session persistence in the framework DB (chosen: revocable, survives restart) — OK.
@@ -1278,13 +1284,13 @@ deps are wired. Dependencies listed in `package.json` but optional until integra
 - **`POST /oauth/token`** — dispatches `client_credentials`, `authorization_code`, `refresh_token`
 - **ACG tokens** — grant type `authorization_code`; `validateSkyBearerToken` accepts any channel ECI
   under the app’s root mesh (subtree access for HA-style integrators)
-- **Refresh tokens** — `ort_…`, 90-day TTL; rotation on refresh
+- **Refresh tokens** — `ort_…`, 90-day TTL from each successful refresh; rotation on use. Presenting a rotated refresh token again revokes that grant's current access and refresh tokens. A public client's access token lasts one hour; a confidential app's lasts 24 hours.
 - **Settings UI** — OAuth apps section (name, redirect URIs, public/confidential client)
 - Tests: `npm run test:acg`, `npm run test:http`
 
 ##### Layer 3b.0 IMPLEMENTED ✅ (HTTP surface split, 2026-07-12)
 
-- **`/c/*`** — passkey session required (localhost bypass default; `PICO_ENGINE_ALLOW_LOCALHOST_C=0` to disable)
+- **`/c/*`** — passkey session, or `X-Pico-Internal` matching `$PICO_ENGINE_HOME/internal-token` (rewritten each startup, mode 0600). Localhost bypass is **off** by default (`PICO_ENGINE_ALLOW_LOCALHOST_C=1` opts in) and applies only to a direct loopback socket with no `X-Forwarded-For`, `X-Real-IP`, or `Forwarded`. The `Host` header is not trusted. `authorization`, `proxy-authorization`, `cookie`, and `x-pico-internal` are removed from `_headers` before KRL. One application cookie is read with `http:cookie(name)`; `pico-session` and `pico-ceremony` are never returned. (1.10 §1. Previously the bypass was on by default and a spoofed `Host`, or any proxied socket, counted as local.)
 - **`/sky/*`** — OAuth bearer when `oauth-webhook` tag or mesh OAuth ruleset (3b.1)
 - `meshRequiresOAuth(eci)` helper + `OAUTH_MESH_RULESET_RID`
 - Tests: `npm run test:http`
@@ -1676,7 +1682,7 @@ wrangler (event sits on the schedule and never runs).
 |----------|---------|-------|---------|
 | `PORT` | `3000` | 1.x | HTTP listen port. |
 | `PICO_ENGINE_CONFIG` | `~/.config/pico-engine/config.json` | 1.8 | Operator settings file (port, baseUrl, security flags, optional `home`). Not wiped when you delete data dir. **One file per engine process** — duplicate `config.instances.example/` or mount `docker/config/*.json` per container. CLI: `pico-engine -c /path/to/config.json`. |
-| `PICO_ENGINE_HOME` | `~/.pico-engine/` (or config `home`) | 1.x | **Data only:** database, ruleset cache, default log file. Safe to delete for a fresh mesh; keep config elsewhere. |
+| `PICO_ENGINE_HOME` | `~/.pico-engine/` (or config `home`) | 1.x | **Data only:** database, ruleset cache, default log file, and `internal-token` (mode 0600, rewritten each startup; the dev MCP sends it as `X-Pico-Internal`). Safe to delete for a fresh mesh; keep config elsewhere. The dev MCP must see this same directory. |
 | `PICO_ENGINE_LOG_FILE` | `$PICO_ENGINE_HOME/pico-engine.log` | 1.x | Log file path, or **`stdout`** / **`-`** / **`0`** / empty for **stdout only** (CloudWatch-friendly). When stdout-only, the engine **mirrors** structured JSON lines to **`$PICO_ENGINE_HOME/pico-engine.log`** so the Developer UI **Logging** tab and `ctx:logs` still work (same rotating writer as file mode). **Config dual:** `logFile` in `config.json` (same strings). |
 | `PICO_ENGINE_LOG_MIRROR` | on (`true`) | 1.8 | When **`logToStdout`** is true, **`false`** / **`0`** disables the mirror file above (e.g. EFS + Fargate: avoid NFS log churn). **Config dual:** **`logMirror`** boolean in **`~/.config/pico-engine/config.json`** (see `packages/pico-engine/config.example.json`). Precedence: defaults → env → **config file** → programmatic. The Logging tab does not read this file. |
 | `PICO_ENGINE_LOG_RING` | `200` | 1.8 | How many recent transactions per pico the Logging tab keeps in memory. A restart clears the ring. The log file stays the operator record. |
@@ -1684,7 +1690,7 @@ wrangler (event sits on the schedule and never runs).
 | `PICO_ENGINE_DEMOS_DIR` | (unset) | 1.9.5 | Directory served as `demos/` at `/krl/demos/`, instead of the shipped copy (package `demos/`, or repo-root `demos/` in a checkout). Used by tests and by contributors pointing an installed engine at a checkout; demo changes come in as PRs, and an npm install's copy needn't be editable. |
 | `PICO_ENGINE_BASE_URL` | `http://localhost:$PORT` | 1.x | Public URL prefix (WebAuthn RP origin, did:webvh, links). |
 | `PICO_ENGINE_ALLOW_SELF_SIGNUP` | off (`false`) | Phase 1 | `"true"` / `"1"` = open registration after bootstrap; default invite-only. |
-| `PICO_ENGINE_ALLOW_LOCALHOST_C` | on (any value except `"0"`) | 3b.0 (2026-07-12) | Set to `"0"` to require passkey session on **`/c/*`** even from localhost. Default allows localhost without session so KRL `ctx:event` / `event` loops that POST to `host/c/…` keep working. Tests set `"0"` to simulate external callers. **Security note:** with default, any local process can hit `/c/*` without login; tighter internal token TBD. |
+| `PICO_ENGINE_ALLOW_LOCALHOST_C` | off | 3b.0 (2026-07-12); default flipped in 1.10 | `"1"` / `"true"` lets a **direct loopback** socket call `/c/*`, `/api/dev/local`, and `/api/try-it` without a passkey or the internal token. A request carrying `X-Forwarded-For`, `X-Real-IP`, or `Forwarded` is never treated as local, and the `Host` header is ignored. Default **off**. The dev MCP uses `$PICO_ENGINE_HOME/internal-token` instead. Config: `allowLocalhostChannelBypass`. |
 | `PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER` | off (unset) | 1.8 | Set to **`"1"`** to require OAuth bearer on **`/sky/*`** for any channel whose policy includes unrestricted event or query allow (`*.*`). Default **off** so legacy open `/sky/query/{eci}/…` on wide channels keeps working; turn on for hardened production. Independent of mesh OAuth ruleset lock. |
 | `PICO_ENGINE_AUTO_CREATE_ROOT` | off (unset) | 1.8 | Set to **`"1"`** for integration Docker harnesses (e.g. **manifold-api** `t/`) to boot with one root pico without passkey registration. Production engines should leave unset. |
 

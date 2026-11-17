@@ -141,6 +141,8 @@ If you're new, start with the [Programming lessons](/lessons/), which build a wo
 3. [Tips](/developing/tips): engine setup, hosting and flushing rulesets, `krl-check`, and short technique tips (data, HTTP, picos working together).
 4. [Event and Query URLs with Postman](/developing/postman): building Sky event and query requests in Postman (or `curl`).
 5. [KRL misconceptions and common errors](/developing/misconceptions): where habits from other languages mislead, and the typos that are hard to see.
+6. [Webhook signatures](/developing/webhook-signatures): check a Square-style signature over the raw body.
+7. [AI tools over MCP](/developing/mcp-ai-tools): connect Claude, or another remote MCP client, to a channel or a mesh.
 
 ## Elsewhere in the docs
 
@@ -164,11 +166,7 @@ The engine listens on port 3000 by default, so the examples here use `http://loc
 
 A suggested workflow for new pico developers. Programming picos uses a small tool chain, used more or less in sequence. This page is organized by its stages:
 
-```
-Develop  →  Build  →  Deploy  →  Test  →  Release
- editor     krl-check   install    Testing tab   host at a
- + Git      + hook      + flush    + Logging     stable URL
-```
+<img src="/developing/_media/32754595-pico-tool-chain.png" alt="The pico tool chain: Develop (editor, Git), Build (Pico Labs, Git), Deploy and Test (Pico Labs), Release (AWS, GitHub)" width="50%">
 
 The loop you'll spend most of your time in is Develop → Build → Deploy (flush) → Test. Release only matters when someone other than you depends on the ruleset.
 
@@ -224,9 +222,13 @@ Open the developer UI at <http://localhost:3000> (port 3000 is the default), cli
 
 When the engine can't compile the ruleset, the install fails and the UI shows the error with its line and column.
 
+<img src="/developing/_media/32754595-screen-shot-2021-01-07-at-11.06.49-am.png" alt="Rulesets tab: Install Ruleset by URL form with a file URL entered" width="50%">
+
 ### Flush
 
 The engine compiles a ruleset once and keeps the result. After you change the source, **flush** it so the engine fetches the URL and compiles it again. On the **Rulesets** tab, click **flush** next to the ruleset. Flushing is per URL: every pico on this engine that has the ruleset installed from that URL gets the new version. The ruleset's hash changes with each new version of the source.
+
+<img src="/developing/_media/32754595-screen-shot-2021-01-07-at-11.26.13-am.png" alt="Installed Rulesets list with flush and uninstall buttons next to each ruleset" width="50%">
 
 You can also flush from KRL, which is handy in scripts:
 
@@ -276,19 +278,7 @@ Users install from that URL. A flush rereads the same URL, so a tagged URL stays
 
 Each pico presents an event loop that handles the events sent to it, according to the rulesets installed in it. The event is the input that makes the cycle happen. When the event has been handled, the pico waits for the next one.
 
-```
- event queue
-     │
-     ▼
- 1. Wait ─────▶ 2. Decode ─────▶ 3. Schedule Rules ─────▶ 4. Rule Evaluation ─────▶ 5. Assemble Response
- (idle until     (unpack the      (look up salient         (run the schedule,         (directives, outcomes,
-  the queue       event into a     rules; build the         one rule at a time;        raised events)
-  has an event)   request)         schedule)                raise appends rules)             │
-     ▲                                                            │   ▲                      │
-     │                                                            └───┘                      │
-     │                                                       (schedule grows)                │
-     └──────────────────────────── wait again ◀─────────────────────────────────────────────┘
-```
+<img src="/developing/_media/1189951-image2021-2-22_15-2-38.png" alt="Pico event evaluation cycle: wait, decode event, schedule rules, eval rules, assemble response" width="50%">
 
 The five phases, in order: **Wait**, **Decode**, **Schedule Rules**, **Rule Evaluation**, **Assembling the Response**. Then the pico waits again.
 
@@ -385,6 +375,10 @@ npm ls -g --depth 0 pico-engine  # what npm has installed
 
 Back up your data directory (`~/.pico-engine` by default) before you update, and especially before you *downgrade*. A different engine version may not read what a newer one wrote.
 
+The version also appears at the bottom of the developer UI's root page.
+
+<img src="/developing/_media/31544297-version.png" alt="The developer UI footer: Powered by pico-engine, with the version number" width="50%">
+
 To remove the engine code (not your picos, which live in the data directory):
 
 ```sh
@@ -476,6 +470,12 @@ The engine compiles each ruleset once and caches it. After you change the source
 - **From the UI.** On the pico's **Rulesets** tab, click **flush** next to the ruleset.
 - **From a rule.** `raise wrangler event "rulesets_need_flushing"` re-fetches every ruleset installed in the pico and then raises `wrangler:rulesets_flushed`.
 
+<img src="/developing/_media/31544297-flush.png" alt="The Rulesets tab with hello_world installed, and its flush and uninstall buttons" width="50%">
+
+If the changed source doesn't compile, the flush fails and the error appears next to the ruleset:
+
+<img src="/developing/_media/31544297-flush-error.png" alt="The Rulesets tab showing a ParseError next to hello_world after a flush" width="50%">
+
 Flushing is by URL. The engine keeps one compiled version per URL, so every pico with that ruleset gets the update. Flushing does **not** raise `wrangler:ruleset_installed` again, so rules that run on install don't run. If you change what such a rule sets up (for example a channel's policy), run that rule again yourself. The [Bootstrap and channels](/cookbook/bootstrap/) demo shows how.
 
 The UI uses `/api/flush?url=<ruleset url>`, which needs the signed-in browser session, so it doesn't work from a plain `curl`; use the UI or the wrangler event instead.
@@ -488,6 +488,8 @@ krl-check my.ruleset.krl
 ```
 
 `krl-check` parses and compiles, and lints doc comments and views. It exits with status 1 on an error and prints warnings to stderr. With no file, it reads standard input. Keep `krl-compiler` at the same version as your engine.
+
+<img src="/developing/_media/31544297-screen-shot-2020-11-16-at-11.31.18-am.png" alt="Editor with krl-check validation output before flushing a ruleset" width="50%">
 
 A Git pre-commit hook that checks the *staged* version of each `.krl` file:
 
@@ -628,6 +630,8 @@ Both events and queries are sent to a pico through one of its **channels**, and 
 2. Choose a channel whose policies allow what you want to send. The pico's own `self` channel (its ECI is the pico's id) allows everything, which is fine for experiments. For anything you'll leave around, make a channel that allows only what's needed. See [Managing channels](/wrangler/channels).
 3. Copy the ECI.
 
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-11.52.28-am.png" alt="Channels tab showing a channel and its ECI to copy" width="50%">
+
 If a request is refused, you'll get HTTP 200 and `{"error":"Error: Not allowed by channel policy"}`. Use a channel with a more permissive policy.
 
 If the mesh has [OAuth](/wrangler/oauth) turned on, requests also need an `Authorization: Bearer <token>` header, which in Postman is the **Authorization** tab.
@@ -651,14 +655,24 @@ This example asks wrangler to create a child pico: the domain is `wrangler` and 
 ### In Postman
 
 1. Create a new request tab.
+
+<img src="/developing/_media/1177157666-att1177157745-screen-shot-2020-06-25-at-11.07.07-am.png" alt="Postman: create a new request tab" width="50%">
+
 2. Set the method to **POST**. (GET works for events, but POST is preferred because an event may change the pico.)
+
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-11.12.51-am.png" alt="Postman request method set to POST" width="50%">
+
 3. Enter the URL, with your ECI:
 
    ```
    http://localhost:3000/sky/event/<eci>/child_test/wrangler/new_child_request
    ```
 
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.29.51-pm.png" alt="Postman address bar with the Sky event URL" width="50%">
+
 4. Open the **Body** tab, choose **raw**, and set the type to **JSON**. Put the event's attributes in the body as a JSON object:
+
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.19.02-pm.png" alt="Postman Body tab with raw and JSON selected" width="50%">
 
    ```json
    {
@@ -667,13 +681,21 @@ This example asks wrangler to create a child pico: the domain is `wrangler` and 
    }
    ```
 
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.34.56-pm.png" alt="Postman raw JSON body with event attributes" width="50%">
+
 5. Click **Send**.
+
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.35.59-pm.png" alt="Postman Send button to submit the request" width="50%">
+
+*These screenshots are from an earlier release: they show port 8080 and the old `child_creation` event name. Use the URL and event above.*
 
 A JSON body is the best way to send attributes: it keeps numbers, booleans, and nested maps as they are, and avoids URL-encoding. You can also send attributes as a query string (`?name=test%20child`) or as `application/x-www-form-urlencoded`. When a name appears in both body and query string, the body wins.
 
 ### The response
 
 The response is JSON. It carries the transaction id, any directives from rules that ran, which rules fired, and the events raised during the cycle:
+
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.35.46-pm.png" alt="Postman response JSON with directives and rule outcomes after Send" width="50%">
 
 ```json
 {
@@ -709,14 +731,28 @@ http://localhost:3000/sky/query/<eci>/<rid>/<function>?<arguments>
 ### In Postman
 
 1. Create a new request tab and set the method to **GET**.
+
+<img src="/developing/_media/1177157666-att1177157745-screen-shot-2020-06-25-at-11.07.07-am.png" alt="Postman: create a new request tab for a query" width="50%">
+
+<img src="/developing/_media/1177157666-att1177157757-screen-shot-2020-06-25-at-11.16.39-am.png" alt="Postman request method set to GET" width="50%">
+
 2. Choose the pico, the ruleset, and a function that ruleset shares. The pico's **Testing** tab lists the queries a ruleset shares, and the **Channels** tab has the ECI. This example uses wrangler's `children` query:
+
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-11.46.05-am.png" alt="Developer UI Testing tab: pico, ruleset, and shared function" width="50%">
+
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-11.46.24-am.png" alt="Channels tab ECI for the query URL" width="50%">
 
    ```
    http://localhost:3000/sky/query/<eci>/io.picolabs.wrangler/children
    ```
 
 3. For a function with parameters, add them on the **Params** tab (Postman builds the query string), such as `name = Ada` for `…/io.picolabs.hello_world/hello?name=Ada`. The names must match the function's parameter names.
+
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.09.26-pm.png" alt="Postman Params tab and query URL with parameters" width="50%">
+
 4. Click **Send**. The body is the function's return value, as JSON.
+
+<img src="/developing/_media/1177157666-screen-shot-2020-06-25-at-12.08.57-pm.png" alt="Postman response body showing the query result as JSON" width="50%">
 
 If the function isn't in the ruleset's `shares` list, or the ruleset isn't installed in that pico, the response has an `error` field instead of a value. A GET is the natural method, though POST with a form-encoded or JSON body also works and is useful for long arguments.
 
@@ -763,6 +799,10 @@ If you know HTTP programming, you may think of a pico as a resource. With REST, 
 - Only an **event** can change a pico. Rules react by (conditionally) taking actions on the outside world and by changing entity variables in the postlude, and they can raise more events to the same pico.
 
 Think of a pico as a state machine: queries tell you what state it's in; events (maybe) change it.
+
+An event's rules can change things in two places: **outside** the pico, through actions, and **inside** it, through the postlude.
+
+<img src="/developing/_media/676397057-pico.png" alt="A pico with changes outside (action) above it and changes inside (postlude) within it" width="50%">
 
 Queries are `GET`s to `/sky/query/<eci>/<rid>/<function>?…` and events are `POST`s (or `GET`s) to `/sky/event/<eci>/<eid>/<domain>/<type>`. The first path component is the giveaway. The event URL names the pico, the domain, and the type, but **not a ruleset**: every installed ruleset with a salient rule gets a chance. A query names the ruleset and function, and only that one answers. See the [Event API](/exp/event), the [Query API](/exp/query), and [Event Loop Introduction](/developing/event-loop).
 
@@ -961,6 +1001,8 @@ When a chevron string holds markup, put the closing `>>` on its own line, and th
 <option#{e == el => " selected" | ""}>#{e}</option>
 >>
 ```
+
+<img src="/developing/_media/676397057-screen-shot-2020-01-16-at-9.41.39-am.png" alt="KRL chevron string with beestings for selected option markup" width="50%">
 
 ### KRL isn't Java: `raise` is not a call
 
@@ -1630,23 +1672,15 @@ rule set_cookie {
 
 The engine adds `Set-Cookie: wellKnown_Rx=<eci>; Path=/sky` to the response, and the browser sends the cookie back with later requests to the same engine. This one shares the pico's well-known channel, so other picos reached from the same browser could offer it a relationship. The ruleset uses `io.picolabs.wrangler` as a module.
 
-## Read cookies
+## Read one cookie
 
-Every event raised over HTTP has a `_headers` attribute, and every query a `_headers` argument. This function works in both:
+`_headers` does not include the `Cookie` header. Read one cookie by name:
 
 ```krl
-cookies = function(_headers) {
-  arg = event:attr("_headers") || _headers
-  arg{"cookie"}.isnull() => {} |
-  arg{"cookie"}
-    .split("; ")
-    .map(function(v) { v.split("=") })
-    .collect(function(v) { v.head() })
-    .map(function(v) { v.head()[1] })
-}
+eci = http:cookie("wellKnown_Rx")
 ```
 
-With the header `Cookie: wellKnown_Rx=abc123; sessionid=38afes7a8`, `cookies()` is `{"wellKnown_Rx": "abc123", "sessionid": "38afes7a8"}`. The chain is the same idea as [decoding form data](/developing/decoding-form-data), splitting on `"; "` instead of `&`.
+That is `"abc123"` when the browser sent `Cookie: wellKnown_Rx=abc123`. A cookie that was not sent is `null`. The engine's own session and ceremony cookies are not available to rulesets. `_cookie` and `_redirect` are unchanged: they still set the response.
 
 ## Redirect: `_redirect`
 
@@ -1701,6 +1735,172 @@ ruleset s {
 Another ruleset uses it as a module. It registers a link with `raise s event "u" attributes {"url": long_url, "tag": "docs"}`, then finds the channel with `wrangler:channels(["docs", "s"]).head()` and the short form with `s:u(eci)`. Opening the short URL redirects to the long one. The short URL can only raise `s:u`, and queries on it are all denied. Short links are handy in QR codes, which get smaller as the URL does.
 
 *From the Pico Labs KRL Cookbook pages "Setting and reading cookies" and "Ruleset that provides a general purpose URL shortener".*
+
+
+---
+
+# Webhook signatures
+
+# Webhook signatures
+
+A webhook such as Square's is an HTTP event. The sender signs the exact bytes of the body. The parsed attributes are not those bytes: a space or the order of keys would change the signature. The channel has to keep the raw body, and the comparison has to take the same time whether or not it matches.
+
+## Keep the raw body
+
+On the Channels tab, check **Keep the raw request body**. From KRL, pass `rawBody: true` when the channel is created:
+
+```krl
+raise wrangler event "new_channel_request" attributes {
+  "tags": ["square", "webhook"],
+  "eventPolicy": { "allow": [{ "domain": "square", "name": "webhook" }], "deny": [] },
+  "queryPolicy": { "allow": [], "deny": [] },
+  "rawBody": true
+}
+```
+
+`event:raw_body()` then returns the body as a string. On a channel without that setting it returns `null`, and so does `event:send` or a scheduled event. The body is not an attribute. Storing `event:attrs` does not store it. A rule that raises another event in the same transaction can still read it.
+
+## The signing key
+
+Keep the key in the ruleset's own PDS settings and mark it secret. `settings` then returns `{ "secret": true, "set": true }`. The ruleset reads the key with `pds:config_value("signatureKey")`. See [PDS settings](/wrangler/pds).
+
+## Square
+
+Square's `x-square-hmacsha256-signature` header is the base64 HMAC-SHA256 of the notification URL concatenated with the raw body, using the webhook signature key. The URL is the one configured in Square, exactly, not whatever host the request happened to arrive on. Header names on the event are lowercase.
+
+```krl
+ruleset com.example.square_webhook {
+  meta {
+    use module io.picolabs.pds alias pds
+    shares verdict
+  }
+  global {
+    notification_url = "https://example.com/sky/event/<eci>/none/square/webhook"
+    verdict = function() { ent:verdict || "none" }
+  }
+  rule verify {
+    select when square webhook
+    pre {
+      key = pds:config_value("signatureKey")
+      body = event:raw_body()
+      given = event:attr("_headers"){"x-square-hmacsha256-signature"}.defaultsTo("")
+      ready = body.typeof() == "String" && key.typeof() == "String"
+      expected = ready => math:hmac("sha256", key, notification_url + body, "base64") | ""
+      ok = ready && math:timing_safe_equal(expected, given)
+    }
+    noop()
+    fired {
+      ent:verdict := ok => "accepted" | "rejected"
+    }
+  }
+}
+```
+
+`math:timing_safe_equal` compares the two strings without stopping at the first different byte. Use it instead of `==` for the signature. `math:hmac` is described in the [math library](/krl/libraries/math).
+
+
+---
+
+# AI tools over MCP
+
+# AI tools over MCP
+
+An MCP client such as Claude can call a pico the same way it calls any remote MCP server: add a URL, sign in with a passkey, approve, and use the tools. The engine also has a separate local MCP server for coding agents on the same machine. That one is `pico-engine mcp --stdio` and does not use this sign-in. This page is the remote connection.
+
+## Which URL
+
+| You want | URL | Tools |
+|----------|-----|--------|
+| One channel | `https://<engine>/mcp/<eci>` | That channel's events and queries, one tool each |
+| The mesh under a channel | `https://<engine>/mcp/mesh/<eci>` | `pico_tree`, `pico_channels`, `query`, `raise_event` |
+
+No trailing slash. An ECI is a channel id from the Channels tab.
+
+`mesh:read` covers schemas, lists, and queries. `mesh:act` covers events. `mesh:admin` is reserved and unlocks nothing. A sign-in that does not name a narrower scope receives both `mesh:read` and `mesh:act`.
+
+A channel is not exposed until you allow it. On the Channels tab, check the channel surface for `/mcp/<eci>`, or the mesh surface for a channel that should appear in `/mcp/mesh/…`. The channel you name in the mesh URL does not itself need the mesh checkbox. A missing or empty policy denies both surfaces. A pico ceiling from an older engine does not block this. A ceiling that has its own `mcpPolicy` does.
+
+On a channel endpoint, that channel's event and query policies decide which calls succeed. The tools are the events and queries those policies allow. A mesh endpoint is not bound to the policies of the channel in the URL. `pico_tree` and `pico_channels` list the subtree. `query` and `raise_event` name some other channel, and that channel's event and query policies are what allow or refuse the call. `pico_channels` includes a channel only when its MCP policy allows the mesh surface.
+
+## The root has to allow OAuth
+
+Install `io.picolabs.oauth` on the **root** pico before anyone signs in. The Engine KRL Directory lists it only on the root. On the Rulesets tab the URL is `https://<engine>/krl/io.picolabs.oauth.krl`.
+
+That ruleset is the switch for issuing sign-in tokens. A connector for one channel and a connector for the whole mesh both require it. The channel URL still limits the token to that channel. Installing the ruleset also makes external `/sky/*` calls on the mesh require a bearer token. Channels tagged `mesh-oauth-exempt`, or `didcomm` and `ingress`, stay open. See [OAuth](/wrangler/oauth).
+
+A channel tagged `oauth-webhook` can obtain a client-credentials token for its own MCP URL without this ruleset. That is a machine credential, not the passkey sign-in below.
+
+## Claude cannot use localhost
+
+Claude connects from Anthropic's network, including from Claude Desktop. The connector URL must be HTTPS on port 443. `http://localhost:3000` and a URL with another port are refused.
+
+Keep the engine on port 3000 and put a tunnel in front of it. A Cloudflare quick tunnel does not need an account:
+
+```sh
+brew install cloudflared
+cloudflared tunnel --url http://localhost:3000
+```
+
+The public URL is in the box near the top of the output, `https://….trycloudflare.com`. A line about a missing `config.yml` is normal. Leave that process running. The hostname changes if you stop it and start it again. Anyone with the URL can reach the engine, so stop the tunnel when you are done.
+
+Quick tunnels do not carry server-sent events. If sign-in succeeds and the tools then fail to stay connected, use `ngrok http 3000` instead. A named Cloudflare tunnel, with a hostname you choose, needs a free Cloudflare account and a domain on Cloudflare.
+
+## Set the host before you create the account
+
+A passkey works only for the host it was created on. A passkey for `localhost` will not sign in on the tunnel host, and a passkey for one quick-tunnel hostname will not sign in on the next one. Channels do not store the host. The account that owns them does. Create the passkey, then the channel, on the host Claude will use.
+
+1. Start the tunnel and copy the hostname.
+2. Point the engine at that host and restart it. In the config file (`~/.config/pico-engine/config.json`, or the file in `PICO_ENGINE_CONFIG`):
+
+   ```json
+   {
+     "baseUrl": "https://example.trycloudflare.com",
+     "allowSelfSignup": true,
+     "webauthn": {
+       "rpId": "example.trycloudflare.com",
+       "origin": "https://example.trycloudflare.com",
+       "rpName": "Pico Engine"
+     }
+   }
+   ```
+
+   `baseUrl` and `origin` have no trailing slash and no port. `rpId` is the hostname only. `allowSelfSignup` can go back to `false` after the account exists. The engine reads this file at startup.
+3. Open the tunnel URL in a browser and register a passkey.
+4. Install `io.picolabs.oauth` on that root.
+5. Open the Channels tab, allow the channel MCP surface on the channel the agent should use, and copy its ECI.
+
+The connector URL is then `https://example.trycloudflare.com/mcp/<eci>`.
+
+## Add the connector in Claude
+
+On a Pro or Max plan: **Customize** → **Connectors** → **+ Add** → **Add custom connector**.
+
+On a Team or Enterprise plan an owner adds it under **Organization settings** → **Connectors** → **Add** → **Custom** → **Web**. Each person then connects it from **Customize** → **Connectors**.
+
+- Name it whatever you like.
+- Remote MCP server URL: the channel or mesh URL from above, exactly.
+- Authentication: **Sign in now**.
+- OAuth client: **Use Claude's published identity**. Leave the client id and secret empty.
+
+**Register automatically** is dynamic client registration. This engine does not offer it. **Use your own OAuth client** is an `app_…` client you create on the engine first. The "Detected" label means Claude found an OAuth server, not that a client id is required.
+
+If Claude says automatic client registration is not supported, or the connector page says the connection stopped working and never opens the passkey page, remove the connector and add it again with **Use Claude's published identity**. **Reconnect** repeats the registration attempt Claude already saved.
+
+The passkey page is the tunnel host, not `localhost`. Sign in, then approve. The approval screen names Claude, its host, the mesh, and the scopes. After that, turn the connector on from the **+** menu in a chat. Ask it to run a query (`mesh:read`) or raise an event (`mesh:act`).
+
+A public client's access token lasts one hour. Each refresh returns a new refresh token. Sending the previous refresh token again revokes that grant.
+
+## What another MCP client needs
+
+A client that implements the MCP authorization spec can use the same URLs. A request with no bearer token gets `401` and a `WWW-Authenticate` header pointing at the protected-resource document.
+
+| Document | URL |
+|----------|-----|
+| Protected resource, one channel | `/.well-known/oauth-protected-resource/mcp/<eci>` |
+| Protected resource, mesh | `/.well-known/oauth-protected-resource/mcp/mesh/<eci>` |
+| Authorization server | `/.well-known/oauth-authorization-server` |
+
+The same authorization-server document is also served with the MCP path inserted, and at `/.well-known/openid-configuration`, because some clients look there first. PKCE is S256 only. A `client_id` that is an `https` URL is fetched as a Client ID Metadata Document. The token endpoint accepts a public client (`none`) and a confidential client that sends its secret in the body (`client_secret_post`). The token's `resource` is the MCP URL it was issued for. A token for one channel is rejected on another channel and on `/sky/*`.
 
 
 ---
@@ -2077,7 +2277,7 @@ Example templates: [`config.example.json`](../../config.example.json), [`config.
 | `port` | number | HTTP listen port. Default `3000`. |
 | `baseUrl` | string | Public origin (no trailing slash): WebAuthn, did:webvh, links. Default `http://localhost:3000`. |
 | `allowSelfSignup` | boolean | Open registration after bootstrap. Default `false` (invite-only). |
-| `allowLocalhostChannelBypass` | boolean | Allow `/c/*` from localhost without passkey (dev MCP, KRL HTTP loops). Default `true`. Set `false` in production behind TLS. |
+| `allowLocalhostChannelBypass` | boolean | Allow `/c/*`, `/api/dev/local`, and `/api/try-it` from a **direct loopback** socket without a passkey or the internal token. Default `false`. A request with `X-Forwarded-For`, `X-Real-IP`, or `Forwarded` is never treated as local. The dev MCP uses `$PICO_ENGINE_HOME/internal-token` instead. |
 | `wildcardSkyRequireBearer` | boolean | Require OAuth bearer on `/sky/*` for channels with unrestricted `*.*` allow rules. Default `false` (1.8 opt-in hardening). |
 | `logToStdout` | boolean | Log to stdout instead of a file. Use on Fargate (set `logToStdout: true` in config). |
 | `logFile` | string | Absolute log path when `logToStdout` is false. Values `stdout`, `-`, or `0` force stdout. |
@@ -2139,7 +2339,7 @@ Mesh state lives under `home`:
 
 - One writer per data directory (LevelDB).
 - **Fargate:** mount EFS at e.g. `/var/pico-image`, set `home` accordingly, `baseUrl` to public **HTTPS**, `logToStdout: true` in config. Set **`logMirror: false`** if you do not want the engine writing `pico-engine.log` on EFS (stdout → CloudWatch only).
-- Set `allowLocalhostChannelBypass` to **false** on public deployments.
+- `allowLocalhostChannelBypass` defaults to **false**. Leave it false on public deployments. The dev MCP reads `internal-token` from the engine data directory (on Docker, the host path of the `home` volume).
 
 Detailed checklists: package **README** § Containers / Fargate.
 
@@ -2208,9 +2408,11 @@ Owner UI uses the **UI channel** (passkey). Automation uses **OAuth** on `/sky/*
 | Path | Auth | Use |
 |------|------|-----|
 | `/` | Browser | Developer UI |
-| `/c/*` | Passkey session (localhost bypass optional) | Developer UI (browser). **Discouraged** for automation and third-party apps — use `/sky/*` or mesh MCP instead. |
+| `/c/*` | Passkey session, or `X-Pico-Internal` (dev MCP) | Developer UI (browser). **Discouraged** for automation and third-party apps — use `/sky/*` or mesh MCP instead. |
 | `/sky/*` | Channel policy ± OAuth bearer | Events, queries, integrators |
-| `/mcp/:eci` | OAuth bearer | Mesh MCP (Streamable HTTP) |
+| `/mcp/:eci` | OAuth bearer | Mesh MCP (Streamable HTTP). A missing token is `401` with `WWW-Authenticate: Bearer resource_metadata="…"`. |
+| `/.well-known/oauth-authorization-server` | Public | OAuth authorization-server metadata (RFC 8414) for MCP clients |
+| `/.well-known/oauth-protected-resource/mcp/:eci` | Public | Protected-resource metadata (RFC 9728) for that channel's MCP URL |
 | `/auth/*` | WebAuthn flows | Registration, login |
 
 Local dev MCP: `pico-engine mcp --stdio` — not exposed on hosted load balancers; see [1.8 plan § MCP](https://github.com/Picolab/pico-engine/blob/master/docs/release/1.8.md) (deployment table).
@@ -2565,6 +2767,10 @@ The first visit has no users yet, so the page asks you to **register a passkey**
 
 Registering creates your **root pico**. On later visits you sign in with the same passkey. If you delete `~/.pico-engine`, you get a fresh engine with no picos and no passkeys, and you register again.
 
+<img src="/lessons/_media/19791878-root-pico.png" alt="The developer UI showing the root pico as a box" width="50%">
+
+*The screenshots in this lesson come from an earlier release. Yours will look a little different, but the layout and the steps are the same.*
+
 The page shows your root pico as a box. Click it to open its tabs:
 
 | Tab | What it's for |
@@ -2576,6 +2782,8 @@ The page shows your root pico as a box. Click it to open its tabs:
 | **Testing** | Send events and queries to the pico from forms |
 | **Relationships** | Relationships with other picos (a later lesson) |
 | **Try It!** | Demos you can run in a new child pico (root pico only, by default) |
+
+<img src="/lessons/_media/19791878-root-pico-about.png" alt="The root pico's About tab, with its id, name, and a form to add a child pico" width="50%">
 
 Every pico also gets its own box with a small form to **Add** a child pico, with a name and a color. The lessons use a child pico so your root pico stays clean: type a name such as `hello`, click **Add**, and open the new pico.
 
@@ -2638,6 +2846,10 @@ You can install from a file on your machine, or from a URL.
    If the ruleset is on GitHub, use the **raw** URL, such as `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/hello_world.krl`, not the page that shows the file.
 4. Leave **Config** as it is and click **Install**.
 
+<img src="/lessons/_media/19791878-root-pico-rulesets.png" alt="The Rulesets tab with the install form filled in with a file URL" width="50%">
+
+<img src="/lessons/_media/19791878-root-pico-rulesets2.png" alt="The Rulesets tab listing installed rulesets, including io.picolabs.hello_world" width="50%">
+
 `io.picolabs.hello_world` now appears in the list of installed rulesets. More on URLs and hosting rulesets: [Tips](/developing/tips).
 
 ## Try it
@@ -2657,6 +2869,8 @@ The engine compiles a ruleset once and remembers it. When you change the source,
 1. Edit `hello_world.krl`. Change `"Hello "` in the rule to `"Howdy "`.
 2. On the child's **Rulesets** tab, find `io.picolabs.hello_world` in the list and click **flush**. The engine fetches the URL again and recompiles.
 3. In **Testing**, send `echo:hello` again. The greeting now says `Howdy`.
+
+<img src="/lessons/_media/19791878-root-pico-rulesets3.png" alt="The Rulesets tab with hello_world installed, showing flush and uninstall buttons, the URL, and the ruleset's hash" width="50%">
 
 A flush updates every pico that has the ruleset installed. It rereads the ruleset's URL. If you installed with **Browse…**, that URL is the engine's staged copy, not your file, so flush won't see your edit: browse for the changed file again, or install from a `file://` URL you typed, which flush rereads. [Tips](/developing/tips) covers flushing, and how to check KRL from the command line with `krl-check` before you install it.
 
@@ -2724,6 +2938,8 @@ Your pico already has channels the engine made for it. The developer UI uses one
 
 ### Create a channel for hello_world
 
+<img src="/lessons/_media/19791904-root-pico-channels.png" alt="The Channels tab before creating a new channel" width="50%">
+
 1. Open your pico and click its **Channels** tab.
 2. In the **New Channel** form, leave **Channel id (ECI)** blank to let the engine pick one. (You can choose your own, at least 12 characters of letters, digits, hyphen or underscore, but it can't be changed later.)
 3. Set **Tags** to `hello, lesson`.
@@ -2746,6 +2962,10 @@ Your pico already has channels the engine made for it. The developer UI uses one
    ```
 
 6. Click **Add**. The new channel appears in the list, with its ECI. Copy it.
+
+<img src="/lessons/_media/19791904-root-pico-channels2.png" alt="The New Channel form with tags, an event policy, and a query policy filled in" width="50%">
+
+<img src="/lessons/_media/19791904-root-pico-channels3.png" alt="The Channels tab listing the new channel, tagged hello_world, with its event and query policy" width="50%">
 
 The policy says this channel accepts one event, `echo:hello`, and one query, the `hello` function of `io.picolabs.hello_world`. Use `"*"` to match anything, for instance `{"domain": "echo", "name": "*"}` allows every `echo` event. A rule in `deny` always wins over `allow`.
 
@@ -2795,6 +3015,8 @@ You get JSON back:
 
 Those are the **directives** from every rule the event ran. The sender asked nothing of a function: the rule `hello_world` selected the event and answered with `say`.
 
+<img src="/lessons/_media/19791904-echo-hello.png" alt="The directives returned by an echo:hello event, shown in a browser" width="50%">
+
 GET works too, so you can paste the URL in a browser, but **POST is preferred** for events because an event can change state.
 
 Now try the things that should fail:
@@ -2818,9 +3040,13 @@ curl "http://localhost:3000/sky/query/<eci>/io.picolabs.hello_world/hello?name=A
 
 The answer is the return value: `"Hello Ada"`. Leave off `name` and the function's default gives `"Hello world"`. Query details are in [Query API](/exp/query).
 
+<img src="/lessons/_media/19791904-root-pico-testing3.png" alt="The Testing tab running the hello query with a name argument" width="50%">
+
 > **Note:** Older docs and rulesets show `/sky/cloud/…`. It's a legacy alias for the same handler. Use `/sky/query/…`.
 
 ## Use the Testing tab
+
+<img src="/lessons/_media/19791904-root-pico-testing.png" alt="The Testing tab overview with ECI and Ruleset menus" width="50%">
 
 You can send the same events and queries without typing URLs. Open the pico's **Testing** tab:
 
@@ -2829,6 +3055,10 @@ You can send the same events and queries without typing URLs. Open the pico's **
 3. The tab builds a form for each event the ruleset's rules select and each query it shares. The forms come from the ruleset's **schema**, which the compiler generates from the code and from the `/** … */` doc comments on rules and functions: the `@attr` and `@param` tags name the inputs, and `@example` supplies presets. Fill in `name`, then send.
 
 The result shows below the forms, and the tab keeps a history of what you sent so you can send it again.
+
+<img src="/lessons/_media/19791904-root-pico-testing2.png" alt="The Testing tab with the hello_world ruleset selected, a name typed in the echo:hello form, and the directive in the Results panel" width="50%">
+
+<img src="/lessons/_media/19791904-root-pico-testing4.png" alt="The Testing tab echo:hello event form with the name field" width="50%">
 
 > **Note:** Older rulesets list their events and queries in a global `__testing` map. That's legacy: the engine still understands it for older rulesets, but new rulesets should use doc comments. Rules and functions with no doc comment still appear, with attributes the engine can find in the code, but you won't get descriptions or examples.
 
@@ -2868,6 +3098,8 @@ Send `echo:hello` with `name` set to `Ada`. Then open the **Logging** tab. It li
 - your `klog` line, `Here's the name I saw: ada`
 - the directives that went back
 - any events the rules raised
+
+<img src="/lessons/_media/19791904-root-pico-logging.png" alt="The Logging tab listing the transactions for an event and a query, with klog output" width="50%">
 
 The **Filters** button narrows the list: by ruleset, by `domain:type`, errors only, or transactions that logged `klog`. The tab follows new transactions as they arrive. You'll use it constantly: if a rule didn't run, this is where you find out why. Rules that didn't select an event are shown with their `select` text, so you can see what they were waiting for.
 
@@ -2988,6 +3220,10 @@ Then:
 2. Send the event `hello:name` with attribute `name` set to `Ada`. The rule answers with a `store_name` directive.
 3. Query `name` again. It's `"Ada"`.
 4. Restart the engine (stop it with Control-C and start it again) and query `name`. It's still `"Ada"`. That's what "persistent" means.
+
+<img src="/lessons/_media/20742148-state_testing.png" alt="Sending hello:name with the name Bob on the Testing tab. The results show the store_name directive" width="50%">
+
+<img src="/lessons/_media/20742148-state_testing2.png" alt="Querying name on the Testing tab. The result is Bob" width="50%">
 
 The pieces:
 
@@ -3123,11 +3359,25 @@ Walk through what's new.
 Now play with it from the Testing tab (or from `curl`, with the URLs from the last lesson):
 
 1. Send `hello:name` with `id` `1`, `first` `Ada`, `last` `Lovelace`.
+
+<img src="/lessons/_media/20742148-state_testing5.png" alt="The Testing tab hello:name form with id, first, and last fields" width="50%">
+
 2. Send `hello:name` with `id` `2` and only `first`: the warning shows in the Logging tab and nothing is stored. The condition was false, so `else` ran.
 3. Query `name` with `id` `1`: `"Ada Lovelace"`. With `id` `9`: `"HAL 9000"`.
+
+<img src="/lessons/_media/20742148-state_testing4.png" alt="Querying name with an unknown id on the Testing tab, showing the default HAL 9000 greeting" width="50%">
+
 4. Send `hello:visit` with `id` `1` twice. The directive says `Hello Ada Lovelace`. Query `visits` with `id` `1`: `2`.
+
+<img src="/lessons/_media/20742148-state_testing6.png" alt="The Testing tab after hello:visit, showing the hello directive with the stored name" width="50%">
+
 5. Query `users`: `{"1": {"name": {"first": "Ada", "last": "Lovelace"}, "visits": 2}}`.
+
+<img src="/lessons/_media/20742148-state_testing7.png" alt="The users query on the Testing tab, with each stored user's name and visit count in the Results panel" width="50%">
+
 6. Send `hello:clear_names`. Query `users`: `{}`. The visit count went too, because it lives in the same map.
+
+<img src="/lessons/_media/20742148-state_testing3.png" alt="The users query after clear_names, showing an empty map" width="50%">
 
 Over HTTP the same steps look like this:
 
@@ -3342,6 +3592,8 @@ You never want an API key in a KRL file: source gets copied, committed to reposi
 
 In KRL, the ruleset reads this map as `meta:rulesetConfig`. A `with` clause can use it because the engine evaluates the clause when the ruleset is loaded, before any rule runs. Other forms of the install (the `wrangler:install_ruleset_request` event, which the Rulesets tab sends) take the same `config` attribute. See [The wrangler ruleset](/wrangler/wrangler). A bootstrap ruleset can install a whole app, modules first, each with its own `config`: [Bootstrap and channels](/cookbook/bootstrap/) shows how.
 
+<img src="/lessons/_media/32148114-modules_overview.png" alt="The Rulesets tab showing my_movie_app installed, with its Config, last flushed time, and hash" width="50%">
+
 Install configuration keeps the secret out of the source, but not out of sight. Anyone who can use the developer UI can see the config on the **Rulesets** tab, the install event's attributes show in the **Logging** tab and the engine's log file, and `wrangler:rulesetConfig(rid)` returns it to anyone whose channel permits the query. The [Configuration and secrets](/cookbook/secrets/) demo walks through where a secret can be seen, how to get one in by event instead, and how to keep a ruleset idle until it has one.
 
 > **Older rulesets:** you may see a `keys` ruleset that holds `key twilio { … }` in its source, and `use module io.picolabs.lesson_keys` with `keys:twilio("account_sid")`. That puts the secret in a file. Prefer install configuration.
@@ -3349,6 +3601,8 @@ Install configuration keeps the secret out of the source, but not out of sight. 
 ## Try it
 
 On the `movies` pico, open the **Testing** tab and choose `com.example.my_movie_app`.
+
+<img src="/lessons/_media/32148114-module_in_use.png" alt="The Testing tab with com.example.my_movie_app selected, showing its queries and its movie:rating_given event" width="50%">
 
 1. Run the `popular` query. With a valid key you get a list of titles. With a missing or wrong key, TMDB answers `401` and the module's function returns `[]`.
 2. Send `movie:rating_given` with `movie_id` `550`, `rating` `8`, and a `guest_session_id` (you can make a guest session with TMDB's API, see its [documentation](https://developer.themoviedb.org/); any string works for seeing the flow).
@@ -3695,6 +3949,10 @@ Raise it on the Testing tab. Give each person the page opened on their own chann
 5. Enter `n1` and a name, click **Timing started**, wait a few seconds, then click **Finished**. The elapsed time appears. Start `n2` and leave it running.
 6. Start `n1` again. Nothing changes: the number is taken.
 
+<img src="/lessons/_media/32640450-timing1.png" alt="The timing tracker page with number and name fields and a Timing started button" width="50%">
+
+<img src="/lessons/_media/32640450-timing2.png" alt="The timing tracker page listing n2 as running and n1 as finished, with its elapsed time" width="50%">
+
 The same events work without the page. This is why a view is a front end and not a different kind of pico:
 
 ```sh
@@ -3764,11 +4022,21 @@ A parent and child are connected by **family channels**: the parent has a channe
 
 ## Create children in the UI
 
+<img src="/lessons/_media/21168151-system-about.png" alt="The root pico About tab before adding a child" width="50%">
+
 Open your root pico and click its **About** tab. Under **Children**, type a name and choose a color, then click the add button. Call the new pico "Registration". The About tab lists the new child with its ECI. Click the link to visit it. Notice that it has a **Parent** link and no children yet.
+
+<img src="/lessons/_media/21168151-system-about3.png" alt="A child pico's About tab showing its Parent link and no children" width="50%">
 
 Create a second child of the root, "Section Collection", with a different color.
 
+<img src="/lessons/_media/21168151-system-about2.png" alt="The About tab of the root pico, listing the Registration child with its ECI and a form to add another" width="50%">
+
 Click **Close** to see the layout: two picos connected to the root by their parent-child links. Drag them around. The layout is saved.
+
+<img src="/lessons/_media/21168151-system-view.png" alt="The pico layout: the root pico connected to the Registration and Section Collection picos" width="50%">
+
+<img src="/lessons/_media/21168151-reglayout.png" alt="Diagram of the registration system pico layout" width="50%">
 
 ## Delete children in the UI
 
@@ -3831,6 +4099,10 @@ Share it, and `sections` (below), in the `meta` block with `shares`. The full ru
 ### Make a section pico
 
 On the Section Collection pico's **Testing** tab, `section:needed` appears as a form. (Rules with a documentation comment, `@attr`, and `@example` show up there.) Enter a section id such as `CS462-1` and click the button. Close the pico and its tabs, and a new pink child is there.
+
+<img src="/lessons/_media/21168151-system-testing.png" alt="The Testing tab of the Section Collection pico with the section:needed form" width="50%">
+
+<img src="/lessons/_media/21168151-system-view2.png" alt="The layout after the event: a new pink section pico under the Section Collection pico" width="50%">
 
 ### Why two rules?
 
@@ -3916,6 +4188,8 @@ The `where` clause makes the rule apply only to children this ruleset asked for.
 
 (ECIs vary. Yours will look different.) To clear out earlier experiments, delete the old children on the About tab and raise `section:needs_initialization`.
 
+<img src="/lessons/_media/21168151-system-testing2.png" alt="The Testing tab querying sections, showing persisted section entries with ECIs" width="50%">
+
 > **Note:** Don't use the old chained form `ent:sections{section_id}{"eci"} := …`. It doesn't parse. Use a composite path, `ent:sections{[section_id, "eci"]}`.
 
 ## List the children
@@ -3992,6 +4266,8 @@ rule install_section_ruleset {
 ```
 
 `event:send` goes in the action block, never in a postlude. It sends the event to the child pico's channel. There are two ways to say what to install. With `url`, Wrangler installs the KRL at that URL. With `absoluteURL` and `rid`, it installs `<rid>.krl` from the same folder as `absoluteURL`. `meta:rulesetURI` is the URL of the ruleset that's running, so `app_section.krl` has to be in the same folder as `app_section_collection.krl`. This works like a relative URL in a web page: the browser resolves `page2.html` against the page it came from, and Wrangler resolves `app_section` against `meta:rulesetURI`.
+
+<img src="/lessons/_media/21168151-relativeurl.png" alt="Installing a ruleset using absoluteURL resolved relative to meta:rulesetURI" width="50%">
 
 Wrangler fetches and compiles the ruleset, installs it, and then raises `wrangler:ruleset_installed` in the **child**, with `rids` (an array holding the installed rid) and the other attributes of the request. So `section_id` is passed through, without Wrangler looking at it. The new ruleset's first event is `ruleset_installed`, and every ruleset on that pico sees it, so select your own with `where event:attr("rids") >< meta:rid`:
 
@@ -4233,6 +4509,8 @@ Each end may also have a role. From A's perspective, **`Rx_role`** is A's role, 
 
 The relationship also has an **`Id`**, the same on both ends. It is the one field that is: there's one relationship with two ends, and the rest of its fields swap.
 
+<img src="/lessons/_media/21659676-image2016-7-21-17-49-40.png" alt="A relationship between picos A and B. A's Tx is B's Rx, and A's Rx is B's Tx, and the relationship has a name" width="50%">
+
 ## The experiment
 
 We continue the registration example. The root pico has two children, the **Registration** pico and the **Section Collection** pico. The Section Collection pico has a child pico for each section. Students are children of the Registration pico, and each student will have a relationship with each section they take:
@@ -4248,11 +4526,15 @@ We continue the registration example. The root pico has two children, the **Regi
 
 Parent-child links are the tree. Relationships are separate lines drawn across it: Jane to a section, and Jane to the Section Collection.
 
+<img src="/lessons/_media/21659676-subs2.png" alt="The pico layout with the parent-child tree, and dashed pink lines for Jane's relationships to the section picos" width="50%">
+
 To prepare, (re)build the registration system from [Pico-Based Systems](/lessons/pico-based-systems): install `app_section_collection` in the Section Collection pico and create two sections with `section:needed`. Then create a pico for a student, a child of the root named "Jane", with the About tab. Every pico has `io.picolabs.subscription` installed already, so you needn't install it.
 
 ## Create a relationship by hand
 
 To form a relationship, Wrangler makes a new channel in each pico. To get started, it needs a channel that already exists in each one. That's the **well-known channel**.
+
+*The screenshots below come from an earlier release, when the **Relationships** tab was called **Subscriptions**. The layout has changed since, but the steps are the same.*
 
 ### Find the well-known channel
 
@@ -4272,17 +4554,35 @@ Open Jane's **Relationships** tab and find **New relationship**. Choose the clas
 
 Submit the form. It raises `wrangler:relationship` in Jane's pico.
 
+<img src="/lessons/_media/21659676-ui-subs2.png" alt="The New relationship form on a pico's Relationships tab" width="50%">
+
 ### Look at what happened
 
-On Jane's **Channels** tab there's a new channel for this relationship. It is Jane's `Rx`, and the section's `Tx`. On Jane's **Relationships** tab, the relationship is under **Outbound pending**: proposed to the other pico, not yet accepted.
+On Jane's **Channels** tab there's a new channel for this relationship. It is Jane's `Rx`, and the section's `Tx`.
+
+<img src="/lessons/_media/21659676-ui-subs1.png" alt="Jane's Channels tab showing the new relationship channel before acceptance" width="50%">
+
+On Jane's **Relationships** tab, the relationship is under **Outbound pending**: proposed to the other pico, not yet accepted.
 
 Visit the section pico. Its **Inbound pending** list has the same relationship. Expand both and compare. `Id` is the same. The roles are swapped and so are `Tx` and `Rx`. Jane doesn't yet have the section's ECI, because the section hasn't accepted.
+
+<img src="/lessons/_media/21659676-ui-subs4.png" alt="A pico's Relationships tab with one inbound pending relationship" width="50%">
 
 ### Accept it
 
 On the section pico, expand the inbound relationship and click **Approve**. That raises `wrangler:pending_relationship_approval` with the relationship's `Id`. Both sides now show it as **Established**. Jane has the section's channel, and the section has Jane's.
 
+<img src="/lessons/_media/21659676-ui-subs5.png" alt="An expanded inbound relationship with its Rx_role, Tx_role, Id, Tx and Rx, and an Accept button" width="50%">
+
+<img src="/lessons/_media/21659676-ui-subs8.png" alt="Jane's Channels tab after the relationship is accepted, showing the established channel" width="50%">
+
 Do it again with Jane and the other section. Jane's established list now has two relationships. Their `Id`s differ.
+
+<img src="/lessons/_media/21659676-ui-subs3.png" alt="The section pico's Relationships tab with an established relationship" width="50%">
+
+<img src="/lessons/_media/21659676-ui-subs6.png" alt="The Relationships tab with the relationship now listed as established" width="50%">
+
+<img src="/lessons/_media/21659676-ui-subs7.png" alt="The pico topology with magenta lines for Jane's established relationships" width="50%">
 
 ## Create a relationship from a rule
 
@@ -4726,7 +5026,13 @@ When you finish you will be able to:
 
 ## The problem
 
-Fuse was an open-source connected-car platform built with picos. Every week it sent the fleet owner a report: the trips and fuel fill-ups of each vehicle in the period, summed for each vehicle and then for the fleet. The owner was a pico, so was the fleet, and so was each vehicle. Each was independent and addressable, kept its own data, and answered queries (functions) and events (rules). They talked to one another directly, with nothing in between.
+<img src="/lessons/_media/1185976-26315821-fuse.jpg" alt="Fuse Logo" width="50%">
+
+Fuse was an open-source connected-car platform built with picos. Every week it sent the fleet owner a report: the trips and fuel fill-ups of each vehicle in the period, summed for each vehicle and then for the fleet. Here's the start of a weekly report for one fleet:
+
+<img src="/lessons/_media/1185976-21289230688-fuse-weekly-report.png" alt="Start of a Fuse weekly report, with trip and fill-up details for each vehicle" width="50%">
+
+The owner was a pico, so was the fleet, and so was each vehicle. Each was independent and addressable, kept its own data, and answered queries (functions) and events (rules). They talked to one another directly, with nothing in between.
 
 ## The synchronous solution
 
@@ -4739,6 +5045,10 @@ fleetDetails = function() {
   })
 }
 ```
+
+That process looks like this. The owner sends `periodic_report` to the fleet; a rule calls a function that queries each vehicle over HTTP; once every vehicle has answered, the fleet formats the report and tells the owner it's ready:
+
+<img src="/lessons/_media/1185976-21293069658-synchronous.png" alt="Synchronous request-response: the fleet queries each vehicle in turn and waits for every reply before finishing the report" width="50%">
 
 Programmers who've used an API will find that familiar. It works so long as every vehicle answers promptly. A query waits for its answer, so the fleet pico is stuck for the sum of all the delays, and it can't handle anything else meanwhile. Vehicles on other engines are queried over the network, where timeouts have to be short, and one slow vehicle gets missed. With a few vehicles that's rare. With ten, the chance that at least one is late gets good, and with a hundred it's routine.
 
@@ -4755,6 +5065,10 @@ Use events, and let every pico work at its own pace. Vaughn Vernon describes the
 5. Another rule checks whether every vehicle has answered. When all have, the fleet finishes the report.
 
 There are no queries in this flow, only events. Events go to a pico, not to a particular rule: each pico has its own event bus, and any rule that selects the event runs. A rule doesn't need to know who raised the event, or what else is listening.
+
+Fuse's weekly report used exactly this pattern, with a timer added as a safety net. Each oval is a pico, each rounded box a rule, and each arrow an event. Picos with the same name are the same pico, drawn again to show the next step:
+
+<img src="/lessons/_media/1185976-21293982299-scatter-gather.png" alt="Fuse periodic report: the owner asks the fleet, the fleet scatters a request to each vehicle, vehicles send reports back, the fleet gathers them and sends the finished report to the owner, with a two-minute timer as a safety net" width="50%">
 
 ## The messy details
 
@@ -4779,6 +5093,8 @@ Here is the fleet. It's a ruleset for a pico whose children are vehicles. The ru
 ### Correlating events
 
 A **correlation identifier** links the two halves of an asynchronous conversation. It is an event attribute, any string that's unique within the conversation, and the sender of the first event expects it back in the reply. Rules also use it as a key in persistent state, so each conversation's data is separate.
+
+<img src="/lessons/_media/1185976-25264445563-event-correlation.png" alt="Event correlation: a request carries a correlation number that comes back with the reply, so overlapping conversations stay separate" width="50%">
 
 ```krl
 // 1. Start: correlate the work, remember who we expect, set a safety timer.
@@ -4807,6 +5123,8 @@ Any rule that sees an `rcn` must pass it on. Future versions of Wrangler may aut
 ### Event recipient lists
 
 The simplest routing is to keep a list of picos and send the same event to each of them, like the **To:** line of an email. The list can be fixed, or computed, so that the pico acts as an event router. Here the list is the fleet's current children:
+
+<img src="/lessons/_media/1185976-25867495936-event-recipient-list.png" alt="Event recipient list: one pico sends the same event to every pico on a list" width="50%">
 
 ```krl
 // 2. Scatter: one event per vehicle, from a computed recipient list.
@@ -4863,6 +5181,8 @@ It sends the answer to its parent with the number and its name, so the fleet can
 
 An **aggregator** collects events and, when it has enough, raises an event or takes another action. The fleet's is two rules: one collects, and one decides.
 
+<img src="/lessons/_media/1185976-25867268766-event-aggregation.png" alt="Event aggregation: answers arrive one by one; when enough have been collected, the aggregator raises a ready event" width="50%">
+
 ```krl
 // 3. Gather: file each answer under its correlation number.
 rule catch_vehicle_report {
@@ -4903,6 +5223,10 @@ rule check_report_status {
 - If none is missing, the rule fires and raises `report:ready`. Otherwise it does nothing: there's no waiting, no loop, and the next answer will run this rule again.
 
 ### Dealing with failure
+
+Because events may be lost, asynchronous systems have to be prepared to deal with failure. A timer, a retry, or both:
+
+<img src="/lessons/_media/1185976-26168873862-event-failure.png" alt="Dealing with failure: a scheduled timer retries missing vehicles, then finishes the report with what it has" width="50%">
 
 The timer was scheduled when the report began. When it expires, the rule sees whether the report is still open, and if it is, raises the same `report:ready` event, marked `timed_out`:
 
@@ -4951,6 +5275,8 @@ To retry instead of just continuing, have `timer_expired` raise `report:scatter`
 
 Another way to decide who gets an event is by what it says. The routing pico knows several others and chooses by the event's domain, type, attributes, or its own state. A Fuse fleet could have more than one owner and needed to keep an owner informed by routing certain events to one:
 
+<img src="/lessons/_media/1185976-25260450274-event-routing.png" alt="Content-based event routing: the router chooses a destination from the event's content and the pico's state" width="50%">
+
 ```krl
 // Content-based routing: the event decides where it goes.
 rule route_to_owner {
@@ -4977,6 +5303,8 @@ rule route_to_owner {
 ### Registration
 
 The most general routing is a directory. Picos send a registration event saying who they are and what they care about, and the directory routes events to those that have registered for them. The directory can be a special pico in a large system, or a ruleset in a pico that does other things too. A directory also lets a pico change its channel for security without losing service, and lets a pico move without losing messages.
+
+<img src="/lessons/_media/1185976-26210449896-pico-registry.png" alt="Pico registration: picos register with a directory; the directory routes events to those that have registered for a topic" width="50%">
 
 ```krl
 // Registration: picos say what they want to hear about.
@@ -5017,6 +5345,10 @@ On the fleet's Testing tab, raise `report:requested`. Query `completed` and you'
 - Raise `report:requested` twice quickly. There are two numbers and two independent reports.
 
 ## Conclusion
+
+Recipient list plus aggregator is the scatter-gather pattern in full:
+
+<img src="/lessons/_media/1185976-25592606980-scatter-gather-pattern.png" alt="Scatter-gather: scatter events to many picos from a recipient list, then gather their answers with an aggregator" width="50%">
 
 Scatter-gather adds a few rules over the synchronous version, and each is short and does one thing. What you get for it:
 
@@ -6859,7 +7191,7 @@ A pico can have as many channels as it needs, and only a pico can create and del
 
 ### Creating a channel
 
-`createChannel(tags, eventPolicy, queryPolicy)` is an action that creates a channel and returns it. Its `id` is the channel's ECI:
+`createChannel(tags, eventPolicy, queryPolicy, mcpPolicy, rawBody)` is an action that creates a channel and returns it. `mcpPolicy` is optional. Leave it out and the channel is not exposed to MCP. `rawBody` is optional. Pass `true` and an HTTP event on this channel keeps its exact body for `event:raw_body()`. Leave it out and the body is not kept. Its `id` is the channel's ECI:
 
 ```krl
 rule initialize {
@@ -7095,6 +7427,8 @@ rule create_limited_use_channel {
 ```
 
 The directive gives the new ECI to whoever sent the event: a trusted page, say, that builds a link for checking the lamp.
+
+Pass `rawBody: true` on `wrangler:new_channel_request`, or as the last argument of `wrangler:createChannel`, when the channel receives a webhook whose signature covers the exact request body. `event:raw_body()` is then that body. On every other channel it is `null`. The Channels tab has the same checkbox. See [Webhook signatures](/developing/webhook-signatures).
 
 A ruleset often creates its channel when it's installed, from a rule that selects its own `wrangler:ruleset_installed`. See the [Bootstrap and channels](/cookbook/bootstrap/) demo, which also updates the channel instead of making a duplicate when the rule runs again.
 
@@ -7788,7 +8122,9 @@ Remove one item with `pds:remove_old_data` (`namespace`, `key`), which raises `p
 
 ### Settings
 
-Settings are keyed by rid. Each entry has a `name`, the `rid`, a `data` map, and an optional `schema`. `pds:add_settings` sets one value, and PDS raises `pds:settings_added`:
+Settings are keyed by rid. Each entry has a `name`, the `rid`, a `data` map, an optional `schema`, and an optional `secret` list of data-key names. `pds:add_settings` sets one value, and PDS raises `pds:settings_added`.
+
+A secret key is marked with `"secret": true` on that write, `"secret": ["apiKey"]`, or a schema entry `{ "key": "apiKey", "secret": true }`. `settings` and `get_setting_data_value` then return `{ "secret": true, "set": true }` (or `set: false` when the key has no value). They never return the value. The ruleset that owns the setting reads it with `config_value`, which uses `meta:callingRID()`. The value is omitted from engine logs. `getChannelEci` is available to rulesets on the pico and is not a shared query. The `pds` channel does not accept `clear_all_data`.
 
 ```krl
 raise pds event "add_settings" attributes {
@@ -8093,7 +8429,7 @@ Use `mesh-oauth-exempt` for webhook channels whose senders can't add an `Authori
 
 **Webhook credentials.** Tag a channel `oauth-webhook`. On the **Channels** tab, create credentials for it: the client id is the ECI, and the secret is shown once. Exchange them for a token at `POST /oauth/token` with `grant_type` `client_credentials`. The token (`oat_…`) works only on `/sky/*` for that ECI. Family, relationship, and system channels can't have credentials.
 
-**Apps.** With this ruleset installed, register an app under **Settings** → **OAuth apps**, with its redirect URIs. The app sends the user to `/oauth/authorize`, the user approves with their passkey, and the app exchanges the code for tokens at `/oauth/token`.
+**Apps.** With this ruleset installed, register an app under **Settings** → **OAuth apps**, with its redirect URIs. The app sends the user to `/oauth/authorize`, the user approves with their passkey, and the app exchanges the code for tokens at `/oauth/token`. A public app's access token lasts one hour. Refreshing returns a new refresh token and invalidates the old one. Presenting that old refresh token again revokes the new one too.
 
 ## From KRL
 
@@ -8112,7 +8448,8 @@ Creating a new channel secret revokes the tokens already made from the old one.
 
 - [Pico views](/pico-views) on an OAuth mesh need an access token in the browser; see their OAuth section.
 - The Try It! demos aren't meant for OAuth meshes: their pages send no token.
-- The mesh MCP server (`/mcp/:eci`) needs a bearer token.
+- The channel MCP server (`/mcp/:eci`) and the whole-mesh server (`/mcp/mesh/:eci`) need a bearer token. Connecting Claude or another remote client is [AI tools over MCP](/developing/mcp-ai-tools). A request without a token gets `401` and `WWW-Authenticate: Bearer resource_metadata="…", scope="mesh:read mesh:act"`. The metadata URL is `/.well-known/oauth-protected-resource/mcp/{eci}` (and `…/mcp/mesh/{eci}` for the whole-mesh endpoint). The authorization server document is `/.well-known/oauth-authorization-server`. PKCE is S256 only. A token is bound to the `resource` it was issued for: `{engine}/sky` on Sky routes, `{engine}/mcp/{eci}` on that channel's MCP URL, or `{engine}/mcp/mesh/{eci}` on that mesh URL (authorization-code tokens only). A token with no `resource` (a webhook or an older app token) still works on `/sky/*` and is rejected at MCP. `mesh:read` covers schemas and queries; `mesh:act` covers events. A call that needs a scope the token does not have gets `403` and `error="insufficient_scope"`. `mesh:admin` is reserved and unlocks nothing in this release. A client-credentials token for a channel MCP URL receives `mesh:read` and `mesh:act` when the client does not name a scope.
+- A `client_id` that is an https URL is fetched as a Client ID Metadata Document. The approval screen shows that client's name, host, and page, and the mesh being approved. Pre-registered apps are unchanged.
 
 The package README's OAuth section has the HTTP details for every grant.
 
@@ -8186,21 +8523,7 @@ The pico API is **not RESTful**. A pico is not a collection of resources you man
 
 EXP is also a **meta-API**: it describes the *pattern* for talking to a pico, not a fixed list of operations. Each pico's concrete API is whatever its installed rulesets provide — which events their rules select on, and which functions they list in `shares` — and that can change over the pico's life as rulesets are installed or removed. Salience (from the rules' `select when` expressions) and the shared-function list are how you learn what a given pico will respond to; the developer UI's **Testing** tab and each pico's `discovery` channel surface that.
 
-```
-  application / webhook / view
-        │                      │
-        │ raise event          │ call shared function
-        ▼                      ▼
-   /sky/event/…           /sky/query/…
-        │                      │
-        └──────────┬───────────┘
-                   ▼
-                 pico
-                   │
-        ┌──────────┴───────────┐
-        ▼                      ▼
-  directives / outcomes   JSON return value
-```
+<img src="/exp/_media/1189953-event_query_api.png" alt="Event query model in a pico: the event API feeds rules, the query API reads from functions, both backed by persistent storage" width="50%">
 
 A better analogy than REST is a cloud-based persistent object: you send it messages (events) and ask it questions (queries), the same way you would talk to an object in an OO program. In return you get actors that scale by sharding, can live on different engines, and keep the user in control of their data.
 
@@ -8285,7 +8608,9 @@ curl -X POST "http://localhost:3000/sky/event/<eci>/none/echo/message" \
   -H 'content-type: application/json' -d '{"input": "hello"}'
 ```
 
-Every event raised over HTTP also gets an attribute `_headers` with the request's HTTP headers. See [Cookies and redirects](/developing/cookies-and-redirects).
+Every event raised over HTTP also gets an attribute `_headers` with the request's HTTP headers, minus `Authorization`, `Proxy-Authorization`, `Cookie`, and `X-Pico-Internal`. Read one application cookie with `http:cookie(name)`. See [Cookies and redirects](/developing/cookies-and-redirects).
+
+The parsed body is the event's attributes. The exact bytes are available as `event:raw_body()` only when the channel has `rawBody: true`, which is how a webhook signature is checked. See [Webhook signatures](/developing/webhook-signatures).
 
 ## Response
 
@@ -8381,7 +8706,7 @@ curl -X POST "http://localhost:3000/sky/query/<eci>/com.example.json_query/runQu
 
 `/sky/cloud/...` is a legacy alias for the same handler. Prefer `/sky/query/`.
 
-Every query also gets an argument `_headers` with the request's HTTP headers.
+Every query also gets an argument `_headers` with the request's HTTP headers, minus `Authorization`, `Proxy-Authorization`, `Cookie`, and `X-Pico-Internal`. Read one application cookie with `http:cookie(name)`.
 
 ## Response
 

@@ -12,7 +12,7 @@ import {
   PolicyCeiling,
 } from "./policyCeiling";
 import { dbRange } from "./dbRange";
-import { cleanEvent, PicoEvent, PicoEventPayload } from "./PicoEvent";
+import { cleanEvent, copyEnumerableSymbols, PicoEvent, PicoEventPayload } from "./PicoEvent";
 import { PicoFramework } from "./PicoFramework";
 import { PicoFrameworkEvent } from "./PicoFrameworkEvent";
 import { PicoQuery } from "./PicoQuery";
@@ -574,6 +574,9 @@ export class Pico {
       name,
       data: { attrs },
     });
+    if (this.current) {
+      copyEnumerableSymbols(this.current.event, event);
+    }
     if (typeof forRid === "string") {
       this.addToSchedule(forRid, event);
     } else {

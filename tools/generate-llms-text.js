@@ -51,6 +51,8 @@ const indexPaths = [
   { title: "Tip: converting time formats", file: "developing/converting-time-formats.md" },
   { title: "Tip: what's in a name", file: "developing/names-and-scope.md" },
   { title: "Tip: cookies and redirects", file: "developing/cookies-and-redirects.md" },
+  { title: "Webhook signatures", file: "developing/webhook-signatures.md" },
+  { title: "AI tools over MCP", file: "developing/mcp-ai-tools.md" },
   { title: "Tip: events from email", file: "developing/events-from-email.md" },
   { title: "Tip: reading the engine's log files", file: "developing/engine-log-files.md" },
   { title: "Tip: querying another pico", file: "developing/querying-another-pico.md" },

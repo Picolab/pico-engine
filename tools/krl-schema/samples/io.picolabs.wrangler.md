@@ -8,7 +8,7 @@ When a pico is created this ruleset will be installed to provide essential servi
 *Version draft. Generated from the ruleset's annotations by `krl-schema --format markdown`; edit the `/** */` comments in the source, not this page. Only annotated rules and shared functions appear.*
 
 **Operations:** [wrangler:install_ruleset_request (install_ruleset_relatively)](#wranglerinstall_ruleset_request-install_ruleset_relatively) · [wrangler:install_ruleset_request (install_ruleset_absolutely)](#wranglerinstall_ruleset_request-install_ruleset_absolutely) · [wrangler:uninstall_ruleset_request](#wrangleruninstall_ruleset_request) · [wrangler:rulesets_need_flushing](#wranglerrulesets_need_flushing) · [wrangler:new_channel_request](#wranglernew_channel_request) · [wrangler:channel_deletion_request](#wranglerchannel_deletion_request) · [wrangler:channel_update_request](#wranglerchannel_update_request) · [wrangler:new_child_request](#wranglernew_child_request) · [wrangler:name_changed](#wranglername_changed) · [wrangler:child_deletion_request](#wranglerchild_deletion_request) · [wrangler:set_public_intro](#wranglerset_public_intro)  
-**Queries:** [picoQuery](#picoqueryeci-mod-func-params-_host-_path-_root_url--any) · [channels](#channelstags--array) · [discoveryChannel](#discoverychannel--map) · [rulesetConfig](#rulesetconfigrid--map) · [rulesetMeta](#rulesetmetarid--map) · [installedRIDs](#installedrids--array) · [picoSchema](#picoschema--map) · [rulesetSchema](#rulesetschemarid--map) · [channelSchema](#channelschemaeci--map) · [children](#children--array) · [parent_eci](#parent_eci--string) · [name](#name--string) · [myself](#myself--map) · [myDid](#mydid--string) · [publicIntro](#publicintro--boolean) · [id](#id--string)
+**Queries:** [channels](#channelstags--array) · [discoveryChannel](#discoverychannel--map) · [rulesetConfig](#rulesetconfigrid--map) · [rulesetMeta](#rulesetmetarid--map) · [installedRIDs](#installedrids--array) · [picoSchema](#picoschema--map) · [rulesetSchema](#rulesetschemarid--map) · [channelSchema](#channelschemaeci--map) · [rulesetWarnings](#rulesetwarningsrid--array) · [children](#children--array) · [parent_eci](#parent_eci--string) · [name](#name--string) · [myself](#myself--map) · [myDid](#mydid--string) · [publicIntro](#publicintro--boolean) · [id](#id--string)
 
 ## Operations
 
@@ -65,11 +65,12 @@ Install (or reinstall) a ruleset from a URL on this pico. The URL is fetched and
 - **from a URL:** `{"url":"https://example.com/krl/<rid>.krl"}`
 - **with config:** `{"url":"https://example.com/krl/<rid>.krl","config":{"<key>":"<value>"}}`
 
-**Acts when:** always, once selected
+**Acts when:** `ok`
 
 **May emit** (possible, not guaranteed):
 
-- raises `wrangler:ruleset_installed` on this pico — when the rid is new on this pico
+- raises `wrangler:ruleset_installed` on this pico — when it acts, if `not already_installed`
+- raises `wrangler:ruleset_install_failed` on this pico — when it doesn't act
 
 <details><summary>Select expression</summary>
 
@@ -143,10 +144,12 @@ Create a channel on this pico. Raises wrangler:channel_created with the new chan
 | `tags` | Array | yes | tags for the channel, e.g. ["myapp", "webhook"] |
 | `eventPolicy` | Map | yes | { allow: [ { domain, name } ], deny: [ … ] } |
 | `queryPolicy` | Map | yes | { allow: [ { rid, name } ], deny: [ … ] } |
+| `mcpPolicy` | Map | yes | optional { allow: [ { surface } ], deny: [ … ] }. surface is channel, mesh, or *. Absent denies MCP. |
+| `rawBody` | Boolean | yes | optional. true keeps the raw HTTP body for event:raw_body(). Absent does not. |
 
 **Examples:**
 
-- **webhook:** `{"tags":["<app>","webhook"],"eventPolicy":{"allow":[{"domain":"<app>","name":"*"}],"deny":[]},"queryPolicy":{"allow":[],"deny":[]}}`
+- **webhook:** `{"tags":["<app>","webhook"],"eventPolicy":{"allow":[{"domain":"<app>","name":"*"}],"deny":[]},"queryPolicy":{"allow":[],"deny":[]},"rawBody":true}`
 
 **Acts when:** `tags && eventPolicy && queryPolicy`
 
@@ -200,6 +203,8 @@ Replace a channel's tags and policies. Raises wrangler:channel_updated with the 
 | `tags` | Array | yes | new tags |
 | `eventPolicy` | Map | yes | new event policy |
 | `queryPolicy` | Map | yes | new query policy |
+| `mcpPolicy` | Map | yes | optional { allow: [ { surface } ], deny: [ … ] }. Omit to leave MCP exposure unchanged. |
+| `rawBody` | Boolean | yes | optional. true or false. Omit to leave the raw-body setting unchanged. |
 
 **Acts when:** `eci && tags && eventPolicy && queryPolicy`
 
@@ -329,27 +334,6 @@ select when wrangler set_public_intro
 
 ## Queries
 
-### `picoQuery(eci, mod, func, params, _host, _path, _root_url)` → Any
-
-Query a shared function on another pico. Picos on this engine are queried directly (which also works over parent/child family channels); a DID is queried over DIDComm; picos on another engine (_host) over HTTP. Querying one of this pico's own channels is refused. On failure, returns a map with error, httpStatus, and picoQueryError.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `eci` | String | yes |  | channel on the other pico, or its DID |
-| `mod` | String | yes |  | ruleset id on the other pico |
-| `func` | String | yes |  | shared function to call |
-| `params` | Map | yes |  | arguments for the function |
-| `_host` | String | yes |  | the other pico's engine URL, if on a different engine |
-| `_path` | String | yes |  | path prefix on that engine (default /sky/cloud/) |
-| `_root_url` | String | yes |  | full query URL prefix, instead of _host and _path |
-
-**Examples:**
-
-- **child's name:** `{"eci":"<child family eci>","mod":"io.picolabs.wrangler","func":"name"}`
-- **another engine:** `{"eci":"<eci>","mod":"<rid>","func":"<function>","params":{},"_host":"https://other.example"}`
-
-**Call:** `GET /sky/query/<eci>/io.picolabs.wrangler/picoQuery?eci=…&mod=…&func=…&params=…&_host=…&_path=…&_root_url=…`, or `<alias>:picoQuery(eci, mod, func, params, _host, _path, _root_url)` from KRL with `use module io.picolabs.wrangler alias <alias>`
-
 ### `channels(tags)` → Array
 
 This pico's channels, with their tags and event and query policies. With tags, only channels whose tags are exactly those (order and case don't matter).
@@ -427,6 +411,16 @@ The part of picoSchema() a channel allows: what a caller holding this ECI can di
 | `eci` | String | yes |  | channel on this pico |
 
 **Call:** `GET /sky/query/<eci>/io.picolabs.wrangler/channelSchema?eci=…`, or `<alias>:channelSchema(eci)` from KRL with `use module io.picolabs.wrangler alias <alias>`
+
+### `rulesetWarnings(rid)` → Array
+
+Compiler/schema warnings for an installed ruleset (from last flush/load).
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `rid` | String | yes |  | ruleset id |
+
+**Call:** `GET /sky/query/<eci>/io.picolabs.wrangler/rulesetWarnings?rid=…`, or `<alias>:rulesetWarnings(rid)` from KRL with `use module io.picolabs.wrangler alias <alias>`
 
 ### `children()` → Array
 

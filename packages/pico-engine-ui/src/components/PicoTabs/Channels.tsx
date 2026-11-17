@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiGet, apiPost } from "../../api";
-import { Channel } from "../../types/Channel";
+import { Channel, McpPolicy } from "../../types/Channel";
 import { PicoBox } from "../../types/PicoBox";
 import { PicoDetails } from "../../types/PicoDetails";
 import useAsyncAction from "../../useAsyncAction";
@@ -386,6 +386,128 @@ function ChannelOAuthPanel({ channelId }: { channelId: string }) {
   );
 }
 
+function mcpFlags(policy?: McpPolicy): { channel: boolean; mesh: boolean } {
+  const allow = policy?.allow || [];
+  const deny = policy?.deny || [];
+  const denied = (surface: "channel" | "mesh") =>
+    deny.some((rule) => rule.surface === "*" || rule.surface === surface);
+  const allowed = (surface: "channel" | "mesh") =>
+    !denied(surface) &&
+    allow.some((rule) => rule.surface === "*" || rule.surface === surface);
+  return { channel: allowed("channel"), mesh: allowed("mesh") };
+}
+
+function mcpPolicyFromFlags(channel: boolean, mesh: boolean): McpPolicy {
+  const allow: McpPolicy["allow"] = [];
+  if (channel) {
+    allow.push({ surface: "channel" });
+  }
+  if (mesh) {
+    allow.push({ surface: "mesh" });
+  }
+  return { allow, deny: [] };
+}
+
+function mcpExposureLabel(policy?: McpPolicy): string {
+  const flags = mcpFlags(policy);
+  if (!flags.channel && !flags.mesh) {
+    return "not exposed";
+  }
+  const parts = [];
+  if (flags.channel) {
+    parts.push("this channel");
+  }
+  if (flags.mesh) {
+    parts.push("the mesh");
+  }
+  return parts.join(" and ");
+}
+
+function RawBodyField({
+  id,
+  checked,
+  disabled,
+  onChange,
+}: {
+  id: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <div className="form-group">
+      <div className="form-check">
+        <input
+          id={id}
+          className="form-check-input"
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+        <label className="form-check-label" htmlFor={id}>
+          Keep the raw request body
+        </label>
+      </div>
+      <div className="text-muted small">
+        For a webhook signature. <span className="text-mono">event:raw_body()</span> is
+        null unless this is on.
+      </div>
+    </div>
+  );
+}
+
+function McpExposureFields({
+  idPrefix,
+  channelOn,
+  meshOn,
+  disabled,
+  onChannel,
+  onMesh,
+}: {
+  idPrefix: string;
+  channelOn: boolean;
+  meshOn: boolean;
+  disabled?: boolean;
+  onChannel: (value: boolean) => void;
+  onMesh: (value: boolean) => void;
+}) {
+  return (
+    <div className="form-group">
+      <div>MCP exposure</div>
+      <div className="text-muted small mb-1">
+        Off unless chosen. Event and query policy still limit what a caller can do.
+      </div>
+      <div className="form-check">
+        <input
+          id={`${idPrefix}-mcp-channel`}
+          className="form-check-input"
+          type="checkbox"
+          checked={channelOn}
+          disabled={disabled}
+          onChange={(e) => onChannel(e.target.checked)}
+        />
+        <label className="form-check-label" htmlFor={`${idPrefix}-mcp-channel`}>
+          This channel (<span className="text-mono">/mcp/{"{eci}"}</span>)
+        </label>
+      </div>
+      <div className="form-check">
+        <input
+          id={`${idPrefix}-mcp-mesh`}
+          className="form-check-input"
+          type="checkbox"
+          checked={meshOn}
+          disabled={disabled}
+          onChange={(e) => onMesh(e.target.checked)}
+        />
+        <label className="form-check-label" htmlFor={`${idPrefix}-mcp-mesh`}>
+          The whole-mesh endpoint
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function ChannelEditPanel({
   channel,
   disabled,
@@ -398,6 +520,8 @@ function ChannelEditPanel({
     tags: string[];
     eventPolicy: ReturnType<typeof parseEventPolicy>;
     queryPolicy: ReturnType<typeof parseQueryPolicy>;
+    mcpPolicy: McpPolicy;
+    rawBody: boolean;
   }) => void;
 }) {
   const [tags, setTags] = React.useState(() => channelTagsToString(channel.tags));
@@ -407,11 +531,19 @@ function ChannelEditPanel({
   const [queryPolicy, setQueryPolicy] = React.useState(() =>
     formatQueryPolicy(channel.queryPolicy)
   );
+  const initialMcp = mcpFlags(channel.mcpPolicy);
+  const [mcpChannel, setMcpChannel] = React.useState(initialMcp.channel);
+  const [mcpMesh, setMcpMesh] = React.useState(initialMcp.mesh);
+  const [rawBody, setRawBody] = React.useState(channel.rawBody === true);
 
   React.useEffect(() => {
     setTags(channelTagsToString(channel.tags));
     setEventPolicy(formatEventPolicy(channel.eventPolicy));
     setQueryPolicy(formatQueryPolicy(channel.queryPolicy));
+    const flags = mcpFlags(channel.mcpPolicy);
+    setMcpChannel(flags.channel);
+    setMcpMesh(flags.mesh);
+    setRawBody(channel.rawBody === true);
   }, [channel]);
 
   function appendTag(tag: string) {
@@ -434,6 +566,8 @@ function ChannelEditPanel({
         .filter(Boolean),
       eventPolicy: parseEventPolicy(eventPolicy),
       queryPolicy: parseQueryPolicy(queryPolicy),
+      mcpPolicy: mcpPolicyFromFlags(mcpChannel, mcpMesh),
+      rawBody,
     };
   }
 
@@ -539,6 +673,21 @@ function ChannelEditPanel({
           </div>
         </div>
 
+        <RawBodyField
+          id={`edit-${channel.id}-raw-body`}
+          checked={rawBody}
+          disabled={disabled}
+          onChange={setRawBody}
+        />
+        <McpExposureFields
+          idPrefix={`edit-${channel.id}`}
+          channelOn={mcpChannel}
+          meshOn={mcpMesh}
+          disabled={disabled}
+          onChannel={setMcpChannel}
+          onMesh={setMcpMesh}
+        />
+
         <button
           type="submit"
           className="btn btn-sm btn-outline-primary"
@@ -572,6 +721,9 @@ const Channels: React.FC<Props> = ({ pico }) => {
   );
   const [eventPolicy, setEventPolicy] = React.useState<string>("allow *:*");
   const [queryPolicy, setQueryPolicy] = React.useState<string>("allow */*");
+  const [mcpChannel, setMcpChannel] = React.useState(false);
+  const [mcpMesh, setMcpMesh] = React.useState(false);
+  const [rawBody, setRawBody] = React.useState(false);
 
   function getNewChannData(): any {
     const idError = validateChannelIdInput(channelId);
@@ -583,6 +735,8 @@ const Channels: React.FC<Props> = ({ pico }) => {
       tags: tags.split(","),
       eventPolicy: parseEventPolicy(eventPolicy),
       queryPolicy: parseQueryPolicy(queryPolicy),
+      mcpPolicy: mcpPolicyFromFlags(mcpChannel, mcpMesh),
+      rawBody,
     };
   }
 
@@ -613,6 +767,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
       ).then((d) => {
         picoDetails.setData(d);
         setChannelId(suggestChannelId());
+        setRawBody(false);
       })
   );
 
@@ -628,6 +783,8 @@ const Channels: React.FC<Props> = ({ pico }) => {
     tags: string[];
     eventPolicy: ReturnType<typeof parseEventPolicy>;
     queryPolicy: ReturnType<typeof parseQueryPolicy>;
+    mcpPolicy: McpPolicy;
+    rawBody: boolean;
   }>((data) =>
     apiPost(
       `/c/${pico.eci}/event/engine_ui/update_channel/query/io.picolabs.pico-engine-ui/pico`,
@@ -767,6 +924,14 @@ const Channels: React.FC<Props> = ({ pico }) => {
                         Query Policy
                         <ViewQueryPolicy policy={channel.queryPolicy} />
                       </div>
+                      <div className="col">
+                        MCP
+                        <div>{mcpExposureLabel(channel.mcpPolicy)}</div>
+                        <div className="mt-2">
+                          Raw body
+                          <div>{channel.rawBody ? "kept" : "not kept"}</div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -899,6 +1064,18 @@ const Channels: React.FC<Props> = ({ pico }) => {
             </div>
           </div>
         </div>
+        <RawBodyField
+          id="new-chann-raw-body"
+          checked={rawBody}
+          onChange={setRawBody}
+        />
+        <McpExposureFields
+          idPrefix="new-chann"
+          channelOn={mcpChannel}
+          meshOn={mcpMesh}
+          onChannel={setMcpChannel}
+          onMesh={setMcpMesh}
+        />
         <button
           type="submit"
           className="btn btn-outline-primary"

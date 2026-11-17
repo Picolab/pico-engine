@@ -132,6 +132,15 @@ export interface RulesetCtxInfoMeta {
   };
 }
 
+/** Set the channel's raw-body flag only when the caller sent a boolean. */
+function assignRawBody(conf: ChannelConfig, rawBody: unknown): void {
+  if (rawBody === true) {
+    conf.rawBody = true;
+  } else if (rawBody === false) {
+    conf.rawBody = false;
+  }
+}
+
 export default function initCtxModule(core: PicoEngineCore) {
   function rulesetKrlMetaProperty(key: string) {
     return krl.Property(function () {
@@ -220,28 +229,36 @@ export default function initCtxModule(core: PicoEngineCore) {
     }),
 
     newChannel: krl.Action(
-      ["tags", "eventPolicy", "queryPolicy", "id"],
-      async function newChannel(tags, eventPolicy, queryPolicy, id) {
+      ["tags", "eventPolicy", "queryPolicy", "id", "mcpPolicy", "rawBody"],
+      async function newChannel(tags, eventPolicy, queryPolicy, id, mcpPolicy, rawBody) {
         const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
         if (typeof id === "string" && id.trim().length > 0) {
           conf.id = id;
         }
+        if (mcpPolicy) {
+          conf.mcpPolicy = mcpPolicy;
+        }
+        assignRawBody(conf, rawBody);
         const chann = await this.rsCtx.newChannel(conf);
         return chann;
       }
     ),
 
     putChannel: krl.Action(
-      ["eci", "tags", "eventPolicy", "queryPolicy"],
-      async function putChannel(eci, tags, eventPolicy, queryPolicy) {
+      ["eci", "tags", "eventPolicy", "queryPolicy", "mcpPolicy", "rawBody"],
+      async function putChannel(eci, tags, eventPolicy, queryPolicy, mcpPolicy, rawBody) {
         const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
+        if (mcpPolicy) {
+          conf.mcpPolicy = mcpPolicy;
+        }
+        assignRawBody(conf, rawBody);
         return await this.rsCtx.putChannel(eci, conf);
       }
     ),
 
     upsertChannel: krl.Action(
-      ["tags", "eventPolicy", "queryPolicy"],
-      async function upsertChannel(tags, eventPolicy, queryPolicy) {
+      ["tags", "eventPolicy", "queryPolicy", "mcpPolicy", "rawBody"],
+      async function upsertChannel(tags, eventPolicy, queryPolicy, mcpPolicy, rawBody) {
         tags = cleanChannelTags(tags);
         tags.sort();
         const search = tags.join(",");
@@ -249,6 +266,10 @@ export default function initCtxModule(core: PicoEngineCore) {
           return search === c.tags.slice(0).sort().join(",");
         });
         const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
+        if (mcpPolicy) {
+          conf.mcpPolicy = mcpPolicy;
+        }
+        assignRawBody(conf, rawBody);
         if (channel) {
           await this.rsCtx.putChannel(channel.id, conf);
         } else {

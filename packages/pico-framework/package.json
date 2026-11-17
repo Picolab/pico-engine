@@ -1,15 +1,16 @@
 {
   "name": "pico-framework",
-  "version": "0.8.2",
+  "version": "1.9.5",
   "description": "A framework for building actor-based, people-centric systems. (pico = PersIstent Compute Objects)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Picolab/pico-framework.git"
+    "url": "git+https://github.com/Picolab/pico-engine.git",
+    "directory": "packages/pico-framework"
   },
   "bugs": {
-    "url": "https://github.com/Picolab/pico-framework/issues"
+    "url": "https://github.com/Picolab/pico-engine/issues"
   },
-  "homepage": "https://github.com/Picolab/pico-framework#readme",
+  "homepage": "https://github.com/Picolab/pico-engine/tree/master/packages/pico-framework#readme",
   "author": "Picolab",
   "license": "MIT",
   "keywords": [

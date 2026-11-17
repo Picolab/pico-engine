@@ -2,9 +2,25 @@
 
 ## The HTTP Library
 
-The HTTP library provides for more general, flexible access to cloud-based data than dataset and datasource declarations. The HTTP library supports the primary HTTP methods--`get`, `post`, `put`, `delete`, `head`, and `patch` as both functions and synchronous actions.
+The HTTP library provides for more general, flexible access to cloud-based data than dataset and datasource declarations. The HTTP library supports the primary HTTP methods--`get`, `post`, `put`, `delete`, `head`, and `patch` as both functions and synchronous actions. `http:cookie(name)` reads one cookie from the request that is running this ruleset.
 
 NOTE: Using GET to send data to an API is not very RESTful and is not recommended. KRL allows it for cases where the API has been written poorly and using GET is the only way to interact with it.
+
+### cookie
+
+`http:cookie(name)` returns the value of one cookie on the HTTP request that is running this ruleset. `name` is a string. The result is that cookie's value, or `null` when the request did not include it.
+
+```krl
+eci = http:cookie("wellKnown_Rx")
+```
+
+With the header `Cookie: wellKnown_Rx=abc123`, that expression is `"abc123"`. A cookie value may contain `=`.
+
+The call reads the request that raised the current event or ran the current query. A rule that raises another event in the same transaction can still call `http:cookie`. An event sent with `event:send`, and an event that runs from the schedule, has no request cookies, so the call returns `null`.
+
+The engine keeps its sign-in cookies. `http:cookie("pico-session")` and `http:cookie("pico-ceremony")` return `null`, including the port-scoped names such as `pico-session-3000`.
+
+The `Cookie` header is omitted from `_headers`, along with `Authorization`, `Proxy-Authorization`, and `X-Pico-Internal`. See [Request headers](/krl/rulesets/rules/prelude/event-attributes). To set a cookie on the response, send the `_cookie` directive, described in [Cookies and redirects](/developing/cookies-and-redirects).
 
 ### HTTP Actions
 
@@ -97,7 +113,7 @@ The `http:head()` action works in the same manner as `http:post()`, except that 
 
 ### HTTP Functions
 
-The same API for HTTP actions also can be used as a function in any KRL expression. The function always returns a map of name-value pairs, so the expression must expect the data in that format.
+The same API for the HTTP actions above also can be used as a function in any KRL expression. Those functions return a map of name-value pairs, so the expression must expect the data in that format. `http:cookie(name)` returns a string or `null`.
 
 The following example shows using `http:get()` to call a URL on example.com:
 

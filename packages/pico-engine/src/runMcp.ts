@@ -19,7 +19,9 @@ export async function runMcpCli(argv: string[]): Promise<void> {
     console.error("Usage: pico-engine mcp --stdio");
     console.error("");
     console.error("Connects to a running local engine (PICO_ENGINE_BASE_URL).");
-    console.error("Requires localhost /c access or PICO_ENGINE_UI_ECI.");
+    console.error(
+      "Reads $PICO_ENGINE_HOME/internal-token (written when the engine starts) or uses PICO_ENGINE_UI_ECI."
+    );
     process.exit(1);
   }
   // JS (not tsc): avoids pulling MCP SDK types into the main compile.

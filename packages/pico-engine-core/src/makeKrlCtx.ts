@@ -8,11 +8,13 @@ import {
 } from "krl-stdlib";
 import { RulesetContext } from "pico-framework";
 import { PicoEngineCore } from "./PicoEngineCore";
+import { redactSecretsForLog, rememberPdsSettings } from "./secretLog";
 
 /** Keep one entity value from dominating the log. */
 const ENT_LOG_LIMIT = 2048;
 
 function valueForEntLog(value: unknown): unknown {
+  value = redactSecretsForLog(value);
   if (value === undefined) return null;
   let text: string;
   try {
@@ -155,6 +157,9 @@ export function makeKrlCtx(
     const before = await rsCtx.getEnt(name);
     await putEnt(name, value);
     const deleted = value === null || value === undefined;
+    if (rsCtx.ruleset.rid === "io.picolabs.pds" && name === "settings") {
+      rememberPdsSettings(picoId, deleted ? null : value);
+    }
     log.debug("ent write", {
       name,
       before: valueForEntLog(before),

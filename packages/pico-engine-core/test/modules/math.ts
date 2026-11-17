@@ -78,6 +78,12 @@ test("module - math:*", async function (t) {
     await kmath.hmac(ctx, ["sha256", "a secret", "some message", "base64"]),
     "ht5DJFtEUxrDi2pqaRmWKH2TKo3qA7xpsZO5DK9I/1M="
   );
+  t.true(await kmath.timing_safe_equal(ctx, ["same-text", "same-text"]));
+  t.false(await kmath.timing_safe_equal(ctx, ["same-text", "same-texT"]));
+  t.false(await kmath.timing_safe_equal(ctx, ["short", "longer"]));
+  t.false(await kmath.timing_safe_equal(ctx, [null, "same-text"]));
+  t.false(await kmath.timing_safe_equal(ctx, ["same-text", null]));
+
   await terr("hmac", ctx, [], "Error: math:hmac needs a key string");
   await terr(
     "hmac",

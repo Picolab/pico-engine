@@ -46,7 +46,9 @@ curl -X POST "http://localhost:3000/sky/event/<eci>/none/echo/message" \
   -H 'content-type: application/json' -d '{"input": "hello"}'
 ```
 
-Every event raised over HTTP also gets an attribute `_headers` with the request's HTTP headers. See [Cookies and redirects](/developing/cookies-and-redirects).
+Every event raised over HTTP also gets an attribute `_headers` with the request's HTTP headers, minus `Authorization`, `Proxy-Authorization`, `Cookie`, and `X-Pico-Internal`. Read one application cookie with `http:cookie(name)`. See [Cookies and redirects](/developing/cookies-and-redirects).
+
+The parsed body is the event's attributes. The exact bytes are available as `event:raw_body()` only when the channel has `rawBody: true`, which is how a webhook signature is checked. See [Webhook signatures](/developing/webhook-signatures).
 
 ## Response
 

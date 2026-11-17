@@ -3,7 +3,7 @@
   "port": 3000,
   "baseUrl": "http://localhost:3000",
   "allowSelfSignup": false,
-  "allowLocalhostChannelBypass": true,
+  "allowLocalhostChannelBypass": false,
   "wildcardSkyRequireBearer": false,
   "logToStdout": false,
   "logMirror": true,

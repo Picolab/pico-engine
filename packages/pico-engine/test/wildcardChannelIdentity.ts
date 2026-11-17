@@ -164,20 +164,28 @@ test("mesh-oauth-exempt does not bypass wildcard sky lock", async (t) => {
 });
 
 test("wildcard sky lock is off by default for backward compatibility", async (t) => {
+  const previous = process.env.PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER;
   delete process.env.PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER;
-  const pe = await startIsolatedEngine({ webauthn: fakeAuthenticator() });
-  const acct = await bootstrapAccount(pe);
-  const wildEci = await createChannel(pe, acct.uiECI, {
-    tags: ["test-wild-legacy"],
-    eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
-    queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
-  });
-  const skyUrl = `${pe.base_url}/sky/query/${wildEci}/io.picolabs.wrangler/name`;
+  try {
+    const pe = await startIsolatedEngine({ webauthn: fakeAuthenticator() });
+    const acct = await bootstrapAccount(pe);
+    const wildEci = await createChannel(pe, acct.uiECI, {
+      tags: ["test-wild-legacy"],
+      eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+      queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+    });
+    const skyUrl = `${pe.base_url}/sky/query/${wildEci}/io.picolabs.wrangler/name`;
 
-  t.false(await pe.oauth.skyRequiresBearer(wildEci));
-  t.is((await fetch(skyUrl)).status, 200);
-  process.env.PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER = "1";
-  await pe.pf.db.close();
+    t.false(await pe.oauth.skyRequiresBearer(wildEci));
+    t.is((await fetch(skyUrl)).status, 200);
+    await pe.pf.db.close();
+  } finally {
+    if (previous === undefined) {
+      delete process.env.PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER;
+    } else {
+      process.env.PICO_ENGINE_WILDCARD_SKY_REQUIRE_BEARER = previous;
+    }
+  }
 });
 
 test("event-only wildcard requires bearer for sky query on narrow query policy", async (t) => {

@@ -1,5 +1,6 @@
 import fetch from "cross-fetch";
 import { CurrentPicoEvent, krl, KrlCtx } from "krl-stdlib";
+import { rawRequestBody } from "../rawBody";
 
 const SEND_ATTR_LIMIT = 2048;
 
@@ -78,6 +79,10 @@ const event: krl.Module = {
       return event.data.attrs[name];
     }
     return null;
+  }),
+
+  raw_body: krl.Function([], function (this: KrlCtx) {
+    return rawRequestBody(this);
   }),
 
   eid: eventProperty((event) => event.eid),

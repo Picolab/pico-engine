@@ -2,7 +2,7 @@
 
 > **Engine Compatibility:**
 >
-> This library has not been completely ported to the Node pico engine. However, it supports `attr()`, `attrs`, and a different form of `send()`. Scheduled event functions and actions are now part of the [schedule](/krl/libraries/schedule) library.
+> This library has not been completely ported to the Node pico engine. It supports `attr()`, `attrs`, `raw_body()`, and `send()`. Scheduled event functions and actions are now part of the [schedule](/krl/libraries/schedule) library.
 >
 > `send` is asynchronous, supports `attrs` values of any type, and accepts an optional second parameter named `host`:
 >
@@ -17,7 +17,7 @@ event:send({"eci":"cj3btnlyj0001y6idgl4api8f", "eid":"none", "domain":"test", "t
 >
 > If the eid is omitted (null) or `"none"`, `"null"`, or `""`, it will default to a random uuid.
 
-The `event` library provides access to event properties, a function for getting attribute values, and an action for sending events.
+The `event` library provides access to event properties, functions for an attribute and the raw request body, and an action for sending events.
 
 # event properties
 
@@ -48,6 +48,21 @@ The value of this property is a map of the attributes sent with the event to whi
 ## `event:attr`
 
 When this function is called with an attribute name, it returns the attribute value.
+
+## `event:raw_body`
+
+`event:raw_body()` returns the exact request body of the HTTP event now running, as a string, or `null`.
+
+A channel keeps that body only when it is created or updated with `rawBody: true` (the Channels tab checkbox, or `wrangler:createChannel`). On every other channel this returns `null`. `event:send` and a scheduled event also return `null`. A rule that raises another event in the same transaction can still read the body.
+
+The body is not an event attribute. `event:attrs` is the parsed JSON or form fields. Storing or forwarding `event:attrs` does not include the raw body, and a signature has to be computed over `event:raw_body()`, not over those fields.
+
+```krl
+body = event:raw_body()
+signature = event:attr("_headers"){"x-square-hmacsha256-signature"}
+```
+
+See [Webhook signatures](/developing/webhook-signatures).
 
 # event action
 

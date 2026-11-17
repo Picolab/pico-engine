@@ -95,7 +95,7 @@ provides <var> [,<var>]*
 
 The list of provided declaration is given as a comma separated list of names.
 
-Often it's useful to know whether or not a ruleset is running as a module. The [meta library](/krl/libraries/meta) provides functions (not yet implemented) that give information about the running ruleset, including whether it's running as a module or not.
+Often it's useful to know which ruleset called into a module. [`meta:callingRID()`](/krl/libraries/meta) returns that ruleset's id. `meta:inModule()` is not available yet.
 
 ## Configuring a Module
 

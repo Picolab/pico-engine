@@ -246,3 +246,22 @@ test("event = cleanEvent(event)", function(t) {
     );
   })("foo", "bar");
 });
+
+test("cleanEvent keeps enumerable symbols and drops other extra fields", (t) => {
+  const kept = Symbol("kept");
+  const hidden = Symbol("hidden");
+  const orig: any = {
+    eci: "eci123",
+    domain: "foo",
+    name: "bar",
+    data: { attrs: { a: 1 } },
+    extra: "nope",
+  };
+  Object.defineProperty(orig, kept, { value: "yes", enumerable: true });
+  Object.defineProperty(orig, hidden, { value: "no", enumerable: false });
+  const event = cleanEvent(orig, 5);
+  t.is((event as any)[kept], "yes");
+  t.is((event as any)[hidden], undefined);
+  t.false("extra" in event);
+  t.deepEqual(event.data.attrs, { a: 1 });
+});

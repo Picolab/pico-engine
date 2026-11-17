@@ -5,7 +5,7 @@ Pico Data Services (PDS), a common data base structure for all rulesets to use.
 *Version draft. Generated from the ruleset's annotations by `krl-schema --format markdown`; edit the `/** */` comments in the source, not this page. Only annotated rules and shared functions appear.*
 
 **Operations:** [pds:new_data_available](#pdsnew_data_available) · [pds:updated_data_available](#pdsupdated_data_available) · [pds:remove_old_data](#pdsremove_old_data) · [pds:remove_namespace](#pdsremove_namespace) · [pds:map_item](#pdsmap_item) · [pds:updated_profile](#pdsupdated_profile) · [pds:add_settings](#pdsadd_settings)  
-**Queries:** [items](#itemsnamespace-key--map) · [get_keys](#get_keysnamespace--array) · [profile](#profilekey--map) · [settings](#settingsrid-key-detail--map) · [get_config_value](#get_config_valuesetkey--any) · [get_setting_data_value](#get_setting_data_valuesetrid-setkey--any) · [config_value](#config_valuesetkey--any) · [settings_names](#settings_names--array) · [getChannelEci](#getchanneleci--string)
+**Queries:** [items](#itemsnamespace-key--map) · [get_keys](#get_keysnamespace--array) · [profile](#profilekey--map) · [settings](#settingsrid-key-detail--map) · [get_config_value](#get_config_valuesetkey--any) · [get_setting_data_value](#get_setting_data_valuesetrid-setkey--any) · [config_value](#config_valuesetkey--any) · [settings_names](#settings_names--array)
 
 ## Operations
 
@@ -191,7 +191,7 @@ select when pds updated_profile
 
 ### `pds:add_settings`
 
-Create or update a ruleset's settings record, and optionally set one data value in it. Raises pds:settings_added.
+Create or update a ruleset's settings record, and optionally set one data value in it. Raises pds:settings_added. A key named in `secret`, or a schema entry with secret true, is stored as a secret: settings queries return { secret: true, set } and the raised event does not carry the value.
 
 **Send:** `pds:add_settings`  
 **Rule:** `settings_added`
@@ -203,11 +203,13 @@ Create or update a ruleset's settings record, and optionally set one data value 
 | `schema` | Array | no | settings schema, stored as given |
 | `data_key` | String | no | data key to set |
 | `value` | Any | no | value for data_key |
+| `secret` | Any | yes | Array\|Boolean optional key names to mark secret, or true to mark data_key |
 
 **Examples:**
 
 - **register settings:** `{"keyed_rid":"<rid>","name":"<display name>"}`
 - **set one value:** `{"keyed_rid":"<rid>","name":"<display name>","data_key":"<key>","value":"<value>"}`
+- **secret:** `{"keyed_rid":"<rid>","name":"<display name>","data_key":"apiKey","value":"<secret>","secret":true}`
 
 **Acts when:** always, once selected
 
@@ -268,12 +270,12 @@ This pico's profile: name, description, photo, email, phone, and the _created / 
 
 ### `settings(Rid?, Key?, detail?)` → Map
 
-Read per-ruleset settings. No arguments: all settings. Rid: that ruleset's settings record ({ name, rid, data, schema }). Rid and Key: one field of the record. Rid, Key, and detail: the value of data key `detail` (Key is ignored).
+Read per-ruleset settings. No arguments: all settings. Rid: that ruleset's settings record ({ name, rid, data, schema, secret }). Rid and Key: one field of the record. Rid, Key, and detail: the value of data key `detail` (Key is ignored). A key listed in `secret` is returned as { secret: true, set }, never the value.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `Rid` | String | no |  | ruleset id whose settings to read |
-| `Key` | String | no |  | field of the settings record (name, rid, data, schema) |
+| `Key` | String | no |  | field of the settings record (name, rid, data, schema, secret) |
 | `detail` | String | no |  | key within the record's data map |
 
 **Examples:**
@@ -295,7 +297,7 @@ Same as config_value: a value from the calling ruleset's own settings data, for 
 
 ### `get_setting_data_value(setRID, setKey)` → Any
 
-One configuration value from a ruleset's settings data.
+One configuration value from a ruleset's settings data. A secret key is returned as { secret: true, set }, never the value.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -319,9 +321,3 @@ One configuration value from the calling ruleset's own settings data. Meant to b
 Rulesets that have stored settings here, with their display names.
 
 **Call:** `GET /sky/query/<eci>/io.picolabs.pds/settings_names`, or `<alias>:settings_names()` from KRL with `use module io.picolabs.pds alias <alias>`
-
-### `getChannelEci()` → String
-
-The ECI of this pico's pds channel, which allows all pds events and queries. Created when this ruleset is installed.
-
-**Call:** `GET /sky/query/<eci>/io.picolabs.pds/getChannelEci`, or `<alias>:getChannelEci()` from KRL with `use module io.picolabs.pds alias <alias>`

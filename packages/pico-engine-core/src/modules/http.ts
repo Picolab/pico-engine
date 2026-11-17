@@ -1,6 +1,7 @@
 import fetch from "cross-fetch";
 import { krl, KrlCtx } from "krl-stdlib";
 import { PicoEngineCore } from "../PicoEngineCore";
+import { requestCookie } from "../requestCookies";
 const qs = require("qs");
 
 function ensureMap(arg: any, defaultTo: any) {
@@ -204,6 +205,17 @@ export default function initHttpModule(core: PicoEngineCore) {
     put: mkMethod(core, "PUT"),
     patch: mkMethod(core, "PATCH"),
     delete: mkMethod(core, "DELETE"),
+
+    /**
+     * One cookie from the HTTP request that is running this KRL, by name.
+     * The engine's session and ceremony cookies are not returned. Absent is null.
+     */
+    cookie: krl.Function(["name"], function (this: KrlCtx, name) {
+      if (!krl.isString(name)) {
+        return null;
+      }
+      return requestCookie(this, name);
+    }),
   };
   return module;
 }

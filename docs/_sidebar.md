@@ -6,6 +6,8 @@
   - [Tips](/developing/tips)
   - [Event and Query URLs with Postman](/developing/postman)
   - [KRL misconceptions and common errors](/developing/misconceptions)
+  - [Webhook signatures](/developing/webhook-signatures)
+  - [AI tools over MCP](/developing/mcp-ai-tools)
 - [KRL Manual](/krl/)
 - [Pico Engine](/pico-engine)
   - [Bundled rulesets](/rulesets/)

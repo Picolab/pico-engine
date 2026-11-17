@@ -24,6 +24,8 @@ Machine-readable index for agents working with picos and KRL.
 - Tip: converting time formats: developing/converting-time-formats.md
 - Tip: what's in a name: developing/names-and-scope.md
 - Tip: cookies and redirects: developing/cookies-and-redirects.md
+- Webhook signatures: developing/webhook-signatures.md
+- AI tools over MCP: developing/mcp-ai-tools.md
 - Tip: events from email: developing/events-from-email.md
 - Tip: reading the engine's log files: developing/engine-log-files.md
 - Tip: querying another pico: developing/querying-another-pico.md

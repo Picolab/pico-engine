@@ -2,7 +2,7 @@
   "home": "/var/pico-image",
   "port": 3000,
   "baseUrl": "http://host.docker.internal:3002",
-  "allowLocalhostChannelBypass": true,
+  "allowLocalhostChannelBypass": false,
   "webauthn": {
     "rpId": "localhost",
     "origin": "http://localhost:3002",

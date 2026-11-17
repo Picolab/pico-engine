@@ -76,7 +76,7 @@ Example templates: [`config.example.json`](../../config.example.json), [`config.
 | `port` | number | HTTP listen port. Default `3000`. |
 | `baseUrl` | string | Public origin (no trailing slash): WebAuthn, did:webvh, links. Default `http://localhost:3000`. |
 | `allowSelfSignup` | boolean | Open registration after bootstrap. Default `false` (invite-only). |
-| `allowLocalhostChannelBypass` | boolean | Allow `/c/*` from localhost without passkey (dev MCP, KRL HTTP loops). Default `true`. Set `false` in production behind TLS. |
+| `allowLocalhostChannelBypass` | boolean | Allow `/c/*`, `/api/dev/local`, and `/api/try-it` from a **direct loopback** socket without a passkey or the internal token. Default `false`. A request with `X-Forwarded-For`, `X-Real-IP`, or `Forwarded` is never treated as local. The dev MCP uses `$PICO_ENGINE_HOME/internal-token` instead. |
 | `wildcardSkyRequireBearer` | boolean | Require OAuth bearer on `/sky/*` for channels with unrestricted `*.*` allow rules. Default `false` (1.8 opt-in hardening). |
 | `logToStdout` | boolean | Log to stdout instead of a file. Use on Fargate (set `logToStdout: true` in config). |
 | `logFile` | string | Absolute log path when `logToStdout` is false. Values `stdout`, `-`, or `0` force stdout. |
@@ -138,7 +138,7 @@ Mesh state lives under `home`:
 
 - One writer per data directory (LevelDB).
 - **Fargate:** mount EFS at e.g. `/var/pico-image`, set `home` accordingly, `baseUrl` to public **HTTPS**, `logToStdout: true` in config. Set **`logMirror: false`** if you do not want the engine writing `pico-engine.log` on EFS (stdout → CloudWatch only).
-- Set `allowLocalhostChannelBypass` to **false** on public deployments.
+- `allowLocalhostChannelBypass` defaults to **false**. Leave it false on public deployments. The dev MCP reads `internal-token` from the engine data directory (on Docker, the host path of the `home` volume).
 
 Detailed checklists: package **README** § Containers / Fargate.
 
@@ -207,9 +207,11 @@ Owner UI uses the **UI channel** (passkey). Automation uses **OAuth** on `/sky/*
 | Path | Auth | Use |
 |------|------|-----|
 | `/` | Browser | Developer UI |
-| `/c/*` | Passkey session (localhost bypass optional) | Developer UI (browser). **Discouraged** for automation and third-party apps — use `/sky/*` or mesh MCP instead. |
+| `/c/*` | Passkey session, or `X-Pico-Internal` (dev MCP) | Developer UI (browser). **Discouraged** for automation and third-party apps — use `/sky/*` or mesh MCP instead. |
 | `/sky/*` | Channel policy ± OAuth bearer | Events, queries, integrators |
-| `/mcp/:eci` | OAuth bearer | Mesh MCP (Streamable HTTP) |
+| `/mcp/:eci` | OAuth bearer | Mesh MCP (Streamable HTTP). A missing token is `401` with `WWW-Authenticate: Bearer resource_metadata="…"`. |
+| `/.well-known/oauth-authorization-server` | Public | OAuth authorization-server metadata (RFC 8414) for MCP clients |
+| `/.well-known/oauth-protected-resource/mcp/:eci` | Public | Protected-resource metadata (RFC 9728) for that channel's MCP URL |
 | `/auth/*` | WebAuthn flows | Registration, login |
 
 Local dev MCP: `pico-engine mcp --stdio` — not exposed on hosted load balancers; see [1.8 plan § MCP](https://github.com/Picolab/pico-engine/blob/master/docs/release/1.8.md) (deployment table).

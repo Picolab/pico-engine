@@ -115,19 +115,24 @@ Delete a child pico.
 
 - `eci` - String - The parent's eci for talking to the child. No other eci will work.
 
-## ctx:newChannel(tags, eventPolicy, queryPolicy)
+## ctx:newChannel(tags, eventPolicy, queryPolicy, id, mcpPolicy, rawBody)
+
+Prefer [`wrangler:createChannel`](/wrangler/channels). This is the same action.
 
 - `tags` - String[] - An array of tags to organize your channels
 - `eventPolicy` - EventPolicy - Your event allow/deny rules
 - `queryPolicy` - QueryPolicy - Your query allow/deny rules
+- `id` - String, optional - Channel id. Omitted, the engine assigns one
+- `mcpPolicy` - Map, optional - `{ allow, deny }` of `{ surface }` where surface is `channel`, `mesh`, or `*`. Omitted, the channel is not exposed to MCP
+- `rawBody` - Boolean, optional - `true` keeps the exact HTTP body for [`event:raw_body()`](/krl/libraries/event). Omitted, the body is not kept
 
-## ctx:putChannel(eci, tags, eventPolicy, queryPolicy)
+## ctx:putChannel(eci, tags, eventPolicy, queryPolicy, mcpPolicy, rawBody)
 
-Same as newChannel except you provide the eci you whish to modify. Channels can only be modified by their owners.
+Same as newChannel except you provide the eci you wish to modify. Channels can only be modified by their owners. Omit `mcpPolicy` or `rawBody` to leave that setting as it is. Pass `rawBody` `false` to stop keeping the body.
 
-## ctx:upsertChannel(tags, eventPolicy, queryPolicy)
+## ctx:upsertChannel(tags, eventPolicy, queryPolicy, mcpPolicy, rawBody)
 
-If there is a channel with the same tags it will update it. Otherwise it will create a new channel.
+If there is a channel with the same tags it will update it. Otherwise it will create a new channel. `mcpPolicy` and `rawBody` work as they do on `putChannel`.
 
 ## ctx:delChannel(eci)
 

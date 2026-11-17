@@ -51,11 +51,28 @@ export function cleanEvent(
     }
   }
 
-  return {
+  const event: PicoEvent = {
     eci: eventOrig.eci.trim(),
     domain: eventOrig.domain.trim(),
     name: eventOrig.name.trim(),
     data: { attrs },
     time
   };
+  // Enumerable symbols are engine-only data (request cookies). They are not
+  // attributes, and JSON persistence drops them.
+  copyEnumerableSymbols(eventOrig, event);
+  return event;
+}
+
+/** Copy enumerable symbol properties onto a cleaned event or query. */
+export function copyEnumerableSymbols(from: any, to: object): void {
+  if (!from || (typeof from !== "object" && typeof from !== "function")) {
+    return;
+  }
+  for (const key of Object.getOwnPropertySymbols(from)) {
+    const desc = Object.getOwnPropertyDescriptor(from, key);
+    if (desc && desc.enumerable) {
+      Object.defineProperty(to, key, desc);
+    }
+  }
 }

@@ -96,23 +96,24 @@ test("defaultRootPolicyCeiling from operator config limits root newChannel", asy
     }),
   );
   process.env.PICO_ENGINE_CONFIG = configPath;
+  try {
+    const pe = await startIsolatedEngine({ autoCreateRootPico: true });
+    const root = pe.pf.rootPicos()[0];
 
-  const pe = await startIsolatedEngine({ autoCreateRootPico: true });
-  const root = pe.pf.rootPicos()[0];
-
-  await t.throwsAsync(
-    () =>
-      root.newChannel({
-        tags: ["too-wide"],
-        eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
-        queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
-      }),
-    { message: /event policy exceeds pico policy ceiling/i },
-  );
-
-  delete process.env.PICO_ENGINE_CONFIG;
-  fs.rmSync(dir, { recursive: true, force: true });
-  await pe.pf.db.close();
+    await t.throwsAsync(
+      () =>
+        root.newChannel({
+          tags: ["too-wide"],
+          eventPolicy: { allow: [{ domain: "*", name: "*" }], deny: [] },
+          queryPolicy: { allow: [{ rid: "*", name: "*" }], deny: [] },
+        }),
+      { message: /event policy exceeds pico policy ceiling/i },
+    );
+    await pe.pf.db.close();
+  } finally {
+    delete process.env.PICO_ENGINE_CONFIG;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("globalEventDeny blocks events even when channel allows all", async (t) => {

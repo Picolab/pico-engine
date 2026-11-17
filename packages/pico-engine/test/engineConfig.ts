@@ -4,6 +4,7 @@ import * as os from "os";
 import * as path from "path";
 import {
   applyConfigCliArgs,
+  defaultEngineSettings,
   installEngineRuntimeSettings,
   loadConfigFileSettings,
   resolveEngineSettings,
@@ -94,9 +95,14 @@ test("applyConfigCliArgs sets PICO_ENGINE_CONFIG and strips flags", (t) => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test("settingsFromEnv maps legacy localhost flag", (t) => {
+test("allowLocalhostChannelBypass defaults off and opts in with 1", (t) => {
+  t.false(defaultEngineSettings().allowLocalhostChannelBypass);
+  delete process.env.PICO_ENGINE_ALLOW_LOCALHOST_C;
+  t.is(settingsFromEnv().allowLocalhostChannelBypass, undefined);
+
   process.env.PICO_ENGINE_ALLOW_LOCALHOST_C = "0";
-  const s = settingsFromEnv();
-  t.is(s.allowLocalhostChannelBypass, false);
+  t.is(settingsFromEnv().allowLocalhostChannelBypass, false);
+  process.env.PICO_ENGINE_ALLOW_LOCALHOST_C = "1";
+  t.is(settingsFromEnv().allowLocalhostChannelBypass, true);
   delete process.env.PICO_ENGINE_ALLOW_LOCALHOST_C;
 });

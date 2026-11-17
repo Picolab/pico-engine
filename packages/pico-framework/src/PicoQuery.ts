@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import { copyEnumerableSymbols } from "./PicoEvent";
 import { isNotStringOrBlank } from "./utils";
 
 export interface PicoQuery {
@@ -40,10 +41,12 @@ export function cleanQuery(queryOrig: any): PicoQuery {
     }
   }
 
-  return {
+  const query: PicoQuery = {
     eci: queryOrig.eci.trim(),
     rid: queryOrig.rid.trim(),
     name: queryOrig.name.trim(),
     args: args,
   };
+  copyEnumerableSymbols(queryOrig, query);
+  return query;
 }

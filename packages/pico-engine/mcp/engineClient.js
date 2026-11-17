@@ -1,6 +1,31 @@
 "use strict";
 
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 const fetch = require("cross-fetch");
+
+// Same file the engine writes in src/internalAccess.ts (INTERNAL_TOKEN_FILENAME).
+const INTERNAL_TOKEN_FILENAME = "internal-token";
+
+function engineHome() {
+  const fromEnv = process.env.PICO_ENGINE_HOME;
+  if (typeof fromEnv === "string" && fromEnv.length > 0) {
+    return fromEnv.replace(/^~(?=$|\/)/, os.homedir());
+  }
+  return path.join(os.homedir(), ".pico-engine");
+}
+
+function readInternalToken() {
+  try {
+    const token = fs
+      .readFileSync(path.join(engineHome(), INTERNAL_TOKEN_FILENAME), "utf8")
+      .trim();
+    return token.length > 0 ? token : "";
+  } catch (_err) {
+    return "";
+  }
+}
 
 function normalizeBaseUrl(url) {
   return url.replace(/\/$/, "");
@@ -18,8 +43,19 @@ class EngineClient {
     this.uiEciCached = undefined;
   }
 
+  internalHeaders(extra = {}) {
+    const headers = { ...extra };
+    const token = readInternalToken();
+    if (token) {
+      headers["X-Pico-Internal"] = token;
+    }
+    return headers;
+  }
+
   async getDevLocal() {
-    const res = await fetch(`${this.baseUrl}/api/dev/local`);
+    const res = await fetch(`${this.baseUrl}/api/dev/local`, {
+      headers: this.internalHeaders(),
+    });
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`GET /api/dev/local ${res.status}: ${text}`);
@@ -28,7 +64,9 @@ class EngineClient {
   }
 
   async getUiContext() {
-    const res = await fetch(`${this.baseUrl}/api/ui-context`);
+    const res = await fetch(`${this.baseUrl}/api/ui-context`, {
+      headers: this.internalHeaders(),
+    });
     if (!res.ok) {
       throw new Error(`GET /api/ui-context ${res.status}`);
     }
@@ -57,7 +95,7 @@ class EngineClient {
       return ctx.eci;
     }
     throw new Error(
-      "Could not resolve UI channel ECI. Set PICO_ENGINE_UI_ECI, sign in via the UI (same engine), or use localhost with PICO_ENGINE_ALLOW_LOCALHOST_C unset."
+      "Could not resolve UI channel ECI. Set PICO_ENGINE_UI_ECI, or point PICO_ENGINE_HOME at the running engine's data directory so the internal token can be read."
     );
   }
 
@@ -66,7 +104,9 @@ class EngineClient {
       `${this.baseUrl}/c/${encodeURIComponent(eci)}/query/${encodeURIComponent(rid)}/${encodeURIComponent(name)}`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+        headers: this.internalHeaders({
+          "Content-Type": "application/json; charset=utf-8",
+        }),
         body: JSON.stringify(args),
       }
     );
@@ -88,7 +128,9 @@ class EngineClient {
       `${this.baseUrl}/c/${encodeURIComponent(eci)}/event-wait/${encodeURIComponent(domain)}/${encodeURIComponent(name)}`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+        headers: this.internalHeaders({
+          "Content-Type": "application/json; charset=utf-8",
+        }),
         body: JSON.stringify(attrs),
       }
     );
@@ -98,7 +140,9 @@ class EngineClient {
   }
 
   async getTryIt() {
-    const res = await fetch(`${this.baseUrl}/api/try-it`);
+    const res = await fetch(`${this.baseUrl}/api/try-it`, {
+      headers: this.internalHeaders(),
+    });
     if (!res.ok) {
       throw new Error(`GET /api/try-it ${res.status}`);
     }

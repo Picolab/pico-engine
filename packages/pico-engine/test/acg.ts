@@ -3,8 +3,11 @@
  * /api/mesh-context.
  */
 
+import * as crypto from "crypto";
 import test from "ava";
 import fetch from "cross-fetch";
+import { OAuthError } from "../src/oauth/errors";
+import { PUBLIC_ACCESS_TTL_MS } from "../src/oauth/acg";
 import { OAUTH_MESH_RULESET_RID } from "../src/oauth/meshOAuth";
 import { WebAuthnAdapter } from "../src/auth/webauthn";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
@@ -54,6 +57,10 @@ function enableOAuthMesh(pe: Awaited<ReturnType<typeof startIsolatedEngine>>) {
 }
 
 const TEST_PKCE_VERIFIER = "test-pkce-verifier-for-acg-tests";
+const TEST_PKCE_CHALLENGE = crypto
+  .createHash("sha256")
+  .update(TEST_PKCE_VERIFIER)
+  .digest("base64url");
 
 test("authorization code grant with PKCE validates subtree ecis", async (t) => {
   const pe = await startIsolatedEngine({
@@ -73,8 +80,8 @@ test("authorization code grant with PKCE validates subtree ecis", async (t) => {
     {
       client_id: app.client_id,
       redirect_uri,
-      code_challenge: TEST_PKCE_VERIFIER,
-      code_challenge_method: "plain",
+      code_challenge: TEST_PKCE_CHALLENGE,
+      code_challenge_method: "S256",
       approved: true,
     }
   );
@@ -111,8 +118,8 @@ test("refresh token grant rotates access token", async (t) => {
     {
       client_id: app.client_id,
       redirect_uri,
-      code_challenge: TEST_PKCE_VERIFIER,
-      code_challenge_method: "plain",
+      code_challenge: TEST_PKCE_CHALLENGE,
+      code_challenge_method: "S256",
       approved: true,
     }
   );
@@ -130,8 +137,33 @@ test("refresh token grant rotates access token", async (t) => {
     client_id: app.client_id,
   });
   t.not(refreshed.access_token, first.access_token);
+  t.not(refreshed.refresh_token, first.refresh_token);
+  t.is(first.expires_in, PUBLIC_ACCESS_TTL_MS / 1000);
+  t.is(refreshed.expires_in, PUBLIC_ACCESS_TTL_MS / 1000);
   t.false(await pe.oauth.validateSkyBearerToken(first.access_token, acct.uiECI));
   t.true(await pe.oauth.validateSkyBearerToken(refreshed.access_token, acct.uiECI));
+
+  const replay = await t.throwsAsync(
+    () =>
+      pe.oauth.refreshTokenGrant({
+        grant_type: "refresh_token",
+        refresh_token: first.refresh_token!,
+        client_id: app.client_id,
+      }),
+    { instanceOf: OAuthError }
+  );
+  t.is((replay as OAuthError).oauthError, "invalid_grant");
+  t.false(await pe.oauth.validateSkyBearerToken(refreshed.access_token, acct.uiECI));
+  const revoked = await t.throwsAsync(
+    () =>
+      pe.oauth.refreshTokenGrant({
+        grant_type: "refresh_token",
+        refresh_token: refreshed.refresh_token!,
+        client_id: app.client_id,
+      }),
+    { instanceOf: OAuthError }
+  );
+  t.is((revoked as OAuthError).oauthError, "invalid_grant");
 });
 
 async function meshAccessToken(
@@ -151,8 +183,8 @@ async function meshAccessToken(
     {
       client_id: app.client_id,
       redirect_uri,
-      code_challenge: TEST_PKCE_VERIFIER,
-      code_challenge_method: "plain",
+      code_challenge: TEST_PKCE_CHALLENGE,
+      code_challenge_method: "S256",
       approved: true,
     }
   );

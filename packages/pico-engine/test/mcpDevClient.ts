@@ -19,11 +19,22 @@ const { EngineClient } = require("../mcp/engineClient.js") as {
     evalKrl: (eci: string, rid: string, expr: string) => Promise<unknown>;
   };
 };
+import { readInternalToken } from "../src/internalAccess";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
 
-test("GET /api/dev/local exposes root UI ECI on localhost", async (t) => {
+function internalHeaders(home: string): { "X-Pico-Internal": string } {
+  const token = readInternalToken(home);
+  if (!token) {
+    throw new Error(`missing internal token in ${home}`);
+  }
+  return { "X-Pico-Internal": token };
+}
+
+test("GET /api/dev/local exposes root UI ECI to the internal token", async (t) => {
   const pe = await startIsolatedEngine({ autoCreateRootPico: true });
-  const res = await fetch(`${pe.base_url}/api/dev/local`);
+  const res = await fetch(`${pe.base_url}/api/dev/local`, {
+    headers: internalHeaders(pe.home),
+  });
   t.is(res.status, 200);
   const body = (await res.json()) as {
     rootUiEci?: string;
@@ -49,7 +60,9 @@ test("GET /api/dev/local exposes root UI ECI on localhost", async (t) => {
 
 test("EngineClient eval_krl reads ruleset globals", async (t) => {
   const pe = await startIsolatedEngine({ autoCreateRootPico: true });
-  const dev = await fetch(`${pe.base_url}/api/dev/local`).then((r) => r.json());
+  const dev = await fetch(`${pe.base_url}/api/dev/local`, {
+    headers: internalHeaders(pe.home),
+  }).then((r) => r.json());
   const uiEci = (dev as { rootUiEci: string }).rootUiEci;
   const client = new EngineClient({ baseUrl: pe.base_url, uiEci });
   const value = await client.evalKrl(

@@ -26,7 +26,10 @@ export interface EngineSettings {
   rpName?: string;
   origin?: string;
   allowSelfSignup: boolean;
-  /** When true, localhost may call /c/* without passkey (dev MCP, ctx HTTP loops). */
+  /**
+   * When true, a direct loopback socket may call `/c/*` without a passkey or
+   * the internal token. Default false. Proxy headers never count as local.
+   */
   allowLocalhostChannelBypass: boolean;
   wildcardSkyRequireBearer: boolean;
   logToStdout: boolean;
@@ -100,7 +103,7 @@ export function defaultEngineSettings(): EngineSettings {
     port: 3000,
     baseUrl: "http://localhost:3000",
     allowSelfSignup: false,
-    allowLocalhostChannelBypass: true,
+    allowLocalhostChannelBypass: false,
     wildcardSkyRequireBearer: false,
     logToStdout: false,
     logMirror: true,

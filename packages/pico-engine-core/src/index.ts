@@ -41,6 +41,15 @@ export {
   type ValidateKrlResult,
 } from "./validateKrl";
 export { isRoutineQueryError } from "./queryErrors";
+export { rememberPdsSettings, warmPdsSecretLog } from "./secretLog";
+export {
+  REQUEST_COOKIE_JAR,
+  attachRequestCookies,
+  isEngineCredentialCookie,
+  parseApplicationCookies,
+  requestCookie,
+} from "./requestCookies";
+export { RAW_REQUEST_BODY, attachRawBody, rawRequestBody } from "./rawBody";
 export {
   assembleLogTransactions,
   type LogTransaction,

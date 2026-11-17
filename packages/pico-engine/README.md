@@ -132,7 +132,7 @@ The server is configured via some environment variables.
 - `PICO_ENGINE_HOME` - Where the database and other files should be stored. By default it's `~/.pico-engine/`
 - `PICO_ENGINE_BASE_URL` - The public url prefix to reach this engine. By default it's `"http://localhost:3000"`
 - `PICO_ENGINE_ALLOW_SELF_SIGNUP` - Set to `"true"` or `"1"` to allow open registration after bootstrap (default: off; bootstrap and invite still work)
-- `PICO_ENGINE_ALLOW_LOCALHOST_C` - Set to `"0"` to require passkey session on `/c/*` even from localhost (default: allow localhost without session for in-engine HTTP loops). Full registry: repo `MEMORY.md` § Engine environment variables.
+- `PICO_ENGINE_ALLOW_LOCALHOST_C` - `"1"` or `"true"` lets a direct loopback connection call `/c/*` without a passkey (default: off). Proxy headers are never treated as local. The dev MCP sends `X-Pico-Internal` from `$PICO_ENGINE_HOME/internal-token`. Full registry: repo `MEMORY.md` § Engine environment variables.
 - `PICO_ENGINE_LOG_FILE` - Log file path. Set to `stdout`, `-`, or `0` for **stdout only** (recommended on Fargate + EFS; use CloudWatch for retention). Default: `$PICO_ENGINE_HOME/pico-engine.log`.
 - `PICO_ENGINE_LOG_MIRROR` - When stdout-only: **`true`/`1`** (default) mirrors structured JSON to **`$PICO_ENGINE_HOME/pico-engine.log`** so **`ctx:logs`** and the Developer UI **Logging** tab work; set **`false`/`0`** to skip the mirror file (e.g. avoid EFS log churn). **Config:** `logMirror` in `config.json` (see `config.example.json`).
 - `PICO_ENGINE_SHOW_TRYIT_MENU` - Where the Developer UI shows the **Try It!** tab: `off`, `root_only` (default), or `all` (config: `show_tryit_menu`).
@@ -232,7 +232,7 @@ The developer UI uses **passkeys** (WebAuthn). On first visit you register a pas
 
 When self-signup is disabled, **Settings → Invite someone** can include an optional **bootstrap ruleset URL** (`file://` or `https://`). The engine validates the URL when the invite is created; when the invitee registers, that ruleset is installed on their new root after the base OS rulesets (e.g. a Manifold bootstrap KRL). The invite **label** pre-fills the invitee's mesh name (editable before registering). WebAuthn `user.name` is set to the mesh name so password managers (e.g. 1Password) show it alongside the site hostname.
 
-- **`/c/*`** — internal/UI API; requires a passkey session cookie (localhost bypass is on by default for in-engine KRL HTTP loops; set `PICO_ENGINE_ALLOW_LOCALHOST_C=0` to disable).
+- **`/c/*`** — internal/UI API. Requires a passkey session cookie, or the dev MCP's `X-Pico-Internal` token (`$PICO_ENGINE_HOME/internal-token`, rewritten each startup). A direct loopback bypass exists only when `PICO_ENGINE_ALLOW_LOCALHOST_C=1`.
 - **`/auth/*`** — registration, login, session management.
 
 ## OAuth
@@ -245,6 +245,10 @@ Two grant types can coexist in the same mesh:
 |-------|----------|-----------|-------|
 | **Client Credentials** | Inbound webhooks (Stripe, GitHub, …) | Channel **ECI** | Single channel only |
 | **Authorization Code + PKCE** | Apps like Home Assistant | `app_…` | Whole mesh (root + descendants) |
+
+An MCP client discovers this server without a pre-registered app. `GET /.well-known/oauth-authorization-server` describes the authorization server. `GET /.well-known/oauth-protected-resource/mcp/{eci}` describes that channel's MCP URL. `/mcp/{eci}` answers a missing bearer token with `401` and `WWW-Authenticate: Bearer resource_metadata="…"`.
+
+A client can use an https URL as its `client_id`. The engine fetches that URL as a Client ID Metadata Document. The document's `client_id` must equal the URL, and its `redirect_uris` must include the request's `redirect_uri`. The approval screen shows the client's name, logo, page, and host, plus the mesh and the scopes requested. These clients are public: S256 PKCE and no client secret. Pre-registered apps still work.
 
 ### Mesh lock
 
@@ -322,7 +326,7 @@ Content-Type: application/json
 }
 ```
 
-For manual testing with plain PKCE, use `code_challenge_method=plain` and set `code_challenge` and `code_verifier` to the same string.
+PKCE is S256 only: `code_challenge` is the base64url SHA-256 of `code_verifier`. Send the same `resource` on the authorize request and the token request (`{base}/sky` for Sky, `{base}/mcp/{eci}` for that channel's MCP URL, or `{base}/mcp/mesh/{eci}` for the whole-mesh endpoint). A token is accepted only at the resource it names. Tokens issued with no `resource` still work on `/sky/*`. `mesh:read` is required for queries and `mesh:act` for events.
 
 **Refresh:**
 
@@ -336,6 +340,8 @@ Content-Type: application/json
   "client_id": "app_…"
 }
 ```
+
+Each refresh returns a new access token and a new refresh token. The previous refresh token no longer works. Sending it again revokes the replacement as well. A public client (no secret, including a Client ID Metadata Document) gets an access token that lasts one hour. A confidential app's access token lasts 24 hours. The refresh token lasts 90 days, and a successful refresh starts that clock again. Send the same `resource` the grant was issued with.
 
 **Use the access token** on any channel ECI in the mesh:
 
@@ -394,7 +400,7 @@ Every pico has a portable **did:webvh** identity. **DID-based relationships** (L
 
 Full guide: [Layer 2 relationships](https://docs.picolabs.io/#/guides/layer2-subscriptions) · Release notes: [1.6](https://docs.picolabs.io/#/release/1.6) · [CHANGELOG.md](https://github.com/Picolab/pico-engine/blob/master/CHANGELOG.md) (1.6.4 mesh-oauth-exempt + KRL directory UI; 1.6.3 fixes)
 
-**Dependency:** pico-engine 1.6 requires **pico-framework `^0.8.1`** (npm). When developing engine + framework together, use `npm run link-framework` from the repo root.
+**Dependency:** `pico-framework` is `packages/pico-framework` in this repo and is versioned with the engine. `krl-stdlib`, `pico-engine-core`, and `pico-engine` depend on it.
 
 ### Layer 2 tests
 

@@ -236,6 +236,7 @@ test("http module", async function (t) {
   });
 
   for (const method of Object.keys(khttp)) {
+    if (method === "cookie") continue;
     let err = await t.throwsAsync(khttp[method](krlCtx, { parseJSON: true }));
     t.is(err + "", `Error: http:${method} needs a url string`);
 

@@ -10,10 +10,10 @@ The engine provides these libraries to every ruleset:
 
 - [CSV](/krl/libraries/csv): comma-separated values to and from arrays of maps
 - [ctx](/krl/libraries/ctx): the pico and the engine (an escape hatch; applications use [wrangler](/wrangler/))
-- [event](/krl/libraries/event): the current event, and sending events
-- [HTTP](/krl/libraries/http): HTTP requests
+- [event](/krl/libraries/event): the current event, its raw body, and sending events
+- [HTTP](/krl/libraries/http): HTTP requests, and one cookie from the current request
 - [ical](/krl/libraries/ical): iCalendar files
-- [math](/krl/libraries/math): math, hashing, and base64
+- [math](/krl/libraries/math): math, hashing, HMAC, constant-time compare, and base64
 - [meta](/krl/libraries/meta): the ruleset and the current request
 - [oauth](/krl/libraries/oauth): a mesh's OAuth state (for `io.picolabs.oauth`)
 - [random](/krl/libraries/random): random numbers, words, and IDs

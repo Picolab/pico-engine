@@ -91,7 +91,7 @@ A pico can have as many channels as it needs, and only a pico can create and del
 
 ### Creating a channel
 
-`createChannel(tags, eventPolicy, queryPolicy)` is an action that creates a channel and returns it. Its `id` is the channel's ECI:
+`createChannel(tags, eventPolicy, queryPolicy, mcpPolicy, rawBody)` is an action that creates a channel and returns it. `mcpPolicy` is optional. Leave it out and the channel is not exposed to MCP. `rawBody` is optional. Pass `true` and an HTTP event on this channel keeps its exact body for `event:raw_body()`. Leave it out and the body is not kept. Its `id` is the channel's ECI:
 
 ```krl
 rule initialize {

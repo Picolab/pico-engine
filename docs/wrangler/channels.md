@@ -69,6 +69,8 @@ rule create_limited_use_channel {
 
 The directive gives the new ECI to whoever sent the event: a trusted page, say, that builds a link for checking the lamp.
 
+Pass `rawBody: true` on `wrangler:new_channel_request`, or as the last argument of `wrangler:createChannel`, when the channel receives a webhook whose signature covers the exact request body. `event:raw_body()` is then that body. On every other channel it is `null`. The Channels tab has the same checkbox. See [Webhook signatures](/developing/webhook-signatures).
+
 A ruleset often creates its channel when it's installed, from a rule that selects its own `wrangler:ruleset_installed`. See the [Bootstrap and channels](/cookbook/bootstrap/) demo, which also updates the channel instead of making a duplicate when the rule runs again.
 
 ### From KRL, asynchronously

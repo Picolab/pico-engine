@@ -8,6 +8,8 @@ ruleset io.picolabs.cookies {
     __testing = { "queries": [ { "name": "__testing" },
                                { "name": "cookies" } ],
                   "events": [ {"domain": "cookie", "type": "wellKnown_Rx_changed" } ] }
+    // Cookie is not in _headers. This returns {} for an HTTP request.
+    // Read one application cookie with http:cookie(name).
     cookies = function(_headers) {
       arg = event:attr("_headers") || _headers;
       arg{"cookie"}.isnull() => {} |

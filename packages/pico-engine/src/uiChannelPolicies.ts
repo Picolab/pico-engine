@@ -38,6 +38,7 @@ export const UI_CHANNEL_EVENT_POLICY: EventPolicy = {
     { domain: "wrangler", name: "new_child_created" },
     { domain: "wrangler", name: "install_ruleset_request" },
     { domain: "wrangler", name: "new_channel_request" },
+    { domain: "pds", name: "add_settings" },
   ],
   deny: [],
 };
@@ -63,6 +64,7 @@ export const UI_CHANNEL_QUERY_POLICY: QueryPolicy = {
     { rid: "io.picolabs.subscription", name: "wellKnown_Rx" },
     { rid: "io.picolabs.wrangler", name: "myDid" },
     { rid: "io.picolabs.wrangler", name: "publicIntro" },
+    { rid: "io.picolabs.pds", name: "settings" },
   ],
   deny: [],
 };

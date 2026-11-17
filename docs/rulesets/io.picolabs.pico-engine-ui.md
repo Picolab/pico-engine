@@ -28,7 +28,7 @@ This pico's channels (with their policies) and installed rulesets, plus the UI c
 
 ### `logs()` → Array
 
-Recent activity on this pico, grouped by transaction, newest first: each incoming event or query with the rules it selected, klog output, and errors. The developer UI's own queries are left out.
+Recent activity on this pico, newest first. Each transaction is a list of steps (`in`, `rule`, `raise`, `klog`, `log`, `error`, `done`) assembled from the engine log. The Logging tab hides engine rulesets in the browser.
 
 **Call:** `GET /sky/query/<eci>/io.picolabs.pico-engine-ui/logs`, or `<alias>:logs()` from KRL with `use module io.picolabs.pico-engine-ui alias <alias>`
 

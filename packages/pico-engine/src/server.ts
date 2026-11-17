@@ -1,6 +1,7 @@
 import * as bodyParser from "body-parser";
 import * as express from "express";
 import { Express, Request, Response } from "express";
+import { IncomingMessage, ServerResponse } from "http";
 import * as fs from "fs";
 import helmet from "helmet";
 import * as _ from "lodash";
@@ -27,8 +28,17 @@ import {
   renderConsentHtml,
   rootHasOAuthMeshRuleset,
 } from "./oauth";
+import { isClientMetadataUrl } from "./oauth/cimd";
+import {
+  MCP_CHANNEL_SCOPE,
+  authorizationServerMetadata,
+  bearerChallengeHeader,
+  canonicalBaseUrl,
+  protectedResourceMetadata,
+  protectedResourceMetadataUrl,
+} from "./oauth/discovery";
 import { uiECIForRoot } from "./provisionRoot";
-import { channelSchemaForEci } from "pico-engine-core";
+import { attachRawBody, attachRequestCookies, channelSchemaForEci } from "pico-engine-core";
 import {
   contentTypeForUiPath,
   isXmluiCodeBehindPath,
@@ -43,6 +53,11 @@ import { registerDidcommIngressRoutes } from "./identity/didcommIngressRoutes";
 
 import { getEngineRuntimeSettings } from "./engineConfig";
 import {
+  headersForKrl,
+  internalTokenAccepted,
+  isDirectLoopbackRequest,
+} from "./internalAccess";
+import {
   picoLogEntries,
   resolveEngineLogFilePath,
   resolvePicoLogsReadPath,
@@ -52,13 +67,33 @@ import { stageKrlContent } from "./stageKrl";
 
 const engineVersion = require("../package.json").version;
 
-function localhostChannelBypassEnabled(): boolean {
-  return getEngineRuntimeSettings().allowLocalhostChannelBypass;
+function mergeGetPost(req: Request) {
+  // give preference to post body params. Credential headers never reach KRL.
+  return _.assign({}, req.query, req.body, { _headers: headersForKrl(req.headers) });
 }
 
-function mergeGetPost(req: Request) {
-  // give preference to post body params
-  return _.assign({}, req.query, req.body, { _headers: req.headers });
+function withRequestCookies<T extends object>(req: Request, target: T): T {
+  attachRequestCookies(target, req.headers.cookie);
+  return target;
+}
+
+/** Buffer captured while parsing, only for a channel that keeps the raw body. */
+const RAW_BODY_BUF = Symbol("pico.rawBodyBuf");
+
+function eciFromEventPath(url: string | undefined): string | null {
+  if (!url) {
+    return null;
+  }
+  const pathOnly = url.split("?")[0];
+  const sky = pathOnly.match(/^\/sky\/event\/([^/]+)\//);
+  if (sky) {
+    return decodeURIComponent(sky[1]);
+  }
+  const internal = pathOnly.match(/^\/c\/([^/]+)\/event(?:\/|$)/);
+  if (internal) {
+    return decodeURIComponent(internal[1]);
+  }
+  return null;
 }
 
 function parseCookies(req: Request): { [name: string]: string } {
@@ -81,34 +116,27 @@ function parseCookies(req: Request): { [name: string]: string } {
   return out;
 }
 
-function isLocalhostAddress(addr: string | undefined): boolean {
-  if (!addr) {
-    return false;
-  }
-  const normalized = addr.replace(/^::ffff:/, "");
-  return normalized === "127.0.0.1" || normalized === "::1";
-}
-
-function isLocalhostRequest(req: Request): boolean {
-  if (isLocalhostAddress(req.ip)) {
-    return true;
-  }
-  if (isLocalhostAddress(req.socket?.remoteAddress)) {
-    return true;
-  }
-  const host = req.headers.host || "";
-  return host.startsWith("localhost:") || host.startsWith("127.0.0.1:");
-}
-
 export function server(
   core: PicoEngineCore,
   uiECI: string | null,
   auth?: AuthService,
   oauth?: OAuthService,
-  identity?: IdentityService
+  identity?: IdentityService,
+  internalToken = ""
 ): Express {
   const pf = core.picoFramework;
   const app = express();
+  // Captured per engine. A later startEngine() in this process must not
+  // change an engine that is already listening.
+  const localhostBypass = getEngineRuntimeSettings().allowLocalhostChannelBypass;
+
+  function allowInternal(req: Request): boolean {
+    const presented = req.headers["x-pico-internal"];
+    if (internalTokenAccepted(presented, internalToken)) {
+      return true;
+    }
+    return localhostBypass && isDirectLoopbackRequest(req);
+  }
   function cookies(): AuthCookieNames {
     return auth
       ? authCookieNames(auth.rp().origin)
@@ -165,6 +193,40 @@ export function server(
     registerWebvhRoutes(app, identity);
   }
 
+  function channelKeepsRawBody(eci: string): boolean {
+    try {
+      return pf.lookupChannel(eci).rawBody === true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Hold the raw bytes only when this channel opted in. Other requests drop
+  // them with the parser.
+  function rememberRawBody(
+    req: IncomingMessage,
+    _res: ServerResponse,
+    buf: Buffer
+  ): void {
+    const eci = eciFromEventPath(req.url);
+    if (!eci || !channelKeepsRawBody(eci)) {
+      return;
+    }
+    Object.defineProperty(req, RAW_BODY_BUF, {
+      value: Buffer.from(buf),
+      enumerable: false,
+      configurable: true,
+    });
+  }
+
+  function withRawBody<T extends object>(req: Request, eci: string, target: T): T {
+    const buf = (req as Request & { [RAW_BODY_BUF]?: Buffer })[RAW_BODY_BUF];
+    if (Buffer.isBuffer(buf) && channelKeepsRawBody(eci)) {
+      attachRawBody(target, buf.toString("utf8"));
+    }
+    return target;
+  }
+
   app.use(
     bodyParser.json({
       type: [
@@ -173,6 +235,7 @@ export function server(
         "application/ssi-agent-wire",
         "application/didcomm-encrypted+json",
       ],
+      verify: rememberRawBody,
     })
   );
   app.use(
@@ -180,6 +243,7 @@ export function server(
       limit: "512mb",
       type: "application/x-www-form-urlencoded",
       extended: false,
+      verify: rememberRawBody,
     })
   );
 
@@ -237,7 +301,11 @@ export function server(
       .catch(next);
   }
 
-  /** `/c/*` is internal: passkey session, or localhost for in-engine HTTP loops. */
+  /**
+   * `/c/*` is internal. Accept the startup internal token, a passkey session
+   * for this mesh, or (only when the operator opted in) a direct loopback
+   * connection. The Host header is not a credential.
+   */
   function requireChannelSession(
     req: Request,
     res: Response,
@@ -247,7 +315,20 @@ export function server(
       next();
       return;
     }
-    if (localhostChannelBypassEnabled() && isLocalhostRequest(req)) {
+    if (allowInternal(req)) {
+      next();
+      return;
+    }
+    requireAuthSession(req, res, next);
+  }
+
+  /** Session, internal token, or an opted-in direct loopback connection. */
+  function requireSessionOrInternal(
+    req: Request,
+    res: Response,
+    next: express.NextFunction
+  ) {
+    if (allowInternal(req)) {
       next();
       return;
     }
@@ -384,7 +465,7 @@ export function server(
     }
   });
 
-  app.get("/api/try-it", function (req, res, next) {
+  app.get("/api/try-it", requireSessionOrInternal, function (req, res, next) {
     try {
       let baseUrl = core.base_url;
       if (!baseUrl) {
@@ -434,6 +515,9 @@ export function server(
     });
   });
 
+  // Pre-login bootstrap. Version, hasRoots, allowSelfSignup, and showTryItMenu
+  // are public. The ui ECI is added only when the passkey cookie is valid.
+  // This route does not use the localhost bypass (1.10 §1 review).
   app.get("/api/ui-context", function (req, res, next) {
     const hasRoots = pf.rootPicos().length > 0;
     const base: any = {
@@ -509,10 +593,14 @@ export function server(
     });
   });
 
-  /** Localhost-only context for dev MCP (stdio) and other local tooling. */
+  /**
+   * Dev MCP context: root UI ECI and log paths. Internal token, or an opted-in
+   * direct loopback connection. A browser session is not enough; this returns
+   * the data directory.
+   */
   app.get("/api/dev/local", function (req, res) {
-    if (!localhostChannelBypassEnabled() || !isLocalhostRequest(req)) {
-      res.status(403).json({ error: "localhost only" });
+    if (!allowInternal(req)) {
+      res.status(403).json({ error: "internal only" });
       return;
     }
     const roots = pf.rootPicos();
@@ -571,13 +659,13 @@ export function server(
 
   app.all("/c/:eci/event/:domain/:name", requireChannelSession, function (req, res, next) {
     core
-      .event({
+      .event(withRawBody(req, req.params.eci, withRequestCookies(req, {
         eci: req.params.eci,
         domain: req.params.domain,
         name: req.params.name,
         data: { attrs: mergeGetPost(req) },
         time: 0, // TODO remove this typescript requirement
-      })
+      })))
       .then((eid) => {
         res.json(eid);
       })
@@ -586,13 +674,13 @@ export function server(
 
   app.all("/c/:eci/event-wait/:domain/:name", requireChannelSession, function (req, res, next) {
     core
-      .eventWait({
+      .eventWait(withRawBody(req, req.params.eci, withRequestCookies(req, {
         eci: req.params.eci,
         domain: req.params.domain,
         name: req.params.name,
         data: { attrs: mergeGetPost(req) },
         time: 0, // TODO remove this typescript requirement
-      })
+      })))
       .then((data) => {
         res.json(data);
       })
@@ -605,13 +693,13 @@ export function server(
       attrs.__eid = req.params.eid;
     }
     core
-      .eventWait({
+      .eventWait(withRawBody(req, req.params.eci, withRequestCookies(req, {
         eci: req.params.eci,
         domain: req.params.domain,
         name: req.params["type"],
         data: { attrs },
         time: 0, // TODO remove this typescript requirement
-      })
+      })))
       .then((data) => {
         if (data.directives) {
           var _res = _.filter(data.directives, { name: "_cookie" });
@@ -643,19 +731,19 @@ export function server(
       const attrs = mergeGetPost(req);
       core
         .eventQuery(
-          {
+          withRawBody(req, req.params.eci, withRequestCookies(req, {
             eci: req.params.eci,
             domain: req.params.domain,
             name: req.params.name,
             data: { attrs },
             time: 0, // TODO remove this typescript requirement
-          },
-          {
+          })),
+          withRequestCookies(req, {
             eci: req.params.eci,
             rid: req.params.rid,
             name: req.params.qname,
             args: attrs,
-          }
+          })
         )
         .then((data) => {
           res.json(data);
@@ -667,12 +755,12 @@ export function server(
   function handleSkyQuery(req: Request, res: Response, next: express.NextFunction) {
     const funcPart = req.params["function"].split(".");
     core
-      .query({
+      .query(withRequestCookies(req, {
         eci: req.params.eci,
         rid: req.params.rid,
         name: funcPart[0],
         args: mergeGetPost(req),
-      })
+      }))
       .then((data: any) => {
         if (funcPart[1] === "html") {
           res.header("Content-Type", "text/html");
@@ -690,12 +778,12 @@ export function server(
   app.all("/c/:eci/query/:rid/:name", requireChannelSession, function (req, res, next) {
     const funcPart = req.params.name.split(".");
     core
-      .query({
+      .query(withRequestCookies(req, {
         eci: req.params.eci,
         rid: req.params.rid,
         name: funcPart[0],
         args: mergeGetPost(req),
-      })
+      }))
       .then((data: any) => {
         if (funcPart[1] === "html") {
           res.header("Content-Type", "text/html");
@@ -837,16 +925,86 @@ export function server(
   // Legacy alias; prefer /sky/query/ per Sky Query API docs.
   app.all("/sky/cloud/:eci/:rid/:function", requireSkyBearerIfOAuth, handleSkyQuery);
 
+  // MCP authorization discovery (RFC 8414, RFC 9728). Unauthenticated.
+  function discoveryOrigin(req: Request): string {
+    return canonicalBaseUrl(core.base_url, req);
+  }
+  function knownChannel(eci: string): boolean {
+    try {
+      pf.lookupChannel(eci);
+      return true;
+    } catch (_e) {
+      return false;
+    }
+  }
+  app.get("/.well-known/oauth-authorization-server", function (req, res) {
+    res.json(authorizationServerMetadata(discoveryOrigin(req)));
+  });
+  // Claude inserts the MCP path into this well-known URL. A 404 there makes
+  // it skip the root document and report that client registration is missing.
+  function pathAuthorizationServer(req: Request, res: Response) {
+    if (!knownChannel(req.params.eci)) {
+      res.status(404).json({ error: "Unknown channel ECI" });
+      return;
+    }
+    res.json(authorizationServerMetadata(discoveryOrigin(req)));
+  }
+  app.get("/.well-known/oauth-authorization-server/mcp/mesh/:eci", function (req, res) {
+    pathAuthorizationServer(req, res);
+  });
+  app.get("/.well-known/oauth-authorization-server/mcp/:eci", function (req, res) {
+    pathAuthorizationServer(req, res);
+  });
+  app.get("/.well-known/openid-configuration", function (req, res) {
+    res.json(authorizationServerMetadata(discoveryOrigin(req)));
+  });
+  app.get("/.well-known/openid-configuration/mcp/mesh/:eci", function (req, res) {
+    pathAuthorizationServer(req, res);
+  });
+  app.get("/.well-known/openid-configuration/mcp/:eci", function (req, res) {
+    pathAuthorizationServer(req, res);
+  });
+  app.get(
+    "/.well-known/oauth-protected-resource/mcp/mesh/:eci",
+    function (req, res) {
+      if (!knownChannel(req.params.eci)) {
+        res.status(404).json({ error: "Unknown channel ECI" });
+        return;
+      }
+      res.json(protectedResourceMetadata(discoveryOrigin(req), req.params.eci, "mesh"));
+    }
+  );
+  app.get("/.well-known/oauth-protected-resource/mcp/:eci", function (req, res) {
+    if (!knownChannel(req.params.eci)) {
+      res.status(404).json({ error: "Unknown channel ECI" });
+      return;
+    }
+    res.json(protectedResourceMetadata(discoveryOrigin(req), req.params.eci, "channel"));
+  });
+
   // Mesh MCP (Streamable HTTP, OAuth bearer scoped to :eci)
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { registerMeshMcpRoutes } = require("../mcp/meshHttp.js") as {
     registerMeshMcpRoutes: (
       app: Express,
       core: PicoEngineCore,
-      oauth?: OAuthService
+      oauth: OAuthService | undefined,
+      wwwAuthenticate: (
+        eci: string,
+        error: "invalid_token" | "insufficient_scope" | undefined,
+        req: Request,
+        surface: "channel" | "mesh",
+        scope?: string
+      ) => string
     ) => void;
   };
-  registerMeshMcpRoutes(app, core, oauth);
+  registerMeshMcpRoutes(app, core, oauth, (eci, error, req, surface, scope) =>
+    bearerChallengeHeader(
+      protectedResourceMetadataUrl(discoveryOrigin(req), eci, surface),
+      scope || MCP_CHANNEL_SCOPE,
+      error
+    )
+  );
 
   app.use(function (
     err: any,
@@ -1178,9 +1336,10 @@ function registerOAuthRoutes(
       next(err);
       return;
     }
-    oauth
+    const showConsent = () =>
+      oauth
       .getAppForAuthorize(params)
-      .then(async (appRecord) => {
+      .then(async (resolved) => {
         if (!auth) {
           res.status(503).send("Authentication is not configured");
           return;
@@ -1194,13 +1353,54 @@ function registerOAuthRoutes(
           );
           return;
         }
-        if (session.rootPicoId !== appRecord.rootPicoId) {
+        if (resolved.cimd) {
+          if (!oauth.meshOAuthEnabled(session.rootPicoId)) {
+            res.status(400).send("Install io.picolabs.oauth on the root pico first");
+            return;
+          }
+          if (params.resource !== undefined) {
+            params.resource = oauth.bindAuthorizeResource(
+              params.resource,
+              session.rootPicoId
+            );
+          }
+        } else if (session.rootPicoId !== resolved.app.rootPicoId) {
           res.status(403).send("Signed in to a different mesh");
           return;
         }
-        res.type("html").send(renderConsentHtml(appRecord, params));
+        const account = await auth.getAccount(session.accountId);
+        const meshName = (account?.displayName || "").trim() || "this mesh";
+        res.type("html").send(
+          renderConsentHtml(resolved.app, params, {
+            ...resolved.consent,
+            meshName,
+          })
+        );
       })
       .catch(next);
+
+    // A metadata URL is fetched from here. Require a session first so an
+    // anonymous request cannot make the engine request an arbitrary URL.
+    if (isClientMetadataUrl(params.client_id)) {
+      if (!auth) {
+        res.status(503).send("Authentication is not configured");
+        return;
+      }
+      const token = parseCookiesFn(req)[cookies().session] || "";
+      auth
+        .getSession(token)
+        .then((session) => {
+          if (!session) {
+            const returnPath = req.originalUrl || "/oauth/authorize";
+            res.redirect("/?oauth_return=" + encodeURIComponent(returnPath));
+            return;
+          }
+          showConsent();
+        })
+        .catch(next);
+      return;
+    }
+    showConsent();
   });
 
   app.post("/oauth/approve", function (req, res, next) {

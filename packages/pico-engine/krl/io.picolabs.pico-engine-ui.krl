@@ -143,7 +143,8 @@ ruleset io.picolabs.pico-engine-ui {
           { "domain": "wrangler", "name": "new_child_request" },
           { "domain": "wrangler", "name": "new_child_created" },
           { "domain": "wrangler", "name": "install_ruleset_request" },
-          { "domain": "wrangler", "name": "new_channel_request" }
+          { "domain": "wrangler", "name": "new_channel_request" },
+          { "domain": "pds", "name": "add_settings" }
         ],
         "deny": []
       }
@@ -168,7 +169,8 @@ ruleset io.picolabs.pico-engine-ui {
           { "rid": "io.picolabs.wrangler", "name": "myDid" },
           { "rid": "io.picolabs.wrangler", "name": "publicIntro" },
           { "rid": "io.picolabs.wrangler", "name": "rulesetSchema" },
-          { "rid": "io.picolabs.wrangler", "name": "picoSchema" }
+          { "rid": "io.picolabs.wrangler", "name": "picoSchema" },
+          { "rid": "io.picolabs.pds", "name": "settings" }
         ],
         "deny": []
       }
@@ -409,7 +411,9 @@ ruleset io.picolabs.pico-engine-ui {
       tags=event:attrs{"tags"},
       eventPolicy=event:attrs{"eventPolicy"},
       queryPolicy=event:attrs{"queryPolicy"},
-      id=event:attrs{"id"}
+      id=event:attrs{"id"},
+      mcpPolicy=event:attrs{"mcpPolicy"},
+      rawBody=event:attrs{"rawBody"}
     )
   }
   rule del_channel {
@@ -422,7 +426,9 @@ ruleset io.picolabs.pico-engine-ui {
       eci=event:attrs{"eci"},
       tags=event:attrs{"tags"},
       eventPolicy=event:attrs{"eventPolicy"},
-      queryPolicy=event:attrs{"queryPolicy"}
+      queryPolicy=event:attrs{"queryPolicy"},
+      mcpPolicy=event:attrs{"mcpPolicy"},
+      rawBody=event:attrs{"rawBody"}
     )
   }
   rule testing_eci {

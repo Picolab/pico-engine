@@ -233,7 +233,9 @@ const Rulesets: React.FC<Props> = ({ pico, isTabActive = true }) => {
   );
 
   const availableKrlSources = (krlSources.data?.sources || []).filter(
-    (source) => !installedRids.has(source.rid)
+    (source) =>
+      !installedRids.has(source.rid) &&
+      !(source.rootOnly && !isRootPico(pico))
   );
 
   function tryInstall(installUrl: string, parsedConfig: object) {

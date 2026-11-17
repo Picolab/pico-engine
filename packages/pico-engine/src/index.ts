@@ -3,7 +3,7 @@ import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import type { Server } from "http";
-import { PicoEngineCore, RulesetRegistry } from "pico-engine-core";
+import { PicoEngineCore, RulesetRegistry, warmPdsSecretLog } from "pico-engine-core";
 import {
   EventPolicyRule,
   PicoDbKey,
@@ -31,6 +31,7 @@ import { provisionRoot, uiECIForRoot } from "./provisionRoot";
 import { createRulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { resolveBundledKrlUrl } from "./bundledKrl";
 import { wranglerSubtreeImportServices } from "./subtreeWrangler";
+import { writeInternalToken } from "./internalAccess";
 import { server } from "./server";
 import {
   installEngineRuntimeSettings,
@@ -104,6 +105,13 @@ export interface PicoEngineConfiguration {
    * invite may create a new account.
    */
   allowSelfSignup?: boolean;
+
+  /**
+   * When true, a direct loopback connection may call `/c/*`, `/api/dev/local`,
+   * and `/api/try-it` without a passkey or the internal token. Default false.
+   * Proxied requests and a spoofed Host header never qualify.
+   */
+  allowLocalhostChannelBypass?: boolean;
 
   /**
    * Where the developer UI shows the Try It! tab: "off", "root_only" (default),
@@ -182,6 +190,7 @@ export async function startEngine(
     rpName: configuration.rpName,
     origin: configuration.origin,
     allowSelfSignup: configuration.allowSelfSignup,
+    allowLocalhostChannelBypass: configuration.allowLocalhostChannelBypass,
     showTryItMenu: configuration.showTryItMenu,
     defaultRootPolicyCeiling: configuration.defaultRootPolicyCeiling,
     globalEventDeny: configuration.globalEventDeny,
@@ -346,27 +355,55 @@ export async function startEngine(
   const oauth = new OAuthService({
     db: pf.db,
     pf,
+    getBaseUrl: () => core.base_url,
   });
   core.modules["oauth"] = initOAuthModule(oauth);
 
-  const app = server(core, uiECI, auth, oauth, identityService);
+  await warmPdsSecretLog(core);
+  const internalToken = writeInternalToken(home);
+  const app = server(core, uiECI, auth, oauth, identityService, internalToken);
 
   if ((!port || !_.isInteger(port) || port < 1) && port !== 0) {
     port = process.env.NODE_ENV === "test" ? 0 : 3000;
   }
   let httpServer: Server | undefined;
-  await new Promise<void>((resolve) => {
-    httpServer = app.listen(port, () => {
-      if (httpServer) {
-        const addr = httpServer.address();
-        if (addr && typeof addr !== "string" && _.isInteger(addr.port)) {
-          // Get the actual port i.e. if they set port to 0 nodejs will assign you an available port
-          port = addr.port;
+  let listening = false;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      httpServer = app.listen(port, () => {
+        listening = true;
+        if (httpServer) {
+          const addr = httpServer.address();
+          if (addr && typeof addr !== "string" && _.isInteger(addr.port)) {
+            // Get the actual port i.e. if they set port to 0 nodejs will assign you an available port
+            port = addr.port;
+          }
         }
-      }
-      resolve(undefined);
+        resolve(undefined);
+      });
+      // listen failures are an 'error' event. With no listener, Node throws.
+      httpServer.on("error", (err: NodeJS.ErrnoException) => {
+        if (!listening) {
+          reject(err);
+          return;
+        }
+        log.error("HTTP server error", { error: err });
+      });
     });
-  });
+  } catch (err) {
+    const coded = err as NodeJS.ErrnoException;
+    if (coded.code === "EADDRINUSE") {
+      log.error(`Port ${port} is already in use`);
+    } else {
+      log.error("HTTP server failed to listen", { error: err, port });
+    }
+    if (httpServer) {
+      await new Promise<void>((resolve) => httpServer!.close(() => resolve()));
+    }
+    await rulesetLoaderHandle.close().catch(() => undefined);
+    await db.close().catch(() => undefined);
+    throw err;
+  }
   if (typeof base_url !== "string") {
     base_url = `http://localhost:${port}`;
   } else if (

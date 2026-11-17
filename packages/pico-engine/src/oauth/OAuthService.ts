@@ -5,8 +5,21 @@ import {
   isMeshOAuthExemptChannel,
   isOAuthEligibleChannel,
 } from "./channelEligibility";
+import {
+  assertMcpScopes,
+  canonicalResourceUrl,
+  classifyResource,
+  MCP_CHANNEL_SCOPE,
+  mcpResourceUrl,
+  skyResourceUrl,
+} from "./discovery";
+import { loadClientMetadata, type ClientMetadataDocument } from "./cimd";
 import { OAuthError } from "./errors";
-import { isChannelUnderRoot, meshRequiresOAuth as meshRequiresOAuthForEci } from "./meshOAuth";
+import {
+  isChannelUnderRoot,
+  meshRequiresOAuth as meshRequiresOAuthForEci,
+  rootHasOAuthMeshRuleset,
+} from "./meshOAuth";
 import {
   channelHasUnrestrictedAllow,
   isDidcommIngressChannel,
@@ -38,6 +51,8 @@ interface StoredOAuthToken {
   appId?: string;
   accountId?: string;
   scope?: string;
+  /** Canonical RFC 8707 resource. Absent on legacy Sky tokens. */
+  resource?: string;
   expiresAt: number;
   createdAt: string;
 }
@@ -77,13 +92,19 @@ export interface OAuthServiceDeps {
   db: PicoDb;
   pf: PicoFramework;
   tokenTtlMs?: number;
+  /** Read at request time. `base_url` is assigned after the service is constructed. */
+  getBaseUrl?: () => string | undefined;
+  /** Override the Client ID Metadata Document fetch (tests). */
+  loadClientMetadata?: (url: string) => Promise<ClientMetadataDocument>;
 }
 
 export class OAuthService {
   private deps: OAuthServiceDeps;
+  loadClientMetadata: (url: string) => Promise<ClientMetadataDocument>;
 
   constructor(deps: OAuthServiceDeps) {
     this.deps = deps;
+    this.loadClientMetadata = deps.loadClientMetadata ?? ((url) => loadClientMetadata(url));
   }
 
   get tokenTtlMs(): number {
@@ -196,6 +217,8 @@ export class OAuthService {
     client_id?: string;
     client_secret?: string;
     expires_in?: number | string;
+    resource?: string;
+    scope?: string;
   }): Promise<OAuthTokenResponse> {
     const client_id = (input.client_id || "").trim();
     const client_secret = (input.client_secret || "").trim();
@@ -220,11 +243,18 @@ export class OAuthService {
     const tokenTtlMs = resolveTokenTtlMs(input.expires_in, this.tokenTtlMs);
     const token = acg.mintAccessToken();
     const expiresAt = tokenTtlMs === null ? 0 : Date.now() + tokenTtlMs;
+    const resource = this.bindClientCredentialsResource(
+      acg.readResource(input.resource),
+      client_id
+    );
+    const scope = this.clientCredentialsScope(resource, input.scope);
     const tokenRecord: StoredOAuthToken = {
       token,
       grant: "client_credentials",
       channelEci: client_id,
       rootPicoId: stored.rootPicoId,
+      scope,
+      resource,
       expiresAt,
       createdAt: new Date().toISOString(),
     };
@@ -233,6 +263,9 @@ export class OAuthService {
       access_token: token,
       token_type: "Bearer",
     };
+    if (scope) {
+      response.scope = scope;
+    }
     if (tokenTtlMs !== null) {
       response.expires_in = Math.floor(tokenTtlMs / 1000);
     }
@@ -286,7 +319,7 @@ export class OAuthService {
     if ((record.grant || "client_credentials") !== "authorization_code") {
       return null;
     }
-    if (!record.rootPicoId) {
+    if (!record.rootPicoId || !this.acceptsSkyResource(record.resource)) {
       return null;
     }
     return { rootPicoId: record.rootPicoId, scope: record.scope };
@@ -308,11 +341,38 @@ export class OAuthService {
       await this.deps.db.del([OAUTH_TOKEN_PREFIX, trimmed]);
       return false;
     }
-    const grant = record.grant || "client_credentials";
-    if (grant === "authorization_code") {
-      return isChannelUnderRoot(this.deps.pf, channelEci, record.rootPicoId);
+    if (!this.acceptsSkyResource(record.resource)) {
+      return false;
     }
-    return record.channelEci === channelEci;
+    return this.grantAllowsChannel(record, channelEci);
+  }
+
+  /** Channel MCP audience only. A Sky token, or a token for another ECI, is rejected. */
+  async validateMcpBearerToken(
+    token: string,
+    channelEci: string
+  ): Promise<boolean> {
+    return (await this.resolveMcpChannelToken(token, channelEci)) !== null;
+  }
+
+  /**
+   * A live token whose resource is exactly this channel's MCP URL.
+   * Scope is not checked here; the route answers 403 when a call needs a scope
+   * the token does not have.
+   */
+  async resolveMcpChannelToken(
+    token: string,
+    channelEci: string
+  ): Promise<{ scope: string; rootPicoId: string } | null> {
+    return this.resolveMcpToken(token, channelEci, "channel");
+  }
+
+  /** Authorization-code token whose resource is exactly this mesh MCP URL. */
+  async resolveMcpMeshToken(
+    token: string,
+    channelEci: string
+  ): Promise<{ scope: string; rootPicoId: string } | null> {
+    return this.resolveMcpToken(token, channelEci, "mesh");
   }
 
   listApps(rootPicoId: string): Promise<acg.OAuthAppSummary[]> {
@@ -334,15 +394,34 @@ export class OAuthService {
     return acg.revokeApp(this.acgContext(), rootPicoId, clientId);
   }
 
-  getAppForAuthorize(params: acg.AuthorizeParams): Promise<acg.StoredOAuthApp> {
-    return acg.getAppForAuthorize(this.acgContext(), params);
+  async getAppForAuthorize(
+    params: acg.AuthorizeParams
+  ): Promise<acg.ResolvedAuthorizeClient> {
+    const resolved = await acg.getAppForAuthorize(this.acgContext(), params);
+    if (!resolved.cimd && params.resource !== undefined) {
+      params.resource = this.bindAcgResource(params.resource, resolved.app.rootPicoId);
+    }
+    return resolved;
+  }
+
+  meshOAuthEnabled(rootPicoId: string): boolean {
+    return rootHasOAuthMeshRuleset(this.deps.pf, rootPicoId);
+  }
+
+  /** Canonical resource for the consent form, once the mesh is known. */
+  bindAuthorizeResource(resource: string | undefined, rootPicoId: string): string | undefined {
+    return this.bindAcgResource(resource, rootPicoId);
   }
 
   approveAuthorization(
     session: { accountId: string; rootPicoId: string },
     params: acg.ApproveParams
   ): Promise<string> {
-    return acg.approveAuthorization(this.acgContext(), session, params);
+    const resource = this.bindAcgResource(params.resource, session.rootPicoId);
+    return acg.approveAuthorization(this.acgContext(), session, {
+      ...params,
+      resource,
+    });
   }
 
   authorizationCodeGrant(input: {
@@ -352,8 +431,12 @@ export class OAuthService {
     client_id?: string;
     client_secret?: string;
     code_verifier?: string;
+    resource?: string;
   }): Promise<OAuthTokenResponse> {
-    return acg.authorizationCodeGrant(this.acgContext(), input);
+    return acg.authorizationCodeGrant(this.acgContext(), {
+      ...input,
+      resource: this.presentedResource(input.resource),
+    });
   }
 
   refreshTokenGrant(input: {
@@ -361,8 +444,12 @@ export class OAuthService {
     refresh_token?: string;
     client_id?: string;
     client_secret?: string;
+    resource?: string;
   }): Promise<OAuthTokenResponse> {
-    return acg.refreshTokenGrant(this.acgContext(), input);
+    return acg.refreshTokenGrant(this.acgContext(), {
+      ...input,
+      resource: this.presentedResource(input.resource),
+    });
   }
 
   tokenGrant(body: Record<string, unknown>): Promise<OAuthTokenResponse> {
@@ -381,6 +468,7 @@ export class OAuthService {
       db: this.deps.db,
       pf: this.deps.pf,
       tokenTtlMs: this.tokenTtlMs,
+      loadClientMetadata: (url) => this.loadClientMetadata(url),
       putAccessToken: async (record) => {
         const tokenRecord: StoredOAuthToken = {
           token: record.token,
@@ -389,12 +477,156 @@ export class OAuthService {
           appId: record.appId,
           accountId: record.accountId,
           scope: record.scope,
+          resource: record.resource,
           expiresAt: record.expiresAt,
           createdAt: new Date().toISOString(),
         };
         await this.deps.db.put([OAUTH_TOKEN_PREFIX, record.token], tokenRecord);
       },
     };
+  }
+
+  private grantAllowsChannel(record: StoredOAuthToken, channelEci: string): boolean {
+    const grant = record.grant || "client_credentials";
+    if (grant === "authorization_code") {
+      return isChannelUnderRoot(this.deps.pf, channelEci, record.rootPicoId);
+    }
+    return record.channelEci === channelEci;
+  }
+
+  /** No resource is a legacy Sky token. A recorded resource must be this engine's /sky. */
+  private acceptsSkyResource(resource: string | undefined): boolean {
+    if (!resource) {
+      return true;
+    }
+    const base = this.baseUrl();
+    return !!base && resource === skyResourceUrl(base);
+  }
+
+  private baseUrl(): string | undefined {
+    const raw = this.deps.getBaseUrl?.();
+    const base = raw && raw.trim();
+    return base || undefined;
+  }
+
+  private requireBaseUrl(): string {
+    const base = this.baseUrl();
+    if (!base) {
+      throw new OAuthError("Engine base URL is not configured", "invalid_target", 400);
+    }
+    return base;
+  }
+
+  /** Canonical form of a presented resource, or undefined when the client omitted it. */
+  private presentedResource(resource: string | undefined): string | undefined {
+    const value = acg.readResource(resource);
+    if (!value) {
+      return undefined;
+    }
+    return this.canonicalResource(value);
+  }
+
+  private canonicalResource(resource: string): string {
+    const base = this.requireBaseUrl();
+    return canonicalResourceUrl(base, classifyResource(base, resource));
+  }
+
+  /**
+   * A channel MCP client that omits scope receives query and event access.
+   * A named scope must be one of the advertised MCP scopes. Sky tokens do
+   * not gain MCP scopes.
+   */
+  private clientCredentialsScope(
+    resource: string | undefined,
+    requested: string | undefined
+  ): string | undefined {
+    const base = this.baseUrl();
+    let mcp = false;
+    let channel = false;
+    if (resource && base) {
+      const target = classifyResource(base, resource);
+      if (target.kind === "mcp") {
+        mcp = true;
+        channel = target.surface === "channel";
+      }
+    }
+    const asked = requested !== undefined ? String(requested).trim() : "";
+    if (asked) {
+      return mcp ? assertMcpScopes(asked) : asked.split(/\s+/).filter(Boolean).join(" ") || undefined;
+    }
+    if (channel) {
+      return MCP_CHANNEL_SCOPE;
+    }
+    return undefined;
+  }
+
+  private bindClientCredentialsResource(
+    resource: string | undefined,
+    clientId: string
+  ): string | undefined {
+    if (!resource) {
+      return undefined;
+    }
+    const base = this.requireBaseUrl();
+    const target = classifyResource(base, resource);
+    if (target.kind === "mcp") {
+      if (target.surface !== "channel" || target.eci !== clientId) {
+        throw new OAuthError("Invalid resource", "invalid_target", 400);
+      }
+    }
+    return canonicalResourceUrl(base, target);
+  }
+
+  private bindAcgResource(
+    resource: string | undefined,
+    rootPicoId: string
+  ): string | undefined {
+    if (!resource) {
+      return undefined;
+    }
+    const base = this.requireBaseUrl();
+    const target = classifyResource(base, resource);
+    if (target.kind === "mcp") {
+      try {
+        this.lookupChannelReadOnly(target.eci);
+      } catch (_e) {
+        throw new OAuthError("Invalid resource", "invalid_target", 400);
+      }
+      if (!isChannelUnderRoot(this.deps.pf, target.eci, rootPicoId)) {
+        throw new OAuthError("Invalid resource", "invalid_target", 400);
+      }
+    }
+    return canonicalResourceUrl(base, target);
+  }
+
+  private async resolveMcpToken(
+    token: string,
+    channelEci: string,
+    surface: "channel" | "mesh"
+  ): Promise<{ scope: string; rootPicoId: string } | null> {
+    const trimmed = (token || "").trim();
+    if (!trimmed || !channelEci) {
+      return null;
+    }
+    const record = await this.getTokenRecord(trimmed);
+    if (!record || !record.resource || !record.rootPicoId) {
+      return null;
+    }
+    if (surface === "mesh" && (record.grant || "client_credentials") !== "authorization_code") {
+      return null;
+    }
+    if (record.expiresAt !== 0 && record.expiresAt < Date.now()) {
+      await this.deps.db.del([OAUTH_TOKEN_PREFIX, trimmed]);
+      return null;
+    }
+    const base = this.baseUrl();
+    if (!base || record.resource !== mcpResourceUrl(base, channelEci, surface)) {
+      return null;
+    }
+    if (!this.grantAllowsChannel(record, channelEci)) {
+      return null;
+    }
+    return { scope: record.scope || "", rootPicoId: record.rootPicoId };
   }
 
   private async getTokenRecord(token: string): Promise<StoredOAuthToken | null> {

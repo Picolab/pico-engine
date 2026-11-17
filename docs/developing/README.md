@@ -11,6 +11,8 @@ If you're new, start with the [Programming lessons](/lessons/), which build a wo
 3. [Tips](/developing/tips): engine setup, hosting and flushing rulesets, `krl-check`, and short technique tips (data, HTTP, picos working together).
 4. [Event and Query URLs with Postman](/developing/postman): building Sky event and query requests in Postman (or `curl`).
 5. [KRL misconceptions and common errors](/developing/misconceptions): where habits from other languages mislead, and the typos that are hard to see.
+6. [Webhook signatures](/developing/webhook-signatures): check a Square-style signature over the raw body.
+7. [AI tools over MCP](/developing/mcp-ai-tools): connect Claude, or another remote MCP client, to a channel or a mesh.
 
 ## Elsewhere in the docs
 

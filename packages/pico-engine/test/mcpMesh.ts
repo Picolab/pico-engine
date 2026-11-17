@@ -2,16 +2,18 @@
  * Mesh MCP: tool catalog matches channelSchema; HTTP auth surface.
  */
 
+import * as crypto from "crypto";
 import test from "ava";
 import fetch from "cross-fetch";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { OAUTH_MESH_RULESET_RID } from "../src/oauth/meshOAuth";
 import { WebAuthnAdapter } from "../src/auth/webauthn";
 import { startIsolatedEngine } from "./helpers/isolatedEngine";
 import { mcpToolJson } from "./helpers/mcpToolResult";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { meshToolCatalog, getChannelSchema, queryToolName } = require("../mcp/meshTools.js") as {
+const { meshToolCatalog, getChannelSchema, queryToolName, eventToolName } = require("../mcp/meshTools.js") as {
   meshToolCatalog: (schema: {
     events?: { domain: string; name: string }[];
     queries?: { rid: string; name: string }[];
@@ -21,6 +23,7 @@ const { meshToolCatalog, getChannelSchema, queryToolName } = require("../mcp/mes
     queries: { rid: string; name: string }[];
   };
   queryToolName: (rid: string, fn: string) => string;
+  eventToolName: (domain: string, name: string) => string;
 };
 
 function fakeAuthenticator(): WebAuthnAdapter {
@@ -64,7 +67,9 @@ async function bootstrapAccount(pe: Awaited<ReturnType<typeof startIsolatedEngin
 
 async function createWebhookChannel(
   pe: Awaited<ReturnType<typeof startIsolatedEngine>>,
-  rootUiEci: string
+  rootUiEci: string,
+  exposeMcp: boolean | "channel" | "mesh" | "both" = false,
+  eventAllow: { domain: string; name: string } = { domain: "hook", name: "ping" }
 ): Promise<string> {
   const before = await pe.pf.query({
     eci: rootUiEci,
@@ -81,11 +86,24 @@ async function createWebhookChannel(
       data: {
         attrs: {
           tags: ["oauth-webhook", "mcp-test"],
-          eventPolicy: { allow: [{ domain: "hook", name: "ping" }], deny: [] },
+          eventPolicy: { allow: [eventAllow], deny: [] },
           queryPolicy: {
             allow: [{ rid: "io.picolabs.wrangler", name: "name" }],
             deny: [],
           },
+          ...(exposeMcp
+            ? {
+                mcpPolicy: {
+                  allow: (exposeMcp === true || exposeMcp === "channel"
+                    ? ["channel"]
+                    : exposeMcp === "mesh"
+                      ? ["mesh"]
+                      : ["channel", "mesh"]
+                  ).map((surface) => ({ surface })),
+                  deny: [],
+                },
+              }
+            : {}),
         },
       },
       time: 0,
@@ -152,11 +170,12 @@ test.serial(
   async (t) => {
     const pe = await startIsolatedEngine({ webauthn: fakeAuthenticator() });
     const acct = await bootstrapAccount(pe);
-    const hookEci = await createWebhookChannel(pe, acct.uiECI);
+    const hookEci = await createWebhookChannel(pe, acct.uiECI, true);
     const creds = await pe.oauth.createChannelSecret(hookEci);
     const token = await pe.oauth.clientCredentialsGrant({
       client_id: creds.client_id,
       client_secret: creds.client_secret,
+      resource: `${pe.base_url}/mcp/${encodeURIComponent(hookEci)}`,
     });
 
     const expected = meshToolCatalog(getChannelSchema(pe.core, hookEci));
@@ -224,6 +243,42 @@ test("mesh MCP HTTP requires bearer token", async (t) => {
   await pe.shutdown();
 });
 
+test("mesh MCP rejects a channel that is not exposed", async (t) => {
+  const pe = await startIsolatedEngine({ webauthn: fakeAuthenticator() });
+  const acct = await bootstrapAccount(pe);
+  const hookEci = await createWebhookChannel(pe, acct.uiECI);
+  const creds = await pe.oauth.createChannelSecret(hookEci);
+  const token = await pe.oauth.clientCredentialsGrant({
+    client_id: creds.client_id,
+    client_secret: creds.client_secret,
+    resource: `${pe.base_url}/mcp/${encodeURIComponent(hookEci)}`,
+  });
+  const channel = pe.pf.lookupChannel(hookEci).toReadOnly();
+  t.deepEqual(channel.mcpPolicy, { allow: [], deny: [] });
+
+  const res = await fetch(`${pe.base_url}/mcp/${encodeURIComponent(hookEci)}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token.access_token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test", version: "0" },
+      },
+    }),
+  });
+  t.is(res.status, 403);
+
+  await pe.shutdown();
+});
+
 test("mesh MCP tool call outside channel policy returns policy error", async (t) => {
   const pe = await startIsolatedEngine({ webauthn: fakeAuthenticator() });
   const acct = await bootstrapAccount(pe);
@@ -248,6 +303,193 @@ test("mesh MCP tool call outside channel policy returns policy error", async (t)
   const body = await denied.json();
   t.not(denied.status, 500);
   t.truthy(body.error);
+
+  await pe.shutdown();
+});
+
+const SUBTREE_VERIFIER = "subtree-pkce-verifier-value";
+const SUBTREE_CHALLENGE = crypto.createHash("sha256").update(SUBTREE_VERIFIER).digest("base64url");
+
+function initializeBody() {
+  return {
+    jsonrpc: "2.0",
+    id: 1,
+    method: "initialize",
+    params: {
+      protocolVersion: "2025-03-26",
+      capabilities: {},
+      clientInfo: { name: "test", version: "0" },
+    },
+  };
+}
+
+test("channel MCP refuses an event when the token has only mesh:read", async (t) => {
+  const pe = await startIsolatedEngine({ webauthn: fakeAuthenticator() });
+  const acct = await bootstrapAccount(pe);
+  const hookEci = await createWebhookChannel(
+    pe,
+    acct.uiECI,
+    true,
+    { domain: "wrangler", name: "new_channel_request" }
+  );
+  const creds = await pe.oauth.createChannelSecret(hookEci);
+  const token = await pe.oauth.clientCredentialsGrant({
+    client_id: creds.client_id,
+    client_secret: creds.client_secret,
+    resource: `${pe.base_url}/mcp/${encodeURIComponent(hookEci)}`,
+    scope: "mesh:read",
+  });
+  t.is(token.scope, "mesh:read");
+  const eventName = eventToolName("wrangler", "new_channel_request");
+  t.true(
+    meshToolCatalog(getChannelSchema(pe.core, hookEci)).some(
+      (tool) => tool.kind === "event" && tool.name === eventName
+    )
+  );
+
+  const init = await fetch(`${pe.base_url}/mcp/${encodeURIComponent(hookEci)}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token.access_token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify(initializeBody()),
+  });
+  t.is(init.status, 200);
+
+  const eventCall = await fetch(`${pe.base_url}/mcp/${encodeURIComponent(hookEci)}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token.access_token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+      "Mcp-Session-Id": init.headers.get("mcp-session-id") || "",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: { name: eventName, arguments: {} },
+    }),
+  });
+  t.is(eventCall.status, 403);
+  t.true((eventCall.headers.get("www-authenticate") || "").includes('error="insufficient_scope"'));
+  t.true((eventCall.headers.get("www-authenticate") || "").includes("mesh:act"));
+  const body = await eventCall.json();
+  t.is(body.error, "insufficient_scope");
+
+  await pe.shutdown();
+});
+
+test.serial("whole-mesh MCP lists the subtree and only mesh-exposed channels", async (t) => {
+  const pe = await startIsolatedEngine({ webauthn: fakeAuthenticator() });
+  const acct = await bootstrapAccount(pe);
+  pe.pf.rootPicos()[0].rulesets[OAUTH_MESH_RULESET_RID] = { config: {}, instance: null };
+  const root = pe.pf.rootPicos()[0];
+  const meshEci = await createWebhookChannel(pe, acct.uiECI, "mesh");
+  const closedEci = await createWebhookChannel(pe, acct.uiECI, "channel");
+  const redirect_uri = "http://127.0.0.1:9999/callback";
+  const app = await pe.oauth.registerApp(root.id, {
+    name: "Mesh agent",
+    redirect_uris: [redirect_uri],
+    public_client: true,
+  });
+  const resource = `${pe.base_url}/mcp/mesh/${encodeURIComponent(acct.uiECI)}`;
+  const redirect = await pe.oauth.approveAuthorization(
+    { accountId: acct.account.accountId, rootPicoId: root.id },
+    {
+      client_id: app.client_id,
+      redirect_uri,
+      code_challenge: SUBTREE_CHALLENGE,
+      code_challenge_method: "S256",
+      scope: "mesh:read",
+      resource,
+      approved: true,
+    }
+  );
+  const code = new URL(redirect).searchParams.get("code");
+  const token = await pe.oauth.authorizationCodeGrant({
+    grant_type: "authorization_code",
+    code: code!,
+    redirect_uri,
+    client_id: app.client_id,
+    code_verifier: SUBTREE_VERIFIER,
+    resource,
+  });
+
+  const channelUrl = `${pe.base_url}/mcp/${encodeURIComponent(acct.uiECI)}`;
+  const onChannel = await fetch(channelUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token.access_token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify(initializeBody()),
+  });
+  t.is(onChannel.status, 401);
+
+  const transport = new StreamableHTTPClientTransport(new URL(resource), {
+    requestInit: { headers: { Authorization: `Bearer ${token.access_token}` } },
+  });
+  const client = new Client({ name: "subtree-test", version: "0" });
+  try {
+    await client.connect(transport);
+    const tree = mcpToolJson<{
+      id: string;
+      rulesets: string[];
+      children: unknown[];
+    }>(await client.callTool({ name: "pico_tree", arguments: {} }));
+    t.is(tree.id, root.id);
+    t.true(tree.rulesets.includes("io.picolabs.wrangler"));
+
+    const channels = mcpToolJson<Array<{ id: string }>>(
+      await client.callTool({ name: "pico_channels", arguments: { pico: root.id } })
+    );
+    const ids = channels.map((channel) => channel.id);
+    t.true(ids.includes(meshEci));
+    t.false(ids.includes(closedEci));
+
+    const name = mcpToolJson<string>(
+      await client.callTool({
+        name: "query",
+        arguments: { eci: meshEci, rid: "io.picolabs.wrangler", name: "name", args: {} },
+      })
+    );
+    t.is(typeof name, "string");
+
+    const hidden = mcpToolJson<{ error: string }>(
+      await client.callTool({
+        name: "query",
+        arguments: { eci: closedEci, rid: "io.picolabs.wrangler", name: "name", args: {} },
+      })
+    );
+    t.true(hidden.error.includes("not exposed"));
+  } finally {
+    await client.close();
+  }
+
+  const raised = await fetch(resource, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token.access_token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 9,
+      method: "tools/call",
+      params: {
+        name: "raise_event",
+        arguments: { eci: meshEci, domain: "hook", type: "ping", attrs: {} },
+      },
+    }),
+  });
+  t.is(raised.status, 403);
+  t.true((raised.headers.get("www-authenticate") || "").includes('error="insufficient_scope"'));
+  t.true((raised.headers.get("www-authenticate") || "").includes("mesh:act"));
 
   await pe.shutdown();
 });

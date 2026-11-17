@@ -69,6 +69,14 @@ name = event:attr("name").defaultsTo("John Doe") // name will be bound to "John 
 name = event:attr("name") || ent:name // name will be bound to the value of ent:name if the event attribute is the empty string or null or any other false value
 ```
 
+## Request headers
+
+An event that arrived over HTTP has `_headers` in its attributes, and a query has `_headers` in its arguments. That map is the request headers with the credential headers removed: `Authorization`, `Proxy-Authorization`, `Cookie`, and `X-Pico-Internal`. A rule that stores `event:attrs`, forwards them, or returns them does not receive those values.
+
+To read one application cookie by name, use [`http:cookie(name)`](/krl/libraries/http). It returns that cookie's value, or `null` when the cookie is absent. The engine's session and ceremony cookies (`pico-session` and `pico-ceremony`, including the port-scoped names) are never returned.
+
+`event:raw_body()` is the exact request body, and only on a channel created with `rawBody: true`. It is not an attribute. See [Webhook signatures](/developing/webhook-signatures).
+
 ---
 
 <small>Ported from the [Pico Labs wiki](https://picolabs.atlassian.net/wiki/spaces/docs/pages/1189834) (last edited there 2022-01-10).</small>

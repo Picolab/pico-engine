@@ -1,6 +1,6 @@
 # meta
 
-The `meta` library provides information about the running ruleset. The following are available (notice that these are values, *not* functions):
+The `meta` library provides information about the running ruleset. These are values, except `meta:callingRID()`, which is a function:
 
 - **`meta:eci`** - the event channel identifier on which the current event was raised
 - **`meta:host`** - the public DNS name of the machine running the engine, including port number. Does not include the trailing "/". ex. http://localhost:8080 You may configure this value when starting your pico engine. See the [developer tips](https://picolabs.atlassian.net/wiki/spaces/docs/pages/31544297/Developer+Tips+for+Pico+Engine) page to see why and how.
@@ -8,6 +8,12 @@ The `meta` library provides information about the running ruleset. The following
 - **`meta:inQuery`** - Boolean value `true` if the engine is evaluating a query for this pico, `false` otherwise
 - **`meta:picoId`** - the ID of the currently running pico
 - **`meta:rid -`** the ruleset ID of the currently running ruleset
+- **`meta:callingRID()`** - the ruleset that called the function now running. Inside a provided function that is the caller's ruleset id, which is how `pds:config_value` reads the caller's own settings. In a rule of this ruleset, it is this ruleset's id
+
+```krl
+use module io.picolabs.pds alias pds
+key = pds:config_value("apiKey")  // meta:callingRID() inside PDS is this ruleset
+```
 - **`meta:ruleName`** - the name of the rule currently being evaluated
 - **`meta:rulesetURI`** - the URL from which the currently running ruleset was registered/installed
 - **`meta:txnId`** - the transaction ID for the current evaluation. This is mostly useful for debugging or as a correlation identifier
@@ -30,7 +36,6 @@ The `meta` library provides information about the running ruleset. The following
 > Not Supported
 > The following are *not yet available*:
 
-- **`meta:callingRID()`** - returns the RID of the calling ruleset if running in a module, or the current ruleset ID otherwise.
 - **`meta:callingVersion()`** - returns the version of the calling ruleset if running in a module, or the current ruleset version otherwise.
 - **`meta:errorCount()`** - returns the number of errors for current rule execution. Reset to 0 for each new rule execution.
 - **`meta:inModule()`** - returns a Boolean value indicating whether the current code is running in a module.

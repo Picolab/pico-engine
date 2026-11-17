@@ -178,3 +178,17 @@ test("query = cleanQuery(query)", function (t) {
     );
   })("foo", "bar");
 });
+
+test("cleanQuery keeps enumerable symbols", (t) => {
+  const kept = Symbol("kept");
+  const orig: any = {
+    eci: "eci123",
+    rid: "foo",
+    name: "bar",
+    args: { a: 1 },
+  };
+  Object.defineProperty(orig, kept, { value: "yes", enumerable: true });
+  const query = cleanQuery(orig);
+  t.is((query as any)[kept], "yes");
+  t.deepEqual(query.args, { a: 1 });
+});
