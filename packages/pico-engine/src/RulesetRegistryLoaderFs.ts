@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 import fetch from "cross-fetch";
 import * as fs from "fs";
 import { ClassicLevel } from "classic-level";
@@ -52,6 +53,11 @@ export async function createRulesetRegistryLoaderFs(
   log?: KrlLogger
 ): Promise<RulesetRegistryLoaderFsHandle> {
   const rulesetDir = path.resolve(engineHomeDir, "rulesets");
+  // One compile per cache file. Every pico that needs the same ruleset waits.
+  const compiling = new Map<
+    string,
+    Promise<{ ruleset: Ruleset; compiler: DbUrlRuleset["compiler"] }>
+  >();
 
   const db = await openClassicLevelWithRecovery<PicoDbKey, any>(
     path.resolve(engineHomeDir, "rulesets-db"),
@@ -62,7 +68,7 @@ export async function createRulesetRegistryLoaderFs(
     log
   );
 
-  async function compileAndLoad(
+  function compileAndLoad(
     url: string,
     krl: string,
     hash: string
@@ -77,27 +83,31 @@ export async function createRulesetRegistryLoaderFs(
       hash.substr(2, 2),
       hash + ".js"
     );
-
-    let compileWarnings: any[] = [];
-
-    let needCompile = !(await fsExist(jsFile));
-    if (!needCompile) {
-      const cached = requireRulesetModule(jsFile);
-      if (cached) {
-        const compileGeneration = rulesetCompileGeneration();
-        return {
-          ruleset: cached,
-          compiler: {
-            version: krlCompilerVersion,
-            warnings: compileWarnings,
-            compileGeneration,
-          },
-        };
-      }
-      needCompile = true;
+    const inflight = compiling.get(jsFile);
+    if (inflight) {
+      return inflight;
     }
+    const pending = compileOne(url, krl, jsFile);
+    compiling.set(jsFile, pending);
+    pending.finally(() => {
+      if (compiling.get(jsFile) === pending) {
+        compiling.delete(jsFile);
+      }
+    });
+    return pending;
+  }
 
-    if (needCompile) {
+  async function compileOne(
+    url: string,
+    krl: string,
+    jsFile: string
+  ): Promise<{
+    ruleset: Ruleset;
+    compiler: DbUrlRuleset["compiler"];
+  }> {
+    let compileWarnings: any[] = [];
+    let cached = (await fsExist(jsFile)) ? requireRulesetModule(jsFile) : null;
+    if (!cached) {
       const out = krlCompiler(krl, {
         parser_options: {
           filename: getUrlFilename(url),
@@ -108,28 +118,20 @@ export async function createRulesetRegistryLoaderFs(
         throw new Error("Compile failed, missing rid");
       }
       compileWarnings = out.warnings;
-      await makeDir(path.dirname(jsFile));
-      await new Promise((resolve, reject) => {
-        fs.writeFile(jsFile, out.code, { encoding: "utf8" }, (err) =>
-          err ? reject(err) : resolve(undefined)
-        );
-      });
+      await writeCompiledRuleset(jsFile, out.code);
+      cached = requireRulesetModule(jsFile);
     }
-
-    const ruleset = requireRulesetModule(jsFile);
-    if (!ruleset) {
+    if (!cached) {
       throw new Error(
         `Compiled ruleset is missing init (corrupt cache file). Delete ${jsFile} and flush again: ${url}`
       );
     }
-
-    const compileGeneration = rulesetCompileGeneration();
     return {
-      ruleset,
+      ruleset: cached,
       compiler: {
         version: krlCompilerVersion,
         warnings: compileWarnings,
-        compileGeneration,
+        compileGeneration: rulesetCompileGeneration(),
       },
     };
   }
@@ -225,6 +227,18 @@ function requireRulesetModule(jsFile: string): Ruleset | null {
     return null;
   }
   return ruleset;
+}
+
+async function writeCompiledRuleset(jsFile: string, code: string): Promise<void> {
+  await makeDir(path.dirname(jsFile));
+  const tmpFile = `${jsFile}.${crypto.randomBytes(8).toString("hex")}.tmp`;
+  try {
+    await fs.promises.writeFile(tmpFile, code, "utf8");
+    await fs.promises.rename(tmpFile, jsFile);
+  } catch (err) {
+    await fs.promises.unlink(tmpFile).catch(() => undefined);
+    throw err;
+  }
 }
 
 function fsExist(filePath: string): Promise<boolean> {

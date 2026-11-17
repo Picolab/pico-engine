@@ -1,5 +1,10 @@
-# Unreleased
+# 1.10.1 - November 17, 2026
 
+* **Fix** — startup compiles each ruleset cache file once. The JavaScript is written to a temporary file in the same directory and renamed into place. Every other pico waits for that compile instead of writing the same path. A cold start on a new compiler version no longer deletes a half-written module while another pico is loading it.
+
+# 1.10.0 - November 17, 2026
+
+* **Secure remote access for agents.** See [1.10.0 release notes](docs/release/1.10.0.md).
 * **Try It!** — the dev MCP server (`pico-engine mcp --stdio`) runs the demos: `list_try_it_demos`, `run_try_it_demo` (creates the child, installs the bootstrap, waits for ready, returns the links), and `try_it_status`. It serves the cookbook and Developing with Picos pages as `pico://docs/...` resources, bundled into the package at pack time. The Try It! tab warns that the demos may not load data on a mesh with OAuth turned on.
 * **Try It!** — the bootstrap rulesets choose between installing the views runtime and going straight to the app with one condition in the action block (`if not has_xmlui then noop()`) and `fired` / `else` / `finally` postludes, instead of `if` guards on each `raise`. Two picos does the same for its `both_ready` raise.
 * **Fix** — the root pico now gets its `pds` and `wellknown_rx` channels. At engine start, a developer UI rule queried the root's (nonexistent) parent, and the error stopped the startup rules of `io.picolabs.subscription` and `io.picolabs.pds` from running. `io.picolabs.pds` also never found an existing `pds` channel (it looked for a `name` channels don't have), and now checks for it at engine start too.
