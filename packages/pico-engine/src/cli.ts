@@ -125,7 +125,7 @@ startEngine(env)
   .then((engine) => {
     installGracefulShutdown(engine);
   })
-  .catch((err: NodeJS.ErrnoException) => {
+  .catch((err: NodeJS.ErrnoException & { port?: number }) => {
     if (err && err.code === "EADDRINUSE") {
       console.error(`Port ${err.port} is already in use.`);
       process.exit(1);
