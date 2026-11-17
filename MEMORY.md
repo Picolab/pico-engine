@@ -114,7 +114,7 @@ deferred.
 | **npm** | 1.5.0 published; **1.5.1** ready to publish | Use `npm run publish` from repo root (`lerna publish from-package --yes`). Do **not** publish from repo root or `pico-engine-ui` (both `"private": true`). `pico-framework` publishes with the other packages; do not publish it from its own directory first. |
 | **GitHub tags** | `v1.5.0`, `v1.5.1` local | **`git push` does not push tags.** Run `git push origin v1.5.0` (and `v1.5.1`) separately. GitHub **Releases** are created in the UI (or `gh release create`) *after* the tag is on origin. |
 | **UI version string** | From `packages/pico-engine/package.json` | Shown via `/api/ui-context` → AuthGate + Picos page footer. Bumped to **1.5.1** in commit `d135b1d7`. |
-| **pico-framework** | **In this repo** at `packages/pico-framework`, versioned with the engine (1.9.5). npm through **0.8.2** was the separate repo (policy ceiling, global denies) | `krl-stdlib`, `pico-engine-core`, and `pico-engine` depend on `^1.9.5`. One `lerna publish` ships it. No npm dependents outside those three. |
+| **pico-framework** | **In this repo** at `packages/pico-framework`, versioned with the engine (1.10.0). npm **1.9.5** is the first monorepo publish; through **0.8.2** was the separate repo (policy ceiling, global denies) | `krl-stdlib`, `pico-engine-core`, and `pico-engine` depend on `^1.10.0`. One `lerna publish` ships it. No npm dependents outside those three. |
 
 **Tag ↔ commit mapping (local):**
 
