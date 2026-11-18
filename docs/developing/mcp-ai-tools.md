@@ -1,6 +1,6 @@
 # AI tools over MCP
 
-An MCP client such as Claude can call a pico the same way it calls any remote MCP server: add a URL, sign in with a passkey, approve, and use the tools. The engine also has a separate local MCP server for coding agents on the same machine. That one is `pico-engine mcp --stdio` and does not use this sign-in. This page is the remote connection.
+An MCP client such as Claude can call a pico the same way it calls any remote MCP server: add a URL and run an OAuth flow. A person signs in with a passkey and approves that client. The client receives a token and then uses the tools. The engine also has a separate local MCP server for coding agents on the same machine. That one is `pico-engine mcp --stdio` and does not use this flow. This page is the remote connection.
 
 ## Which URL
 
@@ -23,7 +23,7 @@ Install `io.picolabs.oauth` on the **root** pico before anyone signs in. The Eng
 
 That ruleset is the switch for issuing sign-in tokens. A connector for one channel and a connector for the whole mesh both require it. The channel URL still limits the token to that channel. Installing the ruleset also makes external `/sky/*` calls on the mesh require a bearer token. Channels tagged `mesh-oauth-exempt`, or `didcomm` and `ingress`, stay open. See [OAuth](/wrangler/oauth).
 
-A channel tagged `oauth-webhook` can obtain a client-credentials token for its own MCP URL without this ruleset. That is a machine credential, not the passkey sign-in below.
+A channel tagged `oauth-webhook` can obtain a client-credentials token for its own MCP URL without this ruleset. That is a machine credential, not the authorization-code flow below, where a person signs in with a passkey and approves the client.
 
 ## Claude cannot use localhost
 
@@ -81,7 +81,7 @@ On a Team or Enterprise plan an owner adds it under **Organization settings** â†
 
 If Claude says automatic client registration is not supported, or the connector page says the connection stopped working and never opens the passkey page, remove the connector and add it again with **Use Claude's published identity**. **Reconnect** repeats the registration attempt Claude already saved.
 
-The passkey page is the tunnel host, not `localhost`. Sign in, then approve. The approval screen names Claude, its host, the mesh, and the scopes. After that, turn the connector on from the **+** menu in a chat. Ask it to run a query (`mesh:read`) or raise an event (`mesh:act`).
+The client is in the OAuth flow. The page it opens is the tunnel host, not `localhost`. You sign in with the passkey, then approve the client. The approval screen names Claude, its host, the mesh, and the scopes. After that, turn the connector on from the **+** menu in a chat. Ask it to run a query (`mesh:read`) or raise an event (`mesh:act`).
 
 A public client's access token lasts one hour. Each refresh returns a new refresh token. Sending the previous refresh token again revokes that grant.
 

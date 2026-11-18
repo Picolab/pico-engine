@@ -436,14 +436,14 @@ The engine reads the address once, at startup. TLS isn't terminated by the engin
 
 ### Docker
 
-There's an official image, `picolabs/pico-engine`. Mount a volume for the data directory and set the same variables you'd set for the command line:
+The public image is on Amazon ECR Public: [`public.ecr.aws/f0m0d1a1/pico-engine`](https://gallery.ecr.aws/f0m0d1a1/pico-engine). `latest` is the current release, and version tags such as `1.10.1` name that same release. The image is Linux ARM64. Mount a volume for the data directory and set the same variables you'd set for the command line:
 
 ```sh
 docker run -p 3001:3000 \
   -v ~/images/pico-image:/var/pico-image \
   -e PICO_ENGINE_HOME=/var/pico-image \
   -e PICO_ENGINE_BASE_URL=http://localhost:3001 \
-  picolabs/pico-engine:<version>
+  public.ecr.aws/f0m0d1a1/pico-engine:latest
 ```
 
 You can run the image several times with different ports and volumes to get several independent engines. Don't share one volume between running containers. The package README covers Docker Compose and AWS Fargate with EFS.
@@ -1805,7 +1805,7 @@ ruleset com.example.square_webhook {
 
 # AI tools over MCP
 
-An MCP client such as Claude can call a pico the same way it calls any remote MCP server: add a URL, sign in with a passkey, approve, and use the tools. The engine also has a separate local MCP server for coding agents on the same machine. That one is `pico-engine mcp --stdio` and does not use this sign-in. This page is the remote connection.
+An MCP client such as Claude can call a pico the same way it calls any remote MCP server: add a URL and run an OAuth flow. A person signs in with a passkey and approves that client. The client receives a token and then uses the tools. The engine also has a separate local MCP server for coding agents on the same machine. That one is `pico-engine mcp --stdio` and does not use this flow. This page is the remote connection.
 
 ## Which URL
 
@@ -1828,7 +1828,7 @@ Install `io.picolabs.oauth` on the **root** pico before anyone signs in. The Eng
 
 That ruleset is the switch for issuing sign-in tokens. A connector for one channel and a connector for the whole mesh both require it. The channel URL still limits the token to that channel. Installing the ruleset also makes external `/sky/*` calls on the mesh require a bearer token. Channels tagged `mesh-oauth-exempt`, or `didcomm` and `ingress`, stay open. See [OAuth](/wrangler/oauth).
 
-A channel tagged `oauth-webhook` can obtain a client-credentials token for its own MCP URL without this ruleset. That is a machine credential, not the passkey sign-in below.
+A channel tagged `oauth-webhook` can obtain a client-credentials token for its own MCP URL without this ruleset. That is a machine credential, not the authorization-code flow below, where a person signs in with a passkey and approves the client.
 
 ## Claude cannot use localhost
 
@@ -1886,7 +1886,7 @@ On a Team or Enterprise plan an owner adds it under **Organization settings** â†
 
 If Claude says automatic client registration is not supported, or the connector page says the connection stopped working and never opens the passkey page, remove the connector and add it again with **Use Claude's published identity**. **Reconnect** repeats the registration attempt Claude already saved.
 
-The passkey page is the tunnel host, not `localhost`. Sign in, then approve. The approval screen names Claude, its host, the mesh, and the scopes. After that, turn the connector on from the **+** menu in a chat. Ask it to run a query (`mesh:read`) or raise an event (`mesh:act`).
+The client is in the OAuth flow. The page it opens is the tunnel host, not `localhost`. You sign in with the passkey, then approve the client. The approval screen names Claude, its host, the mesh, and the scopes. After that, turn the connector on from the **+** menu in a chat. Ask it to run a query (`mesh:read`) or raise an event (`mesh:act`).
 
 A public client's access token lasts one hour. Each refresh returns a new refresh token. Sending the previous refresh token again revokes that grant.
 
@@ -2337,6 +2337,7 @@ Mesh state lives under `home`:
 | `rulesets-db/` | Cached ruleset metadata (rebuildable) |
 | `rulesets/` | Compiled ruleset JS |
 
+- Public image: [`public.ecr.aws/f0m0d1a1/pico-engine`](https://gallery.ecr.aws/f0m0d1a1/pico-engine). `latest` is the current release. The image is Linux ARM64.
 - One writer per data directory (LevelDB).
 - **Fargate:** mount EFS at e.g. `/var/pico-image`, set `home` accordingly, `baseUrl` to public **HTTPS**, `logToStdout: true` in config. Set **`logMirror: false`** if you do not want the engine writing `pico-engine.log` on EFS (stdout â†’ CloudWatch only).
 - `allowLocalhostChannelBypass` defaults to **false**. Leave it false on public deployments. The dev MCP reads `internal-token` from the engine data directory (on Docker, the host path of the `home` volume).
@@ -2651,7 +2652,7 @@ Two grants reach a view. They are not the same scope.
 
 The channel secret stays in the developer UI. The page stores the access token, never the secret.
 
-**The mesh.** A registered OAuth app signs in with a passkey and receives an authorization-code token. That token is valid for channels under the root. Use it when the person should reach the mesh. The view shell does not run that flow.
+**The mesh.** A registered OAuth app runs the authorization-code flow. The person signs in with a passkey and approves the app, and the app receives a token. That token is valid for channels under the root. Use it when the person should reach the mesh. The view shell does not run that flow.
 
 ### Security
 

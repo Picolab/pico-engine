@@ -197,7 +197,7 @@ Two grants reach a view. They are not the same scope.
 
 The channel secret stays in the developer UI. The page stores the access token, never the secret.
 
-**The mesh.** A registered OAuth app signs in with a passkey and receives an authorization-code token. That token is valid for channels under the root. Use it when the person should reach the mesh. The view shell does not run that flow.
+**The mesh.** A registered OAuth app runs the authorization-code flow. The person signs in with a passkey and approves the app, and the app receives a token. That token is valid for channels under the root. Use it when the person should reach the mesh. The view shell does not run that flow.
 
 ### Security
 

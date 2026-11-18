@@ -136,6 +136,7 @@ Mesh state lives under `home`:
 | `rulesets-db/` | Cached ruleset metadata (rebuildable) |
 | `rulesets/` | Compiled ruleset JS |
 
+- Public image: [`public.ecr.aws/f0m0d1a1/pico-engine`](https://gallery.ecr.aws/f0m0d1a1/pico-engine). `latest` is the current release. The image is Linux ARM64.
 - One writer per data directory (LevelDB).
 - **Fargate:** mount EFS at e.g. `/var/pico-image`, set `home` accordingly, `baseUrl` to public **HTTPS**, `logToStdout: true` in config. Set **`logMirror: false`** if you do not want the engine writing `pico-engine.log` on EFS (stdout → CloudWatch only).
 - `allowLocalhostChannelBypass` defaults to **false**. Leave it false on public deployments. The dev MCP reads `internal-token` from the engine data directory (on Docker, the host path of the `home` volume).

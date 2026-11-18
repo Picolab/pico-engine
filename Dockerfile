@@ -1,5 +1,6 @@
 #
-# This Dockerfile creates a docker image for the pico engine with an external mount point for the image
+# This Dockerfile creates a docker image for the pico engine with an external mount point for the image.
+# The published image is public.ecr.aws/f0m0d1a1/pico-engine (latest is the current release).
 #
 # To build:
 #    docker build -t <username>/<container-name> https://github.com/picolab/pico-engine.git

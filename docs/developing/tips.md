@@ -77,14 +77,14 @@ The engine reads the address once, at startup. TLS isn't terminated by the engin
 
 ### Docker
 
-There's an official image, `picolabs/pico-engine`. Mount a volume for the data directory and set the same variables you'd set for the command line:
+The public image is on Amazon ECR Public: [`public.ecr.aws/f0m0d1a1/pico-engine`](https://gallery.ecr.aws/f0m0d1a1/pico-engine). `latest` is the current release, and version tags such as `1.10.1` name that same release. The image is Linux ARM64. Mount a volume for the data directory and set the same variables you'd set for the command line:
 
 ```sh
 docker run -p 3001:3000 \
   -v ~/images/pico-image:/var/pico-image \
   -e PICO_ENGINE_HOME=/var/pico-image \
   -e PICO_ENGINE_BASE_URL=http://localhost:3001 \
-  picolabs/pico-engine:<version>
+  public.ecr.aws/f0m0d1a1/pico-engine:latest
 ```
 
 You can run the image several times with different ports and volumes to get several independent engines. Don't share one volume between running containers. The package README covers Docker Compose and AWS Fargate with EFS.

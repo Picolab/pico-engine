@@ -8,7 +8,7 @@
 
 ## Theme
 
-Let a standard MCP client (Claude, or any client implementing the MCP authorization spec) connect to a pico mesh the way it connects to any remote MCP server: add a URL, sign in to the mesh with a passkey, approve, and work. And close the internal `/c/` routes to the internet first, because 1.10 invites remote clients in.
+Let a standard MCP client (Claude, or any client implementing the MCP authorization spec) connect to a pico mesh the way it connects to any remote MCP server: add a URL and run the OAuth flow. A person signs in with a passkey and approves the client. The client receives a token and then works. And close the internal `/c/` routes to the internet first, because 1.10 invites remote clients in.
 
 ```
 /c/ hardening  →  MCP authorization (discovery, CIMD, audience)  →  MCP exposure in channel policy  →  whole-mesh MCP endpoint
@@ -197,7 +197,7 @@ The only consumers are this repo's packages, so the boundary is worth keeping as
 | # | Check |
 |---|-------|
 | 1 | A request to `/c/{eci}/query/…` with `Host: localhost:3000` from a non-loopback address gets `401`; behind nginx on the same host, an unauthenticated `/c/` request gets `401`; the dev MCP over stdio still works using the internal token |
-| 2 | Adding `https://<engine>/mcp/{eci}` as a connector in Claude, with no client set up on the engine, leads to passkey sign-in and an approval screen naming the client, and then working tools |
+| 2 | Adding `https://<engine>/mcp/{eci}` as a connector in Claude, with no client set up on the engine, leads to the OAuth flow: the person signs in with a passkey, the approval screen names the client, and the client then has working tools |
 | 3 | An MCP OAuth compliance tester passes RFC 9728, RFC 8414, CIMD, S256, and RFC 8707 checks against the engine |
 | 4 | A token issued for `/mcp/{eci}` is rejected at `/sky/query/{eci}/…` and at `/mcp/{other-eci}`; a token without `mesh:act` can't raise events |
 | 5 | A channel without MCP exposure is refused at `/mcp/{eci}` and invisible at `/mcp/mesh/…`; a ceiling denying MCP on a pico overrides a channel allow |

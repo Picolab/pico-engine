@@ -144,6 +144,8 @@ For example, say you want to have your engine running with SSL on a custom domai
 
 ### Containers
 
+The public image is [`public.ecr.aws/f0m0d1a1/pico-engine`](https://gallery.ecr.aws/f0m0d1a1/pico-engine). `latest` is the current release. The image is Linux ARM64.
+
 The engine stores mesh state in **LevelDB** under `PICO_ENGINE_HOME`:
 
 | Path | Purpose |
@@ -162,7 +164,7 @@ The CLI handles **SIGTERM** and **SIGINT** by closing the HTTP server and both d
 ```yaml
 services:
   pico-engine:
-    image: picolabs/pico-engine:1.8.0
+    image: public.ecr.aws/f0m0d1a1/pico-engine:latest
     ports:
       - "3001:3000"
     environment:
