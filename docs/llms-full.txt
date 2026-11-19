@@ -130,19 +130,20 @@ Moving picos between engines ([pico-move.md](./pico-move.md)), pico-level schema
 
 # Developing with Picos
 
-Practical notes for people writing KRL and running picos on the pico engine: how a ruleset gets from your editor into a running pico, what the engine does when an event arrives, and the mistakes that cost the most time.
+How to think about a pico system, and the practical notes for writing KRL on this engine: how a ruleset gets from your editor into a running pico, what the engine does when an event arrives, and the mistakes that cost the most time.
 
-If you're new, start with the [Programming lessons](/lessons/), which build a working system step by step. Come back here when you want the "why did that happen?" and "how do I set things up?" answers.
+If you're new, read [Way of the Pico](/developing/way-of-the-pico) for the model, then the [Programming lessons](/lessons/), which build a working system step by step. Come back here when you want the "why did that happen?" and "how do I set things up?" answers.
 
 ## In this section
 
-1. [Programming Workflow](/developing/workflow): develop, build, deploy, test, and release a ruleset.
-2. [Event Loop Introduction](/developing/event-loop): the five phases a pico goes through for every event, and why rule order can surprise you.
-3. [Tips](/developing/tips): engine setup, hosting and flushing rulesets, `krl-check`, and short technique tips (data, HTTP, picos working together).
-4. [Event and Query URLs with Postman](/developing/postman): building Sky event and query requests in Postman (or `curl`).
-5. [KRL misconceptions and common errors](/developing/misconceptions): where habits from other languages mislead, and the typos that are hard to see.
-6. [Webhook signatures](/developing/webhook-signatures): check a Square-style signature over the raw body.
-7. [AI tools over MCP](/developing/mcp-ai-tools): connect Claude, or another remote MCP client, to a channel or a mesh.
+1. [Way of the Pico](/developing/way-of-the-pico): the programming model, and the habits that keep a pico system easy to change.
+2. [Programming Workflow](/developing/workflow): develop, build, deploy, test, and release a ruleset.
+3. [Event Loop Introduction](/developing/event-loop): the five phases a pico goes through for every event, and why rule order can surprise you.
+4. [Tips](/developing/tips): engine setup, hosting and flushing rulesets, `krl-check`, and short technique tips (data, HTTP, picos working together).
+5. [Event and Query URLs with Postman](/developing/postman): building Sky event and query requests in Postman (or `curl`).
+6. [KRL misconceptions and common errors](/developing/misconceptions): where habits from other languages mislead, and the typos that are hard to see.
+7. [Webhook signatures](/developing/webhook-signatures): check a Square-style signature over the raw body.
+8. [AI tools over MCP](/developing/mcp-ai-tools): connect Claude, or another remote MCP client, to a channel or a mesh.
 
 ## Elsewhere in the docs
 

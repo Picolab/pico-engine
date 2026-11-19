@@ -1,6 +1,7 @@
 - [Welcome](/)
 - [Persistent Compute Objects](/pico-overview)
 - [Developing with Picos](/developing/)
+  - [Way of the Pico](/developing/way-of-the-pico)
   - [Programming Workflow](/developing/workflow)
   - [Event Loop Introduction](/developing/event-loop)
   - [Tips](/developing/tips)
