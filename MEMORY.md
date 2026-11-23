@@ -114,7 +114,7 @@ deferred.
 | **npm** | 1.5.0 published; **1.5.1** ready to publish | Use `npm run publish` from repo root (`lerna publish from-package --yes`). Do **not** publish from repo root or `pico-engine-ui` (both `"private": true`). `pico-framework` publishes with the other packages; do not publish it from its own directory first. |
 | **GitHub tags** | `v1.5.0`, `v1.5.1` local | **`git push` does not push tags.** Run `git push origin v1.5.0` (and `v1.5.1`) separately. GitHub **Releases** are created in the UI (or `gh release create`) *after* the tag is on origin. |
 | **UI version string** | From `packages/pico-engine/package.json` | Shown via `/api/ui-context` → AuthGate + Picos page footer. Bumped to **1.5.1** in commit `d135b1d7`. |
-| **pico-framework** | **In this repo** at `packages/pico-framework`, versioned with the engine (1.10.1). npm **1.9.5** is the first monorepo publish; through **0.8.2** was the separate repo (policy ceiling, global denies) | `krl-stdlib`, `pico-engine-core`, and `pico-engine` depend on `^1.10.0`. One `lerna publish` ships it. No npm dependents outside those three. |
+| **pico-framework** | **In this repo** at `packages/pico-framework`, versioned with the engine (1.10.2). npm **1.9.5** is the first monorepo publish; through **0.8.2** was the separate repo (policy ceiling, global denies) | `krl-stdlib`, `pico-engine-core`, and `pico-engine` depend on `^1.10.0`. One `lerna publish` ships it. No npm dependents outside those three. |
 
 **Tag ↔ commit mapping (local):**
 
@@ -237,7 +237,7 @@ Weekly digest **2026-10-27 – 2026-11-03** (Picolab/pico-engine). Triage: produ
 
 | Priority | Item | Notes |
 |----------|------|--------|
-| **P2 — security** | **Zod array DoS** ([Dependabot #21](https://github.com/Picolab/pico-engine/security/dependabot/21), GHSA-mrhx-c7xc-m3w5) | Runtime **`zod` ^3** in `packages/pico-engine` — MCP mesh tool args via `mcp/schemaToZod.js`. Untrusted callers + unbounded `z.array()` → OOM. **Work:** add `.max(n)` on generated array shapes where input is not trusted; cap MCP/HTTP body size; plan **zod 3 → ≥4.6.6** when convenient. **Verify:** mesh MCP exposure on hosted engines (OAuth-scoped only vs open). |
+| **Fixed in 1.10.2** | **Zod array DoS** ([Dependabot #21](https://github.com/Picolab/pico-engine/security/dependabot/21), GHSA-mrhx-c7xc-m3w5) | `packages/pico-engine` depends on **`zod` ^4.6.7**. `mcp/schemaToZod.js` caps array attrs at 1000 (`.max()` is the first check, so 4.6.6+ rejects an oversized array before reading elements). `z.record()` uses the Zod 4 two-argument form. The channel-tags array in `devTools.js` has the same cap. URL-encoded bodies are still 512 MB (`server.ts`); that item is separate. |
 | **P3 — chore** | **Vite dev toolchain** ([#12–#20](https://github.com/Picolab/pico-engine/security/dependabot)) | **`pico-engine-ui`** devDependency only — not in Docker/production bundle after `vite build`. **Work:** bump **Vite 5 → patched 6.x** (≥6.4.4 per advisories) + `@vitejs/plugin-react-swc`; `npm run build` + UI smoke test. Dev-server issues need `--host` / network exposure; local `localhost` demo risk is low. |
 | **P3 — hygiene** | **Dependabot dismissals** | After Vite bump, dismiss or close dev-only **launch-editor** alerts (Windows/WSL/Vim “open in editor”) with rationale: dev dependency, macOS primary, dev server not exposed on production. |
 

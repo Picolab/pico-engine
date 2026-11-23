@@ -105,7 +105,7 @@ function registerSubtreeTools(server, core, rootPicoId) {
       eci: z.string(),
       rid: z.string(),
       name: z.string(),
-      args: z.record(z.any()).optional(),
+      args: z.record(z.string(), z.any()).optional(),
     },
     async ({ eci, rid, name, args }) => {
       const refused = refuseChannel(pf, eci, rootPicoId);
@@ -133,7 +133,7 @@ function registerSubtreeTools(server, core, rootPicoId) {
       eci: z.string(),
       domain: z.string(),
       type: z.string(),
-      attrs: z.record(z.any()).optional(),
+      attrs: z.record(z.string(), z.any()).optional(),
     },
     async ({ eci, domain, type, attrs }) => {
       const refused = refuseChannel(pf, eci, rootPicoId);

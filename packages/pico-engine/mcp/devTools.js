@@ -111,7 +111,7 @@ function registerDevTools(server, client) {
       eci: z.string(),
       rid: z.string(),
       name: z.string(),
-      args: z.record(z.any()).optional(),
+      args: z.record(z.string(), z.any()).optional(),
     },
     async ({ eci, rid, name, args }) => {
       try {
@@ -130,7 +130,7 @@ function registerDevTools(server, client) {
       eci: z.string(),
       domain: z.string(),
       name: z.string(),
-      attrs: z.record(z.any()).optional(),
+      attrs: z.record(z.string(), z.any()).optional(),
     },
     async ({ eci, domain, name, attrs }) => {
       try {
@@ -349,11 +349,11 @@ function registerDevTools(server, client) {
     "create_channel",
     "Create a channel on the root pico (engine_ui new_channel). Omit mcpPolicy and the channel is not exposed to MCP.",
     {
-      tags: z.union([z.string(), z.array(z.string())]),
+      tags: z.union([z.string(), z.array(z.string()).max(1000)]),
       id: z.string().optional(),
-      eventPolicy: z.record(z.any()).optional(),
-      queryPolicy: z.record(z.any()).optional(),
-      mcpPolicy: z.record(z.any()).optional(),
+      eventPolicy: z.record(z.string(), z.any()).optional(),
+      queryPolicy: z.record(z.string(), z.any()).optional(),
+      mcpPolicy: z.record(z.string(), z.any()).optional(),
     },
     async ({ tags, id, eventPolicy, queryPolicy, mcpPolicy }) => {
       try {

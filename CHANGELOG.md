@@ -1,3 +1,7 @@
+# 1.10.2 - November 23, 2026
+
+* **Security** — MCP tool arguments built from a pico schema cap arrays at 1000 elements. `zod` is `^4.6.7`, which rejects an oversized array before it reads the elements (GHSA-mrhx-c7xc-m3w5, Dependabot #21). See [1.10.2 release notes](docs/release/1.10.2.md).
+
 # 1.10.1 - November 17, 2026
 
 * **Fix** — startup compiles each ruleset cache file once. The JavaScript is written to a temporary file in the same directory and renamed into place. Every other pico waits for that compile instead of writing the same path. A cold start on a new compiler version no longer deletes a half-written module while another pico is loading it.
@@ -50,6 +54,28 @@
 
 * **Wrangler** — `ruleset_installed` is raised only when the rid is new on the pico. A flush still reinstalls the source and does not raise that event, so an install-time rule does not run again.
 * **Views** — `ui:app_url` selects the newest channel that has every requested tag. Extra tags, including `oauth-webhook`, still match.
+
+# 1.9.0 - November 9, 2026
+
+* **Logging tab** — a per-pico in-memory ring (`PICO_ENGINE_LOG_RING`, default 200) of events, queries, rules, policy decisions, entity writes, sends, and directives. Two-pane inspector, live stream, and filters. Wrangler, PDS, subscription, and the developer UI stay hidden until checked. A `ctx:query` on this engine nests under the caller. See [1.9.0 release notes](docs/release/1.9.0.md).
+* **XMLUI views** — a shared function tagged `@view` is a page. `/ui/{eci}/{rid}/` serves it, and the developer UI shows View when a ruleset has views.
+* **Owner console** — function expressions (for example `.map` callbacks).
+* **Ruleset cache** — recompile when cached JavaScript is missing `init`. Schema lookup uses the normalized ruleset URL.
+* **Developer UI** — Logging refresh and tab-gated loads. The Testing split and ruleset choice stay set across tabs. Child creation keeps the chosen box color.
+* Requires **krl-compiler** `^1.6.1`. Flush `io.picolabs.pico-engine-ui` after upgrade so `logs()` returns the transaction list.
+
+# 1.8.1 - October 28, 2026 (not published)
+
+* Versioned in git and never tagged or published. The owner console, ruleset cache, and developer UI fixes in that commit shipped in 1.9.0. npm was last at 1.8.0.
+
+# 1.8.0 - October 26, 2026
+
+* **Pico schemas** — doc annotations on rules and shared functions become a schema. `wrangler:picoSchema`, `rulesetSchema`, and `channelSchema` expose it, and `krl-check` lints it. The Testing tab and Docs UI render from it. See [1.8.0 release notes](docs/release/1.8.0.md).
+* **Channel policy** — deny overrides permit. Parents can set a policy ceiling on children, operators can set global deny lists, and `wildcardSkyRequireBearer` can require a validated bearer on wildcard `/sky/*` channels. The default root UI channel stays permissive for the owner.
+* **MCP** — a dev stdio server (`pico-engine mcp --stdio`) and mesh Streamable HTTP at `/mcp/:eci` with an OAuth bearer.
+* **Operator config** — `~/.config/pico-engine/config.json`, `pico-engine -c`, and `PICO_ENGINE_CONFIG`. The config file wins over `PORT` and `PICO_ENGINE_HOME` when both are set.
+* **Install and flush** — `ctx:validate` runs before an install or a flush. Failures raise `ruleset_install_failed` or `ruleset_flush_failed`. Annotated rules report fired, not fired, or not selected on event-wait responses.
+* Requires **pico-framework** `^0.8.2`.
 
 # 1.7.0 - October 10, 2026
 
@@ -134,7 +160,7 @@
 * **Configuration** — `PICO_ENGINE_BASE_URL` (passkeys and OAuth redirects), `PICO_ENGINE_ALLOW_SELF_SIGNUP` (default off), `PICO_ENGINE_ALLOW_LOCALHOST_C`; see `packages/pico-engine/README.md`.
 * Requires **pico-framework** `^0.8.0` (multi-root: `rootPicos()`, `createRootPico()`, `autoCreateRootPico`).
 
-# 1.4.0 - June 4, 2026
+# 1.4.0 - June 19, 2026
 
 * Default-install `io.picolabs.pds` on the root pico and on every child at creation.
 * Fix developer UI forest-loading deadlocks. Fixes issue [#493](https://github.com/Picolab/pico-engine/issues/493)

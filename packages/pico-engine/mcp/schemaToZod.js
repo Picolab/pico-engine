@@ -2,6 +2,11 @@
 
 const { z } = require("zod");
 
+// Tool arguments are untrusted. Zod 4.6.6+ rejects an array past this bound
+// before it reads the elements (GHSA-mrhx-c7xc-m3w5). The bound has to be the
+// first check on the array; a later .max() still walks every element.
+const MAX_ATTR_ARRAY = 1000;
+
 function zodForAttr(attr) {
   const t = String(attr.type || "string").toLowerCase();
   let field;
@@ -17,12 +22,12 @@ function zodForAttr(attr) {
       break;
     case "array":
     case "list":
-      field = z.array(z.any());
+      field = z.array(z.any()).max(MAX_ATTR_ARRAY);
       break;
     case "map":
     case "object":
     case "json":
-      field = z.record(z.any());
+      field = z.record(z.string(), z.any());
       break;
     default:
       field = z.string();
@@ -53,4 +58,4 @@ function attrsToZodShape(attrs) {
   return shape;
 }
 
-module.exports = { attrsToZodShape, zodForAttr };
+module.exports = { attrsToZodShape, zodForAttr, MAX_ATTR_ARRAY };
