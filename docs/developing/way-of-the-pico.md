@@ -1,5 +1,7 @@
 # Way of the Pico
 
+**[Phil Windley](https://www.windley.com)**, creator of the pico model. This is an introduction, in the first person, to how the model wants to be used.
+
 Programming models shape how builders think, and that is still true when the builder is a coding agent. Picos are a programming model far enough from the mainstream that most developers, human or not, start out writing them like a web service with a database. This page is that mindset: where picos came from, what they borrow from actors and Smalltalk, and the habits of thought that make them easy to work with instead of strange. It is not a tutorial. The [Pico Labs documentation](https://picolabs.atlassian.net/wiki/spaces/docs/overview) and the [pico overview](/pico-overview) in the [engine repo](https://github.com/Picolab/pico-engine) cover what picos are and how to program them.
 
 I've always been intrigued by programming models. In grad school I gravitated to languages that were outside the mainstream. Smalltalk offered an intriguing look at objects. Prolog offered declarative programming through rules. Lisp seemed foundational, capable of exploring the essence of what it means to program. My dissertation was in hardware verification using a system called HOL, which was built (and extended) in a functional language called ML.
